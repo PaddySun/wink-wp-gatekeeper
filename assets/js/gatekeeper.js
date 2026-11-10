@@ -192,6 +192,7 @@
 	}
 
 	function showMsgBar( container, text ) {
+		cancelMsgClear( container ); // 新错误展示时取消未决防抖清除（不被旧计时器吃掉）。
 		var msg = ensureMsgBar( container );
 		msg.textContent = text; // 服务端文案经 textContent 注入（不 innerHTML）。
 		msg.hidden = false;
@@ -202,6 +203,30 @@
 		if ( msg ) {
 			msg.hidden = true;
 			msg.textContent = '';
+		}
+	}
+
+	/* 【v1.5·F4-2】内联错误条清除调度（03 §2.1 v1.5 三清除时机——互不替代、全部实施）：
+	 *   ① 重新预检通过时清除（onTrustPass / releaseToAdapter 两成功分支）；
+	 *   ② 评论框/昵称/邮箱 input 事件防抖 MSG_CLEAR_MS=300ms 清除（内容变了旧错误无意义）；
+	 *   ③ TrustStub 前端 TTL 过期回退同拍清除（onTrustPass 计时器回调）。
+	 * 防抖纯逻辑集中于此：未决计时器先取消（300ms 内连续输入只保留最后一次到点清除）。 */
+	var MSG_CLEAR_MS = 300;
+
+	function scheduleMsgClear( container ) {
+		if ( container.wkMsgClearTimer ) {
+			window.clearTimeout( container.wkMsgClearTimer );
+		}
+		container.wkMsgClearTimer = window.setTimeout( function () {
+			container.wkMsgClearTimer = null;
+			hideMsgBar( container );
+		}, MSG_CLEAR_MS );
+	}
+
+	function cancelMsgClear( container ) {
+		if ( container.wkMsgClearTimer ) {
+			window.clearTimeout( container.wkMsgClearTimer );
+			container.wkMsgClearTimer = null;
 		}
 	}
 
@@ -235,11 +260,11 @@
 		}
 		form.dataset.wkPrecheckBound = '1';
 
-		// 内容变更即清错误条（旧错误对新草稿无意义）。
+		// 【v1.5·F4-2②】内容变更即防抖清错误条（300ms——旧错误对新草稿无意义）。
 		form.addEventListener( 'input', function ( event ) {
 			var target = event.target;
 			if ( target && ( 'TEXTAREA' === target.tagName || 'INPUT' === target.tagName ) ) {
-				hideMsgBar( container );
+				scheduleMsgClear( container );
 			}
 		} );
 
@@ -300,7 +325,9 @@
 
 		function releaseToAdapter() {
 			// 放行本次点击给适配器 bubble 处理器：bypass 标记 + 程序化补点（捕获层见标记即放行）。
+			// 【v1.5·F4-2①】captcha_needed 成功转验证码链：旧错误条已不成立，同拍清除。
 			finish();
+			hideMsgBar( container );
 			setGateButton( container, 'unverified', l10n( 'idle', '完成人机验证' ) );
 			form.setAttribute( 'data-wk-precheck-bypass', '1' );
 			try { button.click(); } catch ( err ) {}
@@ -336,7 +363,7 @@
 	}
 
 	function onTrustPass( container, trustValue ) {
-		hideMsgBar( container );
+		hideMsgBar( container ); // 【v1.5·F4-2①】trust_pass 成功分支：旧错误条已不成立。
 		var field = container.querySelector( 'input[name="wk_trust"]' );
 		if ( ! field ) {
 			field = document.createElement( 'input' );
@@ -346,7 +373,9 @@
 		}
 		field.value = trustValue;
 
-		setGateButton( container, 'verified', l10n( 'done', '已通过验证' ) );
+		// 【v1.5·F4-1】免验轻提示（区别于真验通过的「已通过验证」——让「免验发生了」前台
+		// 可感知：多次正常评论后不再出验证码属设计行为）。aria-live 由按钮 polite 播报。
+		setGateButton( container, 'verified', l10n( 'wk_trust_hint', '老朋友，免验放行' ) );
 		container.dispatchEvent( new CustomEvent( 'wk-gate-token', { bubbles: true } ) ); // 解除提交禁用。
 
 		// 前端 TTL 计时器（对齐天御票据 5min 过期回退模式——03 §2.1）：到点清凭证回退未验证态。
@@ -357,6 +386,7 @@
 				return; // 已被后续状态变更接管（票据过期回退等）。
 			}
 			field.value = '';
+			hideMsgBar( container ); // 【v1.5·F4-2③】凭证过期旧错误语境失效，同拍清错误条。
 			setGateButton( container, 'unverified', l10n( 'expired', '验证已过期，请重新验证' ) );
 			container.dispatchEvent( new CustomEvent( 'wk-gate-expire', { bubbles: true } ) ); // 重新禁用提交。
 		}, ttlMs );

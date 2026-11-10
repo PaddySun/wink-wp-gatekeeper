@@ -326,6 +326,25 @@ final class SanitizeTest extends TestCase {
 		$this->assertSame( 'text', $rules['copy.titles.banned_word'] );
 	}
 
+	/**
+	 * 【v1.5·B1】die_page 站长自定义拦截页文案键入白名单（单一来源机制照常）。
+	 */
+	public function test_die_page_custom_keys_whitelisted(): void {
+		$rules = Sanitize::rules();
+		$this->assertSame( 'text', $rules['copy.die_page_title'] );
+		$this->assertSame( 'textarea', $rules['copy.die_page_message'] );
+
+		list( $clean, $rejected ) = Sanitize::clean( array(
+			'copy' => array(
+				'die_page_title'   => ' 你被拦下了 ',
+				'die_page_message' => " 事件 {event_no}\n第二行 ",
+			),
+		) );
+		$this->assertSame( array(), $rejected );
+		$this->assertSame( '你被拦下了', $clean['copy']['die_page_title'] );
+		$this->assertSame( "事件 {event_no}\n第二行", $clean['copy']['die_page_message'] );
+	}
+
 	/* ---------- schema 与 rules 的双向一致性 ---------- */
 
 	/**

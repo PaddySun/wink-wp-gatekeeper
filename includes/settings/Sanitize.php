@@ -173,6 +173,12 @@ final class Sanitize {
 			$rules[ 'copy.titles.' . $key ]   = 'text';
 		}
 
+		// 【v1.5·B1】die_page 站长自定义拦截页文案键（Copywork::custom_defaults() 同源——
+		// 加键漏改白名单的故障模式由 schema↔rules 双向一致性测试封死）。
+		foreach ( Copywork::custom_defaults() as $custom_key => $unused ) {
+			$rules[ 'copy.' . $custom_key ] = ( 'die_page_message' === $custom_key ) ? 'textarea' : 'text';
+		}
+
 		return $rules;
 	}
 

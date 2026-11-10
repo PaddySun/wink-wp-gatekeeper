@@ -31,6 +31,11 @@ final class Copywork {
 	public const PLACEHOLDER_CONTACT_EMAIL = 'contact_email';
 
 	/**
+	 * 云端 Label 映射键前缀（03 §3【v1.5·F4-3】：映射表落点=Copywork 键值表，键 wk-label-<Label>）。
+	 */
+	public const LABEL_KEY_PREFIX = 'wk-label-';
+
+	/**
 	 * 规则键清单（03 Tab⑤：上游 4 条迁移 + 本项目新增 4 条 + M2 反馈2 T2 核心拒绝 2 条，共十键）。
 	 *
 	 * @return string[] 规范顺序的键列表。
@@ -98,6 +103,110 @@ final class Copywork {
 				'comment_flood'   => '手速比眨眼还快',
 			),
 		);
+	}
+
+	/**
+	 * 站长自定义拦截页文案键默认值（03 Tab⑤【v1.5·WORDFENCE-ADOPTION B1】）。
+	 *
+	 * 键落位 = copy 子树根（copy.die_page_title / copy.die_page_message），不属规则键集
+	 * （keys() 不收——既有键与默认集零改动条款）；空串 = 回落对应场景默认文案。
+	 *
+	 * @return array{die_page_title: string, die_page_message: string}
+	 */
+	public static function custom_defaults(): array {
+		return array(
+			'die_page_title'   => '',
+			'die_page_message' => '',
+		);
+	}
+
+	/**
+	 * 云端驱动 Label → 中文映射表（03 §3【v1.5·F4-3】：证据行「命中规则」人类可读化）。
+	 *
+	 * 键形态 = wk-label-<Label>（LABEL_KEY_PREFIX 前缀，映射关系键名本身不可改——
+	 * Tab⑤ 只读预览区展示同一键形态）；文案可经 wink_gatekeeper_error_messages filter
+	 * 覆盖（humanize_rule 的 $label_overrides，同键覆盖不扩键）。
+	 *
+	 * TMS 集为 L0 实测定稿 Label 表（05 §2.4）；阿里集为 05 §2.5 摘录族——**静态对照
+	 * 官方文档整理，未运行验证**（阿里驱动 M3' 批次 3 接入时复核补全）。
+	 *
+	 * @return array<string, string> wk-label-<Label> => 中文文案。
+	 */
+	public static function cloud_labels(): array {
+		return array(
+			// 腾讯云 TMS 文本审核（实测定稿 Label 集）。
+			'wk-label-Abuse'      => '辱骂违规',
+			'wk-label-Ad'         => '广告',
+			'wk-label-Porn'       => '色情低俗',
+			'wk-label-Politics'   => '涉政',
+			'wk-label-Terrorism'  => '暴恐',
+			'wk-label-Contraband' => '违禁',
+			'wk-label-Sexy'       => '性感的',
+			// 阿里文本审核增强版 PLUS（05 §2.5 摘录族；静态推断，接入时复核）。
+			'wk-label-pt_to_sites'              => '疑似站外引流',
+			'wk-label-pt_to_contact'            => '疑似引流广告号',
+			'wk-label-pt_by_recruitment'        => '疑似网赚兼职广告',
+			'wk-label-ad_compliance'            => '违反广告法内容',
+			'wk-label-inappropriate_profanity'  => '疑似攻击辱骂',
+			'wk-label-inappropriate_oral'       => '疑似低俗口头语',
+			'wk-label-inappropriate_nonsense'   => '疑似无意义灌水',
+			'wk-label-inappropriate_discrimination' => '疑似偏见歧视',
+			'wk-label-pornographic_adult'       => '疑似色情',
+			'wk-label-sexual_suggestive'        => '疑似低俗',
+			'wk-label-customized'               => '命中自定义词库',
+			'wk-label-aigc'                     => '文本疑似 AI 生成',
+		);
+	}
+
+	/**
+	 * 驱动人类名前缀（03 §3 v1.5：registry type+label 派生）——
+	 * review「云端文本审核（{label}）」/ captcha「人机验证（{label}）」/ ip「IP 信誉（{label}）」。
+	 *
+	 * @param string $type  DriverRegistry type（captcha|review|ip；未知类型回退裸 label）。
+	 * @param string $label registry label（驱动人类名）。
+	 * @return string
+	 */
+	public static function driver_prefix( string $type, string $label ): string {
+		switch ( $type ) {
+			case 'review':
+				return '云端文本审核（' . $label . '）';
+			case 'captcha':
+				return '人机验证（' . $label . '）';
+			case 'ip':
+				return 'IP 信誉（' . $label . '）';
+		}
+		return $label;
+	}
+
+	/**
+	 * 证据行 rule_hit 人类可读化（纯函数；03 §3【v1.5·F4-3】）。
+	 *
+	 * 只对云端驱动 `Label,Score` 形态（如 `Abuse,100`）做映射：
+	 *   {驱动人类名前缀}：{标签中文} · 置信 {Score}
+	 * 兜底（03 §3 边界条款，不放宽）：
+	 *   - 未收录标签原样显示（宁可英文不可错误中文；nonLabel 伪标签不映射整条直通）；
+	 *   - 非 Label,Score 形态（LocalRules 键 banned_word / 核心拒绝键 duplicate_comment /
+	 *     remote_* / unknown_suggestion:* 等）一律原样返回。
+	 *
+	 * @param string                $prefix          驱动人类名前缀（driver_prefix 产物）。
+	 * @param string                $reason          verdict reason（rule_hit 原文）。
+	 * @param array<string, string> $label_overrides filter 覆盖（键 wk-label-<Label> => 中文）。
+	 * @return string
+	 */
+	public static function humanize_rule( string $prefix, string $reason, array $label_overrides = array() ): string {
+		if ( '' === $reason || ! preg_match( '/^([A-Za-z0-9_]+),(\d{1,3})$/', $reason, $m ) ) {
+			return $reason;
+		}
+		$label = $m[1];
+		if ( 'nonLabel' === $label ) {
+			return $reason; // 伪标签（未检测出风险）不映射。
+		}
+		$labels = array_merge( self::cloud_labels(), $label_overrides );
+		$key    = self::LABEL_KEY_PREFIX . $label;
+		$zh     = isset( $labels[ $key ] ) && is_string( $labels[ $key ] ) && '' !== $labels[ $key ]
+			? $labels[ $key ]
+			: $label; // 未收录标签原样兜底。
+		return $prefix . '：' . $zh . ' · 置信 ' . $m[2];
 	}
 
 	/**

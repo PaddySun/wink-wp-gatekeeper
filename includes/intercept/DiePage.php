@@ -123,6 +123,56 @@ final class DiePage {
 	}
 
 	/**
+	 * 站长自定义拦截页文案归一（【v1.5·B1】纯函数，单测覆盖）。
+	 *
+	 * 空值/非字符串/纯空白 = 空串（= 回落对应场景默认文案）；字符串取 trim 后值。
+	 *
+	 * @param array<string, mixed> $copy 设置树 copy 子树（可为空/部分）。
+	 * @return array{die_page_title: string, die_page_message: string}
+	 */
+	public static function custom_copy( array $copy ): array {
+		$out = array();
+		foreach ( Copywork::custom_defaults() as $key => $unused ) {
+			$value = $copy[ $key ] ?? '';
+			$out[ $key ] = ( is_string( $value ) && '' !== trim( $value ) ) ? trim( $value ) : '';
+		}
+		return $out;
+	}
+
+	/**
+	 * 拦截页标题/正文解析（【v1.5·B1】纯函数，单测覆盖）：
+	 * 场景默认文案（resolve_copy 语义沿袭：defaults 打底 + 存储字符串项覆盖）→
+	 * 站长自定义覆盖位（die_page_title/die_page_message 非空时全场景共用覆盖）→
+	 * 占位符代入（体系同享：{event_no}/{rule}/{time}/{contact_email}；缺失占位符保留原文）。
+	 *
+	 * @param string               $copy_key 文案键（Copywork::keys() 之一）。
+	 * @param array<string, mixed> $copy     设置树 copy 子树（可为空/部分）。
+	 * @param array<string, mixed> $vars     占位符变量。
+	 * @return array{title: string, message: string}
+	 */
+	public static function resolve_page_text( string $copy_key, array $copy, array $vars ): array {
+		$resolved = self::resolve_copy( $copy );
+		$messages = $resolved['messages'];
+		$titles   = $resolved['titles'];
+
+		$message = Copywork::format( is_string( $messages[ $copy_key ] ?? '' ) ? $messages[ $copy_key ] : '', $vars );
+		$title   = is_string( $titles[ $copy_key ] ?? null ) ? Copywork::format( $titles[ $copy_key ], $vars ) : '';
+
+		$custom = self::custom_copy( $copy );
+		if ( '' !== $custom['die_page_title'] ) {
+			$title = Copywork::format( $custom['die_page_title'], $vars );
+		}
+		if ( '' !== $custom['die_page_message'] ) {
+			$message = Copywork::format( $custom['die_page_message'], $vars );
+		}
+
+		return array(
+			'title'   => $title,
+			'message' => $message,
+		);
+	}
+
+	/**
 	 * 拦截落地（D4）：读设置 → 文案工坊格式化 → wp_die 品牌页 + back_link。
 	 *
 	 * @param string                $copy_key 文案键（Copywork::keys() 之一）。
@@ -134,21 +184,18 @@ final class DiePage {
 		$settings = get_option( 'wink_gatekeeper_settings', array() );
 		$copy     = is_array( $settings['copy'] ?? null ) ? $settings['copy'] : array();
 
-		$resolved = self::resolve_copy( $copy );
-		$messages = $resolved['messages'];
-		$titles   = $resolved['titles'];
-
-		$message = Copywork::format( is_string( $messages[ $copy_key ] ?? '' ) ? $messages[ $copy_key ] : '', $vars );
-		$title   = is_string( $titles[ $copy_key ] ?? null ) ? Copywork::format( $titles[ $copy_key ], $vars ) : '';
-
 		$contact = isset( $settings['brand']['contact_email'] ) && is_string( $settings['brand']['contact_email'] )
 			? $settings['brand']['contact_email']
 			: '';
 
-		// 拦截文案含联系邮箱占位符时全局兜底注入。
+		// 拦截文案含联系邮箱占位符时全局兜底注入（自定义覆盖位同享占位符体系——v1.5·B1）。
 		if ( '' !== $contact ) {
-			$message = Copywork::format( $message, array( 'contact_email' => $contact ) );
+			$vars['contact_email'] = $contact;
 		}
+
+		$page    = self::resolve_page_text( $copy_key, $copy, $vars );
+		$message = $page['message'];
+		$title   = $page['title'];
 
 		wp_die(
 			self::build( $title, $message, $evidence, $contact, WINK_GATEKEEPER_URL . 'assets/brand/logo-wink.svg', get_locale() ),

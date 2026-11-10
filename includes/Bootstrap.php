@@ -270,7 +270,22 @@ final class Bootstrap {
 				$halt_check,   // C4：停转检查（DriverHealth + 配额）。
 				$halt_mark,    // C4：semantic 终态 → 当日停转。
 				$verify_cache, // T3：验证短缓存（核验成功窗口内免重复验票）。
-				$iprep         // 【v1.4·R2】IP 信誉三态（步骤 2 消费；Null=skip=现行行为）。
+				$iprep,        // 【v1.4·R2】IP 信誉三态（步骤 2 消费；Null=skip=现行行为）。
+				null,          // trust_mac：wp_salt('auth') 默认（WP 边界）。
+				// 【v1.5·F4-3】驱动元数据提供器：证据行「命中规则」人类可读化的驱动人类名来源
+				// （registry type+label 派生）；label_overrides 经 wink_gatekeeper_error_messages
+				// filter 覆盖文案（映射键名 wk-label-<Label> 本身不可改——03 §3 v1.5）。
+				static function ( string $driver_id ) use ( $registry ): ?array {
+					$driver = $registry->get( $driver_id );
+					if ( null === $driver || ! is_string( $driver['label'] ?? null ) || '' === $driver['label'] ) {
+						return null;
+					}
+					return array(
+						'type'            => (string) $driver['type'],
+						'label'           => (string) $driver['label'],
+						'label_overrides' => apply_filters( 'wink_gatekeeper_error_messages', array() ), // WP 边界。
+					);
+				}
 			);
 
 			// 验证钩子按闸声明装配（preprocess_comment @ -PHP_INT_MAX——A3：比一切评论插件早）。
@@ -711,6 +726,9 @@ final class Bootstrap {
 			'hint'      => __( '请先完成人机验证', 'wink-gatekeeper' ), // 【v1.4·反馈5 改词】删除「上方」字样（嵌入式后验证码不一定在上方）。
 			// 【v1.4·R2/03 §2.1】预检门 checking 态文案（按钮状态机增量：unverified → checking → …）。
 			'checking'  => __( '检查中…', 'wink-gatekeeper' ),
+			// 【v1.5·F4-1】免验轻提示（03 §2.1 v1.5：trust_pass 分支差异化文案——让「免验发生了」
+			// 前台可感知；aria-live 随按钮播报）。
+			'wk_trust_hint' => __( '老朋友，免验放行', 'wink-gatekeeper' ),
 		);
 	}
 

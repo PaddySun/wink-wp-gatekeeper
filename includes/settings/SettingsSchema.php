@@ -243,8 +243,9 @@ final class SettingsSchema {
 				),
 			),
 
-			// 文案工坊：从 Copywork 单一来源派生（03 Tab⑤）。
-			'copy'                   => Copywork::defaults(),
+			// 文案工坊：从 Copywork 单一来源派生（03 Tab⑤）；
+			// 【v1.5·B1】追加 die_page 站长自定义拦截页文案键（空串=回落场景默认文案）。
+			'copy'                   => array_merge( Copywork::defaults(), Copywork::custom_defaults() ),
 
 			'stats'                  => array(
 				'enabled'         => true,

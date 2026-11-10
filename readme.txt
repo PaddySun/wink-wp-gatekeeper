@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.2.2
+Stable tag: 0.2.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.2.3 =
+
+M3’ 前置批次 1·评论域 B1a（2026-11-11，设计文档 v1.5 F4-1/F4-2/F4-3 + WORDFENCE-ADOPTION B1 + P2-3）：① F4-1 免验轻提示——信用免验（pass_source=trust/verify_cache）命中时三态单按钮差异化文案「老朋友，免验放行」（wkGateL10n 键 wk_trust_hint，aria-live 随按钮播报，区别于真验通过的「已通过验证」）；② F4-2 内联错误条三清除时机（.wk-gate-msg）——重新预检通过（trust_pass/captcha_needed 两成功分支）/评论框·昵称·邮箱 input 防抖 300ms 清除/TrustStub 前端 TTL 过期回退同拍清除（清除调度集中 scheduleMsgClear/cancelMsgClear，showMsgBar 取消未决清除）；③ F4-3 拦截页证据行本地化——「命中规则」对云端驱动 Label,Score 做人类可读映射（驱动人类名前缀 + 标签中文 + 置信，「云端文本审核（腾讯云 TMS 文本审核）：辱骂违规 · 置信 100」式；映射表落点 Copywork::cloud_labels() 键 wk-label-<Label> + Tab⑤ 只读预览 + wink_gatekeeper_error_messages filter 覆盖文案；未收录标签原样兜底、nonLabel 不映射、LocalRules 键与 {rule} 键名替换不放宽）；④ B1 站长自定义拦截页文案——copy.die_page_title/die_page_message 新键（Tab⑤「拦截页自定义」分组，空值=回落场景默认文案，占位符 {event_no}/{rule}/{time}/{contact_email} 同享，schema/sanitize/Tab⑤ 三处同步）；⑤ P2-3——CommentGate 访客可见证据行时间 date()→wp_date()（站点时区，Tc3Signer gmdate 不动）。819 tests / 3657 assertions 全绿。
 
 = 0.2.2 =
 

@@ -164,10 +164,28 @@ final class SettingsSchemaTest extends TestCase {
 	}
 
 	/**
-	 * copy 子树从 Copywork 单一来源派生（03 Tab⑤）。
+	 * copy 子树从 Copywork 单一来源派生（03 Tab⑤）；【v1.5·B1】追加 die_page 自定义文案键
+	 * （copy.die_page_title/die_page_message，默认空串=回落场景默认文案）。
 	 */
 	public function test_copy_subtree_is_derived_from_copywork(): void {
-		$this->assertSame( Copywork::defaults(), SettingsSchema::defaults()['copy'] );
+		$this->assertSame(
+			array_merge( Copywork::defaults(), Copywork::custom_defaults() ),
+			SettingsSchema::defaults()['copy']
+		);
+		$this->assertSame( '', SettingsSchema::defaults()['copy']['die_page_title'] );
+		$this->assertSame( '', SettingsSchema::defaults()['copy']['die_page_message'] );
+	}
+
+	/**
+	 * 【v1.5·B1】v1.5 迁移：存量 option copy 子树缺 die_page 键时由 merge_defaults 补默认。
+	 */
+	public function test_merge_defaults_backfills_die_page_keys_for_legacy_options(): void {
+		$merged = SettingsSchema::merge_defaults( array(
+			'copy' => array( 'messages' => array( 'banned_word' => '自定义文案' ) ),
+		) );
+		$this->assertSame( '', $merged['copy']['die_page_title'] );
+		$this->assertSame( '', $merged['copy']['die_page_message'] );
+		$this->assertSame( '自定义文案', $merged['copy']['messages']['banned_word'] );
 	}
 
 	public function test_deepseek_system_prompt_default_is_complete_prompt(): void {

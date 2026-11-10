@@ -151,6 +151,15 @@ final class CommentGate extends AbstractGate {
 	private $trust_mac;
 
 	/**
+	 * @var callable|null 驱动元数据提供器 fn(string $driver_id): ?array{type:string,label:string,
+	 *                    label_overrides:array<string,string>}（【v1.5·F4-3】03 §3 证据行人类可读化：
+	 *                    生产 = Bootstrap 注入 DriverRegistry 查询闭包（文案覆盖经
+	 *                    wink_gatekeeper_error_messages filter 桥）；null = 未装配（单测缺省）
+	 *                    = 证据行原样透传（零回归）。
+	 */
+	private $driver_meta;
+
+	/**
 	 * @var bool 本次请求编排产出 review 判定（评论应入待审）——pre_comment_approved
 	 *           filter 消费（C4 真机发现：WP 7.x wp_new_comment 在 preprocess_comment 之后
 	 *           经 wp_allow_comment 重算 comment_approved，直接改 commentdata 会被覆盖；
@@ -201,6 +210,7 @@ final class CommentGate extends AbstractGate {
 	 * @param VerifyCache|null            $verify_cache 验证短缓存（null = 未装配；T3）。
 	 * @param IpReputationProbe|null      $iprep IP 信誉三态（null = 未装配=skip；【v1.4·R2】）。
 	 * @param callable|null               $trust_mac 信任凭证 HMAC（null = wp_salt('auth') 默认）。
+	 * @param callable|null               $driver_meta 驱动元数据提供器（【v1.5·F4-3】null = 证据行原样）。
 	 */
 	public function __construct(
 		array $settings,
@@ -217,7 +227,8 @@ final class CommentGate extends AbstractGate {
 		?callable $halt_mark = null,
 		?VerifyCache $verify_cache = null,
 		?IpReputationProbe $iprep = null,
-		?callable $trust_mac = null
+		?callable $trust_mac = null,
+		?callable $driver_meta = null
 	) {
 		$this->settings = $settings;
 		$this->captcha  = $captcha;
@@ -258,6 +269,7 @@ final class CommentGate extends AbstractGate {
 		$this->trust_mac  = $trust_mac ?? static function ( string $data ): string {
 			return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // WP 边界（与 VerifyCache 同源）。
 		};
+		$this->driver_meta = $driver_meta; // 【v1.5·F4-3】null = 未装配 = 证据行原样透传。
 	}
 
 	public function render_hooks(): array {
@@ -803,7 +815,7 @@ final class CommentGate extends AbstractGate {
 			$evidence['事件编号'] = $event_no;
 		}
 		$evidence['命中规则'] = $rule;
-		$evidence['时间']     = date( 'Y-m-d H:i:s', (int) call_user_func( $this->now ) );
+		$evidence['时间']     = $this->format_evidence_time( (int) call_user_func( $this->now ) ); // P2-3：wp_date 站点时区。
 
 		return array(
 			'message'  => $message,
@@ -1090,14 +1102,16 @@ final class CommentGate extends AbstractGate {
 		$event_no = (string) call_user_func( $this->recorder, $stage, $verdict, $meta );
 
 		// 证据行仅事件编号/规则名/时间（03 §3 不暴露清单：IP/原文/内部码/reason 不出）。
+		// 【v1.5·F4-3】「命中规则」对云端驱动 Label,Score 形态做人类可读化（驱动人类名前缀 +
+		// 标签中文 + 置信；未收录标签原样兜底；LocalRules 键/核心拒绝键原样不放宽）。
 		$evidence = array();
 		if ( '' !== $event_no ) {
 			$evidence['事件编号'] = $event_no;
 		}
 		if ( '' !== $verdict->reason() ) {
-			$evidence['命中规则'] = $verdict->reason();
+			$evidence['命中规则'] = $this->humanize_evidence_rule( $verdict );
 		}
-		$evidence['时间'] = date( 'Y-m-d H:i:s', $now );
+		$evidence['时间'] = $this->format_evidence_time( $now );
 
 		// 文案内 event_no/time 占位符替换（记录在案后回填）。
 		$message = Copywork::format( $message, array_merge( $vars, array(
@@ -1112,6 +1126,48 @@ final class CommentGate extends AbstractGate {
 			'message'     => $message,
 			'evidence'    => $evidence,
 		);
+	}
+
+	/**
+	 * 证据行「命中规则」人类可读化（【v1.5·F4-3】03 §3）。
+	 *
+	 * 经注入的 $driver_meta 从 DriverRegistry 派生驱动人类名（type+label）；
+	 * 未装配（null）/查询无果 = 原样透传（单测缺省与未知驱动零回归）。映射本体在
+	 * Copywork::humanize_rule（纯函数，映射/兜底/边界条款见其头注）。
+	 *
+	 * @param Verdict $verdict 判定。
+	 * @return string
+	 */
+	private function humanize_evidence_rule( Verdict $verdict ): string {
+		$reason = $verdict->reason();
+		if ( null === $this->driver_meta || '' === $reason ) {
+			return $reason;
+		}
+		$meta = call_user_func( $this->driver_meta, $verdict->driver_id() );
+		if ( ! is_array( $meta ) || ! isset( $meta['type'], $meta['label'] )
+			|| ! is_string( $meta['type'] ) || ! is_string( $meta['label'] ) || '' === $meta['label'] ) {
+			return $reason;
+		}
+		$overrides = isset( $meta['label_overrides'] ) && is_array( $meta['label_overrides'] )
+			? $meta['label_overrides']
+			: array();
+		return Copywork::humanize_rule( Copywork::driver_prefix( $meta['type'], $meta['label'] ), $reason, $overrides );
+	}
+
+	/**
+	 * 证据行时间格式化（P2-3：访客可见时间差时区——wp_date 跟随站点时区）。
+	 *
+	 * WP 边界函数 only：function_exists 守卫保纯 PHP 单测环境零依赖（G5 铁律）——
+	 * 无 WP 时回退 date()（UTC），生产行为以真机验证为准。
+	 *
+	 * @param int $timestamp Unix 时间戳。
+	 * @return string Y-m-d H:i:s（站点时区）。
+	 */
+	private function format_evidence_time( int $timestamp ): string {
+		if ( function_exists( 'wp_date' ) ) {
+			return wp_date( 'Y-m-d H:i:s', $timestamp ); // WP 边界（P2-3）。
+		}
+		return date( 'Y-m-d H:i:s', $timestamp ); // 纯 PHP 单测环境回退。
 	}
 
 	/* -------------------------------------------------------------------
@@ -1279,7 +1335,8 @@ final class CommentGate extends AbstractGate {
 	 */
 	private function intercept_result( array $result ): void {
 		$settings = get_option( 'wink_gatekeeper_settings', array() );
-		$titles   = isset( $settings['copy']['titles'] ) && is_array( $settings['copy']['titles'] ) ? $settings['copy']['titles'] : array();
+		$copy     = isset( $settings['copy'] ) && is_array( $settings['copy'] ) ? $settings['copy'] : array();
+		$titles   = isset( $copy['titles'] ) && is_array( $copy['titles'] ) ? $copy['titles'] : array();
 
 		$title = '';
 		// 按命中规则推断标题键（evidence 的规则名 = Copywork 键或驱动 rule 码）。
@@ -1297,6 +1354,33 @@ final class CommentGate extends AbstractGate {
 		$message = isset( $result['message'] ) ? $result['message'] : '';
 		if ( '' !== $contact && false !== strpos( $message, '{contact_email}' ) ) {
 			$message = Copywork::format( $message, array( 'contact_email' => $contact ) );
+		}
+
+		/* 【v1.5·B1】站长自定义拦截页覆盖位（与 DiePage::show 同一归一口径）：非空即覆盖
+		 * 标题/正文，占位符体系同享（证据行 event_no/rule/time + contact_email 兜底）；
+		 * 空值 = 回落上方场景默认（既有行为零改动）。真机教训（B1a 2026-11-11）：本分发点
+		 * 独立于 DiePage::show 组装标题/正文——漏挂覆盖位致自定义文案对编排 reject 不生效。 */
+		$custom = DiePage::custom_copy( $copy );
+		if ( '' !== $custom['die_page_title'] || '' !== $custom['die_page_message'] ) {
+			$vars = array();
+			foreach ( $result['evidence'] as $label => $value ) {
+				if ( '事件编号' === $label ) {
+					$vars['event_no'] = (string) $value;
+				} elseif ( '命中规则' === $label ) {
+					$vars['rule'] = (string) $value;
+				} elseif ( '时间' === $label ) {
+					$vars['time'] = (string) $value;
+				}
+			}
+			if ( '' !== $contact ) {
+				$vars['contact_email'] = $contact;
+			}
+			if ( '' !== $custom['die_page_title'] ) {
+				$title = Copywork::format( $custom['die_page_title'], $vars );
+			}
+			if ( '' !== $custom['die_page_message'] ) {
+				$message = Copywork::format( $custom['die_page_message'], $vars );
+			}
 		}
 
 		wp_die(

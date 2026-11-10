@@ -1315,6 +1315,52 @@ final class SettingsPage {
 				<?php endforeach; ?>
 			</table>
 		</section>
+
+		<section class="wk-card">
+			<h2><?php esc_html_e( '拦截页自定义', 'wink-gatekeeper' ); ?></h2>
+			<p class="wk-muted">
+				<?php
+				// 【v1.5·B1】站长自定义拦截页覆盖位（Wordfence blockCustomText 先例）。
+				esc_html_e( '作用于品牌整页拦截页的标题与正文（全部场景共用）。留空 = 使用各场景默认文案。占位符：{event_no} {rule} {time} {contact_email}——{rule} 只显示规则键名。', 'wink-gatekeeper' );
+				?>
+			</p>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-copy-die-page-title"><?php esc_html_e( '拦截页标题', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-copy-die-page-title" class="regular-text"
+							name="<?php echo esc_attr( self::field_name( array( 'copy', 'die_page_title' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) $settings['copy']['die_page_title'] ); ?>" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-copy-die-page-message"><?php esc_html_e( '拦截页正文', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<textarea id="wk-copy-die-page-message" class="large-text" rows="3"
+							name="<?php echo esc_attr( self::field_name( array( 'copy', 'die_page_message' ) ) ); ?>"><?php echo esc_textarea( (string) $settings['copy']['die_page_message'] ); ?></textarea>
+					</td>
+				</tr>
+			</table>
+		</section>
+
+		<section class="wk-card">
+			<h2><?php esc_html_e( '云端标签映射（只读预览）', 'wink-gatekeeper' ); ?></h2>
+			<p class="wk-muted">
+				<?php
+				// 【v1.5·F4-3】映射表只读预览（落点=Copywork 键值表，映射键名不可改）；
+				// 文案可经 wink_gatekeeper_error_messages filter 覆盖，未收录标签原样显示。
+				esc_html_e( '拦截页「命中规则」证据行对云端驱动的原始 Label,Score 做人类可读映射（驱动人类名前缀 + 标签中文 + 置信）。未收录标签原样显示。', 'wink-gatekeeper' );
+				?>
+			</p>
+			<table class="form-table" role="presentation">
+				<?php foreach ( Copywork::cloud_labels() as $label_key => $zh ) : ?>
+					<tr>
+						<th scope="row"><code><?php echo esc_html( $label_key ); ?></code></th>
+						<td><?php echo esc_html( $zh ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</table>
+		</section>
 		<?php
 	}
 
