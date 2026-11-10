@@ -72,6 +72,21 @@ final class SettingsSchema {
 					// M2 反馈2 T3（D+A-lite）：验证短缓存窗口（分钟）——票据核验成功后同存根+同 IP
 					// 免重复验票；0 = 关闭。默认与 VerifyCache::DEFAULT_TTL_MINUTES 一致。
 					'verify_cache_minutes' => 10,
+					// 【v1.5·DESIGN-C1 §3（02 §2.8 安全门 #1）】test_mode 演练旁路开关——默认关
+					// （Tab② 黄条+红字说明+二次确认复选框；写路径=register_setting 主保存通道，
+					// 保存桥切换瞬间落 test_mode_on/off 事件）。
+					'test_mode'            => false,
+					// 【v1.5·C1】内部键（非 UI 字段）：开启时刻 int 时间戳——24h 懒过期读时校验
+					// 消费（02 §2.8 门 #4；保存桥 on 时写 time()、off/expired 时清零）。
+					'test_mode_since'      => 0,
+					// 【v1.5·DESIGN-C1 §2.3】评分制驱动阈值（**闸侧消费**——CaptchaTriInterpreter
+					// 比对 score；钳制 max(0.1, min(1.0, ·))；二态驱动恒 score=1.0 不受影响）。
+					'min_score'            => 0.5,
+					// 【v1.5·DESIGN-C1 §2.5（拍板：默认 'block'）】error 态降级处置（02 §2.1
+					// errorPolicy 站长覆盖键）：block=故障即拦 | pass_limited=仅 transport 类终态
+					// + 每 IP TokenBucket 限流放行（DegradedPassLimiter，5 次/IP/h）——枚举校验
+					// 非法值回落 block；限流超额按 block。
+					'error_policy'         => 'block',
 					// 【v1.4·反馈6+澄清A/R2】信用免验制六键（02 §3.3a/03 §2.1）——消费面 R2 批次接入，
 					// 键随 v1.4 迁移整树落位（04 §2）。
 					'trust' => array(

@@ -59,6 +59,8 @@ final class LostPasswordGate extends AccountFormGate {
 	 * @param callable|null               $stub_hash 存根哈希。
 	 * @param callable|null               $now      时钟。
 	 * @param VerifyCache|null            $verify_cache 验证短缓存（Bootstrap 单例复用）。
+	 * @param callable|null               $require_gate 豁免过滤器（【v1.5·C1/B5】null = WP 边界默认）。
+	 * @param callable|null               $degraded_limiter pass_limited 降级限流器（null = fail-closed）。
 	 */
 	public function __construct(
 		array $settings,
@@ -67,9 +69,11 @@ final class LostPasswordGate extends AccountFormGate {
 		?IpResolver $resolver = null,
 		?callable $stub_hash = null,
 		?callable $now = null,
-		?VerifyCache $verify_cache = null
+		?VerifyCache $verify_cache = null,
+		?callable $require_gate = null,
+		?callable $degraded_limiter = null
 	) {
-		parent::__construct( $settings, $captcha, $recorder, $resolver, $stub_hash, $now, $verify_cache );
+		parent::__construct( $settings, $captcha, $recorder, $resolver, $stub_hash, $now, $verify_cache, $require_gate, $degraded_limiter );
 	}
 
 	/**

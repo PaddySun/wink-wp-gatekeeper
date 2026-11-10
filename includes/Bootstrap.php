@@ -22,11 +22,13 @@ use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Gates\CommentGate;
 use WinkGatekeeper\Gates\CommentTrust;
+use WinkGatekeeper\Gates\DegradedPassLimiter;
 use WinkGatekeeper\Gates\LoginGate;
 use WinkGatekeeper\Gates\LoginIpRep;
 use WinkGatekeeper\Gates\LostPasswordGate;
 use WinkGatekeeper\Gates\Precheck;
 use WinkGatekeeper\Gates\RegisterGate;
+use WinkGatekeeper\Gates\TestMode;
 use WinkGatekeeper\Gates\VerifyCache;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Ip\IpResolver;
@@ -142,6 +144,10 @@ final class Bootstrap {
 		// 每日维护 cron（04 §3：90 天清理 + 滚动上限）。
 		add_action( EventsTable::HOOK_DAILY, array( EventsTable::class, 'daily_maintenance' ) );
 
+		// 【v1.5·C1】test_mode 管理员提醒双位之二：admin-bar 黄条（02 §2.8 安全门 #3——
+		// 仅 manage_options 用户可见，前台+后台常显防遗忘；Tab① 红点行在 SettingsPage）。
+		add_action( 'admin_bar_menu', array( $this, 'admin_bar_test_mode' ), 100 );
+
 		// M1：闸/驱动装配 + 前台资产 + AJAX（03 §6 后台操作安全约定）。
 		add_action( 'init', array( $this, 'assemble_gates' ), 5 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_front_assets' ) );
@@ -163,6 +169,27 @@ final class Bootstrap {
 	public function assemble_gates(): void {
 		$stored   = get_option( SettingsPage::OPTION_NAME, array() );
 		$settings = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+
+		/* 【v1.5·C1】test_mode 懒过期收口（02 §2.8 门 #4——无 cron，消费点读时校验）：
+		 * 开关 on 且超 24h → 清键 + 落 test_mode_expired 事件 + 写回 option；返回修正树供
+		 * 全部闸/预检/提醒位消费（单消费点收口，闸内读时判定只作双保险）。 */
+		$settings = TestMode::enforce( $settings );
+
+		/* 【v1.5·C1】pass_limited 降级放行限流器（02 §2.1 DegradedPassLimiter 共享件——
+		 * 默认 5 次/IP/h；天御 disaster 与 captcha errorPolicy pass_limited 两个消费方共用
+		 * 同一 TokenBucket 形态；errorPolicy 默认 block 时零消费零 transient 写）。 */
+		$degraded_allow = new DegradedPassLimiter(
+			DegradedPassLimiter::DEFAULT_LIMIT,
+			DegradedPassLimiter::DEFAULT_WINDOW,
+			'get_transient',
+			static function ( string $key, $value, int $ttl ): void {
+				set_transient( $key, $value, $ttl ); // WP 边界。
+			},
+			static function ( string $data ): string {
+				return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // 与 VerifyCache/事件 ip_hash 同盐同源。
+			}
+		);
+		$degraded_allow = array( $degraded_allow, 'allow' );
 
 		// 驱动注册表（05 §4 六维元数据；新驱动 = 新文件 + 注册一行）。
 		$registry = new DriverRegistry();
@@ -272,21 +299,23 @@ final class Bootstrap {
 				$verify_cache, // T3：验证短缓存（核验成功窗口内免重复验票）。
 				$iprep,        // 【v1.4·R2】IP 信誉三态（步骤 2 消费；Null=skip=现行行为）。
 				null,          // trust_mac：wp_salt('auth') 默认（WP 边界）。
-				// 【v1.5·F4-3】驱动元数据提供器：证据行「命中规则」人类可读化的驱动人类名来源
-				// （registry type+label 派生）；label_overrides 经 wink_gatekeeper_error_messages
-				// filter 覆盖文案（映射键名 wk-label-<Label> 本身不可改——03 §3 v1.5）。
-				static function ( string $driver_id ) use ( $registry ): ?array {
-					$driver = $registry->get( $driver_id );
-					if ( null === $driver || ! is_string( $driver['label'] ?? null ) || '' === $driver['label'] ) {
-						return null;
-					}
-					return array(
-						'type'            => (string) $driver['type'],
-						'label'           => (string) $driver['label'],
-						'label_overrides' => apply_filters( 'wink_gatekeeper_error_messages', array() ), // WP 边界。
-					);
-				}
-			);
+					// 【v1.5·F4-3】驱动元数据提供器：证据行「命中规则」人类可读化的驱动人类名来源
+					// （registry type+label 派生）；label_overrides 经 wink_gatekeeper_error_messages
+					// filter 覆盖文案（映射键名 wk-label-<Label> 本身不可改——03 §3 v1.5）。
+					static function ( string $driver_id ) use ( $registry ): ?array {
+						$driver = $registry->get( $driver_id );
+						if ( null === $driver || ! is_string( $driver['label'] ?? null ) || '' === $driver['label'] ) {
+							return null;
+						}
+						return array(
+							'type'            => (string) $driver['type'],
+							'label'           => (string) $driver['label'],
+							'label_overrides' => apply_filters( 'wink_gatekeeper_error_messages', array() ), // WP 边界。
+						);
+					},
+					// 【v1.5·C1】pass_limited 降级放行限流器（errorPolicy 默认 block=零消费）。
+					$degraded_allow
+				);
 
 			// 验证钩子按闸声明装配（preprocess_comment @ -PHP_INT_MAX——A3：比一切评论插件早）。
 			foreach ( $this->comment_gate->verify_hooks() as $hook => $priority ) {
@@ -433,7 +462,7 @@ final class Bootstrap {
 
 		$login_mode = is_string( $settings['gates']['login']['render_mode'] ?? null ) ? $settings['gates']['login']['render_mode'] : 'adaptive';
 		if ( ! empty( $settings['gates']['login']['enabled'] ) && 'off' !== $login_mode ) {
-			$this->login_gate = new LoginGate( $settings, $captcha, null, null, null, null, null, $verify_cache, $login_iprep );
+			$this->login_gate = new LoginGate( $settings, $captcha, null, null, null, null, null, $verify_cache, $login_iprep, null, $degraded_allow );
 
 			// 【v1.4·R3 双信号主信号】wp_authenticate_user @ 1：只记录不动值——$user 为
 			// WP_User（=用户存在）时捕获规范 user_login 供同请求稍后的 wp_login_failed 消费；
@@ -460,14 +489,14 @@ final class Bootstrap {
 
 		/* 注册闸（【v1.4·R3/F41】registration_errors filter 返回型——02 §3.2a 钩子挂点表）。 */
 		if ( ! empty( $settings['gates']['register']['enabled'] ) ) {
-			$this->register_gate = new RegisterGate( $settings, $captcha, null, null, null, null, $verify_cache );
+			$this->register_gate = new RegisterGate( $settings, $captcha, null, null, null, null, $verify_cache, null, $degraded_allow );
 			add_action( 'register_form', array( $this->register_gate, 'render_register_form' ), 10, 0 ); // wp-login.php:1173。
 			add_filter( 'registration_errors', array( $this->register_gate, 'filter_registration_errors' ), 10, 3 ); // user.php:3655（用户创建前）。
 		}
 
 		/* 找回密码闸（action 突变型——与注册域 filter 返回型相反，两闸各自对齐 core）。 */
 		if ( ! empty( $settings['gates']['lostpassword']['enabled'] ) ) {
-			$this->lostpassword_gate = new LostPasswordGate( $settings, $captcha, null, null, null, null, $verify_cache );
+			$this->lostpassword_gate = new LostPasswordGate( $settings, $captcha, null, null, null, null, $verify_cache, null, $degraded_allow );
 			add_action( 'lostpassword_form', array( $this->lostpassword_gate, 'render_lostpassword_form' ), 10, 0 ); // wp-login.php:899。
 			add_action( 'lostpassword_post', array( $this->lostpassword_gate, 'action_lostpassword_post' ), 10, 2 ); // user.php:3344（发信前；先于 invalidcombo）。
 		}
@@ -789,5 +818,32 @@ final class Bootstrap {
 			false,
 			dirname( plugin_basename( WINK_GATEKEEPER_FILE ) ) . '/languages'
 		);
+	}
+
+	/**
+	 * admin-bar 演练模式提醒（【v1.5·C1】02 §2.8 安全门 #3 双位之二——防遗忘主门；
+	 * Wordfence 无此门判为缺陷不照抄）：仅 manage_options 用户可见，黄条节点点击直达
+	 * Tab② 演练开关。wp_active() 内含 24h 懒过期判定（过期视同关不显示）。
+	 *
+	 * @param \WP_Admin_Bar $wp_admin_bar 管理栏实例。
+	 * @return void
+	 */
+	public function admin_bar_test_mode( $wp_admin_bar ): void {
+		if ( ! ( $wp_admin_bar instanceof \WP_Admin_Bar ) ) {
+			return;
+		}
+		if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		if ( ! TestMode::wp_active() ) {
+			return;
+		}
+		$wp_admin_bar->add_node( array(
+			'id'     => 'wk-gatekeeper-test-mode',
+			'parent' => 'top-secondary',
+			'title'  => __( 'wink 验证码演练模式启用中——全站人机验证旁路（24h 自动过期）', 'wink-gatekeeper' ),
+			'href'   => admin_url( 'options-general.php?page=' . SettingsPage::PAGE_SLUG . '&tab=captcha' ),
+			'meta'   => array( 'class' => 'wk-admin-bar-test-mode' ),
+		) );
 	}
 }

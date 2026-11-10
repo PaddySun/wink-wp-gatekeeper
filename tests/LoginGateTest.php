@@ -78,6 +78,13 @@ final class LoginGateTest extends TestCase {
 			public function disasterPolicy(): string {
 				return 'none';
 			}
+			/* 【v1.5·C1】接口 v1.2 能力面：假驱动沿 legacy 语义折算（verify_tri 委托 verify）。 */
+			public function verify_tri( array $context ): array {
+				return \WinkGatekeeper\Gates\CaptchaTriInterpreter::legacy_to_tri( $this->verify( $context ), method_exists( $this, 'last_verify_meta' ) ? $this->last_verify_meta() : array() );
+			}
+			public function errorPolicy(): string {
+				return 'block';
+			}
 		};
 	}
 
@@ -305,6 +312,13 @@ final class LoginGateTest extends TestCase {
 			}
 			public function disasterPolicy(): string {
 				return 'none';
+			}
+			/* 【v1.5·C1】接口 v1.2 能力面：假驱动沿 legacy 语义折算（verify_tri 委托 verify）。 */
+			public function verify_tri( array $context ): array {
+				return \WinkGatekeeper\Gates\CaptchaTriInterpreter::legacy_to_tri( $this->verify( $context ), method_exists( $this, 'last_verify_meta' ) ? $this->last_verify_meta() : array() );
+			}
+			public function errorPolicy(): string {
+				return 'block';
 			}
 		};
 		$log = array();
@@ -927,6 +941,13 @@ final class LoginGateTest extends TestCase {
 			}
 			public function disasterPolicy(): string {
 				return 'none';
+			}
+			/* 【v1.5·C1】接口 v1.2 能力面：假驱动沿 legacy 语义折算（verify_tri 委托 verify）。 */
+			public function verify_tri( array $context ): array {
+				return \WinkGatekeeper\Gates\CaptchaTriInterpreter::legacy_to_tri( $this->verify( $context ), method_exists( $this, 'last_verify_meta' ) ? $this->last_verify_meta() : array() );
+			}
+			public function errorPolicy(): string {
+				return 'block';
 			}
 		};
 	}

@@ -52,7 +52,9 @@ use WinkGatekeeper\Intercept\DiePage;
 use WinkGatekeeper\Intercept\Stub;
 use WinkGatekeeper\Ip\IpReputationProbe;
 use WinkGatekeeper\Ip\IpResolver;
+use WinkGatekeeper\Gates\CaptchaTriInterpreter;
 use WinkGatekeeper\Gates\ResponseDispatcher;
+use WinkGatekeeper\Gates\TestMode;
 use WinkGatekeeper\Gates\TrustStub;
 use WinkGatekeeper\Stats\EventsTable;
 use WinkGatekeeper\Stats\StatsCache;
@@ -160,6 +162,20 @@ final class CommentGate extends AbstractGate {
 	private $driver_meta;
 
 	/**
+	 * @var callable|null 豁免过滤器（【v1.5·C1/B5】02 §2.1 wink_gatekeeper_require_gate——
+	 *                    captcha 阶段入口「渲染判定与验证判定共用一判」；null = WP 边界默认
+	 *                    （apply_filters；纯单测环境守卫直通 required）。
+	 */
+	private $require_gate;
+
+	/**
+	 * @var callable|null pass_limited 降级放行限流器 fn(string $ip): bool（02 §2.1——
+	 *                    生产 = Bootstrap 注入 DegradedPassLimiter::allow；null = 未装配，
+	 *                    pass_limited 档 fail-closed 按 block）。
+	 */
+	private $degraded_limiter;
+
+	/**
 	 * @var bool 本次请求编排产出 review 判定（评论应入待审）——pre_comment_approved
 	 *           filter 消费（C4 真机发现：WP 7.x wp_new_comment 在 preprocess_comment 之后
 	 *           经 wp_allow_comment 重算 comment_approved，直接改 commentdata 会被覆盖；
@@ -211,6 +227,8 @@ final class CommentGate extends AbstractGate {
 	 * @param IpReputationProbe|null      $iprep IP 信誉三态（null = 未装配=skip；【v1.4·R2】）。
 	 * @param callable|null               $trust_mac 信任凭证 HMAC（null = wp_salt('auth') 默认）。
 	 * @param callable|null               $driver_meta 驱动元数据提供器（【v1.5·F4-3】null = 证据行原样）。
+	 * @param callable|null               $require_gate 豁免过滤器（【v1.5·C1/B5】null = WP 边界默认）。
+	 * @param callable|null               $degraded_limiter pass_limited 降级限流器（null = fail-closed）。
 	 */
 	public function __construct(
 		array $settings,
@@ -228,7 +246,9 @@ final class CommentGate extends AbstractGate {
 		?VerifyCache $verify_cache = null,
 		?IpReputationProbe $iprep = null,
 		?callable $trust_mac = null,
-		?callable $driver_meta = null
+		?callable $driver_meta = null,
+		?callable $require_gate = null,
+		?callable $degraded_limiter = null
 	) {
 		$this->settings = $settings;
 		$this->captcha  = $captcha;
@@ -242,6 +262,11 @@ final class CommentGate extends AbstractGate {
 				$event_no  = null;
 				if ( EventsTable::should_record( $stage, $verdict, $this->settings ) ) {
 					$event_no = EventsTable::insert( 'comment', $stage, $driver_id, $verdict, $meta, self::ip_hash( $meta['client_ip'] ?? '' ) );
+				}
+				// 【v1.5·C1】drill 行（test_mode 旁路/演练）落库照常（04 §3——旁路恒落库审计足迹），
+				// 只豁免统计计数（04 §4 drill 恒排除；is_drill 单点判定沿 B1b）。
+				if ( StatsCache::is_drill( $meta ) ) {
+					return $event_no;
 				}
 				// 待审收口留痕行（hold_moderation / cloud_all_failed——v1.4·R1 G1）只入事件表：
 				// 驱动判定事件已逐条计数，收口行再计会使 by_gate/by_driver 双计同一评论。
@@ -270,6 +295,16 @@ final class CommentGate extends AbstractGate {
 			return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // WP 边界（与 VerifyCache 同源）。
 		};
 		$this->driver_meta = $driver_meta; // 【v1.5·F4-3】null = 未装配 = 证据行原样透传。
+		/* 【v1.5·C1/B5】豁免过滤器 wink_gatekeeper_require_gate：默认 WP 边界闭包（纯单测
+		 * 环境 function_exists 守卫直通——G5 零依赖）；Wordfence wordfence_ls_require_captcha
+		 * captcha.php:145-148 先例。降级限流器（pass_limited）同批注入。 */
+		$this->require_gate = $require_gate
+			?? static function ( bool $required, string $gate, array $context ): bool {
+				return function_exists( 'apply_filters' )
+					? (bool) apply_filters( 'wink_gatekeeper_require_gate', $required, $gate, $context ) // WP 边界。
+					: $required;
+			};
+		$this->degraded_limiter = $degraded_limiter;
 	}
 
 	public function render_hooks(): array {
@@ -327,7 +362,16 @@ final class CommentGate extends AbstractGate {
 			'ua'          => isset( $server['HTTP_USER_AGENT'] ) && is_scalar( $server['HTTP_USER_AGENT'] ) ? (string) $server['HTTP_USER_AGENT'] : '',
 		);
 
+		/* captcha 阶段是否启用（渲染判定与验证判定共用一判——豁免过滤器落点【v1.5·C1/B5】
+		 * 02 §2.1：豁免=等同「未配置驱动」语义（整体跳过 captcha 阶段、不渲染不验证），
+		 * 不影响 LocalRules/云审链与登录计数器；XML-RPC 恒结构化拒绝不受豁免影响）。 */
 		$captcha_active = null !== $this->captcha && $this->captcha->is_configured();
+		if ( $captcha_active && ! call_user_func( $this->require_gate, true, $this->id, array(
+			'post_id' => $this->post_id( $commentdata, $request ),
+			'ip_hash' => function_exists( 'wp_salt' ) ? self::ip_hash( is_string( $resolved['ip'] ) ? $resolved['ip'] : '' ) : '',
+		) ) ) {
+			$captcha_active = false;
+		}
 
 		/* 步骤 1：签名存根三态（stage=stub）。
 		 * 未配置驱动 = captcha 阶段整体跳过（02 §2.1：等同存根 true 语义，不渲染组件
@@ -485,7 +529,23 @@ final class CommentGate extends AbstractGate {
 					$exempt = true;
 				}
 
-				/* 3c 真验票（缺票 → captcha_missing；有票 → CaptchaDriver.verify）。 */
+				/* 3b' test_mode 演练旁路（【v1.5·C1】02 §2.8 五件套 #2/#5——免验三来源短路序
+				 * ① TrustStub → ② VerifyCache → ③ test_mode 旁路（插在真验票位））：直接 pass、
+				 * 不发远端调用（drill 期零厂商计费、不调 verify_tri）、事件 verdict=pass +
+				 * rule_hit=test_mode_pass + driver=gate（旁路不是驱动产物——trust_pass 先例）+
+				 * meta.drill:true/test_mode:true（drill 行落库不进统计）；**不写 VerifyCache**。 */
+				if ( ! $exempt && $this->test_mode_active() ) {
+					call_user_func( $this->recorder, 'captcha', Verdict::pass( 'gate', TestMode::RULE_PASS, array( TestMode::RULE_PASS ) ), array(
+						'ip_src'    => $resolved['ip_src'],
+						'client_ip' => $resolved['ip'],
+						'drill'     => true,
+						'test_mode' => true,
+					) );
+					$exempt = true;
+				}
+
+				/* 3c 真验票（缺票 → captcha_missing；有票 → CaptchaDriver.verify_tri 三态，
+				 * 经 CaptchaTriInterpreter 统一翻译——【v1.5·C1】三闸共用一份映射防漂移）。 */
 				if ( ! $exempt ) {
 					$ticket  = isset( $request['wk_captcha_ticket'] ) && is_scalar( $request['wk_captcha_ticket'] ) ? trim( (string) $request['wk_captcha_ticket'] ) : '';
 					$randstr = isset( $request['wk_captcha_randstr'] ) && is_scalar( $request['wk_captcha_randstr'] ) ? trim( (string) $request['wk_captcha_randstr'] ) : '';
@@ -503,41 +563,84 @@ final class CommentGate extends AbstractGate {
 						);
 					}
 
-					$error = $this->captcha->verify( array(
+					$context = array(
 						'ticket'  => $ticket,
 						'randstr' => $randstr,
 						'user_ip' => $resolved['ip'], // 天御 UserIp = 真实 IP（非 CDN 节点，F29 验收）。
+					);
+					/* 能力探测（02 §2.1【v1.5·C1】legacy 垫片）：新契约 verify_tri 主通道；
+					 * 旧契约 verify():?string 经 legacy_to_tri 折算（M4 收线删）。 */
+					$tri = method_exists( $this->captcha, 'verify_tri' )
+						? $this->captcha->verify_tri( $context )
+						: CaptchaTriInterpreter::legacy_to_tri(
+							$this->captcha->verify( $context ),
+							method_exists( $this->captcha, 'last_verify_meta' ) ? $this->captcha->last_verify_meta() : array()
+						);
+
+					$outcome = ( new CaptchaTriInterpreter(
+						CaptchaTriInterpreter::clamp_threshold( $this->captcha_settings()['min_score'] ?? null ),
+						$this->effective_error_policy(),
+						$this->degraded_limiter
+					) )->interpret( $tri, is_string( $resolved['ip'] ) ? $resolved['ip'] : '' );
+
+					$meta = array_merge( $outcome['meta'], array(
+						'ip_src'    => $resolved['ip_src'],
+						'client_ip' => $resolved['ip'],
 					) );
 
-					if ( null !== $error ) {
-						$meta = array( 'ip_src' => $resolved['ip_src'], 'client_ip' => $resolved['ip'] );
-						if ( method_exists( $this->captcha, 'last_verify_meta' ) ) {
-							$driver_meta = $this->captcha->last_verify_meta();
-							$meta        = array_merge( $driver_meta, $meta ); // Score/GetCaptchaTime/CaptchaCode 入 meta。
-						}
-						$rule = isset( $meta['rule'] ) && is_string( $meta['rule'] ) ? $meta['rule'] : 'captcha_failed';
+					if ( Verdict::ERROR === $outcome['verdict'] && ! $outcome['allow'] ) {
+						/* error 态拦截（默认 block——现行降级矩阵；行为变化点 1：事件 verdict
+						 * 由 reject 改 error，captcha_reject 不再混入故障量——02 §5 补注）。 */
 						return $this->reject_with_message(
 							'captcha',
-							Verdict::reject( $this->captcha_driver_id(), $rule, array( $rule ) ),
-							$error, // 驱动错误文案已终态（含台阶与指引），直接展示（输出层转义）。
+							Verdict::error( $this->captcha_driver_id(), $outcome['rule'], $outcome['hits'] ),
+							'' !== $outcome['message'] ? $outcome['message'] : (string) $this->messages()['captcha_failed'],
 							$meta,
 							array(),
 							$reject_env
 						);
 					}
 
-					/* T3：核验成功（verify 返回 null）→ 写验证短缓存（仅成功写；键=存根原文|IP 双绑定）。 */
-					if ( null !== $this->verify_cache ) {
-						$this->verify_cache->remember( $stub_raw, is_string( $resolved['ip'] ) ? $resolved['ip'] : '' );
+					if ( Verdict::REJECT === $outcome['verdict'] ) {
+						// 业务拒绝：驱动终态文案直通；评分拒（message 空）回落 captcha_failed 文案链
+						// （user_retry 档——评分拒=机器分不够，给刷新重试台阶）。
+						if ( '' !== $outcome['message'] ) {
+							return $this->reject_with_message(
+								'captcha',
+								Verdict::reject( $this->captcha_driver_id(), $outcome['rule'], $outcome['hits'] ),
+								$outcome['message'],
+								$meta,
+								array(),
+								$reject_env
+							);
+						}
+						return $this->reject(
+							'captcha',
+							Verdict::reject( $this->captcha_driver_id(), $outcome['rule'], $outcome['hits'] ),
+							'captcha_failed',
+							array(),
+							$meta,
+							$reject_env
+						);
 					}
 
-					/* 容灾放行事件（02 §2.1 disasterPolicy allow 档 + 05 §1.1「统计可查容灾放行量」）：
-					 * 驱动 meta 标注 disaster_pass（CaptchaCode=21 + trerror 票据、限速内放行）→
-					 * 落一条 pass 事件（rule_hit=trerror）；不拦截，编排继续。 */
-					if ( method_exists( $this->captcha, 'last_verify_meta' ) ) {
-						$after_meta = $this->captcha->last_verify_meta();
-						if ( ! empty( $after_meta['disaster_pass'] ) ) {
-							$rule = isset( $after_meta['rule'] ) && is_string( $after_meta['rule'] ) ? $after_meta['rule'] : 'CaptchaCode=21/trerror';
+					if ( Verdict::ERROR === $outcome['verdict'] ) {
+						/* error + errorPolicy='pass_limited' + 限流内 → 降级放行（仅 transport 类）：
+						 * 事件 verdict=error、rule_hit=remote_transport_degraded、落地放行、
+						 * 不写 VerifyCache（02 §2.1 映射表末行；02 §5 captcha 行补注②）。 */
+						call_user_func( $this->recorder, 'captcha', Verdict::error( $this->captcha_driver_id(), $outcome['rule'], $outcome['hits'] ), $meta );
+					} else {
+						/* pass：T3 写验证短缓存（仅成功写；键=存根原文|IP 双绑定）——评分制驱动
+						 * 同样进缓存（只存 pass 事实不存分数，02 §2.1 v1.5 补注）。 */
+						if ( $outcome['write_cache'] && null !== $this->verify_cache ) {
+							$this->verify_cache->remember( $stub_raw, is_string( $resolved['ip'] ) ? $resolved['ip'] : '' );
+						}
+
+						/* 容灾放行事件（02 §2.1 disasterPolicy allow 档 + 05 §1.1「统计可查容灾放行量」）：
+						 * 驱动 meta 标注 disaster_pass（CaptchaCode=21 + trerror 票据、限速内放行）→
+						 * 落一条 pass 事件（rule_hit=trerror）；不拦截，编排继续。 */
+						if ( ! empty( $outcome['meta']['disaster_pass'] ) ) {
+							$rule = isset( $outcome['meta']['rule'] ) && is_string( $outcome['meta']['rule'] ) ? $outcome['meta']['rule'] : 'CaptchaCode=21/trerror';
 							call_user_func( $this->recorder, 'captcha', Verdict::pass( $this->captcha_driver_id(), $rule, array( $rule ) ), array(
 								'ip_src'        => $resolved['ip_src'],
 								'client_ip'     => $resolved['ip'],
@@ -1016,6 +1119,14 @@ final class CommentGate extends AbstractGate {
 			return $submit_field;
 		}
 
+		/* 【v1.5·C1/B5】豁免过滤器——渲染判定与验证判定共用一判（02 §2.1：豁免=未配置驱动
+		 * 语义，不渲染组件；渲染期上下文摘要只带 post_id——IP 归属在提交期解析面）。 */
+		if ( ! call_user_func( $this->require_gate, true, $this->id, array(
+			'post_id' => (string) call_user_func( $this->context_provider ),
+		) ) ) {
+			return $submit_field;
+		}
+
 		$context_id = (string) call_user_func( $this->context_provider ); // 评论闸 context_id = comment_post_ID（02 §3.3）。
 		$stub       = Stub::issue( $this->id, $context_id, true, (int) call_user_func( $this->now ), $this->stub_hash );
 
@@ -1417,6 +1528,39 @@ final class CommentGate extends AbstractGate {
 	private function captcha_driver_id(): string {
 		$captcha = $this->captcha;
 		return ( null !== $captcha && method_exists( $captcha, 'id' ) ) ? $captcha->id() : '';
+	}
+
+	/* -------------------------------------------------------------------
+	 * 【v1.5·C1】三态消费辅助（Interpreter 参数归一；test_mode 读时判定）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * captcha 设置子树（缺子树归空——merge_defaults 同语义兜底）。
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function captcha_settings(): array {
+		return isset( $this->settings['captcha'] ) && is_array( $this->settings['captcha'] ) ? $this->settings['captcha'] : array();
+	}
+
+	/**
+	 * 生效 error 处置策略（02 §2.1 errorPolicy）：站长键 captcha.error_policy 覆盖驱动
+	 * errorPolicy() 声明；缺省/非法值由 Interpreter 归 block（fail-closed）。
+	 */
+	private function effective_error_policy(): string {
+		$captcha = $this->captcha_settings();
+		if ( isset( $captcha['error_policy'] ) && is_string( $captcha['error_policy'] ) && '' !== $captcha['error_policy'] ) {
+			return $captcha['error_policy'];
+		}
+		return ( null !== $this->captcha && method_exists( $this->captcha, 'errorPolicy' ) ) ? $this->captcha->errorPolicy() : 'block';
+	}
+
+	/**
+	 * test_mode 旁路读时判定（02 §2.8 门 #4：任何消费点读时校验 24h——懒过期兜底，
+	 * 生产侧 Bootstrap::assemble_gates 已 enforce 修正 settings，此处双保险）。
+	 */
+	private function test_mode_active(): bool {
+		return TestMode::active( $this->settings, (int) call_user_func( $this->now ) );
 	}
 
 	/* -------------------------------------------------------------------

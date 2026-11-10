@@ -46,6 +46,14 @@ final class Sanitize {
 			'captcha.driver'                            => 'text',
 			// M2 反馈2 T3：验证短缓存窗口（分钟，0=关）。
 			'captcha.verify_cache_minutes'              => 'absint',
+			// 【v1.5·DESIGN-C1 §3/02 §2.8 安全门 #1】test_mode 演练旁路开关（默认关；since 为
+			// 内部键非 UI 字段——保存桥切换瞬间写 time()/清零，24h 懒过期读时校验消费）。
+			'captcha.test_mode'                         => 'bool',
+			'captcha.test_mode_since'                   => 'int',
+			// 【v1.5·DESIGN-C1 §2.3】评分制驱动阈值（闸侧消费，min_score 型钳 0.1–1.0）；
+			// 【§2.5】error 态处置枚举 block|pass_limited（非法值回落 block）。
+			'captcha.min_score'                         => 'min_score',
+			'captcha.error_policy'                      => 'error_policy',
 			// 【v1.4·R2/R4-G】信用免验制六键（02 §3.3a；消费面 R2 批次）。
 			'captcha.trust.enabled'                     => 'bool',
 			'captcha.trust.min_approved'                => 'absint',
@@ -228,6 +236,14 @@ final class Sanitize {
 			case 'disaster_pass':
 				// 白名单枚举（04 §2 captcha.tencent.disaster_pass）：非 block 一律归 allow（默认档）。
 				return ( is_scalar( $value ) && 'block' === (string) $value ) ? 'block' : 'allow';
+			case 'min_score':
+				// 【v1.5·C1】评分制阈值钳制（04 §2 captcha.min_score：数值钳 0.1–1.0；
+				// 02 §2.1 max(0.1, min(1.0, ·))——非标量/非法值归默认 0.5）。
+				return is_numeric( $value ) ? max( 0.1, min( 1.0, (float) $value ) ) : 0.5;
+			case 'error_policy':
+				// 【v1.5·C1】error 态处置枚举（04 §2 captcha.error_policy）：block|pass_limited，
+				// 非法值回落 block（fail-closed）。
+				return ( is_scalar( $value ) && 'pass_limited' === (string) $value ) ? 'pass_limited' : 'block';
 			case 'raw_bytes':
 				// 【v1.4·R4】raw 截断字节（stats.raw_max_bytes）：absint 后钳 128-2048（04 §3 截断/体量行）。
 				return max( 128, min( 2048, is_scalar( $value ) ? abs( (int) $value ) : 512 ) );

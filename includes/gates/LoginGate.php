@@ -123,6 +123,8 @@ final class LoginGate extends AccountFormGate {
 	 * @param LoginCounters|null          $counters 双计数器（null = WP transient 边界装配）。
 	 * @param VerifyCache|null            $verify_cache 验证短缓存（null = 未装配；T3）。
 	 * @param LoginIpRep|null             $iprep    IP 信誉三态（null = Null probe 恒 skip）。
+	 * @param callable|null               $require_gate 豁免过滤器（【v1.5·C1/B5】null = WP 边界默认）。
+	 * @param callable|null               $degraded_limiter pass_limited 降级限流器（null = fail-closed）。
 	 */
 	public function __construct(
 		array $settings,
@@ -133,9 +135,11 @@ final class LoginGate extends AccountFormGate {
 		?callable $now = null,
 		?LoginCounters $counters = null,
 		?VerifyCache $verify_cache = null,
-		?LoginIpRep $iprep = null
+		?LoginIpRep $iprep = null,
+		?callable $require_gate = null,
+		?callable $degraded_limiter = null
 	) {
-		parent::__construct( $settings, $captcha, $recorder, $resolver, $stub_hash, $now, $verify_cache );
+		parent::__construct( $settings, $captcha, $recorder, $resolver, $stub_hash, $now, $verify_cache, $require_gate, $degraded_limiter );
 		$this->counters = $counters ?? new LoginCounters(
 			is_array( $settings['captcha']['login_adaptive'] ?? null ) ? $settings['captcha']['login_adaptive'] : array()
 		);
@@ -287,6 +291,13 @@ final class LoginGate extends AccountFormGate {
 					'mode'           => $this->mode(),
 				) );
 			}
+			return array( 'decision' => 'allow' );
+		}
+
+		/* 【v1.5·C1/B5】豁免过滤器——captcha 阶段入口（02 §2.1：豁免=等同未配置驱动语义；
+		 * 登录计数器不受影响——失败计数在 wp_login_failed 独立路径；XML-RPC 恒结构化拒绝
+		 * 不受豁免影响——xmlrpc_block_decision 不消费本过滤器）。 */
+		if ( ! call_user_func( $this->require_gate, true, $this->id, array( 'context_id' => $this->context_id() ) ) ) {
 			return array( 'decision' => 'allow' );
 		}
 
@@ -719,6 +730,17 @@ final class LoginGate extends AccountFormGate {
 			return array( 'decision' => 'allow' );
 		}
 
+		/* 【v1.5·C1】test_mode 演练旁路（02 §2.8——免验三来源短路序：③ 插在真验票位）：
+		 * 直通 pass、不发远端调用、事件 drill 标注（driver=gate、meta.drill:true）、
+		 * 不写 VerifyCache；账密错误计数不受影响（计数器在其后的密码校验路径）。 */
+		if ( $this->test_mode_active() ) {
+			call_user_func( $this->recorder, 'captcha', Verdict::pass( 'gate', TestMode::RULE_PASS, array( TestMode::RULE_PASS ) ), array_merge( $meta, array(
+				'drill'     => true,
+				'test_mode' => true,
+			) ) );
+			return array( 'decision' => 'allow' );
+		}
+
 		$built = $this->build_verify_context( $request );
 		if ( ! $built['has_ticket'] ) {
 			$this->counters->light_flag( $ip ); // 拒绝 → flag 闭环（02 §3.2）。
@@ -726,19 +748,44 @@ final class LoginGate extends AccountFormGate {
 			return $this->reject( 'captcha', Verdict::reject( $this->captcha_driver_id(), 'captcha_missing', array( 'captcha_missing' ) ), 'captcha_missing', $meta, array(), self::ERROR_CODE_MISSING );
 		}
 
-		$error = $this->captcha->verify( array_merge( $built['context'], array( 'user_ip' => $ip ) ) );
-		if ( null !== $error ) {
-			$this->counters->light_flag( $ip ); // 拒绝 → flag 闭环。
-			if ( method_exists( $this->captcha, 'last_verify_meta' ) ) {
-				$meta = array_merge( $this->captcha->last_verify_meta(), $meta ); // CaptchaCode/Score 等入 meta。
-			}
-			$meta['driver'] = $this->captcha_driver_id();
-			$rule = isset( $meta['rule'] ) && is_string( $meta['rule'] ) ? $meta['rule'] : 'captcha_failed';
-			return $this->reject_with_message( 'captcha', Verdict::reject( $this->captcha_driver_id(), $rule, array( $rule ) ), $error, $meta, array() );
+		/* 【v1.5·C1】verify_tri 三态统一消费（能力探测 + legacy 垫片；02 §2.1 映射表单点实现）。 */
+		$context = array_merge( $built['context'], array( 'user_ip' => $ip ) );
+		$tri     = method_exists( $this->captcha, 'verify_tri' )
+			? $this->captcha->verify_tri( $context )
+			: CaptchaTriInterpreter::legacy_to_tri(
+				$this->captcha->verify( $context ),
+				method_exists( $this->captcha, 'last_verify_meta' ) ? $this->captcha->last_verify_meta() : array()
+			);
+
+		$outcome = ( new CaptchaTriInterpreter(
+			CaptchaTriInterpreter::clamp_threshold( $this->captcha_settings()['min_score'] ?? null ),
+			$this->effective_error_policy(),
+			$this->degraded_limiter
+		) )->interpret( $tri, $ip );
+
+		if ( ! $outcome['allow'] ) {
+			// 拒绝/故障拦截 → flag 闭环（02 §3.2）；error 态事件 verdict=error（C1 统计纠偏）。
+			$this->counters->light_flag( $ip );
+			$verdict = Verdict::ERROR === $outcome['verdict']
+				? Verdict::error( $this->captcha_driver_id(), $outcome['rule'], $outcome['hits'] )
+				: Verdict::reject( $this->captcha_driver_id(), $outcome['rule'], $outcome['hits'] );
+			$meta    = array_merge( $outcome['meta'], $meta, array( 'driver' => $this->captcha_driver_id() ) );
+			$message = '' !== $outcome['message'] ? $outcome['message'] : ''; // 空 = 评分拒 → captcha_failed 文案链。
+			return '' !== $message
+				? $this->reject_with_message( 'captcha', $verdict, $message, $meta, array() )
+				: $this->reject( 'captcha', $verdict, 'captcha_failed', $meta, array() );
 		}
 
-		/* 核验成功（verify 返回 null）→ 写验证短缓存（仅成功写；键=存根原文|IP 双绑定）。 */
-		if ( null !== $this->verify_cache ) {
+		if ( Verdict::ERROR === $outcome['verdict'] ) {
+			/* error + pass_limited 降级放行：事件 verdict=error、rule_hit=remote_transport_degraded、
+			 * 落地放行、不写 VerifyCache、不点亮 flag（非失败提交——02 §2.1 映射表末行）。 */
+			$meta = array_merge( $outcome['meta'], $meta, array( 'driver' => $this->captcha_driver_id() ) );
+			call_user_func( $this->recorder, 'captcha', Verdict::error( $this->captcha_driver_id(), $outcome['rule'], $outcome['hits'] ), $meta );
+			return array( 'decision' => 'allow' );
+		}
+
+		/* 核验成功 → 写验证短缓存（仅成功写；键=存根原文|IP 双绑定）。 */
+		if ( $outcome['write_cache'] && null !== $this->verify_cache ) {
 			$this->verify_cache->remember( $stub_raw, $ip );
 		}
 

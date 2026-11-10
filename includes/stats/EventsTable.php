@@ -121,11 +121,12 @@ DDL;
 		unset( $stage ); // 矩阵按 verdict 主判：非 pass 恒落库、pass 依采样（开放枚举保守口径）。
 
 		if ( Verdict::PASS === $verdict->verdict() ) {
-			// 【v1.4·04 §3 矩阵 pass 特例】免验票审计足迹（verify_cache_hit / trust_pass）
+			// 【v1.4·04 §3 矩阵 pass 特例】免验票审计足迹（verify_cache_hit / trust_pass）、
+			// 【v1.5·C1】test_mode 旁路（test_mode_pass——旁路恒落库，drill 标注不进统计）
 			// 与停转解除（driver_resumed——DriverHealth 留痕行经 insert 直入不经本判定）落库；
 			// 其余 pass 默认不记，pass_sampling 开启才采样。
 			foreach ( $verdict->hits() as $hit ) {
-				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit ) ) {
+				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit || 'test_mode_pass' === $hit ) ) {
 					return true;
 				}
 			}

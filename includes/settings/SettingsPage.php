@@ -163,6 +163,17 @@ final class SettingsPage {
 			$merged['review']['cloud']['chain'] = $submitted_chain;
 		}
 
+		/* 【v1.5·C1】test_mode 生命周期（02 §2.8 门 #1/#5-①）：on/off 切换 → since 写
+		 * time()（on）/清零（off）+ 落 test_mode_on|off 事件（gate=system 留痕——on/off/expired
+		 * 三态全程可审计；record_lifecycle 内含纯单测环境守卫，纯 PHP 桥测试零依赖）。 */
+		$stored_tm = (bool) self::dig( $stored, array( 'captcha', 'test_mode' ), false );
+		$merged_tm = (bool) ( $merged['captcha']['test_mode'] ?? false );
+		$lifecycle = \WinkGatekeeper\Gates\TestMode::lifecycle_rule( $stored_tm, $merged_tm );
+		if ( null !== $lifecycle ) {
+			$merged['captcha']['test_mode_since'] = $merged_tm ? time() : 0; // WP 边界时钟。
+			\WinkGatekeeper\Gates\TestMode::record_lifecycle( $lifecycle );
+		}
+
 		return SettingsSchema::merge_defaults( $merged );
 	}
 
@@ -372,6 +383,19 @@ final class SettingsPage {
 		<section class="wk-card">
 			<h2><?php esc_html_e( '驱动健康', 'wink-gatekeeper' ); ?></h2>
 			<?php self::render_driver_health_rows(); ?>
+			<?php
+			/* 【v1.5·C1】test_mode 管理员提醒双位之一（02 §2.8 安全门 #3）：红点常显行
+			 * （不占 DriverHealth 状态机；wp_active 内含 24h 懒过期判定——过期不显示）。 */
+			if ( \WinkGatekeeper\Gates\TestMode::wp_active() ) {
+				$tm_settings = self::settings()['captcha'];
+				$tm_since    = isset( $tm_settings['test_mode_since'] ) && is_numeric( $tm_settings['test_mode_since'] ) ? (int) $tm_settings['test_mode_since'] : 0;
+				$tm_time     = $tm_since > 0 ? date_i18n( 'H:i', $tm_since ) : '—'; // WP 边界（站点时区）。
+				?>
+				<div class="notice notice-warning inline" style="margin-top:10px;">
+					<p><span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong><?php esc_html_e( 'test_mode 启用中（自 ' . $tm_time . '）', 'wink-gatekeeper' ); ?></strong>
+					——<?php esc_html_e( '全站人机验证旁路，仅用于链路演练；24 小时后自动过期（旁路事件标注 drill 不进统计、不写验证短缓存）。', 'wink-gatekeeper' ); ?></p>
+				</div>
+			<?php } ?>
 		</section>
 		<section class="wk-card">
 			<h2><?php esc_html_e( '事件流预览', 'wink-gatekeeper' ); ?></h2>
@@ -716,6 +740,49 @@ final class SettingsPage {
 			<h2><?php esc_html_e( '腾讯天御验证码 2.0 · 配置', 'wink-gatekeeper' ); ?></h2>
 
 			<?php
+			/* 【v1.5·DESIGN-C1 §3/03 Tab②】test_mode 演练开关黄条（02 §2.8 安全门 #1——
+			 * 显式开关默认关 + 红字说明 + 二次确认复选框；启用中黄条尾部注明 24h 自动过期；
+			 * 写路径=register_setting 主保存通道（manage_options+nonce 双闸，无新端点）。 */
+			$tm_checked = ! empty( $settings['captcha']['test_mode'] );
+			?>
+			<div class="notice notice-warning inline">
+				<p>
+					<strong><?php esc_html_e( '演练模式（旁路人机验证）', 'wink-gatekeeper' ); ?></strong>
+					<span style="color:#b32d2e;"><?php esc_html_e( '启用后全站人机验证旁路，仅用于链路演练。', 'wink-gatekeeper' ); ?></span>
+					<?php esc_html_e( '启用中 24 小时后自动过期；旁路事件标注 drill（不进统计）、不写验证短缓存；内容闸/云审/IP 阶段照常全链兜底。', 'wink-gatekeeper' ); ?>
+				</p>
+				<p>
+					<label>
+						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'test_mode' ) ) ); ?>" value="0" />
+						<input type="checkbox" id="wk-test-mode" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'test_mode' ) ) ); ?>" value="1" <?php checked( $tm_checked ); ?> <?php echo $tm_checked ? '' : 'disabled'; ?> />
+						<?php esc_html_e( '启用演练模式', 'wink-gatekeeper' ); ?>
+					</label>
+					<label style="margin-left:1em;">
+						<input type="checkbox" id="wk-test-mode-confirm" />
+						<?php esc_html_e( '我确认要旁路全站人机验证（二次确认）', 'wink-gatekeeper' ); ?>
+					</label>
+				</p>
+			</div>
+			<script>
+				( function() {
+					var main = document.getElementById( 'wk-test-mode' );
+					var confirm = document.getElementById( 'wk-test-mode-confirm' );
+					if ( ! main || ! confirm ) { return; }
+					var sync = function() { main.disabled = ! main.checked && ! confirm.checked; };
+					confirm.addEventListener( 'change', function() {
+						sync();
+						if ( ! confirm.checked && ! main.checked ) { return; }
+					} );
+					main.addEventListener( 'change', function() {
+						if ( main.checked ) { confirm.checked = true; }
+						sync();
+					} );
+					if ( main.checked ) { confirm.checked = true; } // 启用中保持可提交（关闭不受二次确认阻塞）。
+					sync();
+				} )();
+			</script>
+
+			<?php
 			// 【v1.4·反馈9/R4 §C.3】逐驱动合规行（registry privacy 维渲染；原接入指引内的
 			// 「核验将提交访客 IP」注记上移至此——常驻不可关闭，cross_border=true 升级黄条）。
 			$privacy_row = DriverConfigSpec::privacy_notice( TencentCaptchaDriver::registry_entry(), '腾讯天御验证码 2.0' );
@@ -771,6 +838,23 @@ final class SettingsPage {
 						<p class="description"><?php esc_html_e( '验证码控制台与 CaptchaAppId 同页的密钥——核验请求 body 必填参数（服务端在线校验强制，2026-11-09 实测定论）。仅服务端使用。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
+				<?php
+				/* 【v1.5·DESIGN-C1 §4.2/03 Tab②】min_score 派生控件（registry scoring 维驱动显隐）：
+				 * 评分制驱动接入时自动出现（默认 0.5、钳 0.1–1.0）；现役驱动全部二态
+				 * （scoring=false）控件隐藏——二态恒 score=1.0 对闸透明。 */
+				$active_meta = ( null !== self::$driver_registry && '' !== $active ) ? self::$driver_registry->get( $active ) : null;
+				if ( is_array( $active_meta ) && ! empty( $active_meta['scoring'] ) ) :
+					?>
+					<tr>
+						<th scope="row"><label for="wk-captcha-min-score"><?php esc_html_e( '机器分阈值（min_score）', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<input type="number" id="wk-captcha-min-score" step="0.1" min="0.1" max="1"
+								name="<?php echo esc_attr( self::field_name( array( 'captcha', 'min_score' ) ) ); ?>"
+								value="<?php echo esc_attr( (string) ( $settings['captcha']['min_score'] ?? 0.5 ) ); ?>" class="small-text" />
+							<p class="description"><?php esc_html_e( '评分制驱动专用：机器分折算 (0,1] 后低于该阈值即按不通过拦截（服务端钳 0.1–1.0，防 0 形同虚设/1.5 恒拒）。事件 meta 记 score+threshold 可查差值。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+				<?php endif; ?>
 				<tr>
 					<th scope="row"><?php esc_html_e( '容灾票据（网络差放行）', 'wink-gatekeeper' ); ?></th>
 					<td>

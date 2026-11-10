@@ -245,6 +245,13 @@ final class Precheck {
 			return array( 'result' => self::RESULT_CAPTCHA );
 		}
 
+		/* 【v1.5·C1】test_mode 旁路期不签发 TrustStub（02 §2.8 安全门 #5-②——机制性保证
+		 * 关测后无 10min 免验残留窗；降级 captcha_needed 契约形态不变，旁路期提交期
+		 * 本就直通、前端照常渲染，预检结果仅少一个免验位）。 */
+		if ( TestMode::active( $this->settings, (int) call_user_func( $this->now ) ) ) {
+			return array( 'result' => self::RESULT_CAPTCHA );
+		}
+
 		/* 全过 → 签发 TrustStub（IP+表单+身份三重绑定，10min——02 §3.3a；id/ip 哈希
 		 * 规范收口 HMAC-SHA16=前 16 位——与 CommentGate 提交期校验同形态）。 */
 		$mac      = $this->mac;

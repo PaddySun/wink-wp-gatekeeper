@@ -26,7 +26,7 @@
  *   1=过；7/8/9/15 → captcha_failed 刷新重试；16/100 → 配置错误文案；
  *   21 且 Ticket 含 trerror 前缀 = 官方容灾票按通过（弱网真人误杀防线）；其余码兜底拦截。
  *
- * 分层：tc3_*()/verdict_for()/verify() 计算路径为纯逻辑（RemoteClient 注入）；enqueue_assets()
+ * 分层：tc3_*()/verdict_for()/verify_tri() 计算路径为纯逻辑（RemoteClient 注入）；enqueue_assets()
  * 为 WP 边界方法（沿 EventsTable 同一文件混合分层的 M0 惯例，文件头标注）。
  *
  * @package WinkGatekeeper\Drivers\Captcha
@@ -176,6 +176,9 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 				'token_fields'  => array( self::TOKEN_FIELD_TICKET, self::TOKEN_FIELD_RANDSTR ),
 			),
 			'error_map'   => array(),
+			// 【v1.5·DESIGN-C1 §4.2/05 §4】scoring 维（captcha 类专属可选键）：天御二态制——
+			// Tab② min_score 控件隐藏（评分制驱动接入时 true 自动出现滑杆）。
+			'scoring'     => false,
 			'api_version' => 'captcha-2019-07-22',
 		'settings'    => array(
 			'app_id'         => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => 'CaptchaAppId', 'required' => true ),
@@ -244,12 +247,29 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 	}
 
 	/**
-	 * 服务端核验（绝不信前端回调结果——只认 DescribeCaptchaResult）。
+	 * error 态处置策略（【v1.5·C1】接口 v1.2 冻结位；05 §1.1 v1.5 回归注记）：
+	 * 恒 'block'——拍板（D6）：天御零行为变化，故障即拦（现行降级矩阵）；
+	 * pass_limited 留阿里驱动实施时按 SLA 评估启用（01 D18）。与容灾 disasterPolicy 正交。
+	 */
+	public function errorPolicy(): string {
+		return 'block';
+	}
+
+	/**
+	 * 服务端核验主通道（【v1.5·C1】接口 v1.2 三态；绝不信前端回调结果——只认 DescribeCaptchaResult）。
+	 *
+	 * 三态语义（02 §2.1 v1.2）：
+	 *   pass   = CaptchaCode 判定通过（含 trerror 容灾票 allow 档放行）——score 恒 1.0（二态驱动）；
+	 *   reject = 业务不通过（票无效/过期/重用/风控）+ 缺票 captcha_missing——message=驱动终态文案；
+	 *   error  = 传输/语义/契约终态——meta.rule=remote_<category>|contract_mismatch + raw 快照必带。
+	 *
+	 * 行为变化点 1（02 §5 captcha 行补注）：远端故障自本方法起以 error 态表达——事件 verdict
+	 * 由 reject 改 error（统计纠偏），由闸经 CaptchaTriInterpreter 统一翻译。
 	 *
 	 * @param array<string, mixed> $context {ticket, randstr, user_ip}。
-	 * @return string|null null = 通过；字符串 = 错误文案（输出层转义）。
+	 * @return array{state: string, score: float|null, message: string, meta: array<string, mixed>}
 	 */
-	public function verify( array $context ): ?string {
+	public function verify_tri( array $context ): array {
 		$this->last_meta = array();
 
 		$ticket  = isset( $context['ticket'] ) && is_scalar( $context['ticket'] ) ? trim( (string) $context['ticket'] ) : '';
@@ -258,7 +278,13 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 
 		if ( ! $this->is_configured() || '' === $ticket || '' === $randstr ) {
 			// 缺票 = captcha_missing（真人漏点按钮/JS 未加载）；未配置兜底同文案（闸层已整体跳过）。
-			return $this->copy( 'captcha_missing' );
+			$this->last_meta = array( 'rule' => 'captcha_missing' );
+			return array(
+				'state'   => 'reject',
+				'score'   => null,
+				'message' => $this->copy( 'captcha_missing' ),
+				'meta'    => $this->last_meta,
+			);
 		}
 
 		$payload = (string) json_encode( array(
@@ -290,7 +316,23 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 			'required'   => array( 'Response.CaptchaCode' ), // 缺失 → contract_mismatch 哨兵。
 		) );
 
-		return $this->consume_result( $result, $ticket, $user_ip );
+		return $this->consume_result_tri( $result, $ticket, $user_ip );
+	}
+
+	/**
+	 * 旧契约 legacy 垫片（【v1.5·C1】接口外保留——05 §1.1 v1.5「verify()/last_verify_meta()
+	 * 保留为垫片适配」；仅闸层能力探测失败路径与存量测试消费，M4 收线评估删除）。
+	 *
+	 * @param array<string, mixed> $context {ticket, randstr, user_ip}。
+	 * @return string|null null = 通过；字符串 = 错误文案（输出层转义）。
+	 */
+	public function verify( array $context ): ?string {
+		$tri = $this->verify_tri( $context );
+		$this->last_meta = is_array( $tri['meta'] ?? null ) ? $tri['meta'] : array(); // 垫片平价（last_verify_meta）。
+		if ( 'pass' === $tri['state'] ) {
+			return null;
+		}
+		return (string) $tri['message'];
 	}
 
 	/**
@@ -524,35 +566,41 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * 消费传输脊结果 → 三态（null 过 / 文案拦）+ 事件 meta。
+	 * 消费传输脊结果 → verify_tri 三态 + 事件 meta（【v1.5·C1】DESIGN-C1 §5：error 分支返
+	 * {state:'error',…}，meta/raw 组装逻辑原样搬；verdict_for() 纯函数与码表零改动）。
 	 *
 	 * @param RemoteResult $result  传输脊结果。
 	 * @param string       $ticket  本次票据。
 	 * @param string       $user_ip 本次提交者 IP（容灾限速键）。
-	 * @return string|null
+	 * @return array{state: string, score: float|null, message: string, meta: array<string, mixed>}
 	 */
-	private function consume_result( RemoteResult $result, string $ticket, string $user_ip ): ?string {
+	private function consume_result_tri( RemoteResult $result, string $ticket, string $user_ip ): array {
 		if ( ! $result->is_ok() ) {
-			// 【v1.4·R4 §D.1/D.3】captcha 阶段远端终态以 reject 形态落库——meta.raw 必带
+			// 【v1.4·R4 §D.1/D.3 → v1.5·C1 升格】远端终态以 error 态表达——meta.raw 必带
 			// （单一来源 raw_snapshot；stats.raw_capture 关=省略）；rule_hit=remote_<category>
-			// 既有形态保持（闸侧按 meta.rule 落 hits）。
+			// 既有形态保持；message=降级文案（02 §5 captcha 行）。
 			$this->last_meta = array(
 				'category' => $result->category(),
 				'status'   => $result->status(),
 				'rule'     => 'remote_' . $result->category(),
 			);
+			$message = self::MSG_TRANSPORT;
+			if ( RemoteResult::CONTRACT === $result->category() ) {
+				$this->last_meta['rule'] = 'contract_mismatch'; // R6/R9 厂商改版哨兵。
+				$message                 = self::MSG_CONFIG;
+			} elseif ( RemoteResult::TRANSPORT !== $result->category() ) {
+				$message = self::MSG_CONFIG;
+			}
 			$raw = RemoteResult::raw_snapshot_from_settings( $result, $this->stats_settings );
 			if ( null !== $raw ) {
 				$this->last_meta['raw'] = $raw;
 			}
-			// 降级矩阵（02 §5 captcha 行）：传输终态/语义/契约错误一律拦截、不设开关。
-			if ( RemoteResult::TRANSPORT === $result->category() ) {
-				return self::MSG_TRANSPORT;
-			}
-			if ( RemoteResult::CONTRACT === $result->category() ) {
-				$this->last_meta['rule'] = 'contract_mismatch'; // R6/R9 厂商改版哨兵。
-			}
-			return self::MSG_CONFIG;
+			return array(
+				'state'   => 'error',
+				'score'   => null,
+				'message' => $message,
+				'meta'    => $this->last_meta,
+			);
 		}
 
 		$response = $result->data()['Response'];
@@ -587,33 +635,38 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 		$this->last_meta = $meta;
 
 		if ( $mapped['pass'] ) {
-			return null;
+			// 二态驱动恒 score=1.0（02 §2.1 score 归一化契约——闸对二态/评分制无感知分流）。
+			return array( 'state' => 'pass', 'score' => 1.0, 'message' => '', 'meta' => $meta );
 		}
 
-		return $this->copy( 'captcha_failed' ) . $mapped['hint'];
+		return array(
+			'state'   => 'reject',
+			'score'   => null,
+			'message' => $this->copy( 'captcha_failed' ) . $mapped['hint'],
+			'meta'    => $meta,
+		);
 	}
 
 	/**
-	 * 容灾放行限速器（WP 边界，Bootstrap 注入）：transient 计数桶 {reset, count}，
-	 * 每 IP（wp_salt 派生 HMAC 定键）每小时 DISASTER_LIMIT 次内 true（并计数），超额 false。
+	 * 容灾放行限速器（WP 边界，Bootstrap 注入）——【v1.5·C1】委托共享件 DegradedPassLimiter
+	 * （02 §2.1：天御 disaster 与 captcha pass_limited 两个消费方共用同一 TokenBucket 形态；
+	 * wk_dsr_ 前缀 + {reset,count} 桶形态不变——存量 transient 桶不失效）。
 	 *
 	 * @param string $ip 提交者真实 IP。
 	 * @return bool
 	 */
 	public static function wp_disaster_limiter( string $ip ): bool {
-		$key = 'wk_dsr_' . substr( hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) ), 0, 16 ); // WP 边界。
-		$now = time();
-
-		$bucket = get_transient( $key );
-		if ( ! is_array( $bucket ) || ! isset( $bucket['reset'], $bucket['count'] ) || $now >= (int) $bucket['reset'] ) {
-			$bucket = array( 'reset' => $now + self::DISASTER_WINDOW, 'count' => 0 );
-		}
-		if ( (int) $bucket['count'] >= self::DISASTER_LIMIT ) {
-			return false;
-		}
-		$bucket['count'] = (int) $bucket['count'] + 1;
-		set_transient( $key, $bucket, self::DISASTER_WINDOW + 60 );
-		return true;
+		$limiter = new \WinkGatekeeper\Gates\DegradedPassLimiter(
+			self::DISASTER_LIMIT,
+			self::DISASTER_WINDOW,
+			'get_transient',
+			static function ( string $key, $value, int $ttl ): void {
+				set_transient( $key, $value, $ttl ); // WP 边界。
+			},
+			null, // wp_salt('auth') 默认（WP 边界——与旧 wk_dsr_ 键派生同源）。
+			\WinkGatekeeper\Gates\DegradedPassLimiter::DISASTER_PREFIX
+		);
+		return $limiter->allow( $ip );
 	}
 
 	/**

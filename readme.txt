@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.2.4
+Stable tag: 0.2.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.2.5 =
+
+M3' 批次 2·验证码驱动接口升级 B2（2026-11-11，设计文档 v1.5 C1 三态契约 + DESIGN-C1 统筹裁决）：① CaptchaDriverInterface 升格 v1.2 冻结——verify_tri() 主通道（三态结构化返回：pass（score 归一化 (0,1]，二态驱动恒 1.0）/reject（业务不通过）/error（传输/语义/契约终态，meta.rule=remote_<category>|contract_mismatch+raw 快照必带））取代 verify():?string（接口内删除，天御 verify()/last_verify_meta() 保留为 legacy 垫片，闸层 method_exists 能力探测 + CaptchaTriInterpreter::legacy_to_tri 折算）；+errorPolicy() 声明（默认 'block'——天御零行为变化，pass_limited 留阿里按 SLA 评估）；② 共享件 CaptchaTriInterpreter（includes/gates/）——02 §2.1 v1.5 映射表单点实现（pass+score<钳后阈值→reject+user_retry 档 / error 态首纳 / error+pass_limited+限流内→事件 error+落地放行+不写 VerifyCache），三闸（评论/登录/注册/找回）captcha 段统一消费，**行为变化点 1：captcha 阶段远端故障事件 verdict 由 reject 改 error（统计纠偏——captcha_reject 不再混入故障量）**；DegradedPassLimiter 共享限流器（TokenBucket {reset,count} transient 桶，默认 5 次/IP/h，天御容灾 wp_disaster_limiter 委托共用同一形态、wk_dsr_ 键不变）；③ captcha.min_score schema 键（闸侧消费，钳 0.1–1.0，默认 0.5）+ registry scoring 维（天御 false）+ Tab② 派生控件（评分制驱动接入才显示）+ pass/reject 事件 meta 记 score+threshold；④ test_mode 演练旁路安全门五件套（02 §2.8）——显式开关默认关（Tab② 黄条+红字说明+二次确认复选框）/drill 事件标注+统计隔离（rule_hit=test_mode_pass、driver=gate、meta.drill 恒落库不计数）/Tab① 红点行+admin-bar 黄条（仅 manage_options）/24h 懒过期（test_mode_since+test_mode_expired 事件，on/off/expired 全程留痕）/旁路期不写 VerifyCache、预检不签发 TrustStub（关测后零免验残留窗）；**行为变化点 2：新增事件 rule_hit test_mode_pass/test_mode_on|off|expired/remote_transport_degraded**；⑤ 豁免过滤器 wink_gatekeeper_require_gate（Wordfence wordfence_ls_require_captcha 先例）——落三闸 captcha 阶段入口（渲染判定与验证判定共用一判），豁免=等同未配置驱动语义（不影响 LocalRules/云审链/登录计数器；XML-RPC 恒结构化拒绝不受豁免影响）；**行为变化点 3：02 §2.1「verify():?string 稳定主通道」条款作废（M4 重评已执行）**。933 tests / 6851 assertions 全绿（860 基线 + 73 新例：映射表金测试/限流器/懒过期/三闸三态+test_mode+豁免/schema 钳制）。
 
 = 0.2.4 =
 
