@@ -1,0 +1,199 @@
+/**
+ * Wink 门口保安 · 前台验证组件样式（03 §2.1 v1.4 形态度 / §4 品牌落地 / §5 可访问性）。
+ *
+ * v1.4 形态度（M2-FIX2 2026-11-10，用户反馈①②）：
+ *   - 嵌入式验证码：挑战面板渲染进 .wk-gate-embed（提交按钮下方、SubmitRow 尾随注入），
+ *     尺寸向天御嵌入式 300×230 看齐、不随屏缩放（官方口径）；
+ *   - 三态单按钮：unverified Wink Red / loading·pending 中性 / verified 绿+禁用，
+ *     aria-live=polite 在按钮上（文案切换即播报）；不再有独立状态字/成功态徽标；
+ *   - 未验证禁用提交（D3）：禁用态降不透明度 + cursor:not-allowed（包裹层承载光标），
+ *     点击由 .wk-gate-lock 包裹层捕获 → 按钮文案提示（gatekeeper.js flashHint）。
+ *
+ * 色彩沿用品牌令牌（与 admin-settings.css 同源）：Ink 正文 / Wink Red 强调 /
+ * Fog 辅助 / Line 分隔。规范：最小 16px、对比度 WCAG AA、reduced-motion 不做动效。
+ */
+
+:root {
+	--wk-gate-btn-h: auto; /* 跟随主题提交按钮实际高度（03 §2.1 v1.3）。 */
+}
+
+.wk-gate {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem 0.75rem;
+	margin: 0 0.75rem 0 0; /* 并排形态：右侧让位给主题提交按钮（行内间距）。 */
+	font-size: 16px;
+	line-height: 1.6;
+	vertical-align: middle;
+}
+
+.wk-gate-inline {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+/* 窄屏兜底：提交区放不下时整行换行堆叠（不赌主题断点）。 */
+@supports (flex-wrap: wrap) {
+	.wk-gate {
+		max-width: 100%;
+	}
+}
+
+.wk-captcha-btn,
+.wk-verify-btn {
+	/* 与品牌「返回上一页」按钮同族：Wink Red 实底胶囊；高度向主题提交按钮看齐。 */
+	display: inline-block;
+	min-height: var(--wk-gate-btn-h);
+	padding: 8px 18px;
+	background: #ff4d4f;
+	color: #ffffff;
+	border: 0;
+	border-radius: 999px;
+	font-size: 16px;
+	line-height: 1.5;
+	cursor: pointer;
+	transition: background-color 120ms ease;
+}
+
+/* 主题通用 .button 类已提供基础形态时只做最小微调（不覆盖主题字号体系）。 */
+.button.wk-verify-btn {
+	border: 0;
+	border-radius: 999px;
+	background: #ff4d4f;
+	color: #ffffff;
+}
+
+.wk-captcha-btn:hover,
+.wk-captcha-btn:focus-visible,
+.button.wk-verify-btn:hover,
+.button.wk-verify-btn:focus-visible {
+	background: #e8383a;
+	outline: 2px solid #e8383a;
+	outline-offset: 2px;
+}
+
+.wk-captcha-btn:active,
+.button.wk-verify-btn:active {
+	background: #d02a2c;
+}
+
+/* ---- 三态单按钮（v1.4）：loading/pending 中性灰 / verified 绿态禁用 ---- */
+.wk-captcha-btn[data-wk-state="loading"],
+.wk-captcha-btn[data-wk-state="pending"] {
+	background: #8c8c94;
+	cursor: progress;
+}
+
+.wk-captcha-btn[data-wk-state="verified"] {
+	background: #1a7f37;
+	cursor: default; /* 已通过（disabled）：非交互态，文案「已通过验证」自明。 */
+}
+
+.wk-captcha-btn[data-wk-state="verified"]:hover,
+.wk-captcha-btn[data-wk-state="verified"]:focus-visible {
+	background: #1a7f37;
+	outline: none; /* 禁用态不制造可交互错觉。 */
+}
+
+.wk-captcha-btn[data-wk-state="retry"] {
+	background: #d4b106; /* 可重试态：醒目琥珀，点击即重试。 */
+}
+
+/* 【v1.4·R2/03 §2.1】预检门 checking 态（unverified → checking → …状态机增量）：可等待不可再点。 */
+.wk-captcha-btn[data-wk-state="checking"] {
+	background: #8c8c8c; /* 中性灰：等待判定，无成败语义。 */
+	cursor: wait;
+}
+
+/* 【v1.4·R2/03 §2.1】四闸内联错误条：按钮正下（与 .wk-gate-embed 同位不同元素互斥显示）——
+ * 工坊文案（too_short/too_long/no_chinese/banned_word 同键复用，服务端已格式化占位符）；
+ * Wink Red 强调 + Blush 提示底（品牌「留台阶」语气）；草稿保留框内，改完再点。 */
+.wk-gate-msg {
+	flex-basis: 100%;
+	margin: 0.5rem 0 0;
+	padding: 8px 12px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: #cf1322;
+	background: #fff2f2; /* Blush。 */
+	border: 1px solid #ffccc7;
+	border-radius: 4px;
+}
+
+.wk-gate-msg[hidden] {
+	display: none;
+}
+
+/* ---- 嵌入式验证码挂载点（v1.4，D1；v1.4.1 反馈2 T1 裁切修复）：提交按钮下方 ----
+ * T1 根因（2026-11-10 实测复现）：天御「dy」版 SDK 嵌入组件实测固定宽 302px（官方口径
+ * 300×230 偏窄）——v1.4 的 max-width:300px + overflow:hidden 把组件右侧裁掉 ~2px。
+ * 修法（通用，不针对主题类名）：不设 max-width 上限 + overflow:visible 不裁切；
+ * min-width 兜底防网格/窄列语境容器塌缩到面板固有宽以下（min() 使 <300px 容器不强制撑破）。
+ * 取舍：失去旧 overflow:hidden 对 SDK 圆角的裁切美化——完整显示优先，视觉细节留复测观察。 */
+.wk-gate-embed {
+	min-width: min(300px, 100%);
+	margin: 0.5rem 0 0;
+	overflow: visible;
+}
+
+/* WP 核心类 .comment-form 为网格布局的主题（加分注记：paddysun-newsprint 的 1fr 1fr 双列）
+ * 会把挂载点当网格项自动落入单列——跨全行保证面板可用宽度（容器自身属性，非主题类名 hack）。 */
+.comment-form > .wk-gate-embed {
+	grid-column: 1 / -1;
+}
+
+.wk-gate-embed[hidden] {
+	display: none;
+}
+
+.wk-gate noscript {
+	flex-basis: 100%;
+	font-size: 14px;
+	color: #ff4d4f;
+}
+
+/* ---- 未验证禁用提交（D3）：禁用视觉 + 包裹层光标 ---- */
+[data-wk-gate-disabled="1"] {
+	opacity: 0.55;
+}
+
+.wk-gate-lock {
+	display: inline-flex;
+}
+
+.wk-gate-lock[data-wk-active="1"] {
+	cursor: not-allowed; /* 禁用控件不响应光标样式——包裹层承载（解禁随 data 标志还原）。 */
+}
+
+/* （v1.4.1 清理）旧主题微调规则 .form-submit .wk-gate-embed 已删——挂载点实际是提交段落的
+ * 兄弟节点（SubmitRow 尾追追加），该选择器永不命中；间距由上方通用规则承担。 */
+
+/* ---- wp-login 域（【v1.4·R3/03 §2.2】登录页嵌入式——本样式表随登录页入队；.login 为
+ * wp-login 页 body class 作用域，三表单 login/register/lostpassword 一套复用，不污染前台）。
+ * #loginform 内容宽 320px、天御 SDK 嵌入组件实测固定宽 302px<320px——无裁切风险；
+ * 挂载点基础样式（min-width/overflow）复用上方 FIX3 定稿规则，此处仅补登录域间距。 */
+.login .wk-gate {
+	display: block;
+	margin: 6px 0 8px;
+}
+
+.login .wk-gate-embed {
+	margin: 6px 0 8px;
+}
+
+.login .wk-gate-login-status {
+	display: block;
+	margin: 6px 0 8px;
+	font-size: 13px;
+	color: #50575e; /* wp-login 原生表单说明文字色（.login #login_error 语境外的中性提示）。 */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wk-captcha-btn,
+	.wk-verify-btn {
+		transition: none; /* 动效降级：reduced-motion 用户不参与过渡动画。 */
+	}
+}

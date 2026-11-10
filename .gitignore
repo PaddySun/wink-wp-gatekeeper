@@ -1,0 +1,13 @@
+# 测试运行缓存
+.phpunit.cache/
+
+# IDE
+.idea/
+.vscode/
+
+# 密钥环境文件（真实值放外层 ../.env，不入库）
+.env
+.env.local
+
+# 真机 e2e 工具（wpsh.sh 等含内网/SSH 运维参数与真机证据快照）——脱敏占位符化后再另行入库
+tests/e2e/

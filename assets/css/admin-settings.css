@@ -1,0 +1,339 @@
+/**
+ * Wink 门口保安 · 设置页品牌样式（03 §4 品牌落地对照）
+ *
+ * 色彩：Night #111114 深色页头 / Paper #F7F7F8 / Wink Red #FF4D4F /
+ *       Blush #FFF2F2 / Ink #17171B / Fog #86868F / Line #E9E9EC
+ * 字体：无衬线负责说话，等宽负责作证（证据行、编号、时间戳）。
+ * 规范：留白 0.5×（盾牌高度）、最小字号 16px、对比度 WCAG AA。
+ */
+
+:root {
+	--wk-red: #ff4d4f;
+	--wk-red-deep: #e8383a;
+	--wk-blush: #fff2f2;
+	--wk-blush-line: #ffd9d9;
+	--wk-ink: #17171b;
+	--wk-night: #111114;
+	--wk-paper: #f7f7f8;
+	--wk-fog: #86868f;
+	--wk-line: #e9e9ec;
+	--wk-sans: "Inter", "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+	--wk-mono: "SFMono-Regular", Consolas, "JetBrains Mono", Menlo, monospace;
+	--wk-gap: 1rem; /* 卡片间距（≈盾牌 0.5× 留白节奏） */
+}
+
+/* ---------- 页头：Night 深色通栏 + 品牌锁定 ---------- */
+
+.wk-wrap {
+	max-width: 64rem;
+	font-family: var(--wk-sans);
+	font-size: 16px; /* 品牌最小字号 */
+	color: var(--wk-ink);
+	-webkit-font-smoothing: antialiased;
+}
+
+.wk-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+	background: var(--wk-night);
+	color: #fff;
+	border-radius: 0.5rem;
+	padding: 1.4rem 1.6rem; /* 品牌安全边距 ≥ 盾牌高度 0.5× */
+	margin: 1rem 0 0;
+	position: relative;
+	overflow: hidden;
+}
+
+.wk-header::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: radial-gradient(60% 60% at 50% 0%, rgba(255, 77, 79, 0.16), transparent 70%);
+}
+
+.wk-header-brand {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+
+.wk-logo {
+	display: block;
+	width: 40px; /* 横向锁定最小 88px 场景内取盾牌 40px 档 */
+	height: auto;
+	transform-origin: center 40%; /* 眨眼纵向压缩 8% 的变换原点 */
+	transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1); /* 睁眼 120ms */
+}
+
+.wk-logo.is-blinking {
+	/* 闭眼帧由 JS 切换 logo-wink-blink.svg；此处叠加品牌纵向压缩 8% */
+	transform: scaleY(0.92);
+	transition-duration: 130ms; /* 闭眼 130ms */
+}
+
+.wk-wordmark {
+	font-size: 1.5rem;
+	font-weight: 600;
+	letter-spacing: -0.045em;
+	line-height: 1;
+}
+
+.wk-tagline {
+	font-size: 0.9rem;
+	color: #9a9aa6;
+}
+
+.wk-header-meta {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.wk-badge {
+	font-family: var(--wk-mono);
+	font-size: 0.8rem;
+	color: var(--wk-red);
+	background: rgba(255, 77, 79, 0.12);
+	border: 1px solid rgba(255, 77, 79, 0.35);
+	border-radius: 0.4rem;
+	padding: 0.35rem 0.7rem;
+	white-space: nowrap;
+}
+
+.wk-version {
+	font-family: var(--wk-mono);
+	font-size: 0.75rem;
+	color: #5c5c68;
+}
+
+/* ---------- Tab 导航 ---------- */
+
+.wk-tabs {
+	margin-top: var(--wk-gap);
+}
+
+.wk-tabs .nav-tab {
+	font-size: 16px;
+}
+
+.wk-tabs .nav-tab-active,
+.wk-tabs .nav-tab:focus {
+	box-shadow: none;
+}
+
+/* ---------- 表单与面板 ---------- */
+
+.wk-form {
+	margin-top: var(--wk-gap);
+}
+
+.wk-panel {
+	background: #fff;
+	border: 1px solid var(--wk-line);
+	border-radius: 0.75rem;
+	padding: calc(var(--wk-gap) * 1.5);
+	display: grid;
+	gap: var(--wk-gap);
+}
+
+.wk-card {
+	background: var(--wk-paper);
+	border: 1px solid var(--wk-line);
+	border-radius: 0.75rem;
+	padding: 1.2rem 1.3rem;
+}
+
+.wk-card h2 {
+	margin: 0 0 0.5rem;
+	font-size: 1.05rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	color: var(--wk-ink);
+}
+
+.wk-muted {
+	margin: 0;
+	font-size: 16px;
+	line-height: 1.7;
+	color: var(--wk-fog);
+}
+
+/* ---------- Tab⑥ 留档量黄条（03 Tab⑥ v1.3：spam 留档超阈值提示） ---------- */
+
+.wk-notice {
+	margin: 0 0 1rem;
+	padding: 0.85rem 1rem;
+	border-radius: 0.5rem;
+	font-size: 15px;
+	line-height: 1.7;
+}
+
+.wk-notice--warn {
+	background: #fff8e6;
+	border: 1px solid #e2b93b;
+	color: #6b5410;
+}
+
+.wk-notice--warn a {
+	color: #997b0c;
+}
+
+/* ---------- 总览：今日拦截占位卡（Wink Red 作证） ---------- */
+
+.wk-card--metric {
+	background: var(--wk-blush);
+	border-color: var(--wk-blush-line);
+}
+
+.wk-metric {
+	margin: 0.25rem 0 0.5rem;
+}
+
+.wk-metric__num {
+	font-family: var(--wk-mono); /* 等宽「作证」：计数属证据 */
+	font-size: 2.4rem;
+	font-weight: 600;
+	color: var(--wk-red);
+	line-height: 1.1;
+}
+
+/* ---------- 表格（文案键清单等） ---------- */
+
+.wk-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 0.75rem;
+	background: #fff;
+	border: 1px solid var(--wk-line);
+	border-radius: 0.5rem;
+	overflow: hidden;
+}
+
+.wk-table th,
+.wk-table td {
+	text-align: left;
+	padding: 0.6rem 0.9rem;
+	border-top: 1px solid var(--wk-line);
+	font-size: 16px;
+}
+
+.wk-table thead th {
+	border-top: 0;
+	background: var(--wk-paper);
+	color: var(--wk-fog);
+	font-size: 0.8rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.wk-table code {
+	font-family: var(--wk-mono); /* 规则键 = 证据，等宽呈证 */
+	font-size: 0.9em;
+	color: var(--wk-red-deep);
+	background: var(--wk-blush);
+	border: 1px solid var(--wk-blush-line);
+	border-radius: 0.3rem;
+	padding: 0.1rem 0.35rem;
+}
+
+/* ---------- 提交按钮区微调 ---------- */
+
+.wk-form .submit {
+	margin: var(--wk-gap) 0;
+}
+
+/* ---------- 动效降级：减少动效时常睁眼、无变换 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+	.wk-logo,
+	.wk-logo.is-blinking {
+		transform: none;
+		transition: none;
+	}
+}
+
+/* ---------- C1 · Tab② 驱动配置交互（03 §1 v1.3） ---------- */
+
+/* 未配置状态点（红点告警，02 §2.1 未配置行为的 UI 面）。 */
+.wk-dot {
+	display: inline-block;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 50%;
+	margin-right: 0.35rem;
+	vertical-align: middle;
+}
+
+.wk-dot--alert {
+	background: var(--wk-red);
+}
+
+/* 必填双层校验 JS 侧：缺失字段标红（服务端黄条兜底）。 */
+.wk-field-missing {
+	border-color: var(--wk-red) !important;
+	box-shadow: 0 0 0 1px var(--wk-red) inset;
+}
+
+/* 接入指引折叠面板（配置区顶部，03 Tab② v1.3「接入指引内嵌」）。 */
+.wk-guide {
+	border: 1px solid var(--wk-line);
+	border-radius: 0.5rem;
+	padding: 0.6rem 0.9rem;
+	margin-bottom: var(--wk-gap);
+	background: var(--wk-paper);
+}
+
+.wk-guide summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.wk-guide ol {
+	margin: 0.6rem 0 0.2rem 1.2rem;
+}
+
+.wk-guide li {
+	margin-bottom: 0.35rem;
+}
+
+/* 测试凭据三态结果（绿/红/黄/灰；结果只缓存在按钮旁，不落库）。 */
+.wk-probe {
+	display: inline-block;
+	margin-left: 0.5rem;
+	font-weight: 600;
+}
+
+.wk-probe--green {
+	color: #1a7f37;
+}
+
+.wk-probe--red {
+	color: var(--wk-red-deep);
+}
+
+.wk-probe--yellow {
+	color: #9a6700;
+}
+
+.wk-probe--gray {
+	color: var(--wk-fog);
+}
+
+/* ---------- C4 · Tab① 驱动健康灯 / Tab③ 云审核（02 §5 状态机最小实装） ---------- */
+
+.wk-dot--ok {
+	background: #1a7f37;
+}
+
+.wk-dot--warn {
+	background: #d4a017;
+}

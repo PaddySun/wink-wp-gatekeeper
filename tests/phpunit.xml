@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.5/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnRisky="true"
+         failOnWarning="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true">
+  <testsuites>
+    <testsuite name="wink-wp-gatekeeper unit (pure PHP, zero WP dependency)">
+      <directory>./</directory>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory>../includes</directory>
+    </include>
+  </source>
+</phpunit>
