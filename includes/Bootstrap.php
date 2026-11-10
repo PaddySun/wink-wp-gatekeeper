@@ -20,6 +20,7 @@ use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
 use WinkGatekeeper\Drivers\DriverRegistry;
 use WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver;
+use WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver;
 use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Gates\CommentGate;
@@ -162,6 +163,8 @@ final class Bootstrap {
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN, array( SettingsPage::class, 'ajax_test_credentials_aliyun' ) );
 		// Tab③ 阿里 PLUS「测试凭据」（B5：同双闸；绿态 = 探测 Code=200，顺带解除 aliyun_green 停转——05 §2.5）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN, array( SettingsPage::class, 'ajax_test_credentials_aliyun_green' ) );
+		// Tab③ 百度「测试凭据」（B6：同双闸；绿态 = 探测 conclusionType=1，顺带解除 baidu 停转——05 §2.4）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_BAIDU, array( SettingsPage::class, 'ajax_test_credentials_baidu' ) );
 	}
 
 	/**
@@ -204,6 +207,7 @@ final class Bootstrap {
 		$registry->register( LocalRulesDriver::registry_entry() );
 		$registry->register( TencentTmsDriver::registry_entry() ); // C4：腾讯 TMS 文本审核。
 		$registry->register( AliyunGreenPlusDriver::registry_entry() ); // B5：阿里文本审核增强版 PLUS（05 §2.5）。
+		$registry->register( BaiduTextModerationDriver::registry_entry() ); // B6：百度文本审核（05 §2.4——token 30 天缓存复用）。
 		SettingsPage::set_driver_registry( $registry );
 
 		// 传输脊（全库唯一 HTTP 出口；计量钩子接用量计数——04 §6）。
@@ -227,6 +231,14 @@ final class Bootstrap {
 					$green_driver = new AliyunGreenPlusDriver( $settings, $client );
 					if ( $green_driver->is_configured() ) {
 						$cloud_chain['aliyun_green'] = $green_driver;
+					}
+				} elseif ( 'baidu' === $chain_id ) {
+					// B6：百度文本审核（05 §2.4）——拼接串口径含邮箱（百度无阿里 pt_to_contact
+					// 邮箱误杀问题，与 TMS/LLM 驱动同口径）；token 30 天 transient 缓存复用
+					// （WP 边界闭包注入，键含凭据指纹）。
+					$baidu_driver = new BaiduTextModerationDriver( $settings, $client );
+					if ( $baidu_driver->is_configured() ) {
+						$cloud_chain['baidu'] = $baidu_driver;
 					}
 				}
 			}

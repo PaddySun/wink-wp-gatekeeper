@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,11 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.3.2 =
+
+M3' 轻量批·百度文本审核驱动上线 B6（2026-11-11，设计文档 05 §2.4 百度行——L0-baidu-2026-11-09 在线核验+冒烟实测定稿）：① 新驱动 baidu——includes/drivers/review/BaiduTextModerationDriver.php（ReviewDriver 契约：check/last_check_meta/fail_mode 闸侧），文本审核 v2（aip.baidubce.com text_censor/v2/user_defined——v2 即现行版，2020 前老接口已下线）+ oauth client_credentials token 流；**token 30 天 transient 缓存复用**（L0 实测 expires_in=2592000；WP 边界闭包注入 get_transient/set_transient，TTL=expires_in-300s 安全边际，键含凭据指纹防换 AK 串用旧 token；token 获取不计审核 usage，缓存命中与否落 meta.token_cache=hit/miss 供侧证；error_code 110/111 自动清缓存自愈重取）；AppID 不参与请求（L0 实测，仅控制台标识不作配置门槛）；② 判定映射（05 §2.4 规范性，L0 逐项实测吻合）：conclusionType 唯一判据——1 合规→pass / 2 不合规→reject（reason=conclusion+首条命中）/ 3 疑似→review / 4 审核失败→error（链上 failover+闸按 fail_mode 收口）；枚举漂移→review fail-safe（TMS unknown_suggestion 先例）；hits=data[].type/subType 人类可读格式（「12-文本反作弊(subType=4)」——L0 广告文本三条标签逐项，TYPE_NAMES 表内置）；送审串口径**邮箱不并入**（真机实锤偏差 1：百度对任何邮箱地址本身判 36-广告 subType=360104 误杀——隔离实验 email_only→reject/body_only→pass，与阿里 pt_to_contact 误杀同类、IMPL-B5 偏差 3 先例；送审串=「昵称
+正文」分字段两行，include_author_fields 关=仅正文；邮箱防线收回到 LocalRules 拼接串，TMS/LLM 口径零改动）；text ≤20000 字节按字节安全截断（meta 标 truncated/original_bytes）；error_map body error_code 级（110/111/100/6/17/19→semantic 当日停转、2/3/4/5/18→transport 退避重试、未知码→契约哨兵）；空内容本地防呆零外发；③ Tab③ 百度配置区——API Key+Secret Key password 型不回显（P0-α 教训）+ 超时/日配额（计费防呆 500 次/天默认）/降级单选 + 合规行（privacy 维：aip.baidubce.com 境内不出境/拼接串含邮箱）+ 接入指引；「测试凭据」三态（绿=conclusionType=1 探测合规顺带解除停转；黄=键缺或 error_code=100；红=鉴权失败 error_code=110/111/6 指明控制台核对）；registry 登记（Tab③ 下拉 chain[0] 可选，脱离 future 里程碑段——F42 切换机制：切百度/TMS/阿里配置各自独立保留零改代码）；④ schema review.cloud.baidu 子树 M0 已落位（本批零新键，Sanitize password 型核对钉测）。1100 tests / 7611 assertions 全绿（1050 基线 + 54 新例：驱动 34（含邮箱排除回归钉 4）/设置面 9/凭据三态 11——L0 实测响应形态金测试+真机隔离实验夹具）。真机（厦门 wpclean）：凭据三态绿（conclusionType=1，990ms）/黄/红（HTTP 401 鉴权）全过；正常评论 pass、广告样文 reject（36-广告 360101+12-文本反作弊 subType=4）；meta.token_cache=hit 侧证 token 缓存复用；Tab③ 切百度→切回 TMS 双驱动配置零清空（F42）。
 
 = 0.3.1 =
 

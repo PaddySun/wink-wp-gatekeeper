@@ -456,4 +456,60 @@
 			} );
 		} );
 	}
+
+	/* -----------------------------------------------------------------
+	 * B6 · Tab③ 百度「测试凭据」（03 Tab③ 同款模式：良性文本真调用三态——token 流含在内；
+	 * 绿态在服务端顺带解除当日停转——页面不重载，灯状态下次刷新可见）。
+	 * ----------------------------------------------------------------- */
+
+	var baiduProbeButton = document.getElementById( 'wk-baidu-test-credentials' );
+	if ( baiduProbeButton ) {
+		baiduProbeButton.addEventListener( 'click', function () {
+			var result = document.getElementById( 'wk-baidu-test-result' );
+			baiduProbeButton.disabled = true;
+			if ( result ) {
+				result.textContent = '测试中……';
+				result.className = '';
+			}
+
+			function baiduFieldOrEmpty( id ) {
+				var el = document.getElementById( id );
+				return el ? el.value.trim() : '';
+			}
+
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_test_credentials_baidu' );
+			body.append( 'nonce', baiduProbeButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'baidu_api_key', baiduFieldOrEmpty( 'wk-field-review-cloud-baidu-api_key' ) );
+			body.append( 'baidu_secret_key', baiduFieldOrEmpty( 'wk-field-review-cloud-baidu-secret_key' ) );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( ! result ) {
+					return;
+				}
+				var data = payload && payload.data ? payload.data : null;
+				if ( payload && payload.success && data ) {
+					result.textContent = data.message || '';
+					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+				} else {
+					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).catch( function () {
+				if ( result ) {
+					result.textContent = '测试失败（网络错误）。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).finally( function () {
+				baiduProbeButton.disabled = false;
+			} );
+		} );
+	}
 }() );

@@ -62,8 +62,11 @@ final class DriverPrivacy {
 			'baidu'       => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M4 逐家抓取。
-				'data_fields'  => '昵称、邮箱、评论正文（拼接串；关闭拼接时仅正文）',
-				'region_note'  => '境内服务商',
+				// 【v1.5·B6】分字段送审（昵称+正文两行）——**邮箱不送审**（真机实锤：任何邮箱
+				// 地址本身判 36-广告 360104 误杀，IMPL-B6 偏差 1——阿里 pt_to_contact 同类；
+				// 邮箱防线在 LocalRules 拼接串）。设计原「拼接串含邮箱」口径作废。
+				'data_fields'  => '昵称、评论正文（分字段送审；邮箱不送审）',
+				'region_note'  => '境内节点 aip.baidubce.com，数据不出境',
 			),
 			'aliyun_green' => array(
 				'cross_border' => false,

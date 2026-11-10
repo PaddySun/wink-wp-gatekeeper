@@ -18,6 +18,7 @@ namespace WinkGatekeeper\Settings;
 use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
 use WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver;
+use WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Intercept\Copywork;
@@ -58,6 +59,12 @@ final class SettingsPage {
 	 * 结果不落库；绿态顺带解除 aliyun_green 当日停转——05 §2.5 凭据自检三态/TMS 先例同款）。
 	 */
 	const AJAX_TEST_CREDENTIALS_ALIYUN_GREEN = 'wink_gatekeeper_test_credentials_aliyun_green';
+
+	/**
+	 * Tab③ 百度「测试凭据」AJAX action（【v1.5·B6】：nonce + manage_options 双闸；
+	 * 结果不落库；绿态顺带解除 baidu 当日停转——05 §2.4 凭据自检三态/TMS 先例同款）。
+	 */
+	const AJAX_TEST_CREDENTIALS_BAIDU = 'wink_gatekeeper_test_credentials_baidu';
 
 	/**
 	 * @var \WinkGatekeeper\Drivers\DriverRegistry|null Bootstrap 装配期注入的驱动注册表。
@@ -1226,6 +1233,67 @@ final class SettingsPage {
 	}
 
 	/**
+	 * Tab③ 百度「测试凭据」AJAX 端点（【v1.5·B6】05 §2.4 凭据自检三态；03 §1 契约④：
+	 * nonce + manage_options 双闸）。
+	 *
+	 * 表单值（password 空串 = 回落已存值）+ 良性样本文本真调用（token 流含在内）→ 三态呈现
+	 * （CredentialProbe::classify_baidu）；绿态顺带解除 baidu 当日停转
+	 * （02 §5「自检通过」解除条件落点——TMS/阿里先例同款）。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_credentials_baidu(): void {
+		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_BAIDU, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+
+		$stored  = get_option( self::OPTION_NAME, array() );
+		$stored  = is_array( $stored ) ? $stored : array();
+		$stored  = SettingsSchema::merge_defaults( $stored );
+		$current = isset( $stored['review']['cloud']['baidu'] ) && is_array( $stored['review']['cloud']['baidu'] )
+			? $stored['review']['cloud']['baidu']
+			: array();
+
+		// 表单值覆盖（password 空串保留已存值——与保存契约同语义）。
+		$baidu = array(
+			'api_key'    => self::probe_field( $post, 'baidu_api_key', (string) ( $current['api_key'] ?? '' ) ),
+			'secret_key' => self::probe_field( $post, 'baidu_secret_key', (string) ( $current['secret_key'] ?? '' ) ),
+		);
+
+		// 本地预检（黄态）：必填缺逐字段列出，不发远端调用（05 §2.4 黄态条款）。
+		$precheck = CredentialProbe::local_precheck_baidu( $baidu );
+		if ( null !== $precheck ) {
+			wp_send_json_success( array(
+				'state'   => $precheck['state'],
+				'message' => $precheck['message'],
+				'missing' => $precheck['missing'],
+				'code'    => '',
+			) );
+		}
+
+		$settings = $stored;
+		$settings['review']['cloud']['baidu'] = array_merge( $current, $baidu );
+
+		$driver = new BaiduTextModerationDriver(
+			$settings,
+			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
+		);
+		$state = CredentialProbe::classify_baidu( $driver->probe_credentials() );
+
+		// 绿态解除当日停转（02 §5 解除条件：自检通过；probe 不计 usage）。
+		if ( 'green' === $state['state'] ) {
+			DriverHealth::clear_option( BaiduTextModerationDriver::DRIVER_ID );
+		}
+
+		wp_send_json_success( $state );
+	}
+
+	/**
 	 * password 型字段（04 §2 安全规则：不回显键值，仅「已配置✓」状态提示）。
 	 *
 	 * @param string[] $path       设置树路径。
@@ -1267,9 +1335,11 @@ final class SettingsPage {
 		$cloud    = $settings['review']['cloud'];
 		$tms      = is_array( $cloud['tencent_tms'] ?? null ) ? $cloud['tencent_tms'] : array();
 		$green    = is_array( $cloud['aliyun_green'] ?? null ) ? $cloud['aliyun_green'] : array();
+		$baidu    = is_array( $cloud['baidu'] ?? null ) ? $cloud['baidu'] : array(); // 【v1.5·B6】百度文本审核子树。
 		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
 		$tms_in_chain   = in_array( 'tencent_tms', $chain, true );
 		$green_in_chain = in_array( 'aliyun_green', $chain, true );
+		$baidu_in_chain = in_array( 'baidu', $chain, true );
 
 		// 【v1.4·R4】DriverConfigSpec 通用件消费：registry 已实装 review 驱动（local_rules 剔除）
 		// + 运行时停转映射（下拉「配置错误」点）+ 链路汇总行素材。
@@ -1279,10 +1349,11 @@ final class SettingsPage {
 			unset( $cloud_registered['local_rules'] );
 		}
 		if ( array() === $cloud_registered ) {
-			// registry 未注入的降级读取（单测/早载场景）——已实装两驱动硬编码兜底。
+			// registry 未注入的降级读取（单测/早载场景）——已实装三驱动硬编码兜底。
 			$cloud_registered = array(
-				TencentTmsDriver::DRIVER_ID      => TencentTmsDriver::registry_entry(),
-				AliyunGreenPlusDriver::DRIVER_ID => AliyunGreenPlusDriver::registry_entry(),
+				TencentTmsDriver::DRIVER_ID        => TencentTmsDriver::registry_entry(),
+				AliyunGreenPlusDriver::DRIVER_ID   => AliyunGreenPlusDriver::registry_entry(),
+				BaiduTextModerationDriver::DRIVER_ID => BaiduTextModerationDriver::registry_entry(),
 			);
 		}
 		$cloud_halted = array();
@@ -1297,10 +1368,11 @@ final class SettingsPage {
 		$cloud_configs = array(
 			'tencent_tms'  => $tms,
 			'aliyun_green' => $green,
+			'baidu'        => $baidu,
 		);
 
 		// 当前选中驱动（下拉=chain[0] 可视面；未配置=''）。
-		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : '' );
+		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : ( $baidu_in_chain ? 'baidu' : '' ) );
 
 		// 服务端黄条（双层校验第二层——DriverConfigSpec 文案参数化版）。
 		$cloud_notice = null;
@@ -1424,7 +1496,7 @@ final class SettingsPage {
 								</option>
 							<?php endforeach; ?>
 						</select>
-						<p class="description"><?php esc_html_e( '选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek / 模力 / 百度为后续里程碑驱动（选前不可用）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( '选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek / 模力为后续里程碑驱动（选前不可用）。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -1641,9 +1713,93 @@ final class SettingsPage {
 					</p>
 					<p class="description"><?php esc_html_e( '发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
 				</section>
-			<?php else : ?>
-				<section class="wk-card">
-					<h2><?php esc_html_e( '云端审核驱动', 'wink-gatekeeper' ); ?></h2>
+		<?php elseif ( $baidu_in_chain ) : ?>
+			<?php
+			/* 【v1.5·B6】百度文本审核配置区（03 Tab③——与 TMS/阿里配置区同构：
+			 * 合规行（registry privacy 维）/ 接入指引折叠 / 测试凭据三态按钮 / 双层必填校验。
+			 * 无策略/阈值字段（conclusionType 映射站长不可调，05 §2.4；token 由插件缓存）。 */
+			$baidu_meta    = isset( $cloud_registered['baidu'] ) ? $cloud_registered['baidu'] : BaiduTextModerationDriver::registry_entry();
+			$baidu_privacy = DriverConfigSpec::privacy_notice( $baidu_meta, '百度文本审核' );
+			?>
+			<section class="wk-card" id="wk-baidu-config-area">
+				<h2><?php esc_html_e( '百度文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
+
+				<?php if ( null !== $baidu_privacy ) : ?>
+					<div class="notice <?php echo 'warn' === $baidu_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+						<p><?php echo esc_html( $baidu_privacy['text'] ); ?></p>
+					</div>
+				<?php endif; ?>
+
+				<details class="wk-guide">
+					<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+					<ol>
+						<li><?php esc_html_e( '百度智能云控制台开通「内容审核 · 文本审核」（现行 v2 端点，文本审核按量计费）。', 'wink-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( '控制台「应用列表」创建应用获取 API Key 与 Secret Key（AppID 仅控制台标识，不参与请求）。', 'wink-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( '粘贴至下方 → 点「测试凭据」（正常文本实测应返回合规）。', 'wink-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( '判定映射（站长不可调）：conclusionType 1 合规→放行、2 不合规→直接拦截、3 疑似→入待审；access_token 由插件缓存复用（30 天有效期，无需手动管理）。', 'wink-gatekeeper' ); ?></li>
+					</ol>
+					<p><a href="https://cloud.baidu.com/doc/ANTIPORN/s/Rk3h6xb3i" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '文本审核 v2 API 文档', 'wink-gatekeeper' ); ?></a></p>
+				</details>
+
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="wk-baidu-api-key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<?php self::password_field( array( 'review', 'cloud', 'baidu', 'api_key' ), '' !== (string) ( $baidu['api_key'] ?? '' ), 'API Key' ); ?>
+							<p class="description"><?php esc_html_e( '百度智能云应用 API Key（client_credentials 鉴权用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="wk-baidu-secret-key"><?php esc_html_e( 'Secret Key', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<?php self::password_field( array( 'review', 'cloud', 'baidu', 'secret_key' ), '' !== (string) ( $baidu['secret_key'] ?? '' ), 'Secret Key' ); ?>
+							<p class="description"><?php esc_html_e( '与 API Key 配对的 Secret Key（access_token 有效期 30 天，由插件缓存复用）。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="wk-baidu-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<input type="number" id="wk-baidu-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'timeout' ) ) ); ?>"
+								value="<?php echo esc_attr( (string) ( $baidu['timeout'] ?? 8 ) ); ?>" class="small-text" />
+							<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="wk-baidu-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<input type="number" id="wk-baidu-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'daily_quota' ) ) ); ?>"
+								value="<?php echo esc_attr( (string) ( $baidu['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
+							<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理（计费防呆，立项书 §6.4）', 'wink-gatekeeper' ); ?></span>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+						<td>
+							<?php $baidu_fail_mode = 'open' === ( $baidu['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
+							<label style="display:block;margin-bottom:6px;">
+								<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $baidu_fail_mode ); ?> />
+								<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+							</label>
+							<label style="display:block;">
+								<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $baidu_fail_mode ); ?> />
+								<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+							</label>
+						</td>
+					</tr>
+				</table>
+
+				<p>
+					<button type="button" class="button" id="wk-baidu-test-credentials"
+						data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_BAIDU ) ); ?>">
+						<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+					</button>
+					<span id="wk-baidu-test-result" aria-live="polite"></span>
+				</p>
+				<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			</section>
+		<?php else : ?>
+			<section class="wk-card">
+				<h2><?php esc_html_e( '云端审核驱动', 'wink-gatekeeper' ); ?></h2>
 					<p class="wk-muted"><?php esc_html_e( '未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动并保存后，此处出现该驱动的配置区与逐驱动合规行（常驻不可关闭）。', 'wink-gatekeeper' ); ?></p>
 				</section>
 			<?php endif; ?>
@@ -2194,8 +2350,8 @@ final class SettingsPage {
 			'deepseek'      => array( 'label' => 'DeepSeek', 'milestone' => 'M3', 'required' => array( 'api_key' ) ),
 			'openai_custom' => array( 'label' => '自定义 OpenAI 兼容端点', 'milestone' => 'M3', 'required' => array( 'api_key', 'base_url', 'model' ) ),
 			'moli'          => array( 'label' => '模力 System One', 'milestone' => 'M4', 'required' => array( 'api_key' ) ),
-			'baidu'         => array( 'label' => '百度文本审核', 'milestone' => 'M4', 'required' => array( 'api_key', 'secret_key' ) ),
 			// aliyun_green 已于 M3' 批次 3（B5）实装——登记入 registry，脱离 future 段（下拉已实装驱动）。
+			// baidu 已于 M3' 轻量批（B6）实装——同上。
 		);
 	}
 

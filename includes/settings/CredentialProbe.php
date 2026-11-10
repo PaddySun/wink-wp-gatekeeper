@@ -399,6 +399,111 @@ final class CredentialProbe {
 	}
 
 	/**
+	 * 百度文本审核「测试凭据」三态分类（B6；05 §2.4 凭据自检三态 + 03 Tab③）。
+	 *
+	 * 发一次良性样本文本真调用（token 流含在内——探测即全链路体检）：
+	 *   - 绿：conclusionType=1（合规）——client_credentials token 流 + 审核端点链路全通；
+	 *   - 红：error_code 110/111（access_token 无效/过期——API Key/Secret Key 错或被重置，
+	 *     文案指明控制台应用列表核对）、6（无权限——未开通文本审核服务）；
+	 *   - 黄：error_code 100（无效参数）；本地必填缺在 local_precheck_baidu；
+	 *   - 灰：传输终态 / error_code 17/19（配额超限）/ 其它未知码 / 非 1 的 conclusionType
+	 *     ——给原文与排查方向，不误报三态。
+	 *
+	 * 绿态解除停转（02 §5「自检通过」）由 AJAX 边界执行 clear——本类保持纯逻辑。
+	 *
+	 * @param RemoteResult $result 良性样本文本审核的传输脊结果。
+	 * @return array{state: string, message: string, missing: string[], code: string}
+	 */
+	public static function classify_baidu( RemoteResult $result ): array {
+		$payload = array( 'state' => 'gray', 'message' => '', 'missing' => array(), 'code' => '' );
+
+		$decoded = self::decoded( $result );
+
+		// 百度业务错误码在 2xx body 顶层（error_code/error_msg 形态）。
+		if ( is_array( $decoded ) && isset( $decoded['error_code'] ) && is_numeric( $decoded['error_code'] ) ) {
+			$code            = (int) $decoded['error_code'];
+			$error_msg       = is_string( $decoded['error_msg'] ?? null ) ? $decoded['error_msg'] : '';
+			$payload['code'] = 'error_code=' . $code;
+
+			// 红 1：token 鉴权失败（AK/SK 错或被重置——110 无效/111 过期）。
+			if ( 110 === $code || 111 === $code ) {
+				$payload['state']   = 'red';
+				$payload['message'] = '鉴权失败（' . $code . '：access_token ' . ( 110 === $code ? '无效' : '过期' ) . '）：API Key/Secret Key 被百度云拒绝——请到「百度智能云控制台 → 应用列表」核对 API Key 与 Secret Key 后重试。';
+				return $payload;
+			}
+
+			// 红 2：无权限调用（未开通文本审核服务）。
+			if ( 6 === $code ) {
+				$payload['state']   = 'red';
+				$payload['message'] = '无权限调用（error_code=6）：文本审核服务未开通——请到百度智能云控制台开通「内容审核 · 文本审核」后重试。';
+				return $payload;
+			}
+
+			// 黄：参数错（本地防呆提示——核对配置区取值）。
+			if ( 100 === $code ) {
+				$payload['state']   = 'yellow';
+				$payload['message'] = '参数错误（error_code=100' . ( '' !== $error_msg ? '：' . $error_msg : '' ) . '）——请核对上方配置区取值后重试。';
+				return $payload;
+			}
+
+			// 灰：配额超限/其它未知码——给原文与排查方向。
+			$hint = ( 17 === $code || 19 === $code ) ? '（配额超限——请到百度智能云控制台核对该应用的配额/付费状态）' : '';
+			$payload['message'] = '服务端返回错误（error_code=' . $code . '——' . $error_msg . '）' . $hint . '——请截图此信息联系排查。';
+			return $payload;
+		}
+
+		if ( ! $result->is_ok() ) {
+			// 传输/语义终态：semantic（token 端点 400/401——invalid_client 等）= 鉴权失败红态
+			// （凭据被拒的直接证据；百度 oauth 错误码不一定走审核端点 error_code 通道）；
+			// transport = 网络不可达灰态。
+			if ( RemoteResult::SEMANTIC === $result->category() ) {
+				$payload['state']   = 'red';
+				$payload['code']    = 'HTTP ' . $result->status();
+				$payload['message'] = '鉴权失败（HTTP ' . $result->status() . '）：API Key/Secret Key 被百度云拒绝——请到「百度智能云控制台 → 应用列表」核对 API Key 与 Secret Key 后重试。';
+				return $payload;
+			}
+			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试。';
+			return $payload;
+		}
+
+		// HTTP 200：读 conclusionType——绿态判据（探测样本应为干净文本=1 合规）。
+		$type = isset( $decoded['conclusionType'] ) && is_numeric( $decoded['conclusionType'] )
+			? (int) $decoded['conclusionType']
+			: 0;
+
+		if ( 1 === $type ) {
+			$payload['state']   = 'green';
+			$payload['code']    = 'conclusionType=1';
+			$payload['message'] = '凭据可用（conclusionType=1，探测文本合规）——审核链路已通；启用后评论将按「本地规则 → 百度文本审核」串联送审。';
+			return $payload;
+		}
+
+		$payload['code']    = 'conclusionType=' . ( $type > 0 ? (string) $type : '?' );
+		$payload['message'] = '未预期的判定返回（conclusionType=' . $type . '）——凭据与 token 链路已通，但探测文本未获合规判定；可重试或截图此信息联系排查。';
+		return $payload;
+	}
+
+	/**
+	 * 百度本地预检：API Key / Secret Key 有空 → 黄态逐字段列缺（不发远端调用——空凭据的
+	 * token 流必失败且无诊断价值）；齐全 → null（放行走远端探测）。
+	 *
+	 * @param array<string, mixed> $baidu review.cloud.baidu 子树。
+	 * @return array{state: string, message: string, missing: string[]}|null
+	 */
+	public static function local_precheck_baidu( array $baidu ): ?array {
+		$meta    = \WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver::registry_entry();
+		$missing = DriverConfigSpec::missing_fields( $meta, $baidu );
+		if ( array() === $missing ) {
+			return null;
+		}
+		return array(
+			'state'   => 'yellow',
+			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'missing' => $missing,
+		);
+	}
+
+	/**
 	 * 解析 body JSON（4xx 语义分类不 decode data，此处自行解码读 Response.Error）。
 	 *
 	 * @param RemoteResult $result

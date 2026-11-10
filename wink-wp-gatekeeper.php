@@ -15,7 +15,7 @@
  * Plugin Name:       Wink 门口保安
  * Plugin URI:        https://github.com/wink/wink-wp-gatekeeper
  * Description:       对真人眨眨眼，对机器人睁着眼——评论验证 + 登录验证 + 内容过滤三闸合一，验证码与云端审核驱动化可插拔。
- * Version:           0.3.1
+ * Version:           0.3.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Wink
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * 常量
  * -------------------------------------------------------------------- */
 
-define( 'WINK_GATEKEEPER_VERSION', '0.3.1' ); // 【R1 G7】M3' 批次 3·阿里文本审核增强版 PLUS 驱动上线 B5（AliyunGreenPlusDriver 双 Service 分送/RiskLevel 双轨映射/nonLabel 剔除/F36 兼容回退/Tab③ 配置区/凭据三态）——wp plugin list 可辨轮次。
+define( 'WINK_GATEKEEPER_VERSION', '0.3.2' ); // 【R1 G7】M3' 轻量批·百度文本审核驱动上线 B6（BaiduTextModerationDriver token 30 天缓存复用/conclusionType 判定映射/Tab③ 配置区/凭据三态/切换零改代码）——wp plugin list 可辨轮次。
 define( 'WINK_GATEKEEPER_FILE', __FILE__ );
 define( 'WINK_GATEKEEPER_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WINK_GATEKEEPER_URL', plugin_dir_url( __FILE__ ) );
