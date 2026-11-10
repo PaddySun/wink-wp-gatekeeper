@@ -12,5 +12,11 @@ dist/
 .env
 .env.local
 
-# 真机 e2e 工具（wpsh.sh 等含内网/SSH 运维参数与真机证据快照）——脱敏占位符化后再另行入库
-tests/e2e/
+# 真机 e2e 证据快照（HTML/log/json，含后台用户名/内网拓扑等现场信息）——仅本地留存，不入库
+tests/e2e/testkit/evidence/
+
+# cfg.sh snap 配置快照——复扫实锤含未打码云凭据（B7 收线 2026-11-11），沿 B3 先例移出分发面
+tests/e2e/testkit/*snap*.json
+
+# 真机 e2e 工具脚本已脱敏占位符化入库（B7 收线 2026-11-11）——填回真值的工作副本勿提交
+
