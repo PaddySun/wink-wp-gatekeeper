@@ -1587,6 +1587,9 @@ final class SettingsPage {
 								if ( 'today' === $scope && isset( $row['usage_note'] ) ) {
 									echo '<br /><span class="wk-muted">' . esc_html( (string) $row['usage_note'] ) . '</span>'; // 【v1.4·R1 §6-1】调用 N · 全通过（usage 双口径）。
 								}
+								if ( 'total' === $scope && isset( $row['usage_note_total'] ) ) {
+									echo '<br /><span class="wk-muted">' . esc_html( (string) $row['usage_note_total'] ) . '</span>'; // 【v1.5·F4-6】账户保护四维累计行（调用/通过/拦截/登录失败尝试——03 Tab⑥ v1.5）。
+								}
 								?>
 							</td>
 						<?php endforeach; ?>

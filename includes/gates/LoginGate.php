@@ -80,6 +80,16 @@ final class LoginGate extends AccountFormGate {
 	public const ERROR_CODE_XMLRPC = 'wk_captcha_unavailable';
 
 	/**
+	 * 认证失败随机 sleep 上限（【v1.5·B3】02 §3.2 量级口径：0–2000ms——时序混淆，
+	 * 防以响应时序侧信道探测用户名存在性；Wordfence wordfencels.php:1473-1474 先例）。
+	 *
+	 * 量级注记（02 §3.2 原文引用）：sleep 占用 PHP worker 0–2s——独立博客低并发可接受；
+	 * 高流量站/共享主机场景应关闭（filter wink_gatekeeper_login_fail_sleep_enabled，
+	 * 默认 true，关=零 sleep 回现行形态）。
+	 */
+	public const FAIL_SLEEP_MAX_MS = 2000;
+
+	/**
 	 * XML-RPC 拒绝文案（IXR faultString 同文）。
 	 */
 	private const MSG_XMLRPC = '登录失败次数过多，XML-RPC 登录已暂时停用（验证码无法在 XML-RPC 协议内呈现）——请稍后再试，或在网页端完成人机验证。';
@@ -196,6 +206,34 @@ final class LoginGate extends AccountFormGate {
 	/* -------------------------------------------------------------------
 	 * 纯编排（单测覆盖）
 	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 认证失败随机 sleep 时长生成（【v1.5·B3】纯逻辑可测面——均匀分布 [0, max_ms] 毫秒）。
+	 *
+	 * WP 边界消费（maybe_fail_sleep：filter 开 + usleep(ms*1000)）；边界层 WP 函数
+	 * wp_rand 与本函数 mt_rand 同均匀分布语义（wp_rand 为其种子封装）——为保持纯逻辑
+	 * 零 WP 依赖（G5），生成面直用 PHP 原生 mt_rand。
+	 *
+	 * @param int $max_ms 上限毫秒（默认 2000；≤0 恒 0——filter 关闭语义边界）。
+	 * @return int
+	 */
+	public static function fail_sleep_delay_ms( int $max_ms = self::FAIL_SLEEP_MAX_MS ): int {
+		$max = max( 0, $max_ms );
+		return ( 0 === $max ) ? 0 : mt_rand( 0, $max );
+	}
+
+	/**
+	 * at计数门控（【v1.5·F4-6】attempts 维——04 §4：wp_login_failed 路径直 bump
+	 * by_gate.login.attempts，不经事件表）。empty_* core 忽略码不计（与计数器
+	 * 分类同一口径——LoginCounters::classify_error_code）。
+	 *
+	 * @param string $error_code WP_Error::get_error_code()。
+	 * @return bool
+	 */
+	public static function attempts_countable( string $error_code ): bool {
+		$dims = LoginCounters::classify_error_code( $error_code );
+		return $dims['ip'] || $dims['user'];
+	}
 
 	/**
 	 * 验证编排（wp_authenticate_user 的纯逻辑面——v1.4 渲染⇔验证不变式次序）。
@@ -454,6 +492,7 @@ final class LoginGate extends AccountFormGate {
 		$this->unset_post_fields(); // token 单次消费（A6）。
 
 		if ( 'reject' === $result['decision'] ) {
+			$this->maybe_fail_sleep(); // 【v1.5·B3】失败分支随机 sleep（WP_Error 组装前）。
 			return new \WP_Error( self::ERROR_CODE_VERIFY, isset( $result['message'] ) ? $result['message'] : '' );
 		}
 		return $user;
@@ -495,6 +534,7 @@ final class LoginGate extends AccountFormGate {
 			'trigger_source' => 'xmlrpc', // 02 §3.2 事件可观测性。
 		) );
 
+		$this->maybe_fail_sleep(); // 【v1.5·B3】XML-RPC 认证失败同分支（02 §3.2 量级注记）。
 		return new \WP_Error( self::ERROR_CODE_XMLRPC, self::MSG_XMLRPC );
 	}
 
@@ -508,6 +548,10 @@ final class LoginGate extends AccountFormGate {
 	public function hook_wp_login_failed( string $username, $error = null ): void {
 		if ( ! $this->is_active() ) {
 			return;
+		}
+		/* 【v1.5·F4-6】attempts 维：失败尝试直 bump（04 §4——不经事件表；empty_* 不计）。 */
+		if ( self::attempts_countable( is_wp_error( $error ) ? (string) $error->get_error_code() : '' ) ) {
+			StatsCache::record_attempts( 'login' );
 		}
 		$resolved = $this->resolver->resolve( isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() );
 		$this->record_auth_failure(
@@ -542,6 +586,66 @@ final class LoginGate extends AccountFormGate {
 			return new \IXR_Error( 403, $user->get_error_message() );
 		}
 		return $error;
+	}
+
+	/* -------------------------------------------------------------------
+	 * B2 登录错误掩码（WORDFENCE-ADOPTION——呈现层；Bootstrap 注册 filter）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * wp_login_errors filter（wp-login.php 登录页错误聚合输出处——呈现层掩码）。
+	 *
+	 * 【B2】只动文案不动错误码：掩码发生在聚合输出，内部 WP_Error 码原样传给
+	 * wp_login_failed 消费链（F39 双信号分类依赖内部码——分类零影响）。
+	 *
+	 * @param \WP_Error $errors      聚合错误框。
+	 * @param string    $redirect_to 重定向目标（未消费）。
+	 * @return \WP_Error
+	 */
+	public function filter_wp_login_errors( $errors, string $redirect_to = '' ) {
+		unset( $redirect_to );
+		return $this->mask_wp_errors( $errors );
+	}
+
+	/**
+	 * lostpassword_errors filter（retrieve_password 错误聚合输出处——B2 复现样本
+	 * 「Unknown email address. Check again or try the guide.」的掩码点）。
+	 *
+	 * @param \WP_Error                        $errors    聚合错误框。
+	 * @param \WP_User|false|null              $user_data 用户查找结果（未消费）。
+	 * @return \WP_Error
+	 */
+	public function filter_lostpassword_errors( $errors, $user_data = null ) {
+		unset( $user_data );
+		return $this->mask_wp_errors( $errors );
+	}
+
+	/**
+	 * 掩码执行体（WP 边界）：开关 filter（LoginErrorMask::FILTER_ENABLED，默认 true）
+	 * → 码表内错误逐条替换统一文案；本闸/第三方码原样透传。
+	 *
+	 * @param \WP_Error $errors 聚合错误框。
+	 * @return \WP_Error
+	 */
+	private function mask_wp_errors( $errors ) {
+		if ( ! is_wp_error( $errors ) ) {
+			return $errors;
+		}
+		if ( ! (bool) apply_filters( LoginErrorMask::FILTER_ENABLED, true ) ) {
+			return $errors;
+		}
+		foreach ( (array) $errors->get_error_codes() as $code ) {
+			if ( ! LoginErrorMask::is_masked_code( (string) $code ) ) {
+				continue;
+			}
+			foreach ( (array) $errors->get_error_messages( $code ) as $index => $message ) {
+				$masked = LoginErrorMask::mask_message( (string) $code, (string) $message );
+				if ( $masked !== $message ) {
+					$errors->errors[ $code ][ $index ] = $masked;
+				}
+			}
+		}
+		return $errors;
 	}
 
 	/**
@@ -581,6 +685,20 @@ final class LoginGate extends AccountFormGate {
 	/* -------------------------------------------------------------------
 	 * 内部
 	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 认证失败随机 sleep（【v1.5·B3】02 §3.2 量级注记：sleep 占用 PHP worker 0–2s——
+	 * 独立博客低并发可接受；高流量站/共享主机场景应关闭（filter
+	 * wink_gatekeeper_login_fail_sleep_enabled，默认 true，关=零 sleep 回现行形态）。
+	 * Wordfence wordfencels.php:1473-1474 先例——usleep( mt_rand(0,2000) * 1000 )）。
+	 *
+	 * @return void
+	 */
+	private function maybe_fail_sleep(): void {
+		if ( (bool) apply_filters( 'wink_gatekeeper_login_fail_sleep_enabled', true ) ) {
+			usleep( self::fail_sleep_delay_ms() * 1000 );
+		}
+	}
 
 	/**
 	 * 验票编排（存根 null 态——渲染⇔验证不变式路径；VerifyCache → 真验票）。

@@ -102,14 +102,21 @@ abstract class AccountFormGate extends AbstractGate {
 		};
 		$this->verify_cache = $verify_cache;
 		$this->recorder     = $recorder ?? function ( string $stage, Verdict $verdict, array $meta ): ?string {
-			// WP 边界默认：事件表（04 §3 写入矩阵——R1 G6 should_record 收口）+ 统计计数（仅 reject）。
+			// WP 边界默认：事件表（04 §3 写入矩阵——R1 G6 should_record 收口）+ 统计计数
+			// （【v1.5·F4-4/F4-6】02 §3.2a recorder 口径统一——captcha 判定收口按 verdict
+			// 三维 bump（pass→captcha_pass、reject→reject+captcha_reject、error→error），
+			// **计数与落库解耦**：落库与否仍按写入矩阵（pass 默认不落库故 SQL 对账值偏低
+			// 属预期，04 §4）；原「仅 reject 记」口径是 Tab⑥ 账户保护恒 0 的根因）。
+			if ( StatsCache::is_drill( $meta ) ) {
+				return null; // drill（test_mode/演练）行不 bump 不计数（04 §4——drill 恒排除）。
+			}
 			$driver_id = ( '' !== $verdict->driver_id() ) ? $verdict->driver_id() : 'gate';
 			$event_no  = null;
 			if ( EventsTable::should_record( $stage, $verdict, $this->settings ) ) {
 				$event_no = EventsTable::insert( $this->id, $stage, $driver_id, $verdict, $meta, self::ip_hash( (string) ( $meta['client_ip'] ?? '' ) ) );
 			}
-			if ( Verdict::REJECT === $verdict->verdict() ) {
-				StatsCache::record( $this->id, $driver_id, $verdict->verdict() );
+			foreach ( StatsCache::stat_keys_for( $stage, $verdict ) as $stat_key ) {
+				StatsCache::record( $this->id, $driver_id, $stat_key );
 			}
 			return $event_no;
 		};
@@ -286,7 +293,7 @@ abstract class AccountFormGate extends AbstractGate {
 		if ( '' !== $verdict->reason() ) {
 			$evidence['命中规则'] = $verdict->reason();
 		}
-		$evidence['时间'] = date( 'Y-m-d H:i:s', $now );
+		$evidence['时间'] = $this->format_evidence_time( $now ); // P2-3 半：wp_date 站点时区（B1a 同款守卫）。
 
 		$message = Copywork::format( $message, array_merge( $vars, array(
 			'event_no' => $event_no,
@@ -300,6 +307,25 @@ abstract class AccountFormGate extends AbstractGate {
 			'message'    => $message,
 			'evidence'   => $evidence,
 		);
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	/**
+	 * 证据行时间格式化（P2-3 半：访客可见时间差时区——wp_date 跟随站点时区）。
+	 *
+	 * 无 WP 时回退 date()（UTC），生产行为以真机验证为准（B1a CommentGate 同款守卫，
+	 * 单测零 WP 依赖）。Tc3Signer gmdate 不动（签名协议语义，UTC 是协议常量）。
+	 *
+	 * @param int $timestamp 时间戳。
+	 * @return string
+	 */
+	private function format_evidence_time( int $timestamp ): string {
+		if ( function_exists( 'wp_date' ) ) {
+			return wp_date( 'Y-m-d H:i:s', $timestamp ); // WP 边界（P2-3）。
+		}
+		return date( 'Y-m-d H:i:s', $timestamp ); // 纯 PHP 单测环境回退。
 	}
 
 	/**

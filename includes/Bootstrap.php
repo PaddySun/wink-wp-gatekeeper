@@ -446,6 +446,10 @@ final class Bootstrap {
 			add_filter( 'authenticate', array( $this->login_gate, 'hook_authenticate' ), PHP_INT_MAX, 3 );
 			// XML-RPC faultString 文案面（wk_captcha_unavailable → 本插件文案）。
 			add_filter( 'xmlrpc_login_error', array( $this->login_gate, 'hook_xmlrpc_login_error' ), 10, 2 );
+			// 【B2】登录错误掩码（Wordfence maskLoginErrors 语义——只动呈现层文案，不动内部
+			// 错误码分类 F39）：登录页 wp_login_errors + 找回页 lostpassword_errors 聚合输出处。
+			add_filter( 'wp_login_errors', array( $this->login_gate, 'filter_wp_login_errors' ), 10, 2 );
+			add_filter( 'lostpassword_errors', array( $this->login_gate, 'filter_lostpassword_errors' ), 10, 2 );
 			// 计数：失败自增（双信号错误码分类；XML-RPC 认证失败经同一动作照常计数）/成功清零。
 			add_action( 'wp_login_failed', array( $this->login_gate, 'hook_wp_login_failed' ), 10, 2 );
 			add_action( 'wp_login', array( $this->login_gate, 'hook_wp_login' ), 10, 1 );

@@ -127,11 +127,16 @@
 	display: none;
 }
 
-/* ---- 嵌入式验证码挂载点（v1.4，D1；v1.4.1 反馈2 T1 裁切修复）：提交按钮下方 ----
+/* ---- 嵌入式验证码挂载点（v1.4，D1；v1.4.1 反馈2 T1 裁切修复；v1.5·F4-5 通用条款）：
+ * 提交按钮下方 ----
  * T1 根因（2026-11-10 实测复现）：天御「dy」版 SDK 嵌入组件实测固定宽 302px（官方口径
  * 300×230 偏窄）——v1.4 的 max-width:300px + overflow:hidden 把组件右侧裁掉 ~2px。
  * 修法（通用，不针对主题类名）：不设 max-width 上限 + overflow:visible 不裁切；
  * min-width 兜底防网格/窄列语境容器塌缩到面板固有宽以下（min() 使 <300px 容器不强制撑破）。
+ * 【v1.5·F4-5/03 §2.2】min-width:min(300px,100%) 为通用规格（302px 是天御实测值不是
+ * 契约值）——评论页与登录/注册/找回页同一容器样式段一处维护；厂商差异由驱动声明承载
+ * （阿里 320px 特例由适配器承载——slideStyle.width=320 传参 + 适配器内 min-width 下限，
+ * 05 §1.2——本通用段不落厂商值）。
  * 取舍：失去旧 overflow:hidden 对 SDK 圆角的裁切美化——完整显示优先，视觉细节留复测观察。 */
 .wk-gate-embed {
 	min-width: min(300px, 100%);
@@ -174,13 +179,19 @@
 /* ---- wp-login 域（【v1.4·R3/03 §2.2】登录页嵌入式——本样式表随登录页入队；.login 为
  * wp-login 页 body class 作用域，三表单 login/register/lostpassword 一套复用，不污染前台）。
  * #loginform 内容宽 320px、天御 SDK 嵌入组件实测固定宽 302px<320px——无裁切风险；
- * 挂载点基础样式（min-width/overflow）复用上方 FIX3 定稿规则，此处仅补登录域间距。 */
+ * 挂载点基础样式（min-width/overflow）复用上方 FIX3 定稿规则（v1.5·F4-5 通用条款），
+ * 此处仅补登录域间距与同宽对齐。 */
 .login .wk-gate {
 	display: block;
 	margin: 6px 0 8px;
 }
 
+/* 【v1.5·F4-5/03 §2.2】登录/注册/找回页同宽对齐：embed 容器与 wk-gate-login-status
+ * 同占表单内容宽（302px SDK 面板 vs status 容器的错位消除——HANDOVER §4 F4-5）。
+ * 通用实现（width:100%，不绑天御、不落厂商值）：多厂商组件在容器内自适应，窄表单
+ * 由基础 min-width:min(300px,100%) 兜底；阿里 320px 特例由适配器承载（05 §1.2）。 */
 .login .wk-gate-embed {
+	width: 100%;
 	margin: 6px 0 8px;
 }
 

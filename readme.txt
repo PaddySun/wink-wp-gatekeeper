@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.2.3
+Stable tag: 0.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.2.4 =
+
+M3' 前置批次 1·登录/统计域 B1b（2026-11-11，设计文档 v1.5 F4-4/F4-5/F4-6 + WORDFENCE-ADOPTION B2/B3 + P2-3）：① F4-4+F4-6 同根因合并修——账户闸 recorder 口径统一（02 §3.2a：captcha 判定收口按 verdict 三维 bump（pass→captcha_pass、reject→reject+captcha_reject、error→error），计数与落库解耦；drill 行不计数；真机复核 gate=login reject 行与 verify_cache_hit pass 行均落库——写入矩阵无第二层缺口）；by_gate 扩 attempts/captcha_pass/captcha_reject 三维（04 §4 v1.5），登录失败尝试数经 wp_login_failed 路径直记（empty_* 码不计）；Tab⑥「账户保护」分区四维展示（今日/累计 × 调用/通过/拦截 + 登录失败尝试，调用=captcha_pass+captcha_reject+error，register/lostpassword 无 attempts 显示 0）；② F4-5 embed 容器同宽——登录/注册/找回页 .wk-gate-embed 与 wk-gate-login-status 同占表单内容宽（通用实现不绑厂商，min-width:min(300px,100%) 通用规格注记 v1.5 条款）；③ B2 登录错误掩码——WP 原生泄露存在性错误码（invalid_username/incorrect_password/invalid_email/invalidcombo——复现样本「Unknown email address. Check again or try the guide.」）在呈现层聚合输出处（wp_login_errors/lostpassword_errors filter）替换统一文案，只动文案不动内部错误码（F39 双信号分类零影响），filter wink_gatekeeper_login_error_mask_enabled 默认开可关；④ B3 认证失败随机 sleep——LoginGate 失败分支（wp-authenticate 压轴拒绝与 XML-RPC 拒绝）随机延迟 0–2000ms（时序混淆防用户名枚举侧信道；filter wink_gatekeeper_login_fail_sleep_enabled 默认开，量级注记见 02 §3.2）；⑤ P2-3 半——AccountFormGate 访客可见证据行时间 date()→wp_date()（B1a 同款守卫）。
 
 = 0.2.3 =
 

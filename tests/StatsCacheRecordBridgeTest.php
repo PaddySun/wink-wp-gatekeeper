@@ -147,5 +147,42 @@ namespace WinkGatekeeper\Tests {
 			StatsCache::record( 'comment', 'tencent', 'reject' );
 			$this->assertCount( 0, $GLOBALS['wk_stats_calls']['error_log'] );
 		}
+
+		/* ---------- B1b·F4-6：attempts 维边界桥（wp_login_failed 直记路径） ---------- */
+
+		public function test_record_attempts_bumps_login_attempts_dimension(): void {
+			StatsCache::record_attempts( 'login' );
+			StatsCache::record_attempts( 'login' );
+			StatsCache::record_attempts( 'login' );
+
+			$cache = $GLOBALS['wk_stats_option_store'][ StatsCache::OPTION_NAME ];
+			$this->assertSame( 3, $cache['by_gate']['login']['attempts'], 'attempts 今日+累计双记（04 §4 v1.5）' );
+			$this->assertSame( 3, $cache['total']['by_gate']['login']['attempts'] );
+			$this->assertSame( 0, $cache['total']['reject'], '失败尝试非判定事件——不推高拦截徽标' );
+		}
+
+		public function test_record_attempts_skips_when_stats_explicitly_disabled(): void {
+			$GLOBALS['wk_stats_option_store']['wink_gatekeeper_settings'] = array(
+				'stats' => array( 'enabled' => false ),
+			);
+
+			StatsCache::record_attempts( 'login' );
+
+			$this->assertCount( 0, $GLOBALS['wk_stats_calls']['update'], '统计开关关：attempts 同样不计数' );
+		}
+
+		public function test_record_attempts_counts_when_settings_lacks_stats_key(): void {
+			// P1-δ 同款防御：merge_defaults 兜底缺子树（enabled=true 默认）。
+			$GLOBALS['wk_stats_option_store']['wink_gatekeeper_settings'] = array(
+				'schema_version' => 2,
+				'gates'          => array( 'login' => array( 'enabled' => true, 'render_mode' => 'adaptive' ) ),
+			);
+
+			StatsCache::record_attempts( 'login' );
+
+			$this->assertCount( 1, $GLOBALS['wk_stats_calls']['update'] );
+			$cache = $GLOBALS['wk_stats_option_store'][ StatsCache::OPTION_NAME ];
+			$this->assertSame( 1, $cache['by_gate']['login']['attempts'] );
+		}
 	}
 }

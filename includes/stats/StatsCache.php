@@ -17,6 +17,7 @@ declare( strict_types=1 );
 namespace WinkGatekeeper\Stats;
 
 use WinkGatekeeper\Settings\SettingsSchema;
+use WinkGatekeeper\Verdict;
 
 final class StatsCache {
 
@@ -72,6 +73,83 @@ final class StatsCache {
 		}
 
 		return $cache;
+	}
+
+	/**
+	 * by_gate attempts 维直记（【v1.5·F4-6】04 §4 三维扩展——登录失败尝试数）。
+	 *
+	 * attempts 是「失败尝试」不是判定事件（04 §3 写入矩阵无对应行）——不经 by_driver、
+	 * 不推高 total.reject 徽标；仅 by_gate.{gate}.attempts 今日+累计双记（纯函数）。
+	 *
+	 * @param array<string, mixed> $cache 当前缓存树。
+	 * @param string               $date  当前日期 YYYYMMDD（边界层站时区）。
+	 * @param string               $gate  闸 id（仅 login 消费——register/lostpassword 无此维）。
+	 * @return array<string, mixed> 新缓存树。
+	 */
+	public static function bump_attempts( array $cache, string $date, string $gate ): array {
+		$cache = self::normalize( $cache );
+
+		if ( $cache['today'] !== $date ) {
+			$cache['today']     = $date;
+			$cache['by_gate']   = array();
+			$cache['by_driver'] = array();
+		}
+
+		$cache['by_gate'][ $gate ]['attempts']            = ( $cache['by_gate'][ $gate ]['attempts'] ?? 0 ) + 1;
+		$cache['total']['by_gate'][ $gate ]['attempts']   = ( $cache['total']['by_gate'][ $gate ]['attempts'] ?? 0 ) + 1;
+
+		return $cache;
+	}
+
+	/**
+	 * drill（test_mode/演练）行判定（【v1.5】02 §3.2a/04 §4——drill 行不 bump 不进统计；
+	 * Tab⑥/by_gate/钩子订阅侧查询与计数一律排除 drill=true 行）。
+	 *
+	 * @param array<string, mixed> $meta 事件 meta。
+	 * @return bool
+	 */
+	public static function is_drill( array $meta ): bool {
+		return ! empty( $meta['drill'] );
+	}
+
+	/**
+	 * recorder 统计键映射（【v1.5·F4-4/F4-6】02 §3.2a 口径统一——captcha 判定收口按
+	 * verdict 三维 bump，计数与落库解耦：落库与否仍按 04 §3 写入矩阵（EventsTable::
+	 * should_record），本函数只决定 StatsCache 消费哪些键）：
+	 *
+	 *   captcha + pass   → ['captcha_pass']（04 §4 三维之一；no_driver/iprep_fail_no_driver
+	 *                      「无驱动跳过」留痕不是判定收口——零消费）
+	 *   captcha + reject → ['reject', 'captcha_reject']（拦截=既有 reject 维全阶段口径
+	 *                      + 调用数组成维；04 §4 调用=captcha_pass+captcha_reject+error）
+	 *   captcha + error  → ['error']（既有故障维）
+	 *   其余阶段          → reject/review/error → 单键；pass → 零（pass 默认不记）。
+	 *
+	 * 纯函数（单测覆盖）；返回键列表由调用方逐键 StatsCache::record()。
+	 *
+	 * @param string            $stage   阶段（stub|captcha|review|开放枚举）。
+	 * @param \WinkGatekeeper\Verdict $verdict 判定。
+	 * @return string[] StatsCache 记录键（可能为空数组）。
+	 */
+	public static function stat_keys_for( string $stage, Verdict $verdict ): array {
+		$verdict_value = $verdict->verdict();
+
+		if ( Verdict::PASS === $verdict_value ) {
+			if ( 'captcha' === $stage ) {
+				foreach ( $verdict->hits() as $hit ) {
+					if ( 'no_driver' === $hit || 'iprep_fail_no_driver' === $hit ) {
+						return array();
+					}
+				}
+				return array( 'captcha_pass' );
+			}
+			return array();
+		}
+
+		if ( 'captcha' === $stage && Verdict::REJECT === $verdict_value ) {
+			return array( Verdict::REJECT, 'captcha_reject' );
+		}
+
+		return array( $verdict_value );
 	}
 
 	/**
@@ -137,6 +215,32 @@ final class StatsCache {
 		$updated = update_option( self::OPTION_NAME, $cache, false );
 		if ( false === $updated ) {
 			error_log( '[wink-wp-gatekeeper] 统计计数写入失败（update_option 返回 false）：option=' . self::OPTION_NAME ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
+	}
+
+	/**
+	 * attempts 维记一笔（【v1.5·F4-6】WP 边界——LoginGate::hook_wp_login_failed 消费）。
+	 *
+	 * 与 record() 同款防御：开关读取经 merge_defaults 兜底；update_option 失败记
+	 * error_log 一次（04 §4 统计 best-effort）。attempts 直记不经事件表（失败尝试
+	 * 非判定事件、04 §3 写入矩阵无对应行）。
+	 *
+	 * @param string $gate 闸 id（生产=login）。
+	 * @return void
+	 */
+	public static function record_attempts( string $gate ): void {
+		$settings = get_option( 'wink_gatekeeper_settings', array() );
+		$settings = SettingsSchema::merge_defaults( is_array( $settings ) ? $settings : array() );
+		if ( empty( $settings['stats']['enabled'] ) ) {
+			return; // 统计开关显式关：不计数（与 record() 同口径）。
+		}
+
+		$cache   = get_option( self::OPTION_NAME, null );
+		$cache   = is_array( $cache ) ? $cache : self::seed();
+		$cache   = self::bump_attempts( $cache, current_time( 'Ymd' ), $gate );
+		$updated = update_option( self::OPTION_NAME, $cache, false );
+		if ( false === $updated ) {
+			error_log( '[wink-wp-gatekeeper] 统计 attempts 写入失败（update_option 返回 false）：option=' . self::OPTION_NAME ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 

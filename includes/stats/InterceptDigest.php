@@ -192,7 +192,8 @@ final class InterceptDigest {
 	 * @param array{usage_today?: array<string, int>, halted?: array<string, string>} $usage_context
 	 *        驱动行 usage 上下文（usage_today=Usage counters 子集；halted=DriverHealth 停转映射）。
 	 * @return array{comment: array{label: string, today_reject: int, rows: array<int, array{label: string, today: array<string, int>, total: array<string, int>, usage_today?: int, halt_state?: string|null, usage_note?: string}>},
-	 *               login: array{label: string, today_reject: int, rows: array<int, array{label: string, today: array<string, int>, total: array<string, int>}>, empty: bool, empty_note: string}}
+	 *               login: array{label: string, today_reject: int, rows: array<int, array{label: string, today: array<string, int>, total: array<string, int>, usage_note: string, usage_note_total: string}>, empty: bool, empty_note: string}}
+	 *               【v1.5·F4-6】账户行带 usage_note/usage_note_total 四维小字（调用/通过/拦截/登录失败尝试）。
 	 */
 	public static function partitions( array $cache, array $comment_driver_labels, array $usage_context = array() ) {
 		$comment_rows = array_merge(
@@ -213,7 +214,11 @@ final class InterceptDigest {
 		foreach ( $account_gates as $gate_id => $label ) {
 			$today_counts = self::gate_counts( $cache, $gate_id, false );
 			$total_counts = self::gate_counts( $cache, $gate_id, true );
-			$account_rows[] = self::gate_dimension_row( $cache, $gate_id, $label );
+			$row          = self::gate_dimension_row( $cache, $gate_id, $label );
+			// 【v1.5·F4-4/F4-6】账户保护四维小字（今日/累计两行——03 Tab⑥ v1.5）。
+			$row['usage_note']       = self::account_usage_note( $today_counts );
+			$row['usage_note_total'] = self::account_usage_note( $total_counts );
+			$account_rows[] = $row;
 			$account_today += (int) ( $today_counts['reject'] ?? 0 );
 			if ( array() !== array_filter( $today_counts ) || array() !== array_filter( $total_counts ) ) {
 				$account_empty = false;
@@ -235,6 +240,33 @@ final class InterceptDigest {
 					// 空态文案：三分闸已上线——空=今日无触发（零打扰正常态），非未实装。
 					'empty_note'   => '今日无账户保护触发（登录/注册/找回验证码均未拦截——自适应模式零打扰的正常形态）。',
 				),
+		);
+	}
+
+	/**
+	 * 账户保护四维小字（【v1.5·F4-4/F4-6】03 Tab⑥——今日/累计 × 调用/通过/拦截 +
+	 * 登录失败尝试数；零值显式展示，「恒 0 不可区分」教训延续）。
+	 *
+	 * 口径（04 §4 v1.5）：调用 N = captcha_pass + captcha_reject + captcha 阶段 error
+	 * 之和（不新增第四存储维）；通过 M = captcha_pass；拦截 K = 既有 reject 维（全阶段）；
+	 * 登录失败尝试 T = attempts 维（recorder 直记——register/lostpassword 无此维显示 0）。
+	 *
+	 * @param array<string, int> $counts 计数 map（StatsCache by_gate 行）。
+	 * @return string 形态「调用 N · 通过 M · 拦截 K · 登录失败尝试 T」。
+	 */
+	public static function account_usage_note( array $counts ): string {
+		$pass      = isset( $counts['captcha_pass'] ) && is_numeric( $counts['captcha_pass'] ) ? (int) $counts['captcha_pass'] : 0;
+		$reject_c  = isset( $counts['captcha_reject'] ) && is_numeric( $counts['captcha_reject'] ) ? (int) $counts['captcha_reject'] : 0;
+		$error     = isset( $counts['error'] ) && is_numeric( $counts['error'] ) ? (int) $counts['error'] : 0;
+		$intercept = isset( $counts['reject'] ) && is_numeric( $counts['reject'] ) ? (int) $counts['reject'] : 0;
+		$attempts  = isset( $counts['attempts'] ) && is_numeric( $counts['attempts'] ) ? (int) $counts['attempts'] : 0;
+
+		return sprintf(
+			'调用 %d · 通过 %d · 拦截 %d · 登录失败尝试 %d',
+			$pass + $reject_c + $error,
+			$pass,
+			$intercept,
+			$attempts
 		);
 	}
 
