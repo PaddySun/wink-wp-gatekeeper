@@ -68,8 +68,9 @@ final class DriverPrivacy {
 			'aliyun_green' => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M4 逐家抓取。
-				'data_fields'  => '昵称、邮箱、评论正文（拼接串；关闭拼接时仅正文）',
-				'region_note'  => '境内服务商',
+				// 【v1.5·B5】05 §2.5 registry 建议行口径：双 Service 分送（昵称/正文两调）。
+				'data_fields'  => '昵称、邮箱、评论正文（分通道送审）',
+				'region_note'  => '境内节点 green-cip.cn-shanghai，数据不出境',
 			),
 			'tencent'     => array(
 				'cross_border' => false,

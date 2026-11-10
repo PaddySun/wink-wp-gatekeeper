@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.3.1 =
+
+M3' 批次 3·阿里文本审核增强版 PLUS 驱动上线 B5（2026-11-11，设计文档 v1.5 05 §2.5 + DESIGN-D2/L0-ali-green-pro 定稿）：① 新驱动 aliyun_green——includes/drivers/review/AliyunGreenPlusDriver.php（ReviewDriver 契约：check/last_check_meta/fail_mode 闸侧），TextModerationPlus（green-cip.cn-shanghai · Green 2022-03-02 · ACS3 复用 B3 AliyunV3Signer form body 形态零新增签名代码）；**双 Service 分送**（02 §2.2 例外条款拍板 D20）：昵称→nickname_detection_pro 单独一调（昵称特化模型，L0 实测短广告串命中 pt_* 三标签）、邮箱+正文→comment_detection_pro 一调，先昵称后正文 reject 快短路，OR 取严；**单通道故障不吞另一通道**（一通道 error 另一通道判定仍有效，双通道全故障才 error）；F36 兼容回退开关 review.cloud.aliyun_green.dual_dispatch（默认开；关=拼接串单调同口径）+ review.include_author_fields 关时单调仅正文；② 判定映射（05 §2.5 规范性）：**RiskLevel 双轨制**——none/low→pass / medium→review / high→reject（reason=首条 Label,Description；hits=全部 Label；meta 记 Confidence+RiskWords 摘要；Confidence 不参与收口——本站恒 100 二值化注记）；**nonLabel 伪标签剔除**（L0 实测修正：干净文本 Result 返回单条 nonLabel 而非空数组）；兜底 RiskLevel 缺失但有标签→review；600 字截断（meta 标 truncated）；error_map body Code 级（400/408→semantic 当日停转、500/581/588→transport、未知 Code→契约哨兵）；③ Tab③ 阿里 PLUS 配置区——AccessKey 两键 password 型不回显（P0-α 教训）+ 双 Service 名（默认 pro 值可配）+ dual_dispatch 开关 + 超时/日配额/降级单选 + 合规行（privacy 维：分通道送审/green-cip 境内不出境）+ 接入指引（含控制台细粒度检测开启引导）；「测试凭据」三态（绿=探测 Code=200 顺带解除停转；黄=AK 缺或 Service 名空；红=Code=408 PERMISSION_DENY 指明补授 AliyunYundunGreenWebFullAccess 或签名类错）；registry 登记（Tab③ 下拉 chain[0] 可选，api_version=2022-03-02 与 x-acs-version 同源）；④ F4-3 阿里标签映射核对补缺——05 §2.5 摘录族 22 新键进 Copywork::cloud_labels（inappropriate_ethics/superstition、sexual_terms、political_* 五族、violent_* 三族、contraband_* 四族、religion_* 五族、ugc）；⑤ schema review.aliyun_green 双 Service 键+dual_dispatch（merge_defaults 老树回填；Sanitize 规则同步，AccessKey 两键 text→password）。1050 tests / 7457 assertions 全绿（998 基线 + 52 新例：驱动 29/设置面 10/凭据三态 13——L0 实测响应形态金测试）。
 
 = 0.3.0 =
 

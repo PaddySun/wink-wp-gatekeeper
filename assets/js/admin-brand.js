@@ -398,4 +398,62 @@
 			} );
 		} );
 	}
+
+	/* -----------------------------------------------------------------
+	 * B5 · Tab③ 阿里 PLUS「测试凭据」（03 Tab③【v1.5】同款模式：良性短文本真调用三态；
+	 * 绿态在服务端顺带解除当日停转——页面不重载，灯状态下次刷新可见）。
+	 * ----------------------------------------------------------------- */
+
+	var greenProbeButton = document.getElementById( 'wk-green-test-credentials' );
+	if ( greenProbeButton ) {
+		greenProbeButton.addEventListener( 'click', function () {
+			var result = document.getElementById( 'wk-green-test-result' );
+			greenProbeButton.disabled = true;
+			if ( result ) {
+				result.textContent = '测试中……';
+				result.className = '';
+			}
+
+			function greenFieldOrEmpty( id ) {
+				var el = document.getElementById( id );
+				return el ? el.value.trim() : '';
+			}
+
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_test_credentials_aliyun_green' );
+			body.append( 'nonce', greenProbeButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'green_access_key_id', greenFieldOrEmpty( 'wk-field-review-cloud-aliyun_green-access_key_id' ) );
+			body.append( 'green_access_key_secret', greenFieldOrEmpty( 'wk-field-review-cloud-aliyun_green-access_key_secret' ) );
+			body.append( 'green_service_nickname', greenFieldOrEmpty( 'wk-green-service-nickname' ) );
+			body.append( 'green_service_comment', greenFieldOrEmpty( 'wk-green-service-comment' ) );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( ! result ) {
+					return;
+				}
+				var data = payload && payload.data ? payload.data : null;
+				if ( payload && payload.success && data ) {
+					result.textContent = data.message || '';
+					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+				} else {
+					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).catch( function () {
+				if ( result ) {
+					result.textContent = '测试失败（网络错误）。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).finally( function () {
+				greenProbeButton.disabled = false;
+			} );
+		} );
+	}
 }() );

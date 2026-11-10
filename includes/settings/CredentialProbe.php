@@ -292,6 +292,113 @@ final class CredentialProbe {
 	}
 
 	/**
+	 * 阿里文本审核增强版 PLUS「测试凭据」三态分类（B5；05 §2.5 凭据自检三态/03 Tab③【v1.5】；
+	 * 判定法 = L0-ali-green-pro 实测定稿）。
+	 *
+	 * 发一次良性短文本（content=凭据自检，comment_detection_pro）真调用：
+	 *   - 绿：body Code=200（RiskLevel none/low）——ACS3 签名+AK+RAM+服务链路全通（真调用，
+	 *     不用空 content 探测——Code=400 语义模糊无法区分「参数防呆」与「链路通」）；
+	 *   - 红：body Code=408（PERMISSION_DENY 未授权/欠费/未开通——文案指明需
+	 *     AliyunYundunGreenWebFullAccess 或开通内容安全增强版）或 HTTP 4xx 签名类错
+	 *     （InvalidAccessKeyId 前缀 / SignatureDoesNotMatch——AK/签名错）；
+	 *   - 黄：body Code=400 参数类（核对配置区取值）；本地必填缺在 local_precheck_aliyun_green；
+	 *   - 灰：传输终态 / Code=200 但 RiskLevel 非 none/low 的形态异常——给原文与排查方向。
+	 *
+	 * 绿态解除停转（02 §5「自检通过」）由 AJAX 边界执行 clear——本类保持纯逻辑。
+	 *
+	 * @param RemoteResult $result 良性短文本审核的传输脊结果。
+	 * @return array{state: string, message: string, missing: string[], code: string}
+	 */
+	public static function classify_aliyun_green( RemoteResult $result ): array {
+		$payload = array( 'state' => 'gray', 'message' => '', 'missing' => array(), 'code' => '' );
+
+		$decoded = self::decoded( $result );
+
+		// Green 增强版 body 顶层 Code：成功为整型 200（L0 实测）；HTTP 4xx 时为字符串码
+		// （SignatureDoesNotMatch 等）。Code 判定在非 200 时消费（与 TMS body 级惯例一致）。
+		$code = '';
+		if ( is_array( $decoded ) ) {
+			$raw_code = $decoded['Code'] ?? null;
+			if ( is_int( $raw_code ) ) {
+				$raw_code = (string) $raw_code;
+			}
+			if ( is_string( $raw_code ) && '200' !== $raw_code ) {
+				$code = $raw_code;
+			}
+		}
+
+		if ( '' !== $code ) {
+			$payload['code'] = $code;
+
+			// 红 1：AK/签名错（前缀通配——实测变体后缀不一，如 InvalidAccessKeyId.NotFound）。
+			if ( 0 === strpos( $code, 'InvalidAccessKeyId' ) || 0 === strpos( $code, 'SignatureDoesNotMatch' ) ) {
+				$payload['state']   = 'red';
+				$payload['message'] = '密钥/签名错误：AccessKey 对被阿里云拒绝（' . $code . '）——请到「访问管理 → RAM AccessKey 管理」核对后重试。';
+				return $payload;
+			}
+
+			// 红 2：408 PERMISSION_DENY（未授权/欠费/未开通——05 §2.5 error_map 语义档）。
+			if ( '408' === $code ) {
+				$payload['state']   = 'red';
+				$payload['message'] = '权限不足（PERMISSION_DENY）：文本审核增强版未授权/欠费/未开通——请为该 RAM 用户补授 AliyunYundunGreenWebFullAccess，或到阿里云内容安全控制台开通「文本审核增强版」后重试。';
+				return $payload;
+			}
+
+			// 黄：body 400 参数类（本地防呆提示——核对配置区取值；不用于绿态判定）。
+			if ( '400' === $code ) {
+				$payload['state']   = 'yellow';
+				$payload['message'] = '参数错误（Code=400' . ( isset( $decoded['Message'] ) && is_string( $decoded['Message'] ) && '' !== $decoded['Message'] ? '：' . $decoded['Message'] : '' ) . '）——请核对上方配置区取值后重试。';
+				return $payload;
+			}
+
+			$payload['message'] = '服务端返回错误：' . $code . '——' . (string) ( $decoded['Message'] ?? '' );
+			return $payload;
+		}
+
+		if ( ! $result->is_ok() ) {
+			// 非 API 错误的传输终态（连接失败/超时/5xx 等）。
+			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试。';
+			return $payload;
+		}
+
+		// body Code=200：读 Data.RiskLevel——绿态判据（探测样本应为干净文本 none/low）。
+		$data = is_array( $decoded ) && is_array( $decoded['Data'] ?? null ) ? $decoded['Data'] : array();
+		$risk = is_string( $data['RiskLevel'] ?? null ) ? $data['RiskLevel'] : '';
+
+		if ( in_array( $risk, array( 'none', 'low' ), true ) ) {
+			$payload['state']   = 'green';
+			$payload['code']    = 'Code=200';
+			$payload['message'] = '凭据可用（Code=200，探测文本 RiskLevel=' . $risk . '）——审核链路已通；启用后评论将按「本地规则 → 阿里文本审核 PLUS」串联送审。';
+			return $payload;
+		}
+
+		$payload['code']    = 'RiskLevel=' . ( '' !== $risk ? $risk : '?' );
+		$payload['message'] = '未预期的判定返回（RiskLevel=' . $risk . '）——凭据与签名链路已通，但探测文本未获干净判定；可重试或截图此信息联系排查。';
+		return $payload;
+	}
+
+	/**
+	 * 阿里 PLUS 本地预检：AK 两键或双 Service 名有空 → 黄态逐字段列缺（不发远端调用——
+	 * 空 AccessKey 的 ACS3 签名必失败且无诊断价值；05 §2.5 黄态「Service 名配置为空」同档）；
+	 * 齐全 → null（放行走远端探测）。
+	 *
+	 * @param array<string, mixed> $green review.cloud.aliyun_green 子树。
+	 * @return array{state: string, message: string, missing: string[]}|null
+	 */
+	public static function local_precheck_aliyun_green( array $green ): ?array {
+		$meta    = \WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver::registry_entry();
+		$missing = DriverConfigSpec::missing_fields( $meta, $green );
+		if ( array() === $missing ) {
+			return null;
+		}
+		return array(
+			'state'   => 'yellow',
+			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'missing' => $missing,
+		);
+	}
+
+	/**
 	 * 解析 body JSON（4xx 语义分类不 decode data，此处自行解码读 Response.Error）。
 	 *
 	 * @param RemoteResult $result

@@ -121,11 +121,14 @@ final class Sanitize {
 			'review.cloud.baidu.timeout'                => 'absint',
 			'review.cloud.baidu.daily_quota'            => 'absint',
 			'review.cloud.baidu.fail_mode'              => 'text',
-			'review.cloud.aliyun_green.access_key_id'     => 'text',
+			'review.cloud.aliyun_green.access_key_id'     => 'password', // 【v1.5·B5】password 型（P0-α 教训：不回显+空串保留旧值）。
 			'review.cloud.aliyun_green.access_key_secret' => 'password',
 			'review.cloud.aliyun_green.timeout'            => 'absint',
 			'review.cloud.aliyun_green.daily_quota'        => 'absint',
 			'review.cloud.aliyun_green.fail_mode'           => 'text',
+			'review.cloud.aliyun_green.service_nickname'   => 'text', // 【v1.5·B5】双 Service 分送键（05 §2.5）。
+			'review.cloud.aliyun_green.service_comment'    => 'text',
+			'review.cloud.aliyun_green.dual_dispatch'      => 'bool', // false = F36 拼接串兼容回退。
 			'review.cloud.tencent_tms.secret_id'       => 'password', // FIX-α 同口径（password 渲染 ⇒ 空串保留），TMS 驱动 C4 实装。
 			'review.cloud.tencent_tms.secret_key'      => 'password',
 			'review.cloud.tencent_tms.biz_type'        => 'text', // C4：TMS 控制台策略编号（官方可选，不传走默认策略）。

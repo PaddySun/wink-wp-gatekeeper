@@ -19,6 +19,7 @@ namespace WinkGatekeeper;
 use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
 use WinkGatekeeper\Drivers\DriverRegistry;
+use WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver;
 use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Gates\CommentGate;
@@ -159,6 +160,8 @@ final class Bootstrap {
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_TMS, array( SettingsPage::class, 'ajax_test_credentials_tms' ) );
 		// Tab② 阿里「测试凭据」（B3：同双闸；绿态判定 = 假参实调 VerifyCode=F002/F003，05 §1.2）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN, array( SettingsPage::class, 'ajax_test_credentials_aliyun' ) );
+		// Tab③ 阿里 PLUS「测试凭据」（B5：同双闸；绿态 = 探测 Code=200，顺带解除 aliyun_green 停转——05 §2.5）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN, array( SettingsPage::class, 'ajax_test_credentials_aliyun_green' ) );
 	}
 
 	/**
@@ -200,6 +203,7 @@ final class Bootstrap {
 		$registry->register( AliyunCaptchaDriver::registry_entry() ); // B3：阿里云验证码 2.0（05 §1.2）。
 		$registry->register( LocalRulesDriver::registry_entry() );
 		$registry->register( TencentTmsDriver::registry_entry() ); // C4：腾讯 TMS 文本审核。
+		$registry->register( AliyunGreenPlusDriver::registry_entry() ); // B5：阿里文本审核增强版 PLUS（05 §2.5）。
 		SettingsPage::set_driver_registry( $registry );
 
 		// 传输脊（全库唯一 HTTP 出口；计量钩子接用量计数——04 §6）。
@@ -216,6 +220,13 @@ final class Bootstrap {
 					$tms_driver = new TencentTmsDriver( $settings, $client );
 					if ( $tms_driver->is_configured() ) {
 						$cloud_chain['tencent_tms'] = $tms_driver;
+					}
+				} elseif ( 'aliyun_green' === $chain_id ) {
+					// B5：阿里文本审核增强版 PLUS（05 §2.5）——双 Service 分送在驱动内消费
+					// （02 §2.2 例外条款：闸仍传拼接串+meta 原值，分送是驱动内策略）。
+					$green_driver = new AliyunGreenPlusDriver( $settings, $client );
+					if ( $green_driver->is_configured() ) {
+						$cloud_chain['aliyun_green'] = $green_driver;
 					}
 				}
 			}

@@ -17,6 +17,7 @@ namespace WinkGatekeeper\Settings;
 
 use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
+use WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Intercept\Copywork;
@@ -51,6 +52,12 @@ final class SettingsPage {
 	 * 绿态顺带解除 tencent_tms 当日停转——02 §5「自检通过」解除条件）。
 	 */
 	const AJAX_TEST_CREDENTIALS_TMS = 'wink_gatekeeper_test_credentials_tms';
+
+	/**
+	 * Tab③ 阿里 PLUS「测试凭据」AJAX action（【v1.5·B5】：nonce + manage_options 双闸；
+	 * 结果不落库；绿态顺带解除 aliyun_green 当日停转——05 §2.5 凭据自检三态/TMS 先例同款）。
+	 */
+	const AJAX_TEST_CREDENTIALS_ALIYUN_GREEN = 'wink_gatekeeper_test_credentials_aliyun_green';
 
 	/**
 	 * @var \WinkGatekeeper\Drivers\DriverRegistry|null Bootstrap 装配期注入的驱动注册表。
@@ -1156,6 +1163,69 @@ final class SettingsPage {
 	}
 
 	/**
+	 * Tab③ 阿里 PLUS「测试凭据」AJAX 端点（【v1.5·B5】05 §2.5 凭据自检三态；03 §1 契约④：
+	 * nonce + manage_options 双闸）。
+	 *
+	 * 表单值（password 空串 = 回落已存值）+ 良性短文本真调用 → 三态呈现
+	 * （CredentialProbe::classify_aliyun_green）；绿态顺带解除 aliyun_green 当日停转
+	 * （02 §5「自检通过」解除条件落点——TMS 先例同款）。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_credentials_aliyun_green(): void {
+		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+
+		$stored  = get_option( self::OPTION_NAME, array() );
+		$stored  = is_array( $stored ) ? $stored : array();
+		$stored  = SettingsSchema::merge_defaults( $stored );
+		$current = isset( $stored['review']['cloud']['aliyun_green'] ) && is_array( $stored['review']['cloud']['aliyun_green'] )
+			? $stored['review']['cloud']['aliyun_green']
+			: array();
+
+		// 表单值覆盖（password 空串保留已存值——与保存契约同语义）。
+		$green = array(
+			'access_key_id'     => self::probe_field( $post, 'green_access_key_id', (string) ( $current['access_key_id'] ?? '' ) ),
+			'access_key_secret' => self::probe_field( $post, 'green_access_key_secret', (string) ( $current['access_key_secret'] ?? '' ) ),
+			'service_nickname'  => self::probe_field( $post, 'green_service_nickname', (string) ( $current['service_nickname'] ?? '' ) ),
+			'service_comment'   => self::probe_field( $post, 'green_service_comment', (string) ( $current['service_comment'] ?? '' ) ),
+		);
+
+		// 本地预检（黄态）：必填缺逐字段列出，不发远端调用（05 §2.5 黄态条款）。
+		$precheck = CredentialProbe::local_precheck_aliyun_green( $green );
+		if ( null !== $precheck ) {
+			wp_send_json_success( array(
+				'state'   => $precheck['state'],
+				'message' => $precheck['message'],
+				'missing' => $precheck['missing'],
+				'code'    => '',
+			) );
+		}
+
+		$settings                             = $stored;
+		$settings['review']['cloud']['aliyun_green'] = array_merge( $current, $green );
+
+		$driver = new AliyunGreenPlusDriver(
+			$settings,
+			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
+		);
+		$state = CredentialProbe::classify_aliyun_green( $driver->probe_credentials() );
+
+		// 绿态解除当日停转（02 §5 解除条件：自检通过；probe 不计 usage）。
+		if ( 'green' === $state['state'] ) {
+			DriverHealth::clear_option( AliyunGreenPlusDriver::DRIVER_ID );
+		}
+
+		wp_send_json_success( $state );
+	}
+
+	/**
 	 * password 型字段（04 §2 安全规则：不回显键值，仅「已配置✓」状态提示）。
 	 *
 	 * @param string[] $path       设置树路径。
@@ -1196,8 +1266,10 @@ final class SettingsPage {
 		$local    = $settings['review']['local'];
 		$cloud    = $settings['review']['cloud'];
 		$tms      = is_array( $cloud['tencent_tms'] ?? null ) ? $cloud['tencent_tms'] : array();
+		$green    = is_array( $cloud['aliyun_green'] ?? null ) ? $cloud['aliyun_green'] : array();
 		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
-		$tms_in_chain = in_array( 'tencent_tms', $chain, true );
+		$tms_in_chain   = in_array( 'tencent_tms', $chain, true );
+		$green_in_chain = in_array( 'aliyun_green', $chain, true );
 
 		// 【v1.4·R4】DriverConfigSpec 通用件消费：registry 已实装 review 驱动（local_rules 剔除）
 		// + 运行时停转映射（下拉「配置错误」点）+ 链路汇总行素材。
@@ -1207,7 +1279,11 @@ final class SettingsPage {
 			unset( $cloud_registered['local_rules'] );
 		}
 		if ( array() === $cloud_registered ) {
-			$cloud_registered = array( TencentTmsDriver::DRIVER_ID => TencentTmsDriver::registry_entry() );
+			// registry 未注入的降级读取（单测/早载场景）——已实装两驱动硬编码兜底。
+			$cloud_registered = array(
+				TencentTmsDriver::DRIVER_ID      => TencentTmsDriver::registry_entry(),
+				AliyunGreenPlusDriver::DRIVER_ID => AliyunGreenPlusDriver::registry_entry(),
+			);
 		}
 		$cloud_halted = array();
 		foreach ( array_keys( $cloud_registered ) as $registered_id ) {
@@ -1217,13 +1293,25 @@ final class SettingsPage {
 			}
 		}
 
-		// 服务端黄条（双层校验第二层——DriverConfigSpec 文案参数化版）。
-		$cloud_notice = DriverConfigSpec::server_notice(
-			$tms_in_chain ? 'tencent_tms' : '',
-			isset( $cloud_registered['tencent_tms'] ) ? $cloud_registered['tencent_tms'] : TencentTmsDriver::registry_entry(),
-			$tms,
-			'云端审核'
+		// 各驱动设置子树（下拉状态点/服务端黄条/链路汇总共用素材）。
+		$cloud_configs = array(
+			'tencent_tms'  => $tms,
+			'aliyun_green' => $green,
 		);
+
+		// 当前选中驱动（下拉=chain[0] 可视面；未配置=''）。
+		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : '' );
+
+		// 服务端黄条（双层校验第二层——DriverConfigSpec 文案参数化版）。
+		$cloud_notice = null;
+		if ( '' !== $cloud_selected && isset( $cloud_registered[ $cloud_selected ] ) ) {
+			$cloud_notice = DriverConfigSpec::server_notice(
+				$cloud_selected,
+				$cloud_registered[ $cloud_selected ],
+				isset( $cloud_configs[ $cloud_selected ] ) ? $cloud_configs[ $cloud_selected ] : array(),
+				'云端审核'
+			);
+		}
 		if ( null !== $cloud_notice ) {
 			echo '<div class="notice notice-warning inline"><p><strong>' . esc_html( $cloud_notice ) . '</strong></p></div>';
 		}
@@ -1315,11 +1403,10 @@ final class SettingsPage {
 						 * 保留兼容未来 failover 备用链（R4 附录 A-1）。 */
 						$cloud_options = DriverConfigSpec::driver_options(
 							$cloud_registered,
-							array( 'tencent_tms' => $tms ),
+							$cloud_configs,
 							self::future_review_drivers(),
 							$cloud_halted
 						);
-						$cloud_selected = $tms_in_chain ? 'tencent_tms' : '';
 						$cloud_dots     = DriverConfigSpec::dot_labels();
 						?>
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="" />
@@ -1337,7 +1424,7 @@ final class SettingsPage {
 								</option>
 							<?php endforeach; ?>
 						</select>
-						<p class="description"><?php esc_html_e( '选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek / 模力 / 百度 / 阿里绿为后续里程碑驱动（选前不可用）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( '选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek / 模力 / 百度为后续里程碑驱动（选前不可用）。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -1348,11 +1435,6 @@ final class SettingsPage {
 			 * （registry privacy 维渲染，禁 SettingsPage 硬编码合规文案）；集中位降级为链路汇总行（底部）。 */
 			$tms_meta      = isset( $cloud_registered['tencent_tms'] ) ? $cloud_registered['tencent_tms'] : TencentTmsDriver::registry_entry();
 			$tms_privacy   = DriverConfigSpec::privacy_notice( $tms_meta, '腾讯云 TMS 文本审核' );
-			$chain_summary = DriverConfigSpec::chain_summary(
-				$chain,
-				$cloud_registered,
-				array( 'tencent_tms' => $tms )
-			);
 			?>
 			<section class="wk-card" id="wk-tms-config-area">
 				<h2><?php esc_html_e( '腾讯云 TMS 文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
@@ -1448,10 +1530,129 @@ final class SettingsPage {
 				<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果不落库。', 'wink-gatekeeper' ); ?></p>
 			</section>
 
-			<?php if ( null !== $chain_summary ) : ?>
+			<?php elseif ( $green_in_chain ) : ?>
 				<?php
-				/* 链路汇总行（03 Tab③ v1.4：链启用期间底部小字——链上任一驱动出境/辖区未知时
-				 * 由消费方升级黄条（region_note 摘要已含「数据不出境/出境」短语）。 */
+				/* 【v1.5·B5】阿里文本审核增强版 PLUS 配置区（03 Tab③【v1.5】——与 TMS 配置区同构：
+				 * 合规行（registry privacy 维）/ 接入指引折叠 / 测试凭据三态按钮 / 双层必填校验。
+				 * 无 reject_score 字段（RiskLevel 双轨制，05 §2.5——不引入阈值语义）。 */
+				$green_meta    = isset( $cloud_registered['aliyun_green'] ) ? $cloud_registered['aliyun_green'] : AliyunGreenPlusDriver::registry_entry();
+				$green_privacy = DriverConfigSpec::privacy_notice( $green_meta, '阿里云内容安全·文本审核增强版 PLUS' );
+				?>
+				<section class="wk-card" id="wk-green-config-area">
+					<h2><?php esc_html_e( '阿里云内容安全·文本审核增强版 PLUS · 配置', 'wink-gatekeeper' ); ?></h2>
+
+					<?php if ( null !== $green_privacy ) : ?>
+						<div class="notice <?php echo 'warn' === $green_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+							<p><?php echo esc_html( $green_privacy['text'] ); ?></p>
+						</div>
+					<?php endif; ?>
+
+					<details class="wk-guide">
+						<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+						<ol>
+							<li><?php esc_html_e( '阿里云控制台开通「内容安全 · 文本审核增强版」（TextModerationPlus，Green 2022-03-02）。', 'wink-gatekeeper' ); ?></li>
+							<li><?php esc_html_e( '准备 RAM AccessKey 对（可与验证码 2.0 共用同一 RAM 用户），并授予 AliyunYundunGreenWebFullAccess 权限。', 'wink-gatekeeper' ); ?></li>
+							<li><?php esc_html_e( '粘贴至下方（双 Service 名默认 nickname/comment_detection_pro，一般无需修改）→ 点「测试凭据」。', 'wink-gatekeeper' ); ?></li>
+							<li><?php esc_html_e( '判定映射（站长不可调）：RiskLevel none/low→放行、medium→入待审、high→直接拦截；分档界线在阿里控制台规则配置。如需 medium/low 中间态与小数置信分，请在内容安全控制台规则配置中开启细粒度检测。', 'wink-gatekeeper' ); ?></li>
+						</ol>
+						<p><a href="https://help.aliyun.com/zh/green/developer-reference/api-green-2022-03-02-textmoderationplus" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModerationPlus API 文档', 'wink-gatekeeper' ); ?></a></p>
+					</details>
+
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row"><label for="wk-green-ak-id"><?php esc_html_e( 'AccessKeyId', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_id' ), '' !== (string) ( $green['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
+								<p class="description"><?php esc_html_e( 'RAM AccessKey（ACS3 签名用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="wk-green-ak-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_secret' ), '' !== (string) ( $green['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
+								<p class="description"><?php esc_html_e( '与 AccessKeyId 配对的密钥。', 'wink-gatekeeper' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="wk-green-service-nickname"><?php esc_html_e( '昵称 Service 名', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<input type="text" id="wk-green-service-nickname" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_nickname' ) ) ); ?>"
+									value="<?php echo esc_attr( (string) ( $green['service_nickname'] ?? 'nickname_detection_pro' ) ); ?>" class="regular-text" />
+								<p class="description"><?php esc_html_e( '昵称分送通道（默认 nickname_detection_pro）。昵称特化模型对短广告串命中更细；一般无需修改。', 'wink-gatekeeper' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="wk-green-service-comment"><?php esc_html_e( '正文 Service 名', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<input type="text" id="wk-green-service-comment" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_comment' ) ) ); ?>"
+									value="<?php echo esc_attr( (string) ( $green['service_comment'] ?? 'comment_detection_pro' ) ); ?>" class="regular-text" />
+								<p class="description"><?php esc_html_e( '邮箱+正文送审通道（默认 comment_detection_pro）。', 'wink-gatekeeper' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( '双 Service 分送', 'wink-gatekeeper' ); ?></th>
+							<td>
+								<label>
+									<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="0" />
+									<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="1" <?php checked( ! isset( $green['dual_dispatch'] ) || ! empty( $green['dual_dispatch'] ) ); ?> />
+									<?php esc_html_e( '昵称单独一调 + 邮箱/正文一调（默认，精度更好，成本 ×2 可忽略）', 'wink-gatekeeper' ); ?>
+								</label>
+								<p class="description"><?php esc_html_e( '关闭 = 兼容回退：按「昵称\\n邮箱\\n正文」拼接串单调一次（与其他云驱动同口径）。', 'wink-gatekeeper' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="wk-green-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<input type="number" id="wk-green-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'timeout' ) ) ); ?>"
+									value="<?php echo esc_attr( (string) ( $green['timeout'] ?? 8 ) ); ?>" class="small-text" />
+								<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="wk-green-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<input type="number" id="wk-green-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'daily_quota' ) ) ); ?>"
+									value="<?php echo esc_attr( (string) ( $green['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
+								<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理；双送按两次调用计量', 'wink-gatekeeper' ); ?></span>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+							<td>
+								<?php $green_fail_mode = 'open' === ( $green['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
+								<label style="display:block;margin-bottom:6px;">
+									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $green_fail_mode ); ?> />
+									<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+								</label>
+								<label style="display:block;">
+									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $green_fail_mode ); ?> />
+									<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+								</label>
+							</td>
+						</tr>
+					</table>
+
+					<p>
+						<button type="button" class="button" id="wk-green-test-credentials"
+							data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN ) ); ?>">
+							<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+						</button>
+						<span id="wk-green-test-result" aria-live="polite"></span>
+					</p>
+					<p class="description"><?php esc_html_e( '发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+				</section>
+			<?php else : ?>
+				<section class="wk-card">
+					<h2><?php esc_html_e( '云端审核驱动', 'wink-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( '未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动并保存后，此处出现该驱动的配置区与逐驱动合规行（常驻不可关闭）。', 'wink-gatekeeper' ); ?></p>
+				</section>
+			<?php endif; ?>
+
+			<?php
+			/* 链路汇总行（03 Tab③ v1.4：链启用期间底部小字——任一配置区共用；链上任一驱动
+			 * 出境/辖区未知时由消费方升级黄条（region_note 摘要已含「数据不出境/出境」短语）。 */
+			$chain_summary = DriverConfigSpec::chain_summary( $chain, $cloud_registered, $cloud_configs );
+			if ( null !== $chain_summary ) :
 				$summary_warn = false;
 				foreach ( $chain as $summary_id ) {
 					if ( isset( $cloud_registered[ $summary_id ]['privacy']['cross_border'] )
@@ -1463,13 +1664,7 @@ final class SettingsPage {
 				<p class="description <?php echo $summary_warn ? 'wk-notice-inline-warn' : 'wk-muted'; ?>" style="margin-top:0.5rem;">
 					<?php echo esc_html( $chain_summary ); ?>
 				</p>
-			<?php endif; ?>
-		<?php else : ?>
-			<section class="wk-card">
-				<h2><?php esc_html_e( '云端审核驱动', 'wink-gatekeeper' ); ?></h2>
-				<p class="wk-muted"><?php esc_html_e( '未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动并保存后，此处出现该驱动的配置区与逐驱动合规行（常驻不可关闭）。', 'wink-gatekeeper' ); ?></p>
-			</section>
-		<?php endif;
+			<?php endif;
 	}
 
 	/* -------------------------------------------------------------------
@@ -2000,7 +2195,7 @@ final class SettingsPage {
 			'openai_custom' => array( 'label' => '自定义 OpenAI 兼容端点', 'milestone' => 'M3', 'required' => array( 'api_key', 'base_url', 'model' ) ),
 			'moli'          => array( 'label' => '模力 System One', 'milestone' => 'M4', 'required' => array( 'api_key' ) ),
 			'baidu'         => array( 'label' => '百度文本审核', 'milestone' => 'M4', 'required' => array( 'api_key', 'secret_key' ) ),
-			'aliyun_green'  => array( 'label' => '阿里云内容安全', 'milestone' => 'M4', 'required' => array( 'access_key_id', 'access_key_secret' ) ),
+			// aliyun_green 已于 M3' 批次 3（B5）实装——登记入 registry，脱离 future 段（下拉已实装驱动）。
 		);
 	}
 

@@ -127,8 +127,8 @@ final class Copywork {
 	 * Tab⑤ 只读预览区展示同一键形态）；文案可经 wink_gatekeeper_error_messages filter
 	 * 覆盖（humanize_rule 的 $label_overrides，同键覆盖不扩键）。
 	 *
-	 * TMS 集为 L0 实测定稿 Label 表（05 §2.4）；阿里集为 05 §2.5 摘录族——**静态对照
-	 * 官方文档整理，未运行验证**（阿里驱动 M3' 批次 3 接入时复核补全）。
+	 * TMS 集为 L0 实测定稿 Label 表（05 §2.4）；阿里集为 05 §2.5 摘录族——B5（M3' 批次 3）
+	 * 接入时按摘录表核对补缺；文案仍可经 wink_gatekeeper_error_messages filter 覆盖。
 	 *
 	 * @return array<string, string> wk-label-<Label> => 中文文案。
 	 */
@@ -142,7 +142,7 @@ final class Copywork {
 			'wk-label-Terrorism'  => '暴恐',
 			'wk-label-Contraband' => '违禁',
 			'wk-label-Sexy'       => '性感的',
-			// 阿里文本审核增强版 PLUS（05 §2.5 摘录族；静态推断，接入时复核）。
+			// 阿里文本审核增强版 PLUS（05 §2.5 摘录族；B5 核对补缺——L0 实测 pt_* 三标签命中）。
 			'wk-label-pt_to_sites'              => '疑似站外引流',
 			'wk-label-pt_to_contact'            => '疑似引流广告号',
 			'wk-label-pt_by_recruitment'        => '疑似网赚兼职广告',
@@ -151,10 +151,31 @@ final class Copywork {
 			'wk-label-inappropriate_oral'       => '疑似低俗口头语',
 			'wk-label-inappropriate_nonsense'   => '疑似无意义灌水',
 			'wk-label-inappropriate_discrimination' => '疑似偏见歧视',
+			'wk-label-inappropriate_ethics'     => '疑似不良价值观',
+			'wk-label-inappropriate_superstition' => '疑似封建迷信',
 			'wk-label-pornographic_adult'       => '疑似色情',
+			'wk-label-sexual_terms'             => '疑似性健康',
 			'wk-label-sexual_suggestive'        => '疑似低俗',
+			'wk-label-political_figure'         => '疑似政治人物',
+			'wk-label-political_entity'         => '疑似政治实体',
+			'wk-label-political_n'              => '疑似政治敏感',
+			'wk-label-political_p'              => '疑似政治禁宣',
+			'wk-label-political_a'              => '疑似政治专项',
+			'wk-label-violent_extremist'        => '疑似极端组织',
+			'wk-label-violent_incidents'        => '疑似暴力事件',
+			'wk-label-violent_weapons'          => '疑似武器弹药',
+			'wk-label-contraband_drug'          => '疑似毒品',
+			'wk-label-contraband_gambling'      => '疑似赌博',
+			'wk-label-contraband_act'           => '疑似违禁行为',
+			'wk-label-contraband_entity'        => '疑似违禁工具',
+			'wk-label-religion_b'               => '涉佛教',
+			'wk-label-religion_t'               => '涉道教',
+			'wk-label-religion_c'               => '涉基督',
+			'wk-label-religion_i'               => '涉伊斯兰',
+			'wk-label-religion_h'               => '涉印度教',
 			'wk-label-customized'               => '命中自定义词库',
 			'wk-label-aigc'                     => '文本疑似 AI 生成',
+			'wk-label-ugc'                      => '非 AI 生成',
 		);
 	}
 

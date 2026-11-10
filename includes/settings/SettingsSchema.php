@@ -201,6 +201,12 @@ final class SettingsSchema {
 						'timeout'           => 8,
 						'daily_quota'       => 500,
 						'fail_mode'         => 'review',
+						// 【v1.5·B5】双 Service 分送（05 §2.5/02 §2.2 例外条款）：昵称→
+						// service_nickname、邮箱+正文→service_comment 各一调（OR 取严）。
+						// dual_dispatch=false = F36 拼接串兼容回退（拼接串单调 comment 通道）。
+						'service_nickname'  => 'nickname_detection_pro',
+						'service_comment'   => 'comment_detection_pro',
+						'dual_dispatch'     => true,
 					),
 					'tencent_tms'  => array(
 						'secret_id'   => '',
