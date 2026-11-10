@@ -66,10 +66,11 @@ final class Sanitize {
 			'captcha.tencent.secret_key'                => 'password',
 			'captcha.tencent.app_secret_key'            => 'password', // body 必填 AppSecretKey（L0 定论 2026-11-09）。
 			'captcha.tencent.disaster_pass'             => 'disaster_pass', // allow|block 白名单（04 §2 v1.3）。
-			'captcha.aliyun.access_key_id'              => 'text',
+			'captcha.aliyun.access_key_id'              => 'password', // B3：password 渲染（不回显）⇒ password 型（P0-α 教训：空串保留旧值）。
 			'captcha.aliyun.access_key_secret'          => 'password',
 			'captcha.aliyun.scene_id'                   => 'text',
 			'captcha.aliyun.prefix'                     => 'text',
+			'captcha.aliyun.mode'                       => 'aliyun_mode', // 【v1.5·B3】embed|popup 白名单（非法值归 embed）。
 			'captcha.hcaptcha.site_key'                 => 'text',
 			'captcha.hcaptcha.secret_key'               => 'password',
 			'captcha.turnstile.site_key'                => 'text',
@@ -236,6 +237,10 @@ final class Sanitize {
 			case 'disaster_pass':
 				// 白名单枚举（04 §2 captcha.tencent.disaster_pass）：非 block 一律归 allow（默认档）。
 				return ( is_scalar( $value ) && 'block' === (string) $value ) ? 'block' : 'allow';
+			case 'aliyun_mode':
+				// 【v1.5·B3】白名单枚举（04 §2 captcha.aliyun.mode）：embed（默认）| popup，
+				// 非法值归 embed（fail-safe——页内触发条形态是规格默认）。
+				return ( is_scalar( $value ) && 'popup' === (string) $value ) ? 'popup' : 'embed';
 			case 'min_score':
 				// 【v1.5·C1】评分制阈值钳制（04 §2 captcha.min_score：数值钳 0.1–1.0；
 				// 02 §2.1 max(0.1, min(1.0, ·))——非标量/非法值归默认 0.5）。

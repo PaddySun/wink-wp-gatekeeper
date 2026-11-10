@@ -15,6 +15,7 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Settings;
 
+use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Http\RemoteClient;
@@ -39,6 +40,11 @@ final class SettingsPage {
 	 * Tab②「测试凭据」AJAX action（03 §1 契约④：nonce + manage_options 双闸；结果不落库）。
 	 */
 	const AJAX_TEST_CREDENTIALS = 'wink_gatekeeper_test_credentials';
+
+	/**
+	 * Tab② 阿里「测试凭据」AJAX action（【v1.5·B3】：nonce + manage_options 双闸；结果不落库）。
+	 */
+	const AJAX_TEST_CREDENTIALS_ALIYUN = 'wink_gatekeeper_test_credentials_aliyun';
 
 	/**
 	 * Tab③ TMS「测试凭据」AJAX action（C4：nonce + manage_options 双闸；结果不落库；
@@ -525,9 +531,10 @@ final class SettingsPage {
 		$settings = self::settings();
 		$active   = is_string( $settings['captcha']['driver'] ?? null ) ? $settings['captcha']['driver'] : '';
 		$tencent  = $settings['captcha']['tencent'];
+		$aliyun   = $settings['captcha']['aliyun']; // 【v1.5·B3】阿里 2.0 配置子树（04 §2 v1.5）。
 
 		// 服务端黄条（双层校验第二层）：选了厂商但必填空 → 驱动视为未配置（设置仍保存）。
-		$notice = CaptchaTabSpec::server_notice( $active, $tencent );
+		$notice = CaptchaTabSpec::server_notice( $active, $tencent, $aliyun );
 		if ( null !== $notice ) {
 			echo '<div class="notice notice-warning inline"><p><strong>' . esc_html( $notice ) . '</strong></p></div>';
 		}
@@ -536,7 +543,8 @@ final class SettingsPage {
 		$dots     = CaptchaTabSpec::dot_labels();
 		$options  = CaptchaTabSpec::driver_options(
 			null !== self::$driver_registry ? self::$driver_registry->by_type( 'captcha' ) : array(),
-			$tencent
+			$tencent,
+			$aliyun
 		);
 		$guide    = CaptchaTabSpec::guide();
 		?>
@@ -736,7 +744,7 @@ final class SettingsPage {
 			<!-- 共存提示位：检测到官方 hCaptcha 插件接管时黄条「评论验证码由官方 hCaptcha 插件接管，本插件验证码已让位」——M4（02 §3.4）。 -->
 		</section>
 
-		<section class="wk-card" id="wk-captcha-config-area"<?php echo $area['visible'] ? '' : ' hidden'; ?>>
+		<section class="wk-card" id="wk-captcha-config-area" data-wk-vendor="tencent"<?php echo ( $area['visible'] && 'tencent' === $active ) ? '' : ' hidden'; ?>>
 			<h2><?php esc_html_e( '腾讯天御验证码 2.0 · 配置', 'wink-gatekeeper' ); ?></h2>
 
 			<?php
@@ -881,6 +889,97 @@ final class SettingsPage {
 			</p>
 			<p class="description"><?php esc_html_e( '发一次全参假票核验：绿 = 凭据可用；红 = CAM 密钥（SecretId/SecretKey）错；黄 = 必填参数缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
 		</section>
+
+		<?php
+		/* ---------- 【v1.5·B3】阿里云验证码 2.0 配置区（03 Tab②【v1.5】/05 §1.2/DESIGN-D2 §1.4）---------- */
+		$aliyun_guide = CaptchaTabSpec::aliyun_guide();
+		?>
+		<section class="wk-card" data-wk-vendor="aliyun"<?php echo ( $area['visible'] && 'aliyun' === $active ) ? '' : ' hidden'; ?>>
+			<h2><?php esc_html_e( '阿里云验证码 2.0 · 配置', 'wink-gatekeeper' ); ?></h2>
+
+			<?php
+			// 逐驱动合规行（registry privacy 维渲染——R4 §C.3 同款；常驻不可关闭）。
+			$privacy_row = DriverConfigSpec::privacy_notice( AliyunCaptchaDriver::registry_entry(), '阿里云验证码 2.0' );
+			if ( null !== $privacy_row ) :
+				?>
+				<div class="notice <?php echo 'warn' === $privacy_row['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+					<p><?php echo esc_html( $privacy_row['text'] ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<details class="wk-guide">
+				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<ol>
+					<?php foreach ( $aliyun_guide['steps'] as $step ) : ?>
+						<li><?php echo esc_html( $step ); ?></li>
+					<?php endforeach; ?>
+				</ol>
+				<p>
+					<a href="<?php echo esc_url( $aliyun_guide['console_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '验证码控制台', 'wink-gatekeeper' ); ?></a>
+					· <a href="<?php echo esc_url( $aliyun_guide['doc_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'VerifyIntelligentCaptcha API 文档', 'wink-gatekeeper' ); ?></a>
+				</p>
+				<p class="description"><?php echo esc_html( $aliyun_guide['ticket_note'] ); ?></p>
+			</details>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-aliyun-access-key-id"><?php esc_html_e( 'AccessKeyId', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_id' ), '' !== $aliyun['access_key_id'], 'AccessKeyId' ); ?>
+						<p class="description"><?php esc_html_e( 'RAM AccessKey（禁主账号 AK——ACS3 V3 签名用，访问管理 → RAM）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-aliyun-access-key-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_secret' ), '' !== $aliyun['access_key_secret'], 'AccessKeySecret' ); ?>
+						<p class="description"><?php esc_html_e( '与 AccessKeyId 配对的 RAM 密钥（HMAC 签名密钥原文）。仅服务端使用。RAM 用户需授权 AliyunYundunAFSFullAccess。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-aliyun-scene-id"><?php esc_html_e( 'SceneId', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-aliyun-scene-id" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'scene_id' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) $aliyun['scene_id'] ); ?>" class="regular-text"
+							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'SceneId', 'wink-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( '验证码控制台 → 场景管理（必填——服务端补传防前端被篡改场景，错配返回 F012）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-aliyun-prefix"><?php esc_html_e( 'prefix（身份标）', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-aliyun-prefix" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'prefix' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) $aliyun['prefix'] ); ?>" class="regular-text"
+							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'prefix（身份标）', 'wink-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( '控制台概览页获取——前端 AliyunCaptchaConfig 全局配置用（前端公开级参数，非服务端 API 凭据）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '前端形态（mode）', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<?php $aliyun_mode = 'popup' === ( $aliyun['mode'] ?? 'embed' ) ? 'popup' : 'embed'; ?>
+						<label style="display:block;margin-bottom:6px;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="embed" <?php checked( 'embed', $aliyun_mode ); ?> />
+							<?php esc_html_e( '嵌入触发条（默认）——页内渲染「点击开始验证」触发条，点击后弹出拼图/图像复原交互弹层（SDK 自管）', 'wink-gatekeeper' ); ?>
+						</label>
+						<label style="display:block;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="popup" <?php checked( 'popup', $aliyun_mode ); ?> />
+							<?php esc_html_e( '弹层（零占位）——页内无组件，点击验证按钮直接弹出交互弹层', 'wink-gatekeeper' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'region 恒 cn（前端与服务端 endpoint 映射须一致，错配即报错）；滑块宽度按官方最小 320px 传参。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				<button type="button" class="button" id="wk-aliyun-test-credentials"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN ) ); ?>">
+					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+				</button>
+				<span id="wk-aliyun-test-result" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '发一次假参实调（VerifyIntelligentCaptcha）：绿 = 凭据可用；红 = AccessKey/签名/权限错（含 RAM 未授权提示）；黄 = 必填参数缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+		</section>
 		<?php
 	}
 
@@ -926,6 +1025,53 @@ final class SettingsPage {
 			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
 		);
 		$state = CredentialProbe::classify( $driver->probe_credentials() );
+		wp_send_json_success( $state );
+	}
+
+	/**
+	 * Tab② 阿里「测试凭据」AJAX 端点（【v1.5·B3】：03 §1 契约④同款——nonce +
+	 * manage_options 双闸；结果不落库）。
+	 *
+	 * 表单值（password 空串 = 回落已存值）+ 假参实调（VerifyIntelligentCaptcha 全参假票）
+	 * → 三态呈现（CredentialProbe::classify_aliyun，DESIGN-D2 §1.4 判定法）。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_credentials_aliyun(): void {
+		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_ALIYUN, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+
+		$stored  = get_option( self::OPTION_NAME, array() );
+		$stored  = is_array( $stored ) ? $stored : array();
+		$stored  = SettingsSchema::merge_defaults( $stored );
+		$current = isset( $stored['captcha']['aliyun'] ) && is_array( $stored['captcha']['aliyun'] ) ? $stored['captcha']['aliyun'] : array();
+
+		// 表单值覆盖（password 空串保留已存值——与保存契约同语义）。
+		$aliyun = array(
+			'access_key_id'     => self::probe_field( $post, 'ali_access_key_id', (string) ( $current['access_key_id'] ?? '' ) ),
+			'access_key_secret' => self::probe_field( $post, 'ali_access_key_secret', (string) ( $current['access_key_secret'] ?? '' ) ),
+			'scene_id'          => isset( $post['ali_scene_id'] ) && is_scalar( $post['ali_scene_id'] ) ? sanitize_text_field( (string) $post['ali_scene_id'] ) : (string) ( $current['scene_id'] ?? '' ),
+			'prefix'            => isset( $post['ali_prefix'] ) && is_scalar( $post['ali_prefix'] ) ? sanitize_text_field( (string) $post['ali_prefix'] ) : (string) ( $current['prefix'] ?? '' ),
+		);
+
+		$precheck = CredentialProbe::local_precheck_aliyun( $aliyun );
+		if ( null !== $precheck ) {
+			wp_send_json_success( $precheck );
+		}
+
+		$settings = array_merge( $stored, array( 'captcha' => array_merge( $stored['captcha'], array( 'aliyun' => $aliyun ) ) ) );
+
+		$driver = new AliyunCaptchaDriver(
+			$settings,
+			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
+		);
+		$state = CredentialProbe::classify_aliyun( $driver->probe_credentials() );
 		wp_send_json_success( $state );
 	}
 

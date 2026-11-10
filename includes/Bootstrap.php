@@ -16,6 +16,7 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper;
 
+use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
 use WinkGatekeeper\Drivers\DriverRegistry;
 use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
@@ -156,6 +157,8 @@ final class Bootstrap {
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS, array( SettingsPage::class, 'ajax_test_credentials' ) );
 		// Tab③ TMS「测试凭据」（C4：同双闸；绿态解除 tencent_tms 当日停转）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_TMS, array( SettingsPage::class, 'ajax_test_credentials_tms' ) );
+		// Tab② 阿里「测试凭据」（B3：同双闸；绿态判定 = 假参实调 VerifyCode=F002/F003，05 §1.2）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN, array( SettingsPage::class, 'ajax_test_credentials_aliyun' ) );
 	}
 
 	/**
@@ -194,6 +197,7 @@ final class Bootstrap {
 		// 驱动注册表（05 §4 六维元数据；新驱动 = 新文件 + 注册一行）。
 		$registry = new DriverRegistry();
 		$registry->register( TencentCaptchaDriver::registry_entry() );
+		$registry->register( AliyunCaptchaDriver::registry_entry() ); // B3：阿里云验证码 2.0（05 §1.2）。
 		$registry->register( LocalRulesDriver::registry_entry() );
 		$registry->register( TencentTmsDriver::registry_entry() ); // C4：腾讯 TMS 文本审核。
 		SettingsPage::set_driver_registry( $registry );
@@ -244,6 +248,12 @@ final class Bootstrap {
 			$tencent = new TencentCaptchaDriver( $settings, $client, array( TencentCaptchaDriver::class, 'wp_disaster_limiter' ) );
 			if ( $tencent->is_configured() ) {
 				$captcha = $tencent;
+			}
+		} elseif ( 'aliyun' === ( $settings['captcha']['driver'] ?? null ) ) {
+			// B3：阿里云验证码 2.0（05 §1.2）——无容灾限速面（disasterPolicy 恒 none）。
+			$aliyun = new AliyunCaptchaDriver( $settings, $client );
+			if ( $aliyun->is_configured() ) {
+				$captcha = $aliyun;
 			}
 		}
 
@@ -547,6 +557,13 @@ final class Bootstrap {
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
+		wp_register_script(
+			'wink-gatekeeper-driver-aliyun',
+			$this->base_url . 'assets/js/drivers/aliyun.js',
+			array( 'wink-gatekeeper-front' ),
+			WINK_GATEKEEPER_VERSION,
+			true
+		);
 
 		wp_localize_script( 'wink-gatekeeper-front', 'wkGateL10n', self::front_l10n() );
 
@@ -723,6 +740,13 @@ final class Bootstrap {
 		wp_register_script(
 			'wink-gatekeeper-driver-tencent',
 			$this->base_url . 'assets/js/drivers/tencent.js',
+			array( 'wink-gatekeeper-front' ),
+			WINK_GATEKEEPER_VERSION,
+			true
+		);
+		wp_register_script(
+			'wink-gatekeeper-driver-aliyun',
+			$this->base_url . 'assets/js/drivers/aliyun.js',
 			array( 'wink-gatekeeper-front' ),
 			WINK_GATEKEEPER_VERSION,
 			true

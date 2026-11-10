@@ -163,14 +163,19 @@
 	var driverSelect = document.getElementById( 'wk-captcha-driver' );
 	var configArea = document.getElementById( 'wk-captcha-config-area' );
 	var unconfiguredNote = document.getElementById( 'wk-captcha-unconfigured-note' );
+	/* 【v1.5·B3】逐厂商配置区（天御/阿里……M4 后续驱动自动入列）：下拉切换显隐——
+	 * 厂商切换保留各自已填配置（schema 按厂商分子树，UI 只切可视区不清字段）。 */
+	var vendorAreas = Array.prototype.slice.call( document.querySelectorAll( '[data-wk-vendor]' ) );
 
 	function syncCaptchaArea() {
-		if ( ! driverSelect || ! configArea || ! unconfiguredNote ) {
+		if ( ! driverSelect || ! unconfiguredNote ) {
 			return;
 		}
 		var vendorSelected = '' !== driverSelect.value;
-		configArea.hidden = ! vendorSelected;
 		unconfiguredNote.classList.toggle( 'hidden', vendorSelected );
+		vendorAreas.forEach( function ( area ) {
+			area.hidden = area.getAttribute( 'data-wk-vendor' ) !== driverSelect.value;
+		} );
 	}
 
 	if ( driverSelect ) {
@@ -181,16 +186,21 @@
 	// 必填标红缺失字段清单（password 已配置且留空 = 不算缺——「留空保存则不修改」契约）。
 	function captchaMissingFields() {
 		var missing = [];
-		if ( ! configArea || configArea.hidden || ! driverSelect || '' === driverSelect.value ) {
+		if ( ! driverSelect || '' === driverSelect.value ) {
 			return missing;
 		}
-		configArea.querySelectorAll( '[data-wk-required="1"]' ).forEach( function ( field ) {
-			var label = field.getAttribute( 'data-wk-label' ) || field.name;
-			var configured = '1' === ( field.getAttribute( 'data-wk-configured' ) || '0' );
-			var isPassword = 'password' === field.type;
-			if ( '' === field.value.trim() && ! ( isPassword && configured ) ) {
-				missing.push( { field: field, label: label } );
+		vendorAreas.forEach( function ( area ) {
+			if ( area.hidden ) {
+				return;
 			}
+			area.querySelectorAll( '[data-wk-required="1"]' ).forEach( function ( field ) {
+				var label = field.getAttribute( 'data-wk-label' ) || field.name;
+				var configured = '1' === ( field.getAttribute( 'data-wk-configured' ) || '0' );
+				var isPassword = 'password' === field.type;
+				if ( '' === field.value.trim() && ! ( isPassword && configured ) ) {
+					missing.push( { field: field, label: label } );
+				}
+			} );
 		} );
 		return missing;
 	}
@@ -269,6 +279,65 @@
 				}
 			} ).finally( function () {
 				probeButton.disabled = false;
+			} );
+		} );
+	}
+
+	/* -----------------------------------------------------------------
+	 * B3 · Tab② 阿里「测试凭据」（05 §1.2 / DESIGN-D2 §1.4：假参实调
+	 * VerifyIntelligentCaptcha 三态——绿 VerifyCode=F002/F003 / 红 AK·签名·权限 /
+	 * 黄必填缺；结果缓存在按钮旁，不落库）。
+	 * ----------------------------------------------------------------- */
+
+	var aliyunProbeButton = document.getElementById( 'wk-aliyun-test-credentials' );
+	if ( aliyunProbeButton ) {
+		aliyunProbeButton.addEventListener( 'click', function () {
+			var result = document.getElementById( 'wk-aliyun-test-result' );
+			aliyunProbeButton.disabled = true;
+			if ( result ) {
+				result.textContent = '测试中……';
+				result.className = '';
+			}
+
+			function aliFieldOrEmpty( id ) {
+				var el = document.getElementById( id );
+				return el ? el.value.trim() : '';
+			}
+
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_test_credentials_aliyun' );
+			body.append( 'nonce', aliyunProbeButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'ali_access_key_id', aliFieldOrEmpty( 'wk-field-captcha-aliyun-access_key_id' ) );
+			body.append( 'ali_access_key_secret', aliFieldOrEmpty( 'wk-field-captcha-aliyun-access_key_secret' ) );
+			body.append( 'ali_scene_id', aliFieldOrEmpty( 'wk-aliyun-scene-id' ) );
+			body.append( 'ali_prefix', aliFieldOrEmpty( 'wk-aliyun-prefix' ) );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( ! result ) {
+					return;
+				}
+				var data = payload && payload.data ? payload.data : null;
+				if ( payload && payload.success && data ) {
+					result.textContent = data.message || '';
+					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+				} else {
+					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).catch( function () {
+				if ( result ) {
+					result.textContent = '测试失败（网络错误）。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).finally( function () {
+				aliyunProbeButton.disabled = false;
 			} );
 		} );
 	}

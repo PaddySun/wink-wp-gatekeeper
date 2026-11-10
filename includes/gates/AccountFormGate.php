@@ -240,30 +240,17 @@ abstract class AccountFormGate extends AbstractGate {
 
 	/**
 	 * 构建驱动 verify() context：credentialFields() 表单域 → 接口契约规范键映射
-	 * （{ticket, randstr, …开放键集}——CaptchaDriverInterface::verify docblock）。
+	 * （{ticket, randstr, captcha_verify_param, …开放键集}——CaptchaDriverInterface docblock）。
 	 *
 	 * M2-FIX2 D2 修复面基类单点（C3 登录闸曾漏抄该映射致票据恒空——P0）；
-	 * 超出规范键集的字段按表单原名透传（开放键集，未来驱动自定义凭据域不受限）。
+	 * 【v1.5·B3】映射本体收口 AbstractGate::extract_token_context（命名映射取代旧位置
+	 * 映射——天御双域行为不变，阿里单票据域 wk_captcha_verify_param→captcha_verify_param）。
 	 *
 	 * @param array<string, mixed> $request 提交请求面。
 	 * @return array{context: array<string, mixed>, has_ticket: bool}
 	 */
 	protected function build_verify_context( array $request ): array {
-		$context   = array();
-		$canonical = array( 'ticket', 'randstr' );
-		$has_ticket = true;
-
-		foreach ( array_values( $this->captcha->credentialFields() ) as $index => $field ) {
-			$value = isset( $request[ $field ] ) && is_scalar( $request[ $field ] ) ? trim( (string) $request[ $field ] ) : '';
-			if ( '' === $value ) {
-				$has_ticket = false;
-			}
-			$key = isset( $canonical[ $index ] ) ? $canonical[ $index ] : $field;
-			if ( ! isset( $context[ $key ] ) ) {
-				$context[ $key ] = $value;
-			}
-		}
-		return array( 'context' => $context, 'has_ticket' => $has_ticket );
+		return AbstractGate::extract_token_context( $this->captcha, $request );
 	}
 
 	/**

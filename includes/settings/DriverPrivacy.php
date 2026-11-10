@@ -80,7 +80,7 @@ final class DriverPrivacy {
 			'aliyun'      => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M4 逐家抓取。
-				'data_fields'  => '访客 IP、captchaVerifyParam',
+				'data_fields'  => '访客 IP（行为采集，经阿里客户端 SDK）、CaptchaVerifyParam', // 【v1.5·B3】05 §1.2 registry 行口径。
 				'region_note'  => '境内，数据不出境',
 			),
 			'geetest'     => array(

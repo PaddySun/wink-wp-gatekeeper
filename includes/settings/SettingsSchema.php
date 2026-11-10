@@ -115,6 +115,9 @@ final class SettingsSchema {
 					'access_key_secret' => '',
 					'scene_id'          => '',
 					'prefix'            => '',
+					// 【v1.5·B3】前端形态（04 §2 v1.5）：embed（默认，页内触发条+SDK 自管弹层）
+					// | popup（零占位弹层）——非法值 Sanitize 归 embed。
+					'mode'              => 'embed',
 				),
 				'hcaptcha'  => array(
 					'site_key'   => '',

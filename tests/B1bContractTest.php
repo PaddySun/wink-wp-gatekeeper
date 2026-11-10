@@ -1,7 +1,7 @@
 <?php
 /**
  * B1b 批次契约测试（F4-4/F4-6 recorder 口径 + F4-5 embed 同宽 + B2 掩码 + B3 sleep
- * + P2-3 半 + 版本三处同步 0.2.5——R1 G7 纪律延续）。
+ * + P2-3 半 + 版本三处同步 0.3.0——R1 G7 纪律延续）。
  *
  * 源码契约断言面（与 B1aContractTest 同模式）：纯逻辑单测不可达的 WP 边界接线
  * （Bootstrap filter 注册 / hook_ 系列 / CSS）以源码形态钉死，防回归。
@@ -98,10 +98,10 @@ final class B1bContractTest extends TestCase {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.2\.5$/m', $entry, '插件头 Version 须为 0.2.5' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.2.5' )", $entry, '版本常量须为 0.2.5' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.2\.5$/m', $readme, 'readme Stable tag 须为 0.2.5' );
-		$this->assertStringContainsString( '= 0.2.5 =', $readme, 'Changelog 须有 0.2.5 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.0$/m', $entry, '插件头 Version 须为 0.3.0' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.0' )", $entry, '版本常量须为 0.3.0' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.0$/m', $readme, 'readme Stable tag 须为 0.3.0' );
+		$this->assertStringContainsString( '= 0.3.0 =', $readme, 'Changelog 须有 0.3.0 条目' );
 		$this->assertStringContainsString( 'F4-4', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-6', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-5', $readme, 'Changelog 须含设计锚点' );

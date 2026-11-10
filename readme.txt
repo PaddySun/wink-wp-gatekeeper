@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.2.5
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.3.0 =
+
+M3' 批次 2·阿里云验证码 2.0 驱动上线 B3（2026-11-11，设计文档 v1.5 05 §1.2 + DESIGN-D2 定稿）：① 新驱动 aliyun（M3' 批次 2）——includes/drivers/captcha/AliyunCaptchaDriver.php，verify_tri 三态（**二态制无评分**：Result.VerifyResult Boolean 唯一判据，pass 恒 score=1.0；reject 按 VerifyCode 码表分档 user_retry=[F008,F015,F019,F018,F020]/config_error=[F005,F006,F012,F022]/blocked=[F001,F009,F010,F011,F014,F016,F017,F024,F025]，未知码兜底拦截 fail-closed；error=传输/语义/契约终态）；disasterPolicy 恒 'none'（阿里无容灾票概念）、errorPolicy 默认 'block'（pass_limited 留 SLA 评估）；registry 注册行七维+scoring:false+privacy（境内不出境，data_fields=访客 IP（行为采集，经阿里客户端 SDK）、CaptchaVerifyParam）；② includes/http/AliyunV3Signer.php——ACS3-HMAC-SHA256 V3 签名自持（tools/api-smoke/aliyun-sign.php 蓝本升格，**金测试=阿里云官方文档测试向量**，与 L0 两次实调同锚），业务参数 form body（官方不建议 JSON）；服务端 VerifyIntelligentCaptcha（captcha.cn-shanghai · captcha-2023-03-05）经传输脊 RemoteClient（重试/分类/计量/脱敏统一）；③ 前端 assets/js/drivers/aliyun.js——V3 三步形态（window.AliyunCaptchaConfig={region:'cn',prefix} 先行 / **AliyunCaptcha.js 动态引入红线** / initAliyunCaptcha），captchaVerifyParam 禁止修改原文写 wk_captcha_verify_param + 90 秒时效（F019）到期回退；embed（默认，.wk-gate-embed 挂载点内 #wk-captcha-element-<gate>，与天御同一锚点）/popup（零占位）两形态可配（04 §2 captcha.aliyun.mode）；gatekeeper.js 调度器零改动（frontend 元数据分派不认驱动 id）；④ 闸映射制度化——AbstractGate::canonical_token_key/extract_token_context 单点（wk_captcha_verify_param→captcha_verify_param；天御双域行为不变，C3 登录闸 D2 教训第三域扩展）；⑤ Tab② 阿里配置区——四字段（AccessKeyId/AccessKeySecret 均 password 型不回显 + SceneId 必填化 F012 防线 + prefix）+ mode 单选 + 合规行（privacy 维）+ 接入指引；「测试凭据」三态（绿=假参实调 VerifyCode=F002/F003；黄=必填缺不发起调用；红=InvalidAccessKeyId*/SignatureDoesNotMatch/403 Forbidden.NoPermission（文案指明补授 AliyunYundunAFSFullAccess+AuthAction）/403 Forbidden.AccountAccessDenied）；⑥ schema captcha.aliyun.mode 键（merge_defaults 老树回填，Sanitize 枚举 embed|popup 非法值归 embed）。997 tests / 7131 assertions 全绿（933 基线 + 64 新例：签名官方向量金测试/驱动三态与码表/闸映射/凭据三态/设置面）。
 
 = 0.2.5 =
 

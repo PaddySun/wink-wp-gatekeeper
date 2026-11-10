@@ -547,10 +547,12 @@ final class CommentGate extends AbstractGate {
 				/* 3c 真验票（缺票 → captcha_missing；有票 → CaptchaDriver.verify_tri 三态，
 				 * 经 CaptchaTriInterpreter 统一翻译——【v1.5·C1】三闸共用一份映射防漂移）。 */
 				if ( ! $exempt ) {
-					$ticket  = isset( $request['wk_captcha_ticket'] ) && is_scalar( $request['wk_captcha_ticket'] ) ? trim( (string) $request['wk_captcha_ticket'] ) : '';
-					$randstr = isset( $request['wk_captcha_randstr'] ) && is_scalar( $request['wk_captcha_randstr'] ) ? trim( (string) $request['wk_captcha_randstr'] ) : '';
+					/* 【v1.5·B3】凭据域提取收口 AbstractGate::extract_token_context——
+					 * credentialFields() 声明驱动 + 规范键映射单点（阿里单票据
+					 * wk_captcha_verify_param→captcha_verify_param；天御双域行为不变）。 */
+					$built = AbstractGate::extract_token_context( $this->captcha, $request );
 
-					if ( '' === $ticket || '' === $randstr ) {
+					if ( ! $built['has_ticket'] ) {
 						// 无票 = captcha_missing（真人漏点按钮/JS 未加载——不上报，M3「有票才报」口径；
 						// ip fail 档强制标志下无票同此拦——「过码才放行」的拦点）。
 						return $this->reject(
@@ -563,9 +565,7 @@ final class CommentGate extends AbstractGate {
 						);
 					}
 
-					$context = array(
-						'ticket'  => $ticket,
-						'randstr' => $randstr,
+					$context = $built['context'] + array(
 						'user_ip' => $resolved['ip'], // 天御 UserIp = 真实 IP（非 CDN 节点，F29 验收）。
 					);
 					/* 能力探测（02 §2.1【v1.5·C1】legacy 垫片）：新契约 verify_tri 主通道；

@@ -48,13 +48,45 @@ final class CaptchaTabSpec {
 	}
 
 	/**
+	 * 阿里四凭据字段 → 显示名（Tab② 表单 label / JS 标红提示 / 黄条列缺共用——05 §1.2）。
+	 *
+	 * @return array<string, string>
+	 */
+	public static function aliyun_field_labels(): array {
+		return array(
+			'access_key_id'     => 'AccessKeyId',
+			'access_key_secret' => 'AccessKeySecret',
+			'scene_id'          => 'SceneId',
+			'prefix'            => 'prefix（身份标）',
+		);
+	}
+
+	/**
+	 * 阿里缺失必填字段的显示名列表（四字段任一空 = 缺；SceneId v1.5 必填化——F012 防线）。
+	 *
+	 * @param array<string, mixed> $aliyun captcha.aliyun 子树。
+	 * @return string[]
+	 */
+	public static function aliyun_missing_fields( array $aliyun ): array {
+		$missing = array();
+		foreach ( self::aliyun_field_labels() as $key => $label ) {
+			$value = isset( $aliyun[ $key ] ) && is_scalar( $aliyun[ $key ] ) ? trim( (string) $aliyun[ $key ] ) : '';
+			if ( '' === $value ) {
+				$missing[] = $label;
+			}
+		}
+		return $missing;
+	}
+
+	/**
 	 * 驱动下拉选项集（含状态点后缀；「未配置」项无点）。
 	 *
 	 * @param array<string, array<string, mixed>> $drivers registry captcha 类驱动（id => meta）。
 	 * @param array<string, mixed>                 $tencent captcha.tencent 子树（状态点判定）。
+	 * @param array<string, mixed>                 $aliyun  captcha.aliyun 子树（状态点判定，B3）。
 	 * @return array<int, array{value: string, label: string, dot?: string}>
 	 */
-	public static function driver_options( array $drivers, array $tencent ): array {
+	public static function driver_options( array $drivers, array $tencent, array $aliyun = array() ): array {
 		$options = array( array(
 			'value' => '',
 			'label' => '未配置（跳过验证码阶段）',
@@ -67,6 +99,10 @@ final class CaptchaTabSpec {
 			if ( 'tencent' === (string) $id ) {
 				// 状态点：四字段齐全=已配置；缺失=未配置（「配置错误」=M3 健康灯状态机运行时态，位预留）。
 				$option['dot'] = array() === self::tencent_missing_fields( $tencent ) ? 'configured' : 'unconfigured';
+			}
+			if ( 'aliyun' === (string) $id ) {
+				// 【v1.5·B3】阿里状态点同口径（四字段齐全=已配置）。
+				$option['dot'] = array() === self::aliyun_missing_fields( $aliyun ) ? 'configured' : 'unconfigured';
 			}
 			$options[] = $option;
 		}
@@ -107,19 +143,41 @@ final class CaptchaTabSpec {
 	 *
 	 * @param string               $driver  captcha.driver。
 	 * @param array<string, mixed> $tencent captcha.tencent 子树。
+	 * @param array<string, mixed> $aliyun  captcha.aliyun 子树（【v1.5·B3】阿里黄条判定）。
 	 * @return string|null 无缺失/未配置 = null。
 	 */
-	public static function server_notice( string $driver, array $tencent ): ?string {
+	public static function server_notice( string $driver, array $tencent, array $aliyun = array() ): ?string {
 		if ( '' === $driver ) {
 			return null;
 		}
-		$missing = self::tencent_missing_fields( $tencent );
+		$missing = 'aliyun' === $driver ? self::aliyun_missing_fields( $aliyun ) : self::tencent_missing_fields( $tencent );
 		if ( array() === $missing ) {
 			return null;
 		}
-		$label = 'tencent' === $driver ? '腾讯天御验证码 2.0' : $driver;
+		$label = 'tencent' === $driver ? '腾讯天御验证码 2.0' : ( 'aliyun' === $driver ? '阿里云验证码 2.0' : $driver );
 		return '已选择验证码驱动「' . $label . '」，但必填字段缺少：' . implode( '、', $missing )
 			. '。设置已保存，但该驱动在补齐前视为未配置（验证码阶段整体跳过，评论闸仅内容过滤生效）。';
+	}
+
+	/**
+	 * 阿里接入指引内容（05 §1.2 提炼；配置区顶部折叠面板消费）。
+	 *
+	 * @return array{steps: string[], console_url: string, doc_url: string, ticket_note: string}
+	 */
+	public static function aliyun_guide(): array {
+		return array(
+			'steps'       => array(
+				'1. 前往阿里云验证码 2.0 控制台开通服务（按量计费，有免费额度档）。',
+				'2. 在【场景管理】创建验证场景，获取 SceneId（必填——服务端补传防前端篡改场景，错配返回 F012）。',
+				'3. 在控制台概览页获取 prefix（前端身份标，AliyunCaptchaConfig 全局配置用）。',
+				'4. 前往「访问管理 → RAM」创建 AccessKey 对（禁主账号 AK），并授权 AliyunYundunAFSFullAccess。',
+				'5. 将四个字段粘贴至上方配置区（密钥仅服务端使用，绝不输出前端）。',
+				'6. 点击「测试凭据」——三态判定：绿=凭据可用；红=AK/签名/权限错；黄=必填字段缺。',
+			),
+			'console_url' => 'https://captcha2.console.aliyun.com/',
+			'doc_url'     => 'https://help.aliyun.com/zh/captcha/user-guide/verify-intelligent-captcha',
+			'ticket_note' => '前端红线：AliyunCaptcha.js 必须动态引入（静态部署致对抗失效/误拦）；CaptchaVerifyParam 单次有效、90 秒时效（F019）——超时后前端自动回退未验证态，需重新完成验证；region 恒 cn（前端与服务端 endpoint 映射须一致）。',
+		);
 	}
 
 	/**
