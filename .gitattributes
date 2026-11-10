@@ -1,0 +1,18 @@
+# 发行排除清单（O2 P1-4）：`git archive <tag>` 与 GitHub tag zip 自动生效。
+# 仓库 ≠ 发行 zip：tests / 工具链 / CI 配置不随插件分发。
+/tests               export-ignore
+/.github             export-ignore
+/tools               export-ignore
+/phpcs.xml.dist      export-ignore
+/phpstan.neon.dist   export-ignore
+/composer.json       export-ignore
+/composer.lock       export-ignore
+/.gitattributes      export-ignore
+/.gitignore          export-ignore
+
+# LICENSE 与 readme.txt 随发行包走（GPL §6 要求源码分发携带许可文本；WP.org 发行惯例）。
+# composer.json/composer.lock export-ignore 依据：G5 运行时零 composer 依赖，require-dev
+# 纯工具链，插件运行完全不读取——保留在 zip 内只会误导"需要 vendor/"的使用者。
+
+# 行尾规范化（build-zip.sh 必须是 LF，否则 Git Bash 下执行报错）
+*.sh                 text eol=lf

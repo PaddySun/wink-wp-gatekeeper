@@ -1,6 +1,9 @@
 # 测试运行缓存
 .phpunit.cache/
 
+# 发布打包产物（tools/build-zip.sh 输出）
+dist/
+
 # IDE
 .idea/
 .vscode/

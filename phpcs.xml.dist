@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- wink-wp-gatekeeper PHPCS 规则集（B0，O2 P1-2）。
+     代码中既有 phpcs:ignore WordPress.* 注释引用本规则集（WordPress.DB / WordPress.Security 等），
+     本文件入库后这些 ignore 引用方可复现。tests/ 与 tools/ 不在检查范围。 -->
+<ruleset name="wink-wp-gatekeeper">
+    <description>WordPress 标准规则集，检查插件运行时代码。</description>
+
+    <rule ref="WordPress"/>
+
+    <!-- 插件 Text Domain（WordPress.WP.I18n） -->
+    <config name="text_domain" value="wink-gatekeeper"/>
+
+    <!-- 检查范围：运行时代码；tests/ 与 tools/ 由规则显式排除 -->
+    <file>includes/</file>
+    <file>wink-wp-gatekeeper.php</file>
+    <file>uninstall.php</file>
+
+    <exclude-pattern>tests/</exclude-pattern>
+    <exclude-pattern>tools/</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+</ruleset>

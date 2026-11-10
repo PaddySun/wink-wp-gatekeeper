@@ -1,0 +1,15 @@
+# wink-wp-gatekeeper PHPStan 配置（B0，O2 P1-2）。
+# level 3 起步，后续批次逐步收紧。tests/ 与 tools/ 不在分析范围。
+# 注意：includes/ 大量使用 WP 边界函数（$wpdb / add_option / wp_unslash 等），
+# 未装 WP 函数 stub 时 analyse 会报未知函数/类——接入 szepeviktor/phpstan-wordpress
+# 的取舍在 M3 后续批次裁决（见 docs/reports/IMPL-B0-2026-11-11.md）。
+parameters:
+    level: 3
+    checkGenericClassInNonGenericObjectType: false
+    paths:
+        - includes
+        - wink-wp-gatekeeper.php
+        - uninstall.php
+    excludePaths:
+        - tests
+        - tools

@@ -1,0 +1,23 @@
+{
+    "name": "wink/wink-wp-gatekeeper",
+    "description": "对真人眨眨眼，对机器人睁着眼——评论验证 + 登录验证 + 内容过滤三闸合一，验证码与云端审核驱动化可插拔。",
+    "license": "GPL-2.0-or-later",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0",
+        "squizlabs/php_codesniffer": "^3.10",
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpstan/phpstan": "^1.12"
+    },
+    "scripts": {
+        "test": "phpunit --configuration tests/phpunit.xml",
+        "lint": "phpcs",
+        "analyse": "phpstan analyse --memory-limit=512M"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

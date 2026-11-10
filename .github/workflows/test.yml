@@ -1,0 +1,32 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 基线说明（2026-11-11，B0）：
+        # - tests/phpunit.xml 使用 PHPUnit 12 schema（cacheDirectory / displayDetailsOn* 为 10+ 专属属性），
+        #   PHPUnit 12 要求 PHP >= 8.2，故矩阵下限 8.2 而非插件头声明的 7.4。
+        # - tests/InterceptDigestUsageTest.php 使用 str_contains()（PHP 8.0+）——7.4/8.0 即使降 PHPUnit 也跑不过。
+        # - Requires PHP: 7.4 的运行时兼容性未经机制验证，留档待验（见 docs/reports/IMPL-B0-2026-11-11.md）。
+        php: ['8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install dev dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHPUnit (pure PHP unit tests, zero WP dependency)
+        run: vendor/bin/phpunit --configuration tests/phpunit.xml
