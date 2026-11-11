@@ -17,7 +17,7 @@
  *     unconfiguredNote 联动参数化；必填缺失弹窗（closest form 拦截）推广 Tab③
  *     ——必填面=TMS SecretId/SecretKey、阿里 AccessKey 对、百度 API Key/Secret Key
  *     （05 §1.2/§2.4/§2.5 registry settings.required 语义渲染面）；Tab② 现行为零变化。
- *   ④ 版本 0.3.5（FIX 轮 3）：插件头/常量/readme Stable tag/Changelog 四处。
+ *   ④ 版本 0.3.6（FIX 轮 3）：插件头/常量/readme Stable tag/Changelog 四处。
  *
  * 方法论与 FrontendJsContractTest 同一「源码契约测试」（纯 PHP 零 WP 依赖），
  * 行为面由真机自测承载。
@@ -173,16 +173,16 @@ final class Fix3Tab3ToggleContractTest extends TestCase {
 		$this->assertStringContainsString( "querySelectorAll( '[data-wk-vendor]' )", $body, '作用域内取全部 vendor 区（M4 后续驱动自动入列不硬化）' );
 	}
 
-	/* ---------- ④ 版本 0.3.5（FIX 轮 3 四处同步） ---------- */
+	/* ---------- ④ 版本 0.3.6（FIX 轮 3 四处同步） ---------- */
 
 	public function test_version_bumped_to_0_3_5_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.5$/m', $entry, '插件头 Version 须为 0.3.5' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.5' )", $entry, '版本常量须为 0.3.5' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.5$/m', $readme, 'readme Stable tag 须为 0.3.5' );
-		$this->assertStringContainsString( '= 0.3.5 =', $readme, 'Changelog 须有 0.3.5 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.6$/m', $entry, '插件头 Version 须为 0.3.6' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.6' )", $entry, '版本常量须为 0.3.6' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.6$/m', $readme, 'readme Stable tag 须为 0.3.6' );
+		$this->assertStringContainsString( '= 0.3.6 =', $readme, 'Changelog 须有 0.3.6 条目' );
 		$this->assertStringContainsString( 'FIX-3', $readme, 'Changelog 须含 FIX-3 锚点' );
 	}
 }

@@ -615,7 +615,9 @@ final class LoginGate extends AccountFormGate {
 	 */
 	public function filter_wp_login_errors( $errors, string $redirect_to = '' ) {
 		unset( $redirect_to );
-		return $this->mask_wp_errors( $errors );
+		// 【v1.5·FIX】登录场景：invalid_email/invalidcombo 在登录框（支持邮箱登录）同样出现
+		// ——按场景取「用户名或口令不正确」，不得把找回域文案打到登录页。
+		return $this->mask_wp_errors( $errors, LoginErrorMask::SCENE_LOGIN );
 	}
 
 	/**
@@ -628,7 +630,7 @@ final class LoginGate extends AccountFormGate {
 	 */
 	public function filter_lostpassword_errors( $errors, $user_data = null ) {
 		unset( $user_data );
-		return $this->mask_wp_errors( $errors );
+		return $this->mask_wp_errors( $errors, LoginErrorMask::SCENE_RESET );
 	}
 
 	/**
@@ -638,7 +640,7 @@ final class LoginGate extends AccountFormGate {
 	 * @param \WP_Error $errors 聚合错误框。
 	 * @return \WP_Error
 	 */
-	private function mask_wp_errors( $errors ) {
+	private function mask_wp_errors( $errors, string $scene = LoginErrorMask::SCENE_LOGIN ) {
 		if ( ! is_wp_error( $errors ) ) {
 			return $errors;
 		}
@@ -650,7 +652,7 @@ final class LoginGate extends AccountFormGate {
 				continue;
 			}
 			foreach ( (array) $errors->get_error_messages( $code ) as $index => $message ) {
-				$masked = LoginErrorMask::mask_message( (string) $code, (string) $message );
+				$masked = LoginErrorMask::mask_message( $scene, (string) $code, (string) $message );
 				if ( $masked !== $message ) {
 					$errors->errors[ $code ][ $index ] = $masked;
 				}

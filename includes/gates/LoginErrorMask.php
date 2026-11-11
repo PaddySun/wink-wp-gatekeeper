@@ -67,20 +67,27 @@ final class LoginErrorMask {
 	}
 
 	/**
-	 * 掩码替换（纯函数）：码表内错误码 → 统一文案（按域分组）；其余码原样透传
+	 * 掩码场景（【v1.5·FIX】按消费 filter 场景分域——原按码分域的缺陷：登录框支持邮箱
+	 * 登录，不存在的邮箱形态输入同样报 invalid_email，按码映射会把找回域文案
+	 * 「暂时无法发送重置邮件」打到登录页（真机 2026-11-12 用户复现实锤）。
+	 * 同一码在两场景语义不同，场景由消费方（wp_login_errors vs lostpassword_errors）决定。
+	 */
+	public const SCENE_LOGIN = 'login';
+	public const SCENE_RESET = 'reset';
+
+	/**
+	 * 掩码替换（纯函数）：码表内错误码 → **本场景**统一文案；其余码原样透传
 	 * （本闸 wk_captcha_* 文案、第三方错误、空消息不动）。
 	 *
+	 * @param string $scene   消费场景（SCENE_LOGIN 登录表单 | SCENE_RESET 找回表单）。
 	 * @param string $code    WP_Error 错误码。
 	 * @param string $message 原始错误文案（单条）。
 	 * @return string 掩码后文案（非码表码 = 原文）。
 	 */
-	public static function mask_message( string $code, string $message ): string {
-		if ( in_array( $code, array( 'invalid_username', 'incorrect_password' ), true ) ) {
-			return self::MESSAGE_LOGIN_FAILED;
+	public static function mask_message( string $scene, string $code, string $message ): string {
+		if ( ! self::is_masked_code( $code ) ) {
+			return $message;
 		}
-		if ( in_array( $code, array( 'invalid_email', 'invalidcombo' ), true ) ) {
-			return self::MESSAGE_RESET_UNAVAILABLE;
-		}
-		return $message;
+		return self::SCENE_RESET === $scene ? self::MESSAGE_RESET_UNAVAILABLE : self::MESSAGE_LOGIN_FAILED;
 	}
 }

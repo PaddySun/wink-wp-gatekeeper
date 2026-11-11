@@ -42,8 +42,8 @@ final class LoginErrorMaskTest extends TestCase {
 
 	public function test_login_codes_mask_to_single_uniform_message(): void {
 		// 同一统一文案 = 响应不可区分（防以错误文本差异探测用户名存在性）。
-		$masked_user    = LoginErrorMask::mask_message( 'invalid_username', 'Error: The username <strong>admin</strong> is not registered on this site. If you are unsure of your username, try your email address instead.' );
-		$masked_pass    = LoginErrorMask::mask_message( 'incorrect_password', 'Error: The password you entered for the username <strong>admin</strong> is incorrect.' );
+		$masked_user    = LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'invalid_username', 'Error: The username <strong>admin</strong> is not registered on this site. If you are unsure of your username, try your email address instead.' );
+		$masked_pass    = LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'incorrect_password', 'Error: The password you entered for the username <strong>admin</strong> is incorrect.' );
 		$this->assertSame( LoginErrorMask::MESSAGE_LOGIN_FAILED, $masked_user );
 		$this->assertSame( LoginErrorMask::MESSAGE_LOGIN_FAILED, $masked_pass, 'invalid_username 与 incorrect_password 须掩码为同一文案（不可区分性）' );
 		$this->assertStringNotContainsString( 'admin', $masked_user, '掩码文案不得回带用户名' );
@@ -51,8 +51,8 @@ final class LoginErrorMaskTest extends TestCase {
 
 	public function test_lostpassword_codes_mask_to_uniform_message(): void {
 		// 复现样本：WP 7.x 找回页「Unknown email address. Check again or try the guide.」。
-		$masked_email  = LoginErrorMask::mask_message( 'invalid_email', 'Unknown email address. Check again or try the guide.' );
-		$masked_combo  = LoginErrorMask::mask_message( 'invalidcombo', '<strong>Error:</strong> There is no account with that username or email address.' );
+		$masked_email  = LoginErrorMask::mask_message( LoginErrorMask::SCENE_RESET, 'invalid_email', 'Unknown email address. Check again or try the guide.' );
+		$masked_combo  = LoginErrorMask::mask_message( LoginErrorMask::SCENE_RESET, 'invalidcombo', '<strong>Error:</strong> There is no account with that username or email address.' );
 		$this->assertSame( LoginErrorMask::MESSAGE_RESET_UNAVAILABLE, $masked_email );
 		$this->assertSame( LoginErrorMask::MESSAGE_RESET_UNAVAILABLE, $masked_combo );
 		$this->assertStringNotContainsStringIgnoringCase( 'unknown', $masked_email, '掩码文案不得保留「Unknown email address」明文' );
@@ -60,10 +60,28 @@ final class LoginErrorMaskTest extends TestCase {
 
 	public function test_non_masked_codes_pass_through_verbatim(): void {
 		$native = 'Error: The password you entered for the username admin is incorrect.';
-		$this->assertSame( $native, LoginErrorMask::mask_message( 'not_a_masked_code', $native ) );
+		// 【v1.5·FIX】场景分域：登录框邮箱形态输入同样报 invalid_email——登录场景必须给
+		// 登录文案（真机 2026-11-12 用户复现「登录页显示重置邮件文案」）。
+		$this->assertSame(
+			LoginErrorMask::MESSAGE_LOGIN_FAILED,
+			LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'invalid_email', 'Unknown email address.' ),
+			'登录场景 invalid_email → 登录文案（不得串找回域）'
+		);
+		$this->assertSame(
+			LoginErrorMask::MESSAGE_LOGIN_FAILED,
+			LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'invalidcombo', 'no account' ),
+			'登录场景 invalidcombo → 登录文案'
+		);
+		$this->assertSame(
+			LoginErrorMask::MESSAGE_RESET_UNAVAILABLE,
+			LoginErrorMask::mask_message( LoginErrorMask::SCENE_RESET, 'invalid_email', 'Unknown email address.' ),
+			'找回场景 invalid_email → 找回文案'
+		);
+
+		$this->assertSame( $native, LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'not_a_masked_code', $native ) );
 		$gate_msg = '还差一个眨眼——完成人机验证再点提交。';
-		$this->assertSame( $gate_msg, LoginErrorMask::mask_message( 'wk_captcha_missing', $gate_msg ) );
-		$this->assertSame( '', LoginErrorMask::mask_message( 'not_a_masked_code', '' ), '非码表码空消息原样透传' );
+		$this->assertSame( $gate_msg, LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'wk_captcha_missing', $gate_msg ) );
+		$this->assertSame( '', LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'not_a_masked_code', '' ), '非码表码空消息原样透传' );
 	}
 
 	/* ---------- 开关默认态 ---------- */

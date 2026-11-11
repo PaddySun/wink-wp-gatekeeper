@@ -48,13 +48,13 @@ final class B1aContractTest extends TestCase {
 	/* ---------- 版本三处同步（R1 G7） ---------- */
 
 	public function test_version_is_bumped_to_0_2_3_in_three_places(): void {
-		// 版本断言随批次推进更新（B6 批次递增 0.3.5（FIX-3 同步）——当前批次契约面在 B6SettingsTest）。
+		// 版本断言随批次推进更新（B6 批次递增 0.3.6（FIX-3 同步）——当前批次契约面在 B6SettingsTest）。
 		$entry = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.5$/m', $entry, '插件头 Version 须为 0.3.5' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.5' )", $entry, '版本常量须为 0.3.5' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.5$/m', $readme, 'readme Stable tag 须为 0.3.5' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.6$/m', $entry, '插件头 Version 须为 0.3.6' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.6' )", $entry, '版本常量须为 0.3.6' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.6$/m', $readme, 'readme Stable tag 须为 0.3.6' );
 		$this->assertStringContainsString( '819 tests / 3657 assertions', $readme, 'Changelog 须含测试数（R1 G7 纪律）' );
 		$this->assertStringContainsString( 'F4-1', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-3', $readme, 'Changelog 须含设计锚点' );
