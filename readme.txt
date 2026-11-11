@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.3.7
+Stable tag: 0.3.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.3.8 =
+
+UI 批 1·Tab⑥ 统计页五段重构（2026-11-12，DESIGN-UI-tab6 A 提案+统筹裁决三拍板——「服务商」语汇/待审排除 IP 风控/三批串行）：①五段骨架（速览条→一、评论防护→二、登录防护（登录/注册/找回密码 三张门）→三、报错历史→四、拦截记录流水→五、统计设置·清零，DOM 锚 wk-stats-overview/comment/login/faults/records/settings）——最近拦截评论明细归位评论段③（P3）、云端错误子表迁出为报错历史（P8）、统计开关三项迁入尾卡（P7）、事件流占位去 roadmap（P6）、重置文案去「对账口径」（P10）、开发者备忘删除（P5）、累计补「自上次清零起」窗口（P9）；②服务商统一卡模板（四档健康徽标 ●○◐✕/箭头行「今日人机验证 N 次 → 放行·拦下·转人工·出错」/额度行/未启用灰卡带 Tab②③ 跳转——评论段与登录段复用同模板，InterceptDigest::driver_card 纯函数）；③术语人话映射表 Labels 新纯类（N5——对照表 24 条全表钉测：调用→人机验证/送审/信誉查询、通过→验证放行、待审→转人工复核、登录失败尝试→密码输错、维度→防线、rule_hit/trigger_source 键族人话）；④待审排除 IP 风控（review_split 纯函数——「转人工复核」只计云审/规则待审，「IP 信誉强制验证码」单列一行不入待审数字）；⑤本地规则卡砍「检查 N 条」三数式（A-3）、登录明细卡/全闸报错时间线占位（批 2 接线）。测试：LabelsTest 22 + InterceptDigestCardsTest 13 + UiTab6StatsContractTest 13 新例（48 例），InterceptDigestTest/InterceptDigestUsageTest/B1bStatsTest/B1bContractTest 随批迁移新契约，版本钉 0.3.8 三文件同步。真机（厦门 wpclean）：部署 0.3.8 后 Tab⑥ DOM 断言五段锚+统一卡+黑话退场（IMPL 报告：docs/reports/IMPL-UI1-tab6-2026-11-12.md）。
 
 = 0.3.7 =
 

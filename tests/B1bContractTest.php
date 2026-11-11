@@ -40,7 +40,12 @@ final class B1bContractTest extends TestCase {
 
 	public function test_settings_page_renders_account_four_dimensions(): void {
 		$src = self::source( 'includes/settings/SettingsPage.php' );
-		$this->assertStringContainsString( 'usage_note_total', $src, 'Tab⑥ 分区表须渲染累计行四维小字（今日/累计 × 调用/通过/拦截/登录失败尝试）' );
+		// UI 批 1 承继形态：v1.5 四维小字（调用/通过/拦截/登录失败尝试）升级为登录段
+		// 概览行（拦下/验证放行/密码输错——人话译词）+ 三张门分账表（说明列带 attempts）。
+		$this->assertStringContainsString( 'account_gate_rows', $src, 'Tab⑥ 登录段须渲染三张门分账（v1.5 四维小字的承继形态）' );
+		$this->assertStringContainsString( '密码输错', $src, '四维之密码输错（attempts）在登录概览行展示' );
+		$this->assertStringContainsString( '验证放行', $src, '四维之验证放行（captcha_pass）在登录概览行展示' );
+		$this->assertStringContainsString( 'render_stats_login_section', $src, '登录防护段独立成段（DESIGN-UI-tab6 口径二）' );
 	}
 
 	/* ---------- F4-5：embed 容器同宽（03 §2.2 v1.5 通用条款） ---------- */
@@ -98,9 +103,9 @@ final class B1bContractTest extends TestCase {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.7$/m', $entry, '插件头 Version 须为 0.3.7' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.7' )", $entry, '版本常量须为 0.3.7' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.7$/m', $readme, 'readme Stable tag 须为 0.3.7' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.8$/m', $entry, '插件头 Version 须为 0.3.8' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.8' )", $entry, '版本常量须为 0.3.8' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.8$/m', $readme, 'readme Stable tag 须为 0.3.8' );
 		$this->assertStringContainsString( '= 0.3.0 =', $readme, 'Changelog 须有 0.3.0 条目' );
 		$this->assertStringContainsString( 'F4-4', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-6', $readme, 'Changelog 须含设计锚点' );

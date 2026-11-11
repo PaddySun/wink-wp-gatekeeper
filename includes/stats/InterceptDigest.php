@@ -1,14 +1,18 @@
 <?php
 /**
- * Tab⑥ 统计分区纯逻辑层（03 Tab⑥ v1.3·用户建议4；C2）。
+ * Tab⑥ 统计分区纯逻辑层（UI 批 1 重构——DESIGN-UI-tab6 A 提案三口径骨架）。
  *
- * 三块职责（全部零 WP 依赖，WP 边界函数只在 SettingsPage/StatsCache 边界层）：
- *   1. 分区渲染数据结构：计数卡拆「评论拦截 / 登录拦截」两独立分区——两闸运营节奏不同
- *      （评论看日均趋势、登录看偶发攻击）；登录分区数据 C3（LoginGate）填，本层立结构+空态；
- *   2. 「最近拦截评论」明细卡行组装：events 表 reject 事件 + comment_id 直查 wp_comments
- *      的昵称/邮箱/正文——昵称/邮箱打码展示、正文摘要 60 字、comment_id 编辑链接直达；
- *      stub 事件不进此卡（无评论数据，02 §3.1 ②）；
- *   3. spam 留档量黄条阈值决策（阈值硬编码 500，任务口径 C2）。
+ * 职责（全部零 WP 依赖，WP 边界函数只在 SettingsPage/StatsCache 边界层）：
+ *   1. 「结果→归因→案例」渲染数据：待审拆分（排除 IP 信誉强制验证码——统筹裁决 2）、
+ *      登录三张门分账、本地规则三数式卡；
+ *   2. 驱动统一卡模板（§3——评论防护与登录防护复用同一张卡：四档健康徽标 + 箭头行 +
+ *      额度行 + 未启用灰卡占位；数字自守恒/停转有主语/未启用占位三条展示纪律）；
+ *   3. 「最近拦下的评论」明细行组装：events 表 reject 事件 + comment_id 直查 wp_comments
+ *      的昵称/邮箱/正文——打码展示、摘要 60 字、编辑链接直达（v1.3 起沿用）；
+ *   4. spam 留档量黄条阈值决策（阈值 500 沿用）。
+ *
+ * 术语纪律：本层输出一律走 Labels 人话（对照表资产）——「调用/维度/待审/登录失败
+ * 尝试」等黑话不再出现在站长文案（N5 映射表落地）。
  *
  * @package WinkGatekeeper\Stats
  */
@@ -34,6 +38,13 @@ final class InterceptDigest {
 	 * C2 施工任务定为 500，偏差已在 C2 报告记录）。
 	 */
 	public const SPAM_WARN_THRESHOLD = 500;
+
+	/**
+	 * 登录域三闸（by_gate 键随 GateRegistry 自动扩展，04 §4）。
+	 *
+	 * @var string[]
+	 */
+	public const ACCOUNT_GATES = array( 'login', 'register', 'lostpassword' );
 
 	/**
 	 * 昵称打码：保留首字符 + ***（明细卡为管理端摘要视图，原文在 spam 队列/事件流可查）。
@@ -146,113 +157,352 @@ final class InterceptDigest {
 		return $spam_count > ( null !== $threshold ? $threshold : self::SPAM_WARN_THRESHOLD );
 	}
 
-	/**
-	 * 驱动行「调用」双口径摘要（03 Tab⑥ v1.4·R1 §6-1：「全 pass 正常」与「从未调用」
-	 * 在 Tab⑥ 不可区分的可观测性缺口修复）。
-	 *
-	 * 形态（03 Tab⑥ v1.4 行）：计数空 + N>0 =「调用 N · 全通过」；计数非空 = 计数 + 调用并存；
-	 * N=0 =「0 调用」（停转/配额尽时「0 调用 · 当日停转（<state>）」——与 Tab① 一致）。
-	 *
-	 * @param array<string, int> $today_counts 今日判定计数（by_driver 行；pass 键不进摘要）。
-	 * @param int                $used         今日调用数（Usage counters，含失败调用按请求计）。
-	 * @param string|null        $halt_state   当日停转状态（DriverHealth；null=正常）。
-	 * @return string
-	 */
-	public static function driver_usage_note( array $today_counts, int $used, ?string $halt_state ): string {
-		unset( $today_counts['pass'] ); // pass 计数（verify_cache_hit 特例）不进摘要——调用数已表达。
-
-		$parts  = array();
-		$labels = array( 'reject' => '拦截', 'review' => '待审', 'error' => '故障' );
-		foreach ( $labels as $verdict => $label ) {
-			if ( ! empty( $today_counts[ $verdict ] ) ) {
-				$parts[] = $label . ' ' . (int) $today_counts[ $verdict ];
-			}
-		}
-		if ( $used > 0 ) {
-			$parts[] = ( array() === $parts ) ? "调用 {$used} · 全通过" : "调用 {$used}";
-		} else {
-			$parts[] = '0 调用'; // 停转/配额尽（03 Tab⑥ v1.4：「0 调用 + 状态」，与 Tab① 一致）。
-		}
-		if ( null !== $halt_state && '' !== $halt_state ) {
-			$parts[] = '当日停转（' . $halt_state . '）';
-		}
-		return implode( ' · ', $parts );
-	}
+	/* -------------------------------------------------------------------
+	 * 待审拆分（统筹裁决 2：转人工复核排除 IP 信誉强制验证码——单列一行）
+	 * ------------------------------------------------------------------ */
 
 	/**
-	 * 计数卡分区数据结构（评论拦截 / 账户保护两独立分区，03 Tab⑥ v1.3+ v1.4）。
+	 * 待审口径拆分（纯展示推导——现有统计树可答，零新数据）。
 	 *
-	 * 【v1.4·R3】原「登录拦截」分区更名「账户保护」——login/register/lostpassword 三分闸
-	 * 小字标注（02 §2.7 两闸注册后 by_gate 键自动扩展）。【v1.4·R1 §6-1】驱动行并入 usage
-	 * 口径：$usage_context 携今日调用数与停转态（读 Usage/DriverHealth option 的 WP 边界
-	 * 由 SettingsPage 传入；缺省无 usage 列——行为兼容）。
+	 * 口径（04 §3）：IP 阶段 verdict=review/reject 均「强制验证码」信号（02 §3.1
+	 * 修订表——reject 档也只强制过码不放行），recorder 原值记入 by_gate.comment.review
+	 * 与 by_driver.{ip 服务商}.review；「转人工复核」按裁决只计云审/规则待审——
+	 * 待审全量减去 IP 类服务商的 review 数，被减量与 reject 量单列展示。
 	 *
-	 * @param array<string, mixed> $cache StatsCache 树。
-	 * @param array<string, string> $comment_driver_labels 评论域驱动 id => 标签（DriverRegistry）。
-	 * @param array{usage_today?: array<string, int>, halted?: array<string, string>} $usage_context
-	 *        驱动行 usage 上下文（usage_today=Usage counters 子集；halted=DriverHealth 停转映射）。
-	 * @return array{comment: array{label: string, today_reject: int, rows: array<int, array{label: string, today: array<string, int>, total: array<string, int>, usage_today?: int, halt_state?: string|null, usage_note?: string}>},
-	 *               login: array{label: string, today_reject: int, rows: array<int, array{label: string, today: array<string, int>, total: array<string, int>, usage_note: string, usage_note_total: string}>, empty: bool, empty_note: string}}
-	 *               【v1.5·F4-6】账户行带 usage_note/usage_note_total 四维小字（调用/通过/拦截/登录失败尝试）。
+	 * 现状注记：M3 IP 域服务商尚未注册（registry by_type('ip') 空）→ 折减恒 0，
+	 * 待审数与既有口径一致；本函数为批 2/批 3 与 M3 接线预留同一口径源。
+	 *
+	 * @param array<string, mixed> $cache         StatsCache 树。
+	 * @param string[]             $ip_driver_ids IP 类服务商 id 列表（registry by_type('ip') 键）。
+	 * @param bool                 $total         true = 累计树。
+	 * @return array{review: int, ip_review: int, ip_captcha: int}
+	 *         review=转人工复核（不含 IP 风控）；ip_review=排除量；ip_captcha=单列行（review+reject）。
 	 */
-	public static function partitions( array $cache, array $comment_driver_labels, array $usage_context = array() ) {
-		$comment_rows = array_merge(
-			array( self::gate_dimension_row( $cache, 'comment', '评论闸' ) ),
-			self::driver_dimension_rows( $cache, $comment_driver_labels, $usage_context )
-		);
+	public static function review_split( array $cache, array $ip_driver_ids, bool $total = false ): array {
+		$review_all = (int) ( self::gate_counts( $cache, 'comment', $total )['review'] ?? 0 );
 
-		/* 【v1.4·R3】「账户保护」三分闸行（login/register/lostpassword——by_gate 键随
-		 * GateRegistry 自动扩展，04 §4 示例；Tab⑥ 可回答「验证码被谁触发」按闸归因）。 */
-		$account_gates = array(
-			'login'        => '登录闸',
-			'register'     => '注册闸',
-			'lostpassword' => '找回密码闸',
-		);
-		$account_rows  = array();
-		$account_today = 0;
-		$account_empty = true;
-		foreach ( $account_gates as $gate_id => $label ) {
-			$today_counts = self::gate_counts( $cache, $gate_id, false );
-			$total_counts = self::gate_counts( $cache, $gate_id, true );
-			$row          = self::gate_dimension_row( $cache, $gate_id, $label );
-			// 【v1.5·F4-4/F4-6】账户保护四维小字（今日/累计两行——03 Tab⑥ v1.5）。
-			$row['usage_note']       = self::account_usage_note( $today_counts );
-			$row['usage_note_total'] = self::account_usage_note( $total_counts );
-			$account_rows[] = $row;
-			$account_today += (int) ( $today_counts['reject'] ?? 0 );
-			if ( array() !== array_filter( $today_counts ) || array() !== array_filter( $total_counts ) ) {
-				$account_empty = false;
+		$ip_review = 0;
+		$ip_reject = 0;
+		foreach ( $ip_driver_ids as $driver_id ) {
+			if ( ! is_string( $driver_id ) || '' === $driver_id ) {
+				continue;
 			}
+			$counts     = self::driver_counts( $cache, $driver_id, $total );
+			$ip_review += (int) ( $counts['review'] ?? 0 );
+			$ip_reject += (int) ( $counts['reject'] ?? 0 );
 		}
 
 		return array(
-			'comment' => array(
-				'label'        => '评论拦截',
-				'today_reject' => (int) ( self::gate_counts( $cache, 'comment', false )['reject'] ?? 0 ),
-				'rows'         => $comment_rows,
-			),
-				'login'   => array(
-					// 【v1.4·R3】「账户保护」更名（login/register/lostpassword 三分闸小字标注）。
-					'label'        => '账户保护',
-					'today_reject' => $account_today,
-					'rows'         => $account_rows,
-					'empty'        => $account_empty,
-					// 空态文案：三分闸已上线——空=今日无触发（零打扰正常态），非未实装。
-					'empty_note'   => '今日无账户保护触发（登录/注册/找回验证码均未拦截——自适应模式零打扰的正常形态）。',
-				),
+			'review'    => max( 0, $review_all - $ip_review ),
+			'ip_review' => $ip_review,
+			'ip_captcha' => $ip_review + $ip_reject,
+		);
+	}
+
+	/* -------------------------------------------------------------------
+	 * 驱动统一卡模板（DESIGN-UI-tab6 §3——评论/登录两段复用）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 驱动统一卡（纯文本组装；WP 边界数据由 SettingsPage 预取进 $args）。
+	 *
+	 * 输入键（全部可选，缺省安全回落）：
+	 *   label       服务商全名（registry label）。
+	 *   type        captcha|review|ip——动作名翻译依据（Labels::action_word）。
+	 *   context     comment|login——转人工/出错格取舍（登录族无待审，分域出错批 2 接线）。
+	 *   enabled     是否当班（排班态推导：captcha=driver 选中；review=在 chain 中）。
+	 *   halt_state  DriverHealth 当日停转态（null/''=正常）。
+	 *   used        今日动作数（评论域=Usage；登录域=captcha_pass+captcha_reject 净口径）。
+	 *   passed      放行数（数值=直读；null=减法推导 used−拦下−转人工−出错，下限 0——D4）。
+	 *   rejected    今日拦下数。
+	 *   review      今日转人工数（null=此格隐藏——登录域）。
+	 *   errors      今日出错数（null=此格隐藏——分域口径未接入）。
+	 *   quota       日配额（0=不限，无额度行）。
+	 *   total       累计行数据（null=无累计行）：passed（数值=直读放行，否则格省略——
+	 *               累计动作数 Usage 不可得）、rejected/review/errors（null=格省略）。
+	 *   config_tab  未启用占位跳转目标 tab 键（''=不带链接——D6）。
+	 *
+	 * 展示纪律（§3.2）：零值整卡单行「今日没用到（0 次）」；停转主语化；未启用灰卡占位。
+	 * 健康徽标四档优先级：未启用 > 配置问题（config_error）> 今日暂停（其余停转态）> 正常。
+	 *
+	 * @param array<string, mixed> $args 卡片输入（见概述）。
+	 * @return array{label: string, type: string, action: string, enabled: bool, badge: string,
+	 *               health: string, health_note: string, lines: string[], total_lines: string[],
+	 *               quota_line: string|null, placeholder_note: string|null, config_tab: string}
+	 */
+	public static function driver_card( array $args ): array {
+		$label   = isset( $args['label'] ) && is_string( $args['label'] ) ? $args['label'] : '';
+		$type    = isset( $args['type'] ) && is_string( $args['type'] ) ? $args['type'] : '';
+		$enabled = ! empty( $args['enabled'] );
+
+		$halt = isset( $args['halt_state'] ) && is_string( $args['halt_state'] ) && '' !== $args['halt_state']
+			? $args['halt_state']
+			: null;
+		$used      = isset( $args['used'] ) && is_numeric( $args['used'] ) ? (int) $args['used'] : 0;
+		$passed_in = isset( $args['passed'] ) && is_numeric( $args['passed'] ) ? (int) $args['passed'] : null;
+		$rejected  = isset( $args['rejected'] ) && is_numeric( $args['rejected'] ) ? (int) $args['rejected'] : 0;
+		$has_review = array_key_exists( 'review', $args ) && null !== $args['review'];
+		$review    = $has_review && is_numeric( $args['review'] ) ? (int) $args['review'] : 0;
+		$has_errors = array_key_exists( 'errors', $args ) && null !== $args['errors'];
+		$errors    = $has_errors && is_numeric( $args['errors'] ) ? (int) $args['errors'] : 0;
+		$quota     = isset( $args['quota'] ) && is_numeric( $args['quota'] ) ? (int) $args['quota'] : 0;
+		$config_tab = isset( $args['config_tab'] ) && is_string( $args['config_tab'] ) ? $args['config_tab'] : '';
+
+		$card = array(
+			'label'            => $label,
+			'type'             => $type, // 回带输入类型（渲染层按防线分组筛选）。
+			'action'           => Labels::action_word( $type ),
+			'enabled'          => $enabled,
+			'badge'            => '●',
+			'health'           => '正常',
+			'health_note'      => '',
+			'lines'            => array(),
+			'total_lines'      => array(),
+			'quota_line'       => null,
+			'placeholder_note' => null,
+			'config_tab'       => $config_tab,
+		);
+
+		// 未启用占位灰卡（残留停转态不盖排班态——不当班为准）。
+		if ( ! $enabled ) {
+			$card['badge']            = '○';
+			$card['health']           = '未启用';
+			$card['health_note']      = '未启用——配置后这里会出现它的数字';
+			$card['placeholder_note'] = '未启用——去 Tab②/③ 配置后这里会出现它的数字';
+			return $card;
+		}
+
+		// 停转两档（主语化一句话，状态码不出站长文案）。
+		if ( 'config_error' === $halt ) {
+			$card['badge']       = '✕';
+			$card['health']      = '配置问题';
+			$card['health_note'] = '配置有问题——服务商拒绝了请求（查配置或欠费），当日暂停；修正凭据后点「测试凭据」解除';
+		} elseif ( null !== $halt ) {
+			$card['badge']       = '◐';
+			$card['health']      = '今日暂停';
+			$card['health_note'] = '今日暂停——' . Labels::halt_word( $halt ) . '，次日自动恢复';
+		}
+
+		// 今日行（零值纪律：全零单行；正数箭头行自守恒——放行+拦下+转人工+出错）。
+		$zero = 0 === $used && 0 === $rejected && ( ! $has_review || 0 === $review ) && ( ! $has_errors || 0 === $errors );
+		if ( $zero ) {
+			$card['lines'] = array( Labels::zero_call_word() . '（0 次）' );
+		} else {
+			$passed = null !== $passed_in ? $passed_in : max( 0, $used - $rejected - $review - $errors );
+			$parts  = array( '放行 ' . $passed, '拦下 ' . $rejected );
+			if ( $has_review ) {
+				$parts[] = '转人工 ' . $review;
+			}
+			if ( $has_errors ) {
+				$parts[] = '出错 ' . $errors;
+			}
+			$card['lines'] = array( sprintf( '今日%s %d 次 → ', $card['action'], $used ) . implode( ' · ', $parts ) );
+		}
+
+		// 累计行（可选——累计动作数 Usage 不留存，放行格仅在可直读时出现）。
+		$total = isset( $args['total'] ) && is_array( $args['total'] ) ? $args['total'] : null;
+		if ( null !== $total ) {
+			$card['total_lines'] = array( self::card_total_line( $total ) );
+		}
+
+		// 额度行（0=不限配额——无行）。
+		if ( $quota > 0 ) {
+			$card['quota_line'] = sprintf( '今日额度 %d / %d 次', $used, $quota );
+		}
+
+		return $card;
+	}
+
+	/**
+	 * 统一卡累计行（放行格仅在 passed 直读或 used 可推导时出现——不虚构）。
+	 *
+	 * @param array<string, mixed> $total 累计数据（passed/review/errors 可 null=格省略）。
+	 * @return string 形态「累计：放行 X · 拦下 Y · 转人工 Z · 出错 E」（格按数据取舍）。
+	 */
+	private static function card_total_line( array $total ): string {
+		$passed_in = isset( $total['passed'] ) && is_numeric( $total['passed'] ) ? (int) $total['passed'] : null;
+		$used_in   = isset( $total['used'] ) && is_numeric( $total['used'] ) ? (int) $total['used'] : null;
+		$rejected  = isset( $total['rejected'] ) && is_numeric( $total['rejected'] ) ? (int) $total['rejected'] : 0;
+		$has_review = array_key_exists( 'review', $total ) && null !== $total['review'];
+		$review    = $has_review && is_numeric( $total['review'] ) ? (int) $total['review'] : 0;
+		$has_errors = array_key_exists( 'errors', $total ) && null !== $total['errors'];
+		$errors    = $has_errors && is_numeric( $total['errors'] ) ? (int) $total['errors'] : 0;
+
+		$parts = array();
+		if ( null !== $passed_in ) {
+			$parts[] = '放行 ' . $passed_in;
+		} elseif ( null !== $used_in ) {
+			$parts[] = '放行 ' . max( 0, $used_in - $rejected - $review - $errors );
+		}
+		$parts[] = '拦下 ' . $rejected;
+		if ( $has_review ) {
+			$parts[] = '转人工 ' . $review;
+		}
+		if ( $has_errors ) {
+			$parts[] = '出错 ' . $errors;
+		}
+		return '累计：' . implode( ' · ', $parts );
+	}
+
+	/* -------------------------------------------------------------------
+	 * 本地规则卡（口径一②首位——三数式，agent C A-3 微调）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 本地规则卡（「今日检查 N 条」无数据源砍除——by_driver.local_rules 三键直读）。
+	 *
+	 * @param array<string, mixed> $cache StatsCache 树。
+	 * @return array{label: string, line: string, total_line: string}
+	 */
+	public static function local_rules_card( array $cache ): array {
+		$today = self::driver_counts( $cache, 'local_rules', false );
+		$total = self::driver_counts( $cache, 'local_rules', true );
+
+		return array(
+			'label'      => '本地规则',
+			'line'       => self::triple_line( '今日拦下', $today ),
+			'total_line' => self::triple_line( Labels::cumulative_word(), $total ),
 		);
 	}
 
 	/**
-	 * 账户保护四维小字（【v1.5·F4-4/F4-6】03 Tab⑥——今日/累计 × 调用/通过/拦截 +
-	 * 登录失败尝试数；零值显式展示，「恒 0 不可区分」教训延续）。
+	 * 三数式行（拦下/转人工复核/出错——零值显式，「恒 0 不可区分」教训延续）。
 	 *
-	 * 口径（04 §4 v1.5）：调用 N = captcha_pass + captcha_reject + captcha 阶段 error
-	 * 之和（不新增第四存储维）；通过 M = captcha_pass；拦截 K = 既有 reject 维（全阶段）；
-	 * 登录失败尝试 T = attempts 维（recorder 直记——register/lostpassword 无此维显示 0）。
+	 * @param string              $prefix 行前缀（今日拦下/累计拦下——首词已含「拦下」）。
+	 * @param array<string, int>  $counts 判定计数。
+	 * @return string 形态「今日拦下 2 · 转人工复核 1 · 出错 0」。
+	 */
+	private static function triple_line( string $prefix, array $counts ): string {
+		$reject = (int) ( $counts['reject'] ?? 0 );
+		$review = (int) ( $counts['review'] ?? 0 );
+		$error  = (int) ( $counts['error'] ?? 0 );
+		return sprintf(
+			'%s %d · %s %d · %s %d',
+			$prefix,
+			$reject,
+			Labels::review_word(),
+			$review,
+			Labels::error_word(),
+			$error
+		);
+	}
+
+	/* -------------------------------------------------------------------
+	 * 登录防护段（口径二：概览合计 + 三张门分账）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 登录域概览合计（三闸求和——拦下/验证放行/密码输错，今日或累计）。
+	 *
+	 * 放行=captcha_pass 合计（账户闸净口径，agent C E-c/F3）；密码输错=attempts 合计
+	 * （仅 login 闸有此维，register/lostpassword 计 0）。
+	 *
+	 * @param array<string, mixed> $cache StatsCache 树。
+	 * @param bool                 $total true = 累计树。
+	 * @return array{reject: int, passed: int, attempts: int}
+	 */
+	public static function account_overview( array $cache, bool $total = false ): array {
+		$reject = 0;
+		$passed = 0;
+		$attempts = 0;
+		foreach ( self::ACCOUNT_GATES as $gate_id ) {
+			$counts    = self::gate_counts( $cache, $gate_id, $total );
+			$reject   += (int) ( $counts['reject'] ?? 0 );
+			$passed   += (int) ( $counts['captcha_pass'] ?? 0 );
+			$attempts += (int) ( $counts['attempts'] ?? 0 );
+		}
+		return array(
+			'reject'   => $reject,
+			'passed'   => $passed,
+			'attempts' => $attempts,
+		);
+	}
+
+	/**
+	 * 三张门分账行（登录门/注册门/找回密码门——今日/累计拦下 + 说明列）。
+	 *
+	 * @param array<string, mixed> $cache StatsCache 树。
+	 * @return array<int, array{gate: string, label: string, today_reject: int, total_reject: int,
+	 *                          today: array<string, int>, total: array<string, int>, note: string}>
+	 */
+	public static function account_gate_rows( array $cache ): array {
+		$rows = array();
+		foreach ( self::ACCOUNT_GATES as $gate_id ) {
+			$today = self::gate_counts( $cache, $gate_id, false );
+			$total = self::gate_counts( $cache, $gate_id, true );
+			$rows[] = array(
+				'gate'         => $gate_id,
+				'label'        => Labels::gate_word( $gate_id ),
+				'today_reject' => (int) ( $today['reject'] ?? 0 ),
+				'total_reject' => (int) ( $total['reject'] ?? 0 ),
+				'today'        => $today,
+				'total'        => $total,
+				'note'         => self::gate_note( $gate_id, $today ),
+			);
+		}
+		return $rows;
+	}
+
+	/**
+	 * 分账说明列（attempts+captcha 判定推导——agent C A-8）。
+	 *
+	 * 登录门：密码输错 T 次（W 分钟窗口内同账号）触发过验证码（窗口随配置动态，D3）；
+	 * 注册门/找回密码门：静态说明（常显验证码语义）。
+	 *
+	 * @param string             $gate           闸 id。
+	 * @param array<string, int> $today_counts   今日计数。
+	 * @param int                $window_minutes 密码输错计数窗口（login_adaptive.window_minutes）。
+	 * @return string
+	 */
+	public static function gate_note( string $gate, array $today_counts, int $window_minutes = 15 ): string {
+		if ( 'login' !== $gate ) {
+			return 'register' === $gate ? '注册时一律要过人机验证' : '找回密码时一律要过人机验证';
+		}
+		$attempts = (int) ( $today_counts['attempts'] ?? 0 );
+		return sprintf(
+			'%s %d 次（%d 分钟窗口内同账号），触发过验证码',
+			Labels::attempts_word(),
+			$attempts,
+			max( 1, $window_minutes )
+		);
+	}
+
+	/* -------------------------------------------------------------------
+	 * 计数读取（公开——SettingsPage 组装统一卡/速览条直用）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * @param array<string, mixed> $cache StatsCache 树。
+	 * @param string $gate_id 闸 id。
+	 * @param bool   $total   true = 累计树。
+	 * @return array<string, int>
+	 */
+	public static function gate_counts( array $cache, string $gate_id, bool $total ): array {
+		$scope = $total ? ( $cache['total']['by_gate'] ?? array() ) : ( $cache['by_gate'] ?? array() );
+		$counts = isset( $scope[ $gate_id ] ) && is_array( $scope[ $gate_id ] ) ? $scope[ $gate_id ] : array();
+		return array_map( 'intval', array_filter( $counts, 'is_numeric' ) );
+	}
+
+	/**
+	 * @param array<string, mixed> $cache StatsCache 树。
+	 * @param string $driver_id 服务商 id。
+	 * @param bool   $total     true = 累计树。
+	 * @return array<string, int>
+	 */
+	public static function driver_counts( array $cache, string $driver_id, bool $total ): array {
+		$scope = $total ? ( $cache['total']['by_driver'] ?? array() ) : ( $cache['by_driver'] ?? array() );
+		$counts = isset( $scope[ $driver_id ] ) && is_array( $scope[ $driver_id ] ) ? $scope[ $driver_id ] : array();
+		return array_map( 'intval', array_filter( $counts, 'is_numeric' ) );
+	}
+
+	/**
+	 * 账户四维人话小字（今日/累计共用——登录概览与分账注脚消费）。
+	 *
+	 * 口径（04 §4 v1.5 不变，展示词走 Labels）：人机验证 N=captcha_pass+captcha_reject+
+	 * captcha 阶段 error；验证放行 M=captcha_pass；拦下 K=reject 全阶段；密码输错 T=attempts。
 	 *
 	 * @param array<string, int> $counts 计数 map（StatsCache by_gate 行）。
-	 * @return string 形态「调用 N · 通过 M · 拦截 K · 登录失败尝试 T」。
+	 * @return string 形态「人机验证 6 次 · 验证放行 3 人 · 拦下 4 次 · 密码输错 7 次」。
 	 */
 	public static function account_usage_note( array $counts ): string {
 		$pass      = isset( $counts['captcha_pass'] ) && is_numeric( $counts['captcha_pass'] ) ? (int) $counts['captcha_pass'] : 0;
@@ -262,84 +512,15 @@ final class InterceptDigest {
 		$attempts  = isset( $counts['attempts'] ) && is_numeric( $counts['attempts'] ) ? (int) $counts['attempts'] : 0;
 
 		return sprintf(
-			'调用 %d · 通过 %d · 拦截 %d · 登录失败尝试 %d',
+			'%s %d 次 · %s %d 人 · %s %d 次 · %s %d 次',
+			Labels::action_word( 'captcha' ),
 			$pass + $reject_c + $error,
+			Labels::pass_word(),
 			$pass,
+			Labels::reject_word(),
 			$intercept,
+			Labels::attempts_word(),
 			$attempts
 		);
-	}
-
-	/**
-	 * 闸维度行（今日/累计判定计数 map）。
-	 *
-	 * @param array<string, mixed> $cache    StatsCache 树。
-	 * @param string               $gate_id  闸 id。
-	 * @param string               $label    行标签。
-	 * @return array{label: string, today: array<string, int>, total: array<string, int>}
-	 */
-	private static function gate_dimension_row( array $cache, string $gate_id, string $label ): array {
-		return array(
-			'label' => $label,
-			'today' => self::gate_counts( $cache, $gate_id, false ),
-			'total' => self::gate_counts( $cache, $gate_id, true ),
-		);
-	}
-
-	/**
-	 * 驱动维度行（今日/累计 + usage 双口径，03 Tab⑥ v1.4·R1 §6-1）。
-	 *
-	 * @param array<string, mixed> $cache StatsCache 树。
-	 * @param array<string, string> $driver_labels 驱动 id => 标签。
-	 * @param array{usage_today?: array<string, int>, halted?: array<string, string>} $usage_context
-	 *        驱动行 usage 上下文（缺省无 usage 列——行为兼容）。
-	 * @return array<int, array<string, mixed>>
-	 */
-	private static function driver_dimension_rows( array $cache, array $driver_labels, array $usage_context = array() ): array {
-		$usage_today = isset( $usage_context['usage_today'] ) && is_array( $usage_context['usage_today'] ) ? $usage_context['usage_today'] : array();
-		$halted      = isset( $usage_context['halted'] ) && is_array( $usage_context['halted'] ) ? $usage_context['halted'] : array();
-
-		$rows = array();
-		foreach ( $driver_labels as $driver_id => $label ) {
-			$today = self::driver_counts( $cache, $driver_id, false );
-
-			// usage 双口径列：今日调用数 + 停转态 + 摘要（调用 0/全通过并存——R1 §6-1）。
-			$used       = isset( $usage_today[ $driver_id ] ) && is_numeric( $usage_today[ $driver_id ] ) ? (int) $usage_today[ $driver_id ] : 0;
-			$halt_state = isset( $halted[ $driver_id ] ) && is_string( $halted[ $driver_id ] ) ? $halted[ $driver_id ] : null;
-
-			$rows[] = array(
-				'label'      => $label,
-				'today'      => $today,
-				'total'      => self::driver_counts( $cache, $driver_id, true ),
-				'usage_today' => $used,
-				'halt_state' => $halt_state,
-				'usage_note' => self::driver_usage_note( $today, $used, $halt_state ),
-			);
-		}
-		return $rows;
-	}
-
-	/**
-	 * @param array<string, mixed> $cache StatsCache 树。
-	 * @param string $gate_id 闸 id。
-	 * @param bool   $total   true = 累计树。
-	 * @return array<string, int>
-	 */
-	private static function gate_counts( array $cache, string $gate_id, bool $total ): array {
-		$scope = $total ? ( $cache['total']['by_gate'] ?? array() ) : ( $cache['by_gate'] ?? array() );
-		$counts = isset( $scope[ $gate_id ] ) && is_array( $scope[ $gate_id ] ) ? $scope[ $gate_id ] : array();
-		return array_map( 'intval', array_filter( $counts, 'is_numeric' ) );
-	}
-
-	/**
-	 * @param array<string, mixed> $cache StatsCache 树。
-	 * @param string $driver_id 驱动 id。
-	 * @param bool   $total     true = 累计树。
-	 * @return array<string, int>
-	 */
-	private static function driver_counts( array $cache, string $driver_id, bool $total ): array {
-		$scope = $total ? ( $cache['total']['by_driver'] ?? array() ) : ( $cache['by_driver'] ?? array() );
-		$counts = isset( $scope[ $driver_id ] ) && is_array( $scope[ $driver_id ] ) ? $scope[ $driver_id ] : array();
-		return array_map( 'intval', array_filter( $counts, 'is_numeric' ) );
 	}
 }

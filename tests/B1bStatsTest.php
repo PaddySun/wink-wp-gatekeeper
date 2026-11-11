@@ -1,11 +1,12 @@
 <?php
 /**
- * B1b 统计域单元测试（F4-4/F4-6——recorder 口径统一 + by_gate 三维 + Tab⑥ 账户保护四维）。
+ * B1b 统计域单元测试（F4-4/F4-6——recorder 口径统一 + by_gate 三维 + Tab⑥ 账户四维；
+ * UI 批 1 起展示词人话化——三张门分账/概览合计走 InterceptDigest 新纯函数）。
  *
  * 设计锚点：02 §3.2a【v1.5】（captcha 判定收口按 verdict 三维 bump，计数与落库解耦；
  * drill 不 bump）、04 §4【v1.5】（attempts/captcha_pass/captcha_reject 三维；调用=
  * captcha_pass+captcha_reject+captcha 阶段 error；拦截=既有 reject 维全阶段）、
- * 03 Tab⑥【v1.5】（今日/累计 × 调用/通过/拦截 + 登录失败尝试数）。
+ * 03 Tab⑥【v1.5】（今日/累计 × 人机验证/验证放行/拦下 + 密码输错数——UI 批 1 译词）。
  *
  * @package WinkGatekeeper\Tests
  */
@@ -108,77 +109,81 @@ final class B1bStatsTest extends TestCase {
 		$this->assertSame( 1, $cache['by_gate']['login']['attempts'] );
 	}
 
-	/* ================= InterceptDigest 账户保护四维展示（03 Tab⑥ v1.5） ================= */
+	/* ================= InterceptDigest 账户四维人话展示（03 Tab⑥ v1.5 口径 + UI 批 1 术语） ================= */
 
 	public function test_account_usage_note_combines_four_dimensions(): void {
 		$note = InterceptDigest::account_usage_note( array(
 			'captcha_pass'   => 3,
 			'captcha_reject' => 2,
 			'error'          => 1,
-			'reject'         => 4, // 全阶段拦截（captcha 2 + stub 2 的形态）。
+			'reject'         => 4, // 全阶段拦下（captcha 2 + stub 2 的形态）。
 			'attempts'       => 7,
 		) );
-		$this->assertMatchesRegularExpression( '/调用 6/u', $note, '调用 N = captcha_pass+captcha_reject+captcha 阶段 error（04 §4 口径）' );
-		$this->assertMatchesRegularExpression( '/通过 3/u', $note );
-		$this->assertMatchesRegularExpression( '/拦截 4/u', $note, '拦截 K = 既有 reject 维（全阶段）' );
-		$this->assertMatchesRegularExpression( '/登录失败尝试 7/u', $note );
+		$this->assertMatchesRegularExpression( '/人机验证 6/u', $note, '人机验证 N = captcha_pass+captcha_reject+captcha 阶段 error（04 §4 口径）' );
+		$this->assertMatchesRegularExpression( '/验证放行 3/u', $note );
+		$this->assertMatchesRegularExpression( '/拦下 4/u', $note, '拦下 K = 既有 reject 维（全阶段）' );
+		$this->assertMatchesRegularExpression( '/密码输错 7/u', $note );
 	}
 
 	public function test_account_usage_note_zero_state_is_explicit(): void {
 		// 恒 0 也可读（Tab⑥「恒 0 不可区分」教训——零值显式展示）。
 		$note = InterceptDigest::account_usage_note( array() );
-		$this->assertMatchesRegularExpression( '/调用 0/u', $note );
-		$this->assertMatchesRegularExpression( '/通过 0/u', $note );
-		$this->assertMatchesRegularExpression( '/拦截 0/u', $note );
-		$this->assertMatchesRegularExpression( '/登录失败尝试 0/u', $note );
+		$this->assertMatchesRegularExpression( '/人机验证 0/u', $note );
+		$this->assertMatchesRegularExpression( '/验证放行 0/u', $note );
+		$this->assertMatchesRegularExpression( '/拦下 0/u', $note );
+		$this->assertMatchesRegularExpression( '/密码输错 0/u', $note );
 	}
 
-	public function test_partitions_account_rows_carry_today_and_total_notes(): void {
+	public function test_account_gate_rows_carry_today_and_total_rejects(): void {
 		$cache                        = StatsCache::seed();
 		$cache['today']               = self::DATE;
 		$cache['by_gate']['login']    = array( 'reject' => 1, 'captcha_reject' => 1, 'captcha_pass' => 2, 'attempts' => 5 );
 		$cache['total']['by_gate']['login'] = array( 'reject' => 9, 'captcha_reject' => 3, 'captcha_pass' => 10, 'attempts' => 20 );
 
-		$partitions = InterceptDigest::partitions( $cache, array() );
+		$rows = InterceptDigest::account_gate_rows( $cache );
 
 		$login_row = null;
-		foreach ( $partitions['login']['rows'] as $row ) {
-			if ( '登录闸' === $row['label'] ) {
+		foreach ( $rows as $row ) {
+			if ( 'login' === $row['gate'] ) {
 				$login_row = $row;
 			}
 		}
-		$this->assertNotNull( $login_row, '账户保护分区须有登录闸行' );
-		$this->assertMatchesRegularExpression( '/登录失败尝试 5/u', (string) $login_row['usage_note'], '今日行带 attempts（recorder 直记值）' );
-		$this->assertMatchesRegularExpression( '/登录失败尝试 20/u', (string) $login_row['usage_note_total'], '累计行带 attempts' );
-		$this->assertMatchesRegularExpression( '/通过 2/u', (string) $login_row['usage_note'] );
-		$this->assertMatchesRegularExpression( '/通过 10/u', (string) $login_row['usage_note_total'] );
+		$this->assertNotNull( $login_row, '三张门分账须有登录门行' );
+		$this->assertSame( 1, $login_row['today_reject'], '今日拦下（recorder 直记值）' );
+		$this->assertSame( 9, $login_row['total_reject'], '累计拦下' );
+		$this->assertMatchesRegularExpression( '/密码输错 5/u', (string) $login_row['note'], '说明列带今日 attempts' );
+
+		$note_total = InterceptDigest::account_usage_note( $login_row['total'] );
+		$this->assertMatchesRegularExpression( '/密码输错 20/u', $note_total, '累计行 attempts 可读' );
+		$this->assertMatchesRegularExpression( '/验证放行 10/u', $note_total );
 	}
 
-	public function test_partitions_register_lostpassword_rows_show_zero_attempts(): void {
+	public function test_account_gate_rows_register_lostpassword_show_zero_attempts(): void {
 		$cache                          = StatsCache::seed();
 		$cache['today']                 = self::DATE;
 		$cache['by_gate']['lostpassword'] = array( 'reject' => 2, 'captcha_reject' => 2 );
 		$cache['total']['by_gate']['register'] = array( 'reject' => 1, 'captcha_reject' => 1 );
 
-		$partitions = InterceptDigest::partitions( $cache, array() );
-
+		$rows  = InterceptDigest::account_gate_rows( $cache );
 		$found = array();
-		foreach ( $partitions['login']['rows'] as $row ) {
-			$found[ $row['label'] ] = $row;
+		foreach ( $rows as $row ) {
+			$found[ $row['gate'] ] = $row;
 		}
-		$this->assertArrayHasKey( '注册闸', $found );
-		$this->assertArrayHasKey( '找回密码闸', $found );
-		$this->assertMatchesRegularExpression( '/登录失败尝试 0/u', (string) $found['注册闸']['usage_note'], 'register/lostpassword 无 attempts 维显示 0（03 Tab⑥）' );
-		$this->assertMatchesRegularExpression( '/登录失败尝试 0/u', (string) $found['找回密码闸']['usage_note'] );
-		$this->assertMatchesRegularExpression( '/拦截 2/u', (string) $found['找回密码闸']['usage_note'] );
+		$this->assertArrayHasKey( 'register', $found );
+		$this->assertArrayHasKey( 'lostpassword', $found );
+		$this->assertSame( '注册时一律要过人机验证', $found['register']['note'], 'register 无 attempts 维——静态说明列（03 Tab⑥）' );
+		$this->assertSame( '找回密码时一律要过人机验证', $found['lostpassword']['note'] );
+		$this->assertSame( 2, $found['lostpassword']['today_reject'] );
 	}
 
-	public function test_partitions_account_empty_flag_still_works_with_attempts(): void {
-		// 空态判定不受新增维度干扰：attempts 有值 = 非空态（今日有真实触发）。
+	public function test_account_overview_zero_attempts_on_register_lostpassword(): void {
+		// attempts 维仅 login 闸（agent C F5）——register/lostpassword 计 0 不干扰合计。
 		$cache                     = StatsCache::seed();
 		$cache['today']            = self::DATE;
 		$cache['by_gate']['login'] = array( 'attempts' => 3 );
-		$partitions                = InterceptDigest::partitions( $cache, array() );
-		$this->assertFalse( $partitions['login']['empty'], 'attempts>0 时分区不得显示空态' );
+
+		$overview = InterceptDigest::account_overview( $cache, false );
+		$this->assertSame( 3, $overview['attempts'] );
+		$this->assertSame( 0, $overview['reject'] );
 	}
 }

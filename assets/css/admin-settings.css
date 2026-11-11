@@ -337,3 +337,35 @@
 .wk-dot--warn {
 	background: #d4a017;
 }
+
+/* ---------- UI 批 1 · Tab⑥ 驱动统一卡（DESIGN-UI-tab6 §3——评论/登录两段复用） ---------- */
+
+.wk-driver-card {
+	background: #fff;
+	border: 1px solid var(--wk-line);
+	border-radius: 0.5rem;
+	padding: 0.6rem 0.9rem;
+	margin: 0.5rem 0;
+}
+
+.wk-driver-card p {
+	margin: 0.15rem 0;
+}
+
+.wk-driver-card--disabled {
+	background: var(--wk-paper);
+	color: var(--wk-fog);
+}
+
+.wk-driver-badge {
+	display: inline-block;
+	margin-left: 0.5rem;
+	font-weight: 600;
+}
+
+.wk-defense-group {
+	margin: 0.75rem 0 0.25rem;
+	font-size: 0.9rem;
+	color: var(--wk-fog);
+	font-weight: 600;
+}

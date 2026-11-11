@@ -1,9 +1,9 @@
 <?php
 /**
- * InterceptDigest 纯逻辑测试（Tab⑥ v1.3：分区数据结构 + 最近拦截明细 + 黄条阈值）。
+ * InterceptDigest 纯逻辑测试（Tab⑥ v1.3 起：明细行组装 + 黄条阈值；UI 批 1 起计数读取公开化）。
  *
- * InterceptDigest 为 Tab⑥ 统计分区的纯逻辑层（零 WP 依赖）：分区渲染数据结构、
- * 明细卡行组装（打码/摘要/留档链接）、spam 留档量黄条阈值决策。
+ * InterceptDigest 为 Tab⑥ 统计的纯逻辑层（零 WP 依赖）：明细卡行组装（打码/摘要/
+ * 留档链接）、spam 留档量黄条阈值决策、待审拆分/驱动统一卡（见 InterceptDigestCardsTest）。
  *
  * @package WinkGatekeeper\Tests
  */
@@ -110,95 +110,34 @@ final class InterceptDigestTest extends TestCase {
 		$this->assertTrue( InterceptDigest::spam_warn( 800 ) );
 	}
 
-	/* ---------- 分区渲染数据结构 ---------- */
+	/* ---------- 计数读取（UI 批 1 公开化——SettingsPage 组装统一卡直用） ---------- */
 
-	private static function cache_fixture(): array {
-		return array(
+	public function test_gate_and_driver_counts_read_scopes_safely(): void {
+		$cache = array(
 			'today'     => '20261110',
-			'by_gate'   => array(
-				'comment' => array( 'reject' => 3, 'review' => 1 ),
-				'login'   => array( 'reject' => 2 ),
-			),
-			'by_driver' => array(
-				'local_rules' => array( 'reject' => 2 ),
-				'gate'        => array( 'reject' => 1 ),
-			),
+			'by_gate'   => array( 'comment' => array( 'reject' => 3, 'review' => 1 ) ),
+			'by_driver' => array( 'local_rules' => array( 'reject' => 2 ) ),
 			'total'     => array(
-				'by_gate'   => array(
-					'comment' => array( 'reject' => 30, 'review' => 5 ),
-					'login'   => array( 'reject' => 20 ),
-				),
-				'by_driver' => array(
-					'local_rules' => array( 'reject' => 20 ),
-					'gate'        => array( 'reject' => 9, 'review' => 5 ),
-				),
+				'by_gate'   => array( 'comment' => array( 'reject' => 30, 'review' => 5 ) ),
+				'by_driver' => array( 'local_rules' => array( 'reject' => 20 ) ),
 				'reject'    => 55,
 			),
 			'last_reset' => 0,
 		);
+
+		$this->assertSame( array( 'reject' => 3, 'review' => 1 ), InterceptDigest::gate_counts( $cache, 'comment', false ) );
+		$this->assertSame( array( 'reject' => 30, 'review' => 5 ), InterceptDigest::gate_counts( $cache, 'comment', true ) );
+		$this->assertSame( array(), InterceptDigest::gate_counts( $cache, 'login', false ), '缺闸回落空（防御性）' );
+		$this->assertSame( array( 'reject' => 2 ), InterceptDigest::driver_counts( $cache, 'local_rules', false ) );
+		$this->assertSame( array( 'reject' => 20 ), InterceptDigest::driver_counts( $cache, 'local_rules', true ) );
+		$this->assertSame( array(), InterceptDigest::driver_counts( $cache, 'tencent_tms', false ) );
 	}
 
-	public function test_partitions_split_comment_and_login_sections(): void {
-		$driver_labels = array( 'local_rules' => '本地规则四闸（上游迁移）' );
-		$p = InterceptDigest::partitions( self::cache_fixture(), $driver_labels );
-
-		$this->assertSame( array( 'comment', 'login' ), array_keys( $p ), '两独立分区（03 Tab⑥ v1.3）' );
-
-		// 评论分区：闸行 + 评论域驱动行，today/total 两列均为判定计数 map。
-		$this->assertSame( 3, $p['comment']['today_reject'] );
-		$labels = array();
-		foreach ( $p['comment']['rows'] as $row ) {
-			$this->assertArrayHasKey( 'label', $row );
-			$this->assertArrayHasKey( 'today', $row );
-			$this->assertArrayHasKey( 'total', $row );
-			$labels[] = $row['label'];
-		}
-		$this->assertContains( '评论闸', $labels );
-		$this->assertContains( '本地规则四闸（上游迁移）', $labels );
-		$gate_row = $p['comment']['rows'][0];
-		$this->assertSame( array( 'reject' => 3, 'review' => 1 ), $gate_row['today'] );
-		$this->assertSame( array( 'reject' => 30, 'review' => 5 ), $gate_row['total'] );
-
-		// 账户保护分区（v1.4·R3）：三分闸行 + today_reject 三闸合计，空态由数据决定。
-		$this->assertSame( '账户保护', $p['login']['label'] );
-		$this->assertSame( 2, $p['login']['today_reject'] );
-		$this->assertFalse( $p['login']['empty'] );
-		$labels = array();
-		foreach ( $p['login']['rows'] as $row ) {
-			$labels[] = $row['label'];
-		}
-		$this->assertSame( array( '登录闸', '注册闸', '找回密码闸' ), $labels, 'login/register/lostpassword 三分闸行（by_gate 键随 GateRegistry 自动扩展）' );
-	}
-
-	public function test_account_partition_aggregates_register_and_lostpassword(): void {
-		$cache = self::cache_fixture();
-		$cache['by_gate']['register']     = array( 'reject' => 1 );
-		$cache['by_gate']['lostpassword'] = array( 'reject' => 1 );
-
-		$p = InterceptDigest::partitions( $cache, array() );
-
-		$this->assertSame( 4, $p['login']['today_reject'], '三闸 reject 合计（2+1+1）' );
-		$register_row = $p['login']['rows'][1];
-		$this->assertSame( array( 'reject' => 1 ), $register_row['today'], '注册闸行读 by_gate.register' );
-		$lost_row = $p['login']['rows'][2];
-		$this->assertSame( array( 'reject' => 1 ), $lost_row['today'], '找回密码闸行读 by_gate.lostpassword' );
-	}
-
-	public function test_account_partition_empty_state_without_any_data(): void {
-		$cache = self::cache_fixture();
-		unset( $cache['by_gate']['login'], $cache['total']['by_gate']['login'] );
-
-		$p = InterceptDigest::partitions( $cache, array() );
-
-		$this->assertTrue( $p['login']['empty'], '三闸计数全空 → 空态（零打扰正常态）' );
-		$this->assertNotSame( '', $p['login']['empty_note'], '空态文案非空' );
-		$this->assertSame( 0, $p['login']['today_reject'] );
-	}
-
-	/** 常量契约：明细 N=10、摘要 60 字、黄条阈值 500（任务口径硬编码）。 */
+	/** 常量契约：明细 N=10、摘要 60 字、黄条阈值 500（任务口径硬编码）+ 登录域三闸。 */
 	public function test_constants_contract(): void {
 		$this->assertSame( 10, InterceptDigest::RECENT_LIMIT );
 		$this->assertSame( 60, InterceptDigest::EXCERPT_MAX );
 		$this->assertSame( 500, InterceptDigest::SPAM_WARN_THRESHOLD );
+		$this->assertSame( array( 'login', 'register', 'lostpassword' ), InterceptDigest::ACCOUNT_GATES );
 	}
 }
