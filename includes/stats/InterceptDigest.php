@@ -432,6 +432,7 @@ final class InterceptDigest {
 			'action'           => Labels::action_word( $type ),
 			'enabled'          => $enabled,
 			'badge'            => '●',
+			'dot_class'        => 'wk-dot--ok', // 【v1.5·FIX】彩色状态点（绿=启用；用户三色体系：绿/蓝/灰）。
 			'health'           => '正常',
 			'health_note'      => '',
 			'lines'            => array(),
@@ -444,6 +445,7 @@ final class InterceptDigest {
 		// 未启用占位灰卡（残留停转态不盖排班态——不当班为准；UI-FIX B② 极简一句无 Tab 引用）。
 		if ( ! $enabled ) {
 			$card['badge']            = '○';
+			$card['dot_class']        = 'wk-dot--standby'; // 蓝=已配置未启用。
 			$card['health']           = '未启用';
 			$card['health_note']      = '未启用——配置后这里会出现它的数字';
 			$card['placeholder_note'] = '未启用——配置后这里会出现它的数字';
@@ -453,10 +455,12 @@ final class InterceptDigest {
 		// 停转两档（主语化一句话，状态码不出站长文案）。
 		if ( 'config_error' === $halt ) {
 			$card['badge']       = '✕';
+			$card['dot_class']   = 'wk-dot--alert'; // 红=配置问题。
 			$card['health']      = '配置问题';
 			$card['health_note'] = '配置有问题——服务商拒绝了请求（查配置或欠费），当日暂停；修正凭据后点「测试凭据」解除';
 		} elseif ( null !== $halt ) {
 			$card['badge']       = '◐';
+			$card['dot_class']   = 'wk-dot--warn'; // 黄=今日暂停。
 			$card['health']      = '今日暂停';
 			$card['health_note'] = '今日暂停——' . Labels::halt_word( $halt ) . '，次日自动恢复';
 		}

@@ -2880,17 +2880,18 @@ final class SettingsPage {
 	 */
 	private static function render_driver_card( array $card ): void {
 		$label = (string) ( $card['label'] ?? '' );
+		$dot   = (string) ( $card['dot_class'] ?? 'wk-dot--ok' ); // 【v1.5·FIX】彩色状态点（用户三色体系：绿启用/蓝待命/红故障/黄暂停）。
 		if ( empty( $card['enabled'] ) ) {
-			// 未启用占位灰卡（○——灰徽标+极简一句，无链接）。
+			// 未启用占位卡（蓝点=已配置未启用；极简一句，无链接）。
 			echo '<div class="wk-driver-card wk-driver-card--disabled">';
-			echo '<p><strong>' . esc_html( $label ) . '</strong> <span class="wk-muted">' . esc_html( (string) $card['badge'] . ' ' . $card['health'] ) . '</span></p>';
+			echo '<p><strong>' . esc_html( $label ) . '</strong> <span class="' . esc_attr( $dot ) . ' wk-dot"></span> ' . esc_html( (string) $card['health'] ) . '</p>';
 			echo '<p class="wk-muted">' . esc_html( (string) $card['placeholder_note'] ) . '</p>';
 			echo '</div>';
 			return;
 		}
 
 		echo '<div class="wk-driver-card">';
-		echo '<p><strong>' . esc_html( $label ) . '</strong> <span class="wk-driver-badge">' . esc_html( (string) $card['badge'] . ' ' . $card['health'] ) . '</span></p>';
+		echo '<p><strong>' . esc_html( $label ) . '</strong> <span class="wk-driver-badge"><span class="' . esc_attr( $dot ) . ' wk-dot"></span> ' . esc_html( (string) $card['health'] ) . '</span></p>';
 		foreach ( (array) ( $card['lines'] ?? array() ) as $line ) {
 			echo '<p>' . esc_html( (string) $line ) . '</p>';
 		}

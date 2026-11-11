@@ -39,6 +39,7 @@ final class InterceptDigestCardsTest extends TestCase {
 		) );
 
 		$this->assertSame( '●', $card['badge'] );
+		$this->assertSame( 'wk-dot--ok', $card['dot_class'], '启用=绿点（用户三色体系）' );
 		$this->assertSame( '正常', $card['health'] );
 		$this->assertTrue( $card['enabled'] );
 		$this->assertSame( 'captcha', $card['type'], '输出回带输入类型（渲染层按防线分组筛选——真机 render 通道钉）' );
@@ -110,6 +111,7 @@ final class InterceptDigestCardsTest extends TestCase {
 		) );
 
 		$this->assertSame( '◐', $card['badge'] );
+		$this->assertSame( 'wk-dot--warn', $card['dot_class'], '今日暂停=黄点' );
 		$this->assertSame( '今日暂停', $card['health'] );
 		$this->assertStringContainsString( '额度用完', $card['health_note'], '停转有主语（状态码不出现在站长文案）' );
 		$this->assertStringNotContainsString( 'quota_exhausted', $card['health_note'] );
@@ -133,6 +135,7 @@ final class InterceptDigestCardsTest extends TestCase {
 		) );
 
 		$this->assertSame( '✕', $card['badge'] );
+		$this->assertSame( 'wk-dot--alert', $card['dot_class'], '配置问题=红点' );
 		$this->assertSame( '配置问题', $card['health'] );
 		$this->assertStringContainsString( '拒绝', $card['health_note'] );
 		$this->assertStringNotContainsString( 'config_error', $card['health_note'] );
@@ -156,6 +159,7 @@ final class InterceptDigestCardsTest extends TestCase {
 		) );
 
 		$this->assertSame( '○', $card['badge'] );
+		$this->assertSame( 'wk-dot--standby', $card['dot_class'], '未启用=蓝点' );
 		$this->assertSame( '未启用', $card['health'] );
 		$this->assertFalse( $card['enabled'] );
 		$this->assertStringContainsString( '未启用', (string) $card['placeholder_note'] );
