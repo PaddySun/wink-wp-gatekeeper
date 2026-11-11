@@ -390,40 +390,6 @@ DDL;
 	}
 
 	/**
-	 * Tab⑥「最近拦截评论」错误信息列数据源（03 Tab⑥ v1.4·R4 §D.2）：review 阶段 verdict=error
-	 * 事件并入明细卡（并行查询与 reject 查询合并按 id 倒序——行形态「入待审（云端故障）」）。
-	 *
-	 * @param int $limit 行数（与 recent_comment_rejects 同限）。
-	 * @return array<int, array<string, mixed>>
-	 */
-	public static function recent_comment_faults( int $limit = InterceptDigest::RECENT_LIMIT ): array {
-		global $wpdb;
-
-		$table = self::table_name( $wpdb->prefix );
-		$n     = max( 1, min( 50, $limit ) );
-
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT event_no, created_at, stage, driver, rule_hit, meta FROM {$table} " // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				. "WHERE gate = %s AND verdict = 'error' AND stage = 'review' ORDER BY id DESC LIMIT %d",
-				'comment',
-				$n
-			),
-			ARRAY_A
-		);
-
-		if ( ! is_array( $rows ) ) {
-			return array();
-		}
-		foreach ( $rows as $index => $row ) {
-			$rows[ $index ]['meta'] = isset( $row['meta'] ) && is_string( $row['meta'] )
-				? json_decode( $row['meta'], true )
-				: array();
-		}
-		return $rows;
-	}
-
-	/**
 	 * Tab① 驱动健康行「最近错误摘要」数据源（02 §5 v1.4·R4 §D.2——读模型，不新增健康计数器）：
 	 * 该驱动最新一条故障行（is_fault 口径）。
 	 *
@@ -450,6 +416,265 @@ DDL;
 			'rule_hit' => is_string( $row['rule_hit'] ) ? $row['rule_hit'] : '',
 			'time_hm'  => is_string( $row['created_at'] ) ? substr( $row['created_at'], 11, 5 ) : '',
 		);
+	}
+
+	/* -------------------------------------------------------------------
+	 * UI 批 2·事件查询面×5（DESIGN-UI-tech-feasibility §D N1/N2/N3/N4/N6+N7a——
+	 * 全部只读 SELECT + prepare + LIMIT；零 DDL，idx_gate_driver/idx_created 既有索引命中）。
+	 *
+	 * 可测形态：纯 SQL 模板 builder（表名注入 + 动态值一律 %s/%d 占位符，单测逐字断言
+	 * 谓词/排序/只读——EventsTableQueriesTest）；WP 边界方法只做 clamp + prepare + 行 meta 解码。
+	 * 行组装（人话映射/打码）在 InterceptDigest 纯逻辑层（批 2 扩展 account_reject_rows/
+	 * fault_timeline_rows）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * LIMIT 钳制（1–50——与 recent_comment_rejects 现行界一致；公开供单测钉界）。
+	 *
+	 * @param int $limit 请求行数。
+	 * @return int
+	 */
+	public static function limit_clamped( int $limit ): int {
+		return max( 1, min( 50, $limit ) );
+	}
+
+	/**
+	 * N1 纯 SQL 模板：最近登录拦截明细（三闸 + reject + stub/captcha；idx_gate_driver
+	 * 最左前缀 gate 定位）。列集不带 ip_hash/reason——PIPL 最小化（任务口径：IP 哈希省略，
+	 * 无明文账号可显——agent C E-a；归因键 trigger_source 在 meta 列）。
+	 *
+	 * @param string $table 完整表名。
+	 * @return string 含 LIMIT %d 占位符的只读 SELECT（prepare 由边界方法执行）。
+	 */
+	public static function recent_account_rejects_sql( string $table ): string {
+		return 'SELECT event_no, created_at, gate, stage, driver, rule_hit, meta FROM ' . $table . ' '
+			. "WHERE gate IN ('login','register','lostpassword') AND verdict = 'reject' AND stage IN ('stub','captcha') "
+			. 'ORDER BY id DESC LIMIT %d';
+	}
+
+	/**
+	 * N1 边界查询：Tab⑥「最近拦下的登录尝试」明细卡数据源（03 Tab⑥ 口径二④——批 2 接线）。
+	 *
+	 * @param int $limit 行数（默认 InterceptDigest::RECENT_LIMIT；钳 1–50）。
+	 * @return array<int, array<string, mixed>> 事件行（meta 解码为数组）。
+	 */
+	public static function recent_account_rejects( int $limit = InterceptDigest::RECENT_LIMIT ): array {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				self::recent_account_rejects_sql( self::table_name( $wpdb->prefix ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				self::limit_clamped( $limit )
+			),
+			ARRAY_A
+		);
+
+		return self::decode_meta_rows( $rows );
+	}
+
+	/**
+	 * N2 纯 SQL 模板：全闸故障时间线（fault_predicate_sql 同源复用——F7 唯一权威口径）。
+	 * 列集含 gate/verdict/meta：门名列、「当时怎么处理」组合映射、meta.raw 展开行数据源。
+	 *
+	 * @param string $table 完整表名。
+	 * @return string
+	 */
+	public static function recent_faults_sql( string $table ): string {
+		return 'SELECT event_no, created_at, gate, stage, driver, verdict, rule_hit, meta FROM ' . $table . ' '
+			. 'WHERE ' . self::fault_predicate_sql() . ' '
+			. 'ORDER BY id DESC LIMIT %d';
+	}
+
+	/**
+	 * N2 边界查询：Tab⑥「最近报错」全闸时间线数据源（含登录门与停转进入行；
+	 * 停转解除行非故障口径——见 recent_health_timeline）。
+	 *
+	 * @param int $limit 行数（钳 1–50）。
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function recent_faults( int $limit = InterceptDigest::RECENT_LIMIT ): array {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				self::recent_faults_sql( self::table_name( $wpdb->prefix ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				self::limit_clamped( $limit )
+			),
+			ARRAY_A
+		);
+
+		return self::decode_meta_rows( $rows );
+	}
+
+	/**
+	 * N3 纯谓词片段：停转进入 ∪ 解除（driver_halted:<state> 前缀 ∪ driver_resumed——
+	 * 解除为 verdict=pass 特例，不在故障谓词内（F7），独立谓词）。LIKE 下划线已转义。
+	 *
+	 * @return string
+	 */
+	public static function health_timeline_predicate_sql(): string {
+		return "(rule_hit LIKE 'driver\\_halted:%' OR rule_hit = 'driver_resumed')";
+	}
+
+	/**
+	 * N3 纯 SQL 模板：停转进入·解除时间线（04 §3 写入矩阵 system 行：gate=system、
+	 * stage=health；events 表无健康快照行——driver_halted 驱动行（verdict=error、闸侧留痕）
+	 * 归故障口径进 N2，本查询只取健康域留痕）。窗口/行数走 prepare 占位。
+	 *
+	 * @param string $table 完整表名。
+	 * @return string
+	 */
+	public static function recent_health_timeline_sql( string $table ): string {
+		return 'SELECT event_no, created_at, gate, stage, driver, verdict, rule_hit FROM ' . $table . ' '
+			. "WHERE gate = 'system' AND stage = 'health' AND " . self::health_timeline_predicate_sql() . ' '
+			. 'AND created_at >= %s '
+			. 'ORDER BY id DESC LIMIT %d';
+	}
+
+	/**
+	 * N3 边界查询：停转进入·解除时间线（Tab⑥ 报错时间线并入 + Tab① 块 D 批 3 消费）。
+	 *
+	 * @param int $limit 行数（钳 1–50）。
+	 * @param int $days  查询窗口天数（钳 1–RETENTION_DAYS；默认 7——B-5「7 天风平浪静」空态）。
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function recent_health_timeline( int $limit = InterceptDigest::RECENT_LIMIT, int $days = 7 ): array {
+		global $wpdb;
+
+		$clamped_days = max( 1, min( self::RETENTION_DAYS, $days ) );
+		$since        = date( 'Y-m-d 00:00:00', (int) strtotime( current_time( 'mysql' ) . ' -' . $clamped_days . ' days' ) );
+		$rows         = $wpdb->get_results(
+			$wpdb->prepare(
+				self::recent_health_timeline_sql( self::table_name( $wpdb->prefix ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$since,
+				self::limit_clamped( $limit )
+			),
+			ARRAY_A
+		);
+
+		return self::decode_meta_rows( $rows );
+	}
+
+	/**
+	 * N4 纯 SQL 模板：今日按规则分布（与 today_fault_distribution 同构——agent C N4；
+	 * 闸 id 调用方传参走 %s 占位）。批 3 Tab① 战报副行数据源。
+	 *
+	 * @param string $table 完整表名。
+	 * @return string
+	 */
+	public static function today_reject_distribution_sql( string $table ): string {
+		return 'SELECT rule_hit, COUNT(*) AS n FROM ' . $table . ' '
+			. "WHERE gate = %s AND verdict = 'reject' AND created_at >= %s "
+			. 'GROUP BY rule_hit ORDER BY n DESC';
+	}
+
+	/**
+	 * N4 边界查询：今日按规则拦下分布（rule_hit => 计数；空 rule_hit 归 '(无类别)' 键——
+	 * 行侧口径 InterceptDigest::distribution_from_rows 纯函数）。
+	 *
+	 * @param string $gate 闸 id（默认评论门——战报副行口径）。
+	 * @return array<string, int>
+	 */
+	public static function today_reject_distribution( string $gate = 'comment' ): array {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				self::today_reject_distribution_sql( self::table_name( $wpdb->prefix ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$gate,
+				current_time( 'Y-m-d' )
+			),
+			ARRAY_A
+		);
+
+		return InterceptDigest::distribution_from_rows( $rows );
+	}
+
+	/**
+	 * N6/N7a 纯 SQL 模板：今日故障按驱动聚合（fault_predicate_sql 复用 + GROUP BY driver——
+	 * agent C N6；$gates 非空时追加分域过滤（N7a 登录卡=三闸，gate id 白名单清洗））。
+	 *
+	 * @param string   $table 完整表名。
+	 * @param string[] $gates 闸 id 列表（空=全闸；id 只允许 [a-z0-9_]——清洗后 quoting）。
+	 * @return string
+	 */
+	public static function today_fault_by_driver_sql( string $table, array $gates = array() ): string {
+		$sql = 'SELECT driver, COUNT(*) AS n FROM ' . $table . ' WHERE ' . self::fault_predicate_sql();
+		if ( array() !== $gates ) {
+			$sql .= ' AND gate IN (' . self::gate_list_sql( $gates ) . ')';
+		}
+		return $sql . ' AND created_at >= %s GROUP BY driver ORDER BY n DESC';
+	}
+
+	/**
+	 * N6/N7a 边界查询：今日故障按驱动聚合计数（驱动卡「出错」格数据源——补 captcha 阶段
+	 * 以 reject 落库的远端故障（A-5）；登录卡传 ACCOUNT_GATES 得分域口径（N7a））。
+	 *
+	 * @param string[]|null $gates 闸 id 列表（null/空=全闸）。
+	 * @return array<string, int> driver => 今日故障数。
+	 */
+	public static function today_fault_by_driver( ?array $gates = null ): array {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				self::today_fault_by_driver_sql( self::table_name( $wpdb->prefix ), is_array( $gates ) ? $gates : array() ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				current_time( 'Y-m-d' )
+			),
+			ARRAY_A
+		);
+
+		$map = array();
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			if ( isset( $row['driver'] ) && is_string( $row['driver'] ) ) {
+				$map[ $row['driver'] ] = isset( $row['n'] ) && is_numeric( $row['n'] ) ? (int) $row['n'] : 0;
+			}
+		}
+		return $map;
+	}
+
+	/**
+	 * 闸 id 列表 → 带引号 IN 片段（白名单清洗 [a-z0-9_]；全部无效时回落 ''——
+	 * gate IN ('') 匹配零行，不放大查询面）。
+	 *
+	 * @param string[] $gates 闸 id 列表。
+	 * @return string
+	 */
+	private static function gate_list_sql( array $gates ): string {
+		$clean = array();
+		foreach ( $gates as $gate ) {
+			$id = preg_replace( '/[^a-z0-9_]/', '', (string) $gate );
+			if ( is_string( $id ) && '' !== $id ) {
+				$clean[] = "'" . $id . "'";
+			}
+		}
+		return array() === $clean ? "''" : implode( ',', $clean );
+	}
+
+	/**
+	 * 分布行（rule_hit/n）→ 计数 map（空/缺 rule_hit 归 '(无类别)'）——行侧口径归
+	 * InterceptDigest 纯逻辑层（公共纯函数，单测直钉；本类只做查询）。
+	 */
+
+	/**
+	 * 查询行 meta 列解码（JSON → 数组；非字符串/缺失回落空数组——新查询共用行尾处理）。
+	 *
+	 * @param array<int, array<string, mixed>>|mixed $rows 查询行。
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function decode_meta_rows( $rows ): array {
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+		foreach ( $rows as $index => $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$rows[ $index ]['meta'] = isset( $row['meta'] ) && is_string( $row['meta'] )
+				? json_decode( $row['meta'], true )
+				: array();
+		}
+		return $rows;
 	}
 
 	/**

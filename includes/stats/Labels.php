@@ -236,7 +236,8 @@ final class Labels {
 	}
 
 	/**
-	 * 闸 → 门名（对照表 23——闸字退到副标题括号隐喻层，正文用「门」）。
+	 * 闸 → 门名（对照表 23——闸字退到副标题括号隐喻层，正文用「门」；
+	 * 【UI 批 2】system=健康域留痕行（停转进入·解除时间线门名列）。
 	 *
 	 * @param string $gate 闸 id。
 	 */
@@ -246,6 +247,7 @@ final class Labels {
 			'register'     => '注册门',
 			'lostpassword' => '找回密码门',
 			'comment'      => '评论门',
+			'system'       => '服务商健康',
 			default        => $gate,
 		};
 	}

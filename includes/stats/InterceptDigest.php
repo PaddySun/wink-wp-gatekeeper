@@ -9,7 +9,9 @@
  *      额度行 + 未启用灰卡占位；数字自守恒/停转有主语/未启用占位三条展示纪律）；
  *   3. 「最近拦下的评论」明细行组装：events 表 reject 事件 + comment_id 直查 wp_comments
  *      的昵称/邮箱/正文——打码展示、摘要 60 字、编辑链接直达（v1.3 起沿用）；
- *   4. spam 留档量黄条阈值决策（阈值 500 沿用）。
+ *   4. spam 留档量黄条阈值决策（阈值 500 沿用）；
+ *   5. 【UI 批 2】事件查询行组装扩展：登录域拦截明细行（N1）/全闸故障 ∪ 停转解除
+ *      合并时间线（N2+N3）/「当时怎么处理」组合映射/今日分布行侧口径（N4）。
  *
  * 术语纪律：本层输出一律走 Labels 人话（对照表资产）——「调用/维度/待审/登录失败
  * 尝试」等黑话不再出现在站长文案（N5 映射表落地）。
@@ -155,6 +157,165 @@ final class InterceptDigest {
 	 */
 	public static function spam_warn( int $spam_count, ?int $threshold = null ): bool {
 		return $spam_count > ( null !== $threshold ? $threshold : self::SPAM_WARN_THRESHOLD );
+	}
+
+	/* -------------------------------------------------------------------
+	 * UI 批 2·事件行组装扩展（DESIGN-UI-tech-feasibility §G 批 2——门名/映射/省略三面）：
+	 *   account_reject_rows  N1 登录域拦截明细行（门名/防线/原因/归因；IP 哈希省略）；
+	 *   fault_timeline_rows  N2+N3 全闸故障 ∪ 停转解除合并时间线（id 倒序归并）；
+	 *   handling_word        「当时怎么处理」组合映射（A-12——verdict/stage/gate）；
+	 *   distribution_from_rows 分布行侧口径（N4——空 rule_hit 归并单键）。
+	 * 全部零 WP 依赖；夹具行形态 = EventsTable 查回（meta 已解码）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * N1 登录域拦截明细行组装（Tab⑥ 口径二④「最近拦下的登录尝试」）。
+	 *
+	 * 列面（任务口径）：时间 / 门（Labels::gate_word）/ 哪道防线（stage_word）/
+	 * 为什么拦（trigger_source 归因人话优先，缺省回落 rule_hit 人话——Labels 映射，
+	 * 未收录键原样转义直出不撒谎）。PIPL 最小化：IP 哈希省略（查询列集即不含）、
+	 * 无明文账号列（事件表本就不存——agent C E-a：措辞「尝试特征」不渲染）。
+	 *
+	 * @param array<int, array<string, mixed>> $events 事件行（event_no/created_at/gate/
+	 *                                                  stage/rule_hit/meta[decoded]）。
+	 * @return array<int, array{event_no: string, created_at: string, gate: string, gate_word: string,
+	 *                          stage_word: string, reason: string, trigger: string}>
+	 */
+	public static function account_reject_rows( array $events ): array {
+		$rows = array();
+		foreach ( $events as $event ) {
+			$gate     = isset( $event['gate'] ) && is_string( $event['gate'] ) ? $event['gate'] : '';
+			$stage    = isset( $event['stage'] ) && is_string( $event['stage'] ) ? $event['stage'] : '';
+			$rule_hit = isset( $event['rule_hit'] ) && is_string( $event['rule_hit'] ) ? $event['rule_hit'] : '';
+			$meta     = isset( $event['meta'] ) && is_array( $event['meta'] ) ? $event['meta'] : array();
+			$source   = isset( $meta['trigger_source'] ) && is_string( $meta['trigger_source'] ) ? $meta['trigger_source'] : '';
+
+			$rows[] = array(
+				'event_no'   => isset( $event['event_no'] ) && is_string( $event['event_no'] ) ? $event['event_no'] : '',
+				'created_at' => isset( $event['created_at'] ) && is_string( $event['created_at'] ) ? $event['created_at'] : '',
+				'gate'       => $gate,
+				'gate_word'  => '' !== $gate ? Labels::gate_word( $gate ) : '',
+				'stage_word' => '' !== $stage ? Labels::stage_word( $stage ) : '',
+				'reason'     => '' !== $rule_hit ? Labels::rule_hit_word( $rule_hit ) : '',
+				'trigger'    => '' !== $source ? Labels::trigger_word( $source ) : '',
+			);
+		}
+		return $rows;
+	}
+
+	/**
+	 * N2+N3 全闸故障 ∪ 停转解除合并时间线行组装（Tab⑥「三、报错历史②最近报错」）。
+	 *
+	 * 两源同表自增主键全局可比——按 id 倒序归并（各源查询已 id DESC，归并线性合并保持序）。
+	 * 服务商名解析：registry label 映射（未注册 id 原样显示——不虚构人话名）。
+	 * 「当时怎么处理」= handling_word() 组合映射；meta.raw 透传（展开行渲染层判空）。
+	 *
+	 * @param array<int, array<string, mixed>> $fault_events  N2 行（含 id/meta）。
+	 * @param array<int, array<string, mixed>> $health_events N3 行（含 id；无 meta 列——安全回落）。
+	 * @param array<string, string>            $driver_labels driver_id => registry label。
+	 * @return array<int, array{id: int, event_no: string, created_at: string, gate: string,
+	 *                        gate_word: string, stage: string, driver: string, driver_label: string,
+	 *                        verdict: string, rule_hit: string, rule_word: string,
+	 *                        handling: string, raw: array<string, mixed>}>
+	 */
+	public static function fault_timeline_rows( array $fault_events, array $health_events, array $driver_labels ): array {
+		$merged = array_merge( $fault_events, $health_events );
+
+		// id 倒序归并（id 缺失按 0 兜底排尾——防御性，正常查询恒带 id 列）。
+		usort( $merged, static function ( array $a, array $b ): int {
+			$id_a = isset( $a['id'] ) && is_numeric( $a['id'] ) ? (int) $a['id'] : 0;
+			$id_b = isset( $b['id'] ) && is_numeric( $b['id'] ) ? (int) $b['id'] : 0;
+			return $id_b <=> $id_a;
+		} );
+
+		$rows = array();
+		foreach ( $merged as $event ) {
+			$gate     = isset( $event['gate'] ) && is_string( $event['gate'] ) ? $event['gate'] : '';
+			$stage    = isset( $event['stage'] ) && is_string( $event['stage'] ) ? $event['stage'] : '';
+			$driver   = isset( $event['driver'] ) && is_string( $event['driver'] ) ? $event['driver'] : '';
+			$verdict  = isset( $event['verdict'] ) && is_string( $event['verdict'] ) ? $event['verdict'] : '';
+			$rule_hit = isset( $event['rule_hit'] ) && is_string( $event['rule_hit'] ) ? $event['rule_hit'] : '';
+			$meta     = isset( $event['meta'] ) && is_array( $event['meta'] ) ? $event['meta'] : array();
+			$raw      = isset( $meta['raw'] ) && is_array( $meta['raw'] ) ? $meta['raw'] : array();
+
+			$rows[] = array(
+				'id'           => isset( $event['id'] ) && is_numeric( $event['id'] ) ? (int) $event['id'] : 0,
+				'event_no'     => isset( $event['event_no'] ) && is_string( $event['event_no'] ) ? $event['event_no'] : '',
+				'created_at'   => isset( $event['created_at'] ) && is_string( $event['created_at'] ) ? $event['created_at'] : '',
+				'gate'         => $gate,
+				'gate_word'    => '' !== $gate ? Labels::gate_word( $gate ) : '',
+				'stage'        => $stage,
+				'driver'       => $driver,
+				'driver_label' => ( '' !== $driver && isset( $driver_labels[ $driver ] ) && is_string( $driver_labels[ $driver ] ) )
+					? $driver_labels[ $driver ]
+					: $driver,
+				'verdict'      => $verdict,
+				'rule_hit'     => $rule_hit,
+				'rule_word'    => '' !== $rule_hit ? Labels::rule_hit_word( $rule_hit ) : '',
+				'handling'     => self::handling_word( $gate, $stage, $verdict, $rule_hit ),
+				'raw'          => $raw,
+			);
+		}
+		return $rows;
+	}
+
+	/**
+	 * 「当时怎么处理」组合映射（A-12：verdict/stage/gate → 一句话主语化结果；
+	 * 状态码不出站长文案——优先 rule_hit 键族，缺省兜底统一话术）。
+	 *
+	 * 顺序敏感：停转/解除键族最先（跨 gate/verdict），降级放行次之（verdict=error 但落地放行），
+	 * 再按门分域（评论 review error=收口待审；账户族 error=fail-closed 拦下），
+	 * reject 形态远端故障=当场拦下（error_policy=block 兜底），其余=缺省兜底。
+	 *
+	 * @param string $gate     闸 id（system=健康域）。
+	 * @param string $stage    阶段。
+	 * @param string $verdict  判定。
+	 * @param string $rule_hit 命中规则键（可能逗号拼接）。
+	 * @return string
+	 */
+	public static function handling_word( string $gate, string $stage, string $verdict, string $rule_hit ): string {
+		if ( 'driver_resumed' === $rule_hit ) {
+			return '服务商恢复正常';
+		}
+		if ( 0 === strpos( $rule_hit, 'driver_halted:' ) ) {
+			return '今日暂停，防线跳过它继续';
+		}
+		if ( '' !== $rule_hit && false !== strpos( $rule_hit, 'degraded' ) ) {
+			return '故障降级放行（真访客不受影响）';
+		}
+		if ( 'error' === $verdict ) {
+			if ( 'comment' === $gate && 'review' === $stage ) {
+				return '先收进待审区，等你复核';
+			}
+			if ( in_array( $gate, self::ACCOUNT_GATES, true ) ) {
+				return '拦下该次尝试（故障兜底）';
+			}
+			return '已按兜底策略处理';
+		}
+		if ( 'reject' === $verdict ) {
+			return '当场拦下（故障兜底）';
+		}
+		return '已按兜底策略处理';
+	}
+
+	/**
+	 * 分布行（rule_hit/n）→ 计数 map（N4 行侧口径——空/缺 rule_hit 归 '(无类别)' 单键，
+	 * 计数强转 int；与 today_fault_distribution 现行归并一致）。
+	 *
+	 * @param array<int, array<string, mixed>>|mixed $rows 查询行（ARRAY_A 形态）。
+	 * @return array<string, int>
+	 */
+	public static function distribution_from_rows( $rows ): array {
+		$dist = array();
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$key = isset( $row['rule_hit'] ) && is_string( $row['rule_hit'] ) && '' !== $row['rule_hit'] ? $row['rule_hit'] : '(无类别)';
+			// 累加（同键多行归并——防御性；SQL GROUP BY 下不出现，行侧口径不依赖该前提）。
+			$dist[ $key ] = ( $dist[ $key ] ?? 0 ) + ( isset( $row['n'] ) && is_numeric( $row['n'] ) ? (int) $row['n'] : 0 );
+		}
+		return $dist;
 	}
 
 	/* -------------------------------------------------------------------

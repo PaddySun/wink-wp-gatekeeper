@@ -142,7 +142,22 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringContainsString( 'window_minutes', $body, '窗口标注随配置动态（D3）' );
 		$this->assertStringContainsString( 'stats_driver_cards', $body, '登录段服务商口径卡' );
 		$this->assertStringContainsString( 'render_driver_card', $body, '登录段复用统一卡模板' );
-		$this->assertStringContainsString( '明细接入后启用', $body, '最近登录拦截占位卡（批 2 接线）' );
+		$this->assertStringContainsString( 'render_account_recent_table', $body, '④明细表接线（批 2 N1——占位卡退役）' );
+		$this->assertStringNotContainsString( '明细接入后启用', $body, '批 1 占位文案随接线移除' );
+	}
+
+	/**
+	 * UI 批 2·接线一：登录④「最近拦下的登录尝试」明细表（N1 数据面）。
+	 */
+	public function test_login_detail_table_wired_to_n1_query(): void {
+		$table = self::body( 'render_account_recent_table' );
+		$this->assertStringContainsString( 'recent_account_rejects', $table, 'N1 查询消费' );
+		$this->assertStringContainsString( 'account_reject_rows', $table, '行组装纯函数消费（门名/防线/原因/归因映射）' );
+		$this->assertStringContainsString( '哪张门', $table, '列头：门名' );
+		$this->assertStringContainsString( '为什么拦', $table, '列头：原因人话' );
+		$this->assertStringContainsString( '不显示账号与 IP', $table, 'PIPL 最小化注（无明文账号/IP 哈希省略）' );
+		$this->assertStringContainsString( '最近没拦过任何登录尝试', $table, '空态人话' );
+		$this->assertStringNotContainsString( 'ip_hash', $table, 'IP 哈希不进明细卡渲染' );
 	}
 
 	public function test_login_section_wording_cleanup(): void {
@@ -150,6 +165,18 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringNotContainsString( '调用', $body, '「调用」黑话退役（对照表 1）' );
 		$this->assertStringNotContainsString( '登录失败尝试', $body );
 		$this->assertStringNotContainsString( '账户保护', $body, '更名登录防护（D5）' );
+	}
+
+	/**
+	 * UI 批 2·接线三：登录卡「出错」格（N7a 分域——事件表三闸过滤聚合）+ 评论卡出错格
+	 * 补 captcha 远端故障（N6——fault 口径按驱动聚合取代 by_driver.error 单键）。
+	 */
+	public function test_driver_cards_error_cells_wired_to_fault_by_driver(): void {
+		$cards = self::body( 'stats_driver_cards' );
+		$this->assertStringContainsString( 'today_fault_by_driver', $cards, 'N6/N7a 查询消费（出错格数据源）' );
+		$this->assertStringContainsString( 'ACCOUNT_GATES', $cards, '登录卡分域过滤（三闸）' );
+		$this->assertStringNotContainsString( '批 2 接线——格隐藏', $cards, '批 1 待接线注记移除' );
+		$this->assertStringNotContainsString( "'errors'     => null,", $cards, '登录卡出错格不再以 null 隐藏' );
 	}
 
 	/* ---------- ④ 报错历史段（口径三：今日出错 + 人话分布 + 报错表迁入） ---------- */
@@ -160,10 +187,23 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringContainsString( '今日出错', $body, '今日故障→今日出错（对照表 5）' );
 		$this->assertStringContainsString( 'Labels::rule_hit_word', $body, '分布键名人话映射（N5 消费）' );
 		$this->assertStringContainsString( '服务商原始回复', $body, 'meta.raw 展开行人话（对照表 18）' );
-		$this->assertStringContainsString( '先收进待审区', $body, '「评论当时怎么处理」列' );
 		$this->assertStringContainsString( '哪个服务商', $body );
-		$this->assertStringContainsString( '全闸时间线', $body, '全闸接线批 2 的注记在位' );
 		$this->assertStringNotContainsString( '今日故障', $body, '故障卡归属明确为报错历史（P8）' );
+	}
+
+	/**
+	 * UI 批 2·接线二：全闸报错时间线（N2 故障 + N3 停转进入·解除——批 1 注记移除）。
+	 */
+	public function test_fault_section_full_gate_timeline_wired(): void {
+		$body = self::body( 'render_stats_fault_section' );
+		$this->assertStringContainsString( 'recent_faults', $body, 'N2 全闸故障时间线查询消费' );
+		$this->assertStringContainsString( 'recent_health_timeline', $body, 'N3 停转进入·解除时间线查询消费' );
+		$this->assertStringContainsString( 'fault_timeline_rows', $body, '行组装纯函数消费（id 倒序归并+处理列映射）' );
+		$this->assertStringContainsString( '当时怎么处理', $body, '「怎么处理」列全闸化（原「评论当时怎么处理」）' );
+		$this->assertStringContainsString( '哪个门', $body, '全闸时间线新增门名列' );
+		$this->assertStringNotContainsString( '当前显示评论门报错', $body, '批 1 注记随接线移除' );
+		$this->assertStringNotContainsString( 'recent_comment_faults', $body, '评论门单源查询退役（N2 超集取代）' );
+		$this->assertStringNotContainsString( '先收进待审区，等你复核</td>', $body, '处理列不再硬编码——走 handling_word 组合映射' );
 	}
 
 	/* ---------- ⑤ 尾两卡：流水 + 设置清零 ---------- */
@@ -212,14 +252,14 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringContainsString( '计数已停用', $body, '统计停用黄字注保留（FIX-δ）' );
 	}
 
-	/* ---------- ⑦ 版本 0.3.8（四处同步） ---------- */
+	/* ---------- ⑦ 版本 0.3.9（四处同步——UI 批 2 递增） ---------- */
 
-	public function test_version_bumped_to_0_3_8_in_four_places(): void {
+	public function test_version_bumped_to_0_3_9_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.8$/m', $entry, '插件头 Version 0.3.8' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.8' )", $entry, '版本常量 0.3.8' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.8$/m', $readme, 'readme Stable tag 0.3.8' );
-		$this->assertStringContainsString( '= 0.3.8 =', $readme, 'Changelog 0.3.8 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.9$/m', $entry, '插件头 Version 0.3.9' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.9' )", $entry, '版本常量 0.3.9' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.9$/m', $readme, 'readme Stable tag 0.3.9' );
+		$this->assertStringContainsString( '= 0.3.9 =', $readme, 'Changelog 0.3.9 条目' );
 	}
 }

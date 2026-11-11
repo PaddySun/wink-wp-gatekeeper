@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.3.8
+Stable tag: 0.3.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.3.9 =
+
+UI 批 2·事件查询面×5 + Tab⑥ 批 1 占位接线（2026-11-12，DESIGN-UI-tech-feasibility §D/§G 批 2——全部只读 SELECT+prepare+LIMIT，零 DDL、零 recorder 写路径变更，idx_gate_driver/idx_created 既有索引命中）：①五个新查询（EventsTable 纯 SQL 模板 builder+边界方法成对）：N1 recent_account_rejects（登录/注册/找回三闸 reject 明细，stub/captcha 两阶段，列集不带 ip_hash——PIPL 最小化）、N2 recent_faults（全闸故障时间线，fault_predicate_sql 同源复用——F7）、N3 recent_health_timeline（停转进入·解除 system/health 留痕，7 天窗口——driver_resumed 非故障口径独立谓词）、N4 today_reject_distribution（今日按规则拦下分布，批 3 战报副行数据源）、N6 today_fault_by_driver（今日故障按驱动聚合，支持 ACCOUNT_GATES 分域过滤=N7a）；②三块接线：登录段④「最近拦下的登录尝试」明细表（时间/事件编号/哪张门/哪道防线/为什么拦——trigger_source 归因人话，无账号无 IP 哈希）、报错历史②全闸时间线（N2∪N3 按 id 倒序归并，新增「哪个门」列，「当时怎么处理」组合映射 handling_word——含服务商当日暂停与恢复留痕行，批 1「当前显示评论门报错」注记移除，recent_comment_faults 退役）、服务商统一卡出错格（评论卡=事件真值∪计数缓存取大补 captcha 远端故障；登录卡=三闸分域出错数——批 1 隐藏格解除）；③Labels::gate_word 收录 system=服务商健康；InterceptDigest 行组装扩展（account_reject_rows/fault_timeline_rows/handling_word/distribution_from_rows 全纯函数）。测试：EventsTableQueriesTest 10 + InterceptDigestRowsTest 7 + UiTab6StatsContractTest 接线 3 新例（批 1 占位断言随接线翻转），版本钉 0.3.9 三文件同步。真机（厦门 wpclean）：部署 0.3.9 后造数（登录 reject/远端故障/停转解除行）DOM 断言明细卡+时间线+出错格（IMPL 报告：docs/reports/IMPL-UI2-queries-2026-11-12.md）。
 
 = 0.3.8 =
 

@@ -1967,7 +1967,8 @@ final class SettingsPage {
 
 		/* UI 批 1（DESIGN-UI-tab6 A 提案三口径骨架）：五段编排——速览条→一、评论防护→
 		 * 二、登录防护→三、报错历史→四、拦截记录流水→五、统计设置·清零；每段
-		 * 「结果→归因→案例」节奏。批 2 接线点：登录明细卡/全闸报错时间线（本版占位）。 */
+		 * 「结果→归因→案例」节奏。批 2 已接线：登录④明细卡（N1）/全闸报错时间线
+		 * （N2+N3）/服务商卡出错格（N6+N7a）——占位提示全部移除。 */
 		$registry      = null !== self::$driver_registry ? self::$driver_registry : null;
 		$ip_driver_ids = array_keys( null !== $registry ? $registry->by_type( 'ip' ) : array() );
 		$split_today   = \WinkGatekeeper\Stats\InterceptDigest::review_split( $cache, $ip_driver_ids, false );
@@ -2178,17 +2179,68 @@ final class SettingsPage {
 				<?php self::render_driver_card( $card ); ?>
 			<?php endforeach; ?>
 
-			<h3><?php esc_html_e( '④ 最近拦下的登录尝试', 'wink-gatekeeper' ); ?></h3>
-			<p class="wk-muted"><?php esc_html_e( '明细接入后启用——登录/注册/找回的拦截事件已逐条留档，展示面批 2 接线；届时此处显示时间 / 哪张门 / 为什么拦 / 尝试特征（打码）。', 'wink-gatekeeper' ); ?></p>
+			<h3><?php esc_html_e( '④ 最近拦下的登录尝试（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
+			<?php self::render_account_recent_table(); ?>
 		</section>
+		<?php
+	}
+
+	/**
+	 * 「最近拦下的登录尝试」明细表（UI 批 2 接线——批 1 占位卡退役；数据源 N1：
+	 * EventsTable::recent_account_rejects + 行组装 InterceptDigest::account_reject_rows）。
+	 *
+	 * 列面：时间 / 事件编号 / 哪张门 / 哪道防线 / 为什么拦（trigger_source 归因人话，
+	 * 括号注防线触发；缺省回落 rule_hit 人话）。PIPL 最小化：IP 哈希省略（查询列集
+	 * 即不含）、无明文账号列（事件表本就不存——只显特征与结果）。
+	 *
+	 * @return void
+	 */
+	private static function render_account_recent_table(): void {
+		$events = \WinkGatekeeper\Stats\EventsTable::recent_account_rejects( \WinkGatekeeper\Stats\InterceptDigest::RECENT_LIMIT );
+		$rows   = \WinkGatekeeper\Stats\InterceptDigest::account_reject_rows( $events );
+		?>
+		<p class="wk-muted"><?php esc_html_e( '只显示特征与结果，不显示账号与 IP；为什么拦=触发归因（同一账号连错太多次等）或验证码结果。', 'wink-gatekeeper' ); ?></p>
+		<?php if ( array() === $rows ) : ?>
+			<p class="wk-muted"><?php esc_html_e( '最近没拦过任何登录尝试——这是好状态。', 'wink-gatekeeper' ); ?></p>
+		<?php else : ?>
+			<table class="wk-table">
+				<thead>
+					<tr>
+						<th scope="col"><?php esc_html_e( '时间', 'wink-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( '事件编号', 'wink-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( '哪张门', 'wink-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( '哪道防线', 'wink-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( '为什么拦', 'wink-gatekeeper' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $rows as $row ) : ?>
+						<tr>
+							<td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
+							<td><code><?php echo esc_html( (string) $row['event_no'] ); ?></code></td>
+							<td><?php echo esc_html( (string) $row['gate_word'] ); ?></td>
+							<td><?php echo esc_html( (string) $row['stage_word'] ); ?></td>
+							<td>
+								<?php echo esc_html( (string) $row['reason'] ); ?>
+								<?php if ( '' !== (string) $row['trigger'] ) : ?>
+									<span class="wk-muted">（<?php echo esc_html( (string) $row['trigger'] ); ?>）</span>
+								<?php endif; ?>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
 		<?php
 	}
 
 	/**
 	 * 三、报错历史（口径三——DESIGN-UI-tab6 §2.3：今日出错 + 人话分布 + 最近报错表迁入）。
 	 *
-	 * 表数据源沿用 recent_comment_faults（评论门当前形态）；全闸时间线批 2 接线
-	 * （EventsTable::recent_faults + fault_predicate_sql 复用——agent C N2）。
+	 * 【UI 批 2 接线】②最近报错 = 全闸报错时间线（N2：EventsTable::recent_faults，
+	 * fault_predicate_sql 同源复用——F7）∪ 停转进入·解除时间线（N3：recent_health_timeline，
+	 * driver_resumed 非故障口径的解除留痕）——InterceptDigest::fault_timeline_rows 按 id
+	 * 倒序归并，「当时怎么处理」组合映射（handling_word），meta.raw 展开行保留。
 	 *
 	 * @return void
 	 */
@@ -2202,26 +2254,19 @@ final class SettingsPage {
 			$fault_total += (int) ( is_array( $fault_driver_counts ) ? ( $fault_driver_counts['error'] ?? 0 ) : 0 );
 		}
 
-		// 最近报错行（评论门——v1.4 错误列数据源迁入本段）。
-		$fault_events = \WinkGatekeeper\Stats\EventsTable::recent_comment_faults( \WinkGatekeeper\Stats\InterceptDigest::RECENT_LIMIT );
-		$registry     = null !== self::$driver_registry ? self::$driver_registry : null;
-		$fault_rows   = array();
-		foreach ( $fault_events as $fault_event ) {
-			$fault_meta  = isset( $fault_event['meta'] ) && is_array( $fault_event['meta'] ) ? $fault_event['meta'] : array();
-			$fault_raw   = isset( $fault_meta['raw'] ) && is_array( $fault_meta['raw'] ) ? $fault_meta['raw'] : array();
-			$fault_brief = trim( ( isset( $fault_raw['code'] ) && is_string( $fault_raw['code'] ) ? $fault_raw['code'] : '' )
-				. ' ' . ( isset( $fault_raw['message'] ) && is_string( $fault_raw['message'] ) ? $fault_raw['message'] : '' ) );
-			$fault_driver = isset( $fault_event['driver'] ) && is_string( $fault_event['driver'] ) ? $fault_event['driver'] : '';
-			$driver_meta  = null !== $registry && '' !== $fault_driver ? $registry->get( $fault_driver ) : null;
-			$fault_rows[] = array(
-				'created_at'   => isset( $fault_event['created_at'] ) && is_string( $fault_event['created_at'] ) ? $fault_event['created_at'] : '',
-				'event_no'     => isset( $fault_event['event_no'] ) && is_string( $fault_event['event_no'] ) ? $fault_event['event_no'] : '',
-				'driver_label' => null !== $driver_meta && is_string( $driver_meta['label'] ?? null ) ? $driver_meta['label'] : $fault_driver,
-				'rule_hit'     => isset( $fault_event['rule_hit'] ) && is_string( $fault_event['rule_hit'] ) ? $fault_event['rule_hit'] : '',
-				'brief'        => '' !== $fault_brief ? $fault_brief : ( isset( $fault_event['rule_hit'] ) ? (string) $fault_event['rule_hit'] : '' ),
-				'raw'          => $fault_raw,
-			);
+		// 全闸时间线行（N2 故障 ∪ N3 停转进入·解除；服务商名 registry label 解析）。
+		$fault_events  = \WinkGatekeeper\Stats\EventsTable::recent_faults( \WinkGatekeeper\Stats\InterceptDigest::RECENT_LIMIT );
+		$health_events = \WinkGatekeeper\Stats\EventsTable::recent_health_timeline( \WinkGatekeeper\Stats\InterceptDigest::RECENT_LIMIT, 7 );
+		$driver_labels = array();
+		$registry      = null !== self::$driver_registry ? self::$driver_registry : null;
+		if ( null !== $registry ) {
+			foreach ( $registry->all() as $driver_id => $driver_meta ) {
+				if ( is_string( $driver_meta['label'] ?? null ) ) {
+					$driver_labels[ (string) $driver_id ] = (string) $driver_meta['label'];
+				}
+			}
 		}
+		$fault_rows = \WinkGatekeeper\Stats\InterceptDigest::fault_timeline_rows( $fault_events, $health_events, $driver_labels );
 		?>
 		<section class="wk-card" id="wk-stats-faults">
 			<h2><?php esc_html_e( '三、报错历史（和第三方服务商打交道时出的岔子）', 'wink-gatekeeper' ); ?></h2>
@@ -2244,8 +2289,8 @@ final class SettingsPage {
 				<p class="wk-muted"><?php esc_html_e( '今日没出过错——各防线都正常。', 'wink-gatekeeper' ); ?></p>
 			<?php endif; ?>
 
-			<h3><?php esc_html_e( '② 最近报错', 'wink-gatekeeper' ); ?></h3>
-			<p class="wk-muted"><?php esc_html_e( '当前显示评论门报错；全闸时间线（含登录门）批 2 接线。', 'wink-gatekeeper' ); ?></p>
+			<h3><?php esc_html_e( '② 最近报错（全闸，含服务商暂停与恢复）', 'wink-gatekeeper' ); ?></h3>
+			<p class="wk-muted"><?php esc_html_e( '四张门和服务商的岔子都在一张时间线上；服务商当日暂停与次日恢复也会留痕在此。', 'wink-gatekeeper' ); ?></p>
 			<?php if ( array() === $fault_rows ) : ?>
 				<p class="wk-muted"><?php esc_html_e( '最近没出过错——一切正常。', 'wink-gatekeeper' ); ?></p>
 			<?php else : ?>
@@ -2254,9 +2299,10 @@ final class SettingsPage {
 						<tr>
 							<th scope="col"><?php esc_html_e( '时间', 'wink-gatekeeper' ); ?></th>
 							<th scope="col"><?php esc_html_e( '事件编号', 'wink-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( '哪个门', 'wink-gatekeeper' ); ?></th>
 							<th scope="col"><?php esc_html_e( '哪个服务商', 'wink-gatekeeper' ); ?></th>
 							<th scope="col"><?php esc_html_e( '出了什么岔子', 'wink-gatekeeper' ); ?></th>
-							<th scope="col"><?php esc_html_e( '评论当时怎么处理', 'wink-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( '当时怎么处理', 'wink-gatekeeper' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -2264,11 +2310,14 @@ final class SettingsPage {
 							<tr>
 								<td><?php echo esc_html( (string) $fault_row['created_at'] ); ?></td>
 								<td><code><?php echo esc_html( (string) $fault_row['event_no'] ); ?></code></td>
+								<td><?php echo esc_html( (string) $fault_row['gate_word'] ); ?></td>
 								<td><?php echo esc_html( (string) $fault_row['driver_label'] ); ?></td>
 								<td>
-									<?php echo esc_html( \WinkGatekeeper\Stats\Labels::rule_hit_word( (string) $fault_row['rule_hit'] ) ); ?>
-									<?php if ( '' !== (string) $fault_row['brief'] && (string) $fault_row['brief'] !== (string) $fault_row['rule_hit'] ) : ?>
-										<span class="wk-muted">（<?php echo esc_html( mb_substr( (string) $fault_row['brief'], 0, 120, 'UTF-8' ) ); ?>）</span>
+									<?php echo esc_html( (string) $fault_row['rule_word'] ); ?>
+									<?php $fault_brief = trim( ( isset( $fault_row['raw']['code'] ) && is_string( $fault_row['raw']['code'] ) ? $fault_row['raw']['code'] : '' )
+										. ' ' . ( isset( $fault_row['raw']['message'] ) && is_string( $fault_row['raw']['message'] ) ? $fault_row['raw']['message'] : '' ) ); ?>
+									<?php if ( '' !== $fault_brief ) : ?>
+										<span class="wk-muted">（<?php echo esc_html( mb_substr( $fault_brief, 0, 120, 'UTF-8' ) ); ?>）</span>
 									<?php endif; ?>
 									<?php if ( array() !== $fault_row['raw'] ) : ?>
 										<details style="margin-top:4px;">
@@ -2277,7 +2326,7 @@ final class SettingsPage {
 										</details>
 									<?php endif; ?>
 								</td>
-								<td><?php esc_html_e( '先收进待审区，等你复核', 'wink-gatekeeper' ); ?></td>
+								<td><?php echo esc_html( (string) $fault_row['handling'] ); ?></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -2354,6 +2403,10 @@ final class SettingsPage {
 	 * cloud.chain 中（含 failover 位——备用位会真实出数）。登录段只列验证码类；
 	 * 登录域净口径（F3/E-c）：动作数=captcha_pass+captcha_reject、放行=直读 captcha_pass。
 	 *
+	 * 【UI 批 2】出错格接线（A-5/N6+N7a）：事件表故障口径按驱动聚合——
+	 *   评论卡=全闸聚合取大（事件真值 ∪ by_driver.error——补 captcha 阶段以 reject 落库的远端故障）；
+	 *   登录卡=三闸分域聚合（N7a——by_driver.error 全闸混合不可分域，F3）。
+	 *
 	 * @param string $context comment|login。
 	 * @return array<int, array<string, mixed>> InterceptDigest::driver_card 输入组。
 	 */
@@ -2370,6 +2423,10 @@ final class SettingsPage {
 		$cloud         = is_array( $settings['review']['cloud'] ?? null ) ? $settings['review']['cloud'] : array();
 		$chain         = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
 		$cloud_enabled = ! empty( $cloud['enabled'] );
+
+		// 出错格数据源（N6/N7a——事件表真值；登录卡分域过滤 ACCOUNT_GATES）。
+		$fault_all       = \WinkGatekeeper\Stats\EventsTable::today_fault_by_driver();
+		$fault_in_account = \WinkGatekeeper\Stats\EventsTable::today_fault_by_driver( \WinkGatekeeper\Stats\InterceptDigest::ACCOUNT_GATES );
 
 		$types = 'login' === $context ? array( 'captcha' ) : array( 'captcha', 'review' );
 		$cards = array();
@@ -2397,17 +2454,17 @@ final class SettingsPage {
 						'context'    => $context,
 						'enabled'    => $enabled,
 						'halt_state' => $halt,
-						'used'       => $passed + (int) ( $today['captcha_reject'] ?? 0 ),
+						'used'       => $passed + (int) ( $today['captcha_reject'] ?? 0 ) + (int) ( $today['error'] ?? 0 ),
 						'passed'     => $passed,
 						'rejected'   => (int) ( $today['captcha_reject'] ?? 0 ),
 						'review'     => null, // 登录族无待审——格隐藏。
-						'errors'     => null, // 分域出错数批 2 接线——格隐藏。
+						'errors'     => (int) ( $fault_in_account[ $driver_id ] ?? 0 ), // N7a 分域出错（事件表真值）。
 						'quota'      => 0,
 						'total'      => array(
 							'passed'   => (int) ( $total['captcha_pass'] ?? 0 ),
 							'rejected' => (int) ( $total['captcha_reject'] ?? 0 ),
 							'review'   => null,
-							'errors'   => null,
+							'errors'   => null, // 累计分域出错不在本批查询面——格省略（不虚构）。
 						),
 						'config_tab' => 'captcha',
 					) );
@@ -2425,7 +2482,7 @@ final class SettingsPage {
 					'passed'     => null, // 减法推导（D4）。
 					'rejected'   => (int) ( $today['reject'] ?? 0 ),
 					'review'     => (int) ( $today['review'] ?? 0 ),
-					'errors'     => (int) ( $today['error'] ?? 0 ),
+					'errors'     => max( (int) ( $fault_all[ $driver_id ] ?? 0 ), (int) ( $today['error'] ?? 0 ) ), // N6 事件真值 ∪ 计数缓存取大。
 					'quota'      => (int) ( $config['daily_quota'] ?? 0 ),
 					'total'      => array(
 						'passed'   => null, // 累计动作数 Usage 不留存——放行格省略（不虚构）。
