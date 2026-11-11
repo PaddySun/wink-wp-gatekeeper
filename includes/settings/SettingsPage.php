@@ -372,168 +372,487 @@ final class SettingsPage {
 	}
 
 	/* -------------------------------------------------------------------
-	 * Tab① 总览仪表盘（M0：静态占位卡）
+	 * Tab① 总览（UI 批 3·B 提案五块——点名册形态，v0.4.0）
+	 *   ① 站务提醒通栏（无卡壳，有话才出现）
+	 *   ② 今日战报（三闸小票 + 待审/垃圾箱行动行）
+	 *   ③ 服务商点名册（registry 全集×配置树×DriverHealth×Usage 渲染侧推导——零存储变更）
+	 *   ④ 最近岔子（批 2 N2∪N3 合并时间线的紧凑形态，入口性质 5 条）
+	 *   ⑤ 站点底账（一行灰字带）
+	 *
+	 * 分层纪律（B 提案 §6）：Tab① 只看今天、每数字一句人话、无表格化明细（明细归
+	 * Tab⑥）；唯一合法重叠=页头「今日拦截 N」徽标。术语全走 Labels 映射（对照表
+	 * 资产）；点名册直白命名（统筹裁决 1：不用保安比喻，系统层叫「服务商」）。
 	 * ------------------------------------------------------------------ */
 
 	private static function render_tab_overview(): void {
-		$stats = \WinkGatekeeper\Stats\StatsCache::get();
-		$stats_disabled = empty( self::settings()['stats']['enabled'] ); // FIX-δ：开关关闭对站长可见。
-		$today_rejects = 0;
-		$per_gate = array();
-		foreach ( $stats['by_gate'] as $gate_id => $counts ) {
-			$gate_rejects = (int) ( $counts['reject'] ?? 0 );
-			$today_rejects += $gate_rejects;
-			if ( $gate_rejects > 0 ) {
-				$per_gate[] = $gate_id . ' ' . $gate_rejects;
-			}
+		self::render_overview_alerts();
+		self::render_overview_report();
+		self::render_overview_roster();
+		self::render_overview_incidents();
+		self::render_overview_footer();
+	}
+
+	/**
+	 * 块 A·站务提醒通栏（异常状态置顶——唯一「需要站长动手」的信息；无话不渲染）。
+	 *
+	 * 内容（均现行已有，仅换位置 + 新增验证码域兜底）：演练模式通栏（原藏驱动健康
+	 * 卡内——02 §2.8 安全门 #3 全站级旁路最高警示位）/ 统计停用提示（原藏今日拦截
+	 * 卡内，FIX-δ）/ 审核域兜底（原驱动健康卡顶迁位）/ 验证码域兜底（新增——对齐
+	 * 审核域既有兜底，agent C B-1）。
+	 *
+	 * @return void
+	 */
+	private static function render_overview_alerts(): void {
+		$settings = self::settings();
+		?>
+		<section id="wk-overview-alerts">
+		<?php
+		// ① 演练模式（wp_active 含 24h 懒过期判定——过期不显示）。
+		if ( \WinkGatekeeper\Gates\TestMode::wp_active() ) {
+			$tm_since = isset( $settings['captcha']['test_mode_since'] ) && is_numeric( $settings['captcha']['test_mode_since'] ) ? (int) $settings['captcha']['test_mode_since'] : 0;
+			$tm_time  = $tm_since > 0 ? date_i18n( 'H:i', $tm_since ) : '—'; // WP 边界（站点时区）。
+			$tm_left  = $tm_since > 0 ? max( 1, (int) ceil( ( $tm_since + \WinkGatekeeper\Gates\TestMode::TTL_SECONDS - time() ) / HOUR_IN_SECONDS ) ) : 24;
+			?>
+			<div class="notice notice-warning inline"><p>
+				<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+				<strong><?php echo esc_html( \WinkGatekeeper\Stats\Labels::test_mode_word() . '进行中（今天 ' . $tm_time . ' 开启，还剩约 ' . $tm_left . ' 小时）' ); ?></strong>
+				——<?php esc_html_e( '全站人机验证暂时被跳过，仅用于链路演练；24 小时后自动结束（旁路事件标注 drill，不进统计）。', 'wink-gatekeeper' ); ?>
+				<a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '现在去关闭', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
+		}
+
+		// ② 统计停用（FIX-δ 从「今日拦截」卡内迁出为通栏）。
+		if ( empty( $settings['stats']['enabled'] ) ) {
+			?>
+			<div class="notice notice-warning inline"><p>
+				<strong><?php esc_html_e( '统计计数已停用', 'wink-gatekeeper' ); ?></strong>
+				——<?php esc_html_e( '下方战报不记账；事件记录照常落库（以 Tab⑥ 为准）。', 'wink-gatekeeper' ); ?>
+				<a href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '去开启', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
+		}
+
+		// ③ 验证码域兜底（新增——验证码没选服务商时的可见性兜底）。
+		$captcha_driver = isset( $settings['captcha']['driver'] ) && is_string( $settings['captcha']['driver'] ) ? $settings['captcha']['driver'] : '';
+		if ( '' === $captcha_driver ) {
+			?>
+			<div class="notice notice-warning inline"><p>
+				<strong><?php esc_html_e( '人机验证还没选服务商', 'wink-gatekeeper' ); ?></strong>
+				——<?php esc_html_e( '机器人不会被出题拦住；评论仍受站内规矩把关。', 'wink-gatekeeper' ); ?>
+				<a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '去配置', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
+		}
+
+		// ④ 内容审核域兜底（「云端审核已启用但无可用驱动」黄条迁位，文案人话化）。
+		$cloud = isset( $settings['review']['cloud'] ) && is_array( $settings['review']['cloud'] ) ? $settings['review']['cloud'] : array();
+		$chain = isset( $cloud['chain'] ) && is_array( $cloud['chain'] ) ? $cloud['chain'] : array();
+		if ( ! empty( $cloud['enabled'] ) && array() !== $chain && 0 === self::chain_usable_count( $chain ) ) {
+			?>
+			<div class="notice notice-warning inline"><p>
+				<strong><?php esc_html_e( '内容审核已启用，但还没配好任何一家审核服务商', 'wink-gatekeeper' ); ?></strong>
+				——<?php esc_html_e( '评论目前全靠站内规矩把关。', 'wink-gatekeeper' ); ?>
+				<a href="<?php echo esc_url( self::tab_url( 'review' ) ); ?>"><?php esc_html_e( '去配置', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
 		}
 		?>
-		<section class="wk-card wk-card--metric">
-			<h2><?php esc_html_e( '今日拦截', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-metric"><span class="wk-metric__num"><?php echo esc_html( (string) $today_rejects ); ?></span></p>
-			<?php if ( $stats_disabled ) : ?>
-				<p class="wk-muted"><strong><?php esc_html_e( '计数已停用', 'wink-gatekeeper' ); ?></strong><?php esc_html_e( '——统计开关关闭期间的拦截不计入读数，事件表照常落库（以 Tab⑥ 为准）。', 'wink-gatekeeper' ); ?></p>
-			<?php endif; ?>
-			<p class="wk-muted"><?php echo esc_html( array() !== $per_gate ? implode( ' · ', $per_gate ) : __( '暂无数据（pass 默认不计数）', 'wink-gatekeeper' ) ); ?></p>
-		</section>
-		<section class="wk-card">
-			<h2><?php esc_html_e( '待审队列', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '因 review 降级进待审的评论数（不含 IP 疑似强制验证码类事件）。云审核 M3 起有数据。', 'wink-gatekeeper' ); ?></p>
-		</section>
-		<section class="wk-card">
-			<h2><?php esc_html_e( '驱动健康', 'wink-gatekeeper' ); ?></h2>
-			<?php self::render_driver_health_rows(); ?>
-			<?php
-			/* 【v1.5·C1】test_mode 管理员提醒双位之一（02 §2.8 安全门 #3）：红点常显行
-			 * （不占 DriverHealth 状态机；wp_active 内含 24h 懒过期判定——过期不显示）。 */
-			if ( \WinkGatekeeper\Gates\TestMode::wp_active() ) {
-				$tm_settings = self::settings()['captcha'];
-				$tm_since    = isset( $tm_settings['test_mode_since'] ) && is_numeric( $tm_settings['test_mode_since'] ) ? (int) $tm_settings['test_mode_since'] : 0;
-				$tm_time     = $tm_since > 0 ? date_i18n( 'H:i', $tm_since ) : '—'; // WP 边界（站点时区）。
-				?>
-				<div class="notice notice-warning inline" style="margin-top:10px;">
-					<p><span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong><?php esc_html_e( 'test_mode 启用中（自 ' . $tm_time . '）', 'wink-gatekeeper' ); ?></strong>
-					——<?php esc_html_e( '全站人机验证旁路，仅用于链路演练；24 小时后自动过期（旁路事件标注 drill 不进统计、不写验证短缓存）。', 'wink-gatekeeper' ); ?></p>
-				</div>
-			<?php } ?>
-		</section>
-		<section class="wk-card">
-			<h2><?php esc_html_e( '事件流预览', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '最近 10 条事件（链接到 Tab⑥ 完整事件流）。事件写入 M1 起（F09）。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
 
 	/**
-	 * Tab① 驱动健康灯行（02 §5 状态机；C4 云审核域消费面）。
+	 * 链上已配好服务商计数（审核域兜底判定——registry meta×配置树比对；
+	 * 未实装 id（老站残留 deepseek 链值）不计为可用）。
 	 *
-	 * 【v1.4·反馈1/R4 §D.2-D.3/R1 §6】增强：
-	 *   ① 必填字段检查 registry settings.required 派生（DriverConfigSpec——修复 deepseek 等
-	 *      非 CAM 驱动恒误报「凭据缺」的硬编码 secret_id/secret_key 缺陷）；
-	 *   ② 计数三态区分：停转（当日停转（<state>）——零调用）/ 未装配（chain 声明但未实装或
-	 *      必填缺：未装配——调用未发起，Bootstrap 静默剔除语义可见化）/ 未启用（未启用云端驱动）；
-	 *   ③ 最近错误摘要：note 追加该驱动最新一条故障行（rule_hit + HH:MM，读模型 events 表）；
-	 *   ④ 云端审核已启用 && chain 非空 && 全部未装配 → 顶部黄条（可见性兜底）。
-	 *
-	 * @return void
+	 * @param string[] $chain review.cloud.chain。
+	 * @return int
 	 */
-	private static function render_driver_health_rows(): void {
-		$settings = self::settings();
-		$cloud    = $settings['review']['cloud'];
-		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
-		$usage    = \WinkGatekeeper\Stats\Usage::get();
-		$rows     = array();
-		$usable   = 0; // 已装配（registry 在场 + 必填齐全）驱动数。
-
-		// registry 元数据（label/settings.required/label 派生——05 §4 七维单一来源）。
-		$registry = null !== self::$driver_registry ? self::$driver_registry : null;
-		$cloud_registered = null !== $registry ? $registry->by_type( 'review' ) : array();
-		unset( $cloud_registered['local_rules'] ); // 本地驱动无外部故障面，不入健康行。
-
+	private static function chain_usable_count( array $chain ): int {
+		if ( null === self::$driver_registry ) {
+			return 0;
+		}
+		$cloud      = isset( self::settings()['review']['cloud'] ) && is_array( self::settings()['review']['cloud'] ) ? self::settings()['review']['cloud'] : array();
+		$registered = self::$driver_registry->by_type( 'review' );
+		$usable     = 0;
 		foreach ( $chain as $driver_id ) {
 			if ( ! is_string( $driver_id ) || '' === $driver_id ) {
 				continue;
 			}
-			$meta  = $cloud_registered[ $driver_id ] ?? null;
-			$label = null !== $meta && is_string( $meta['label'] ?? null ) ? $meta['label'] : $driver_id;
-			if ( null === $meta && 'tencent_tms' === $driver_id && class_exists( TencentTmsDriver::class ) ) {
-				$meta = TencentTmsDriver::registry_entry(); // registry 未注入的降级读取（单测/早载场景）。
-			}
-
-			$config = is_array( $cloud[ $driver_id ] ?? null ) ? $cloud[ $driver_id ] : array();
-			$halted = DriverHealth::state_today( $driver_id );
-			$quota  = (int) ( $config['daily_quota'] ?? 0 );
-			$used   = (int) ( \WinkGatekeeper\Stats\Usage::daily_total_for( $usage, $driver_id ) );
-
-			// 必填缺失清单：registry settings.required 派生（显示名——与 Tab③ 黄条同源）。
-			$missing = null !== $meta && is_array( $meta )
-				? DriverConfigSpec::missing_fields( $meta, $config )
-				: array();
-
-			// 最近错误摘要（读模型：events 该驱动最新一条故障行——rule_hit + HH:MM）。
-			$fault = \WinkGatekeeper\Stats\EventsTable::latest_driver_fault( $driver_id );
-			$fault_note = null !== $fault
-				? '；最近错误 ' . $fault['rule_hit'] . ' ' . $fault['time_hm']
-				: '';
-
+			$meta = isset( $registered[ $driver_id ] ) && is_array( $registered[ $driver_id ] ) ? $registered[ $driver_id ] : null;
 			if ( null === $meta ) {
-				// 未实装（chain 声明了 registry 外的 id——如老站残留 deepseek 链值）。
-				$state = '未装配';
-				$dot   = 'wk-dot--alert';
-				$note  = '未装配——调用未发起（驱动未实装，静默剔除语义可见化）';
-			} elseif ( array() !== $missing ) {
-				$state = '未装配';
-				$dot   = 'wk-dot--alert';
-				$note  = '未装配——调用未发起（必填缺：' . implode( '、', $missing ) . '）';
-			} else {
-				$usable++;
-				if ( DriverHealth::STATE_CONFIG_ERROR === $halted ) {
-					$state = '停转';
-					$dot   = 'wk-dot--alert';
-					$note  = '当日停转（config_error）——零调用；密钥/授权被拒，到 Tab③ 修正凭据后点「测试凭据」解除' . $fault_note;
-				} elseif ( DriverHealth::STATE_QUOTA_EXHAUSTED === $halted ) {
-					$state = '停转';
-					$dot   = 'wk-dot--warn';
-					$note  = "当日停转（quota_exhausted）——今日 {$used}/{$quota} 已达配额，走故障降级档；次日自动恢复" . $fault_note;
-				} else {
-					$state = '正常';
-					$dot   = 'wk-dot--ok';
-					$note  = $quota > 0 ? "今日用量 {$used}/{$quota}" : "今日用量 {$used}（不限配额）";
-					$note .= $fault_note;
-				}
+				continue;
 			}
-			$rows[] = array( $label, $state, $dot, $note );
+			$config = isset( $cloud[ $driver_id ] ) && is_array( $cloud[ $driver_id ] ) ? $cloud[ $driver_id ] : array();
+			if ( array() === DriverConfigSpec::missing_fields( $meta, $config ) ) {
+				$usable++;
+			}
+		}
+		return $usable;
+	}
+
+	/**
+	 * 块 B·今日战报（替代原「今日拦截」数卡 + 「待审队列」占位卡）。
+	 *
+	 * 三闸小票：主行=OverviewRoster::ticket_main 纯函数（0=平静的一天显式空态）；
+	 * 评论副行=N4 今日按规则分布（批 2 查询喂数——统计停用不出查询，小票整体灰字）。
+	 * 行动行：待你过目（W2/N8 口径=WP 待审队列全量实数，跳转待审队列）+ IP 信誉
+	 * 强制验证码单列行（统筹裁决 2——不入待审数字，>0 才出现）+ 垃圾箱存档
+	 * （≥500 阈值黄话术升级，F14）。
+	 *
+	 * @return void
+	 */
+	private static function render_overview_report(): void {
+		$settings      = self::settings();
+		$stats         = \WinkGatekeeper\Stats\StatsCache::get();
+		$stats_enabled = ! empty( $settings['stats']['enabled'] );
+
+		$comment_reject = (int) ( \WinkGatekeeper\Stats\InterceptDigest::gate_counts( $stats, 'comment', false )['reject'] ?? 0 );
+		$login_reject   = (int) ( \WinkGatekeeper\Stats\InterceptDigest::gate_counts( $stats, 'login', false )['reject'] ?? 0 );
+		$attempts       = (int) ( \WinkGatekeeper\Stats\InterceptDigest::gate_counts( $stats, 'login', false )['attempts'] ?? 0 );
+		$acct_reject    = (int) ( \WinkGatekeeper\Stats\InterceptDigest::gate_counts( $stats, 'register', false )['reject'] ?? 0 )
+			+ (int) ( \WinkGatekeeper\Stats\InterceptDigest::gate_counts( $stats, 'lostpassword', false )['reject'] ?? 0 );
+
+		// N4 今日按规则分布（战报副行——批 2 喂数）。
+		$comment_dist = $stats_enabled ? \WinkGatekeeper\Stats\EventsTable::today_reject_distribution( 'comment' ) : array();
+
+		// IP 信誉强制验证码单列口径（裁决 2——review_split 折减推导，M3 注册即生效）。
+		$ip_ids    = null !== self::$driver_registry ? array_keys( self::$driver_registry->by_type( 'ip' ) ) : array();
+		$ip_split  = \WinkGatekeeper\Stats\InterceptDigest::review_split( $stats, $ip_ids );
+		$ip_captcha = (int) ( $ip_split['ip_captcha'] ?? 0 );
+
+		// 待审实数（W2/N8——WP 待审队列全量；要过目的=全部待审）与垃圾箱存档量。
+		$pending  = wp_count_comments(); // WP 边界。
+		$pending_n = is_object( $pending ) && isset( $pending->moderated ) ? (int) $pending->moderated : 0;
+		$spam_n    = \WinkGatekeeper\Stats\StatsCache::archived_spam_count();
+		$today_label = date_i18n( 'n月j日' ); // WP 边界（站点时区）。
+		?>
+		<section id="wk-overview-report" class="wk-card">
+			<h2><?php
+				printf(
+					/* translators: %s: 日期（n月j日）. */
+					esc_html__( '今日战报（%s）', 'wink-gatekeeper' ),
+					esc_html( $today_label )
+				);
+				?> <span class="wk-muted"><?php echo esc_html( $stats_enabled ? __( '统计：开启中', 'wink-gatekeeper' ) : __( '统计：已停用', 'wink-gatekeeper' ) ); ?></span></h2>
+			<div class="wk-report-tickets">
+				<?php if ( ! $stats_enabled ) : ?>
+					<?php foreach ( array( '评论闸', '登录闸', '注册·找回闸' ) as $gray_gate ) : ?>
+						<div class="wk-report-ticket wk-report-ticket--disabled">
+							<p class="wk-report-ticket__name"><strong><?php echo esc_html( $gray_gate ); ?></strong></p>
+							<p class="wk-muted"><?php esc_html_e( '统计已停用，今日没有记账（事件记录照常）', 'wink-gatekeeper' ); ?></p>
+						</div>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<div class="wk-report-ticket">
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '评论闸', 'wink-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__main"><?php echo esc_html( \WinkGatekeeper\Stats\OverviewRoster::ticket_main( $comment_reject, 'comment' ) ); ?></p>
+						<p class="wk-muted"><?php
+							echo esc_html(
+								array() !== $comment_dist
+									? \WinkGatekeeper\Stats\OverviewRoster::ticket_subline( $comment_dist )
+									: __( '没有可疑评论', 'wink-gatekeeper' )
+							);
+						?></p>
+					</div>
+					<div class="wk-report-ticket">
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '登录闸', 'wink-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__main"><?php echo esc_html( \WinkGatekeeper\Stats\OverviewRoster::ticket_main( $login_reject, 'login' ) ); ?></p>
+						<p class="wk-muted"><?php
+							echo esc_html(
+								$attempts > 0
+									? sprintf(
+										/* translators: %d: 密码输错次数. */
+										__( '密码输错 %d 次，出码拦下', 'wink-gatekeeper' ),
+										$attempts
+									)
+									: __( '没人试图撬门', 'wink-gatekeeper' )
+							);
+						?></p>
+					</div>
+					<div class="wk-report-ticket">
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '注册·找回闸', 'wink-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__main"><?php echo esc_html( \WinkGatekeeper\Stats\OverviewRoster::ticket_main( $acct_reject, 'register' ) ); ?></p>
+						<p class="wk-muted"><?php esc_html_e( '没有异常注册或找回', 'wink-gatekeeper' ); ?></p>
+					</div>
+				<?php endif; ?>
+			</div>
+			<p class="wk-overview-actions">
+				<a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ); ?>"><?php
+					echo esc_html( sprintf(
+						/* translators: 1: 待你过目. 2: 条数. */
+						__( '%1$s的评论 %2$d 条 →', 'wink-gatekeeper' ),
+						\WinkGatekeeper\Stats\Labels::pending_word(),
+						$pending_n
+					) );
+					?> <?php esc_html_e( '去处理', 'wink-gatekeeper' ); ?></a>
+				<?php if ( $ip_captcha > 0 ) : ?>
+					· <span class="wk-muted"><?php
+						echo esc_html( sprintf(
+							/* translators: %d: IP 信誉强制验证码次数. */
+							__( '另有 IP 信誉强制验证码 %d 次（单列口径——不计入上方数字）', 'wink-gatekeeper' ),
+							$ip_captcha
+						) );
+					?></span>
+				<?php endif; ?>
+				· <a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php
+					echo esc_html( sprintf(
+						/* translators: 1: 垃圾箱存档. 2: 条数. */
+						__( '%1$s %2$d 条 →', 'wink-gatekeeper' ),
+						\WinkGatekeeper\Stats\Labels::spam_word(),
+						$spam_n
+					) );
+					?> <?php echo esc_html( \WinkGatekeeper\Stats\InterceptDigest::spam_warn( $spam_n ) ? __( '去看看（该清一清了）', 'wink-gatekeeper' ) : __( '去看看', 'wink-gatekeeper' ) ); ?></a>
+			</p>
+		</section>
+		<?php
+	}
+
+	/**
+	 * 块 C·服务商点名册（本次核心——原「驱动健康」表退役）。
+	 *
+	 * registry 全集（验证码 2 + 云端审核 3）一字排开；本地规则不入册给脚注。每卡
+	 * 固定信息：岗位小字 + 人话名 / 排班态·健康态（Labels 词）/ 今日一句摘要
+	 * （未配置灰卡给 [去配置] 去处——不给数字给去处）。数据=渲染侧推导
+	 * （overview_roster_cards 边界收集 + OverviewRoster::cards 纯函数组装）——
+	 * 不改 DriverHealth 存储（agent C §E-b 方案甲，N9 不采纳）。
+	 *
+	 * @return void
+	 */
+	private static function render_overview_roster(): void {
+		$cards = self::overview_roster_cards();
+		?>
+		<section id="wk-overview-roster" class="wk-card">
+			<h2><?php
+				echo esc_html( sprintf(
+					/* translators: %d: 服务商数. */
+					__( '服务商点名册（%d 名）', 'wink-gatekeeper' ),
+					count( $cards )
+				) );
+				?> <span class="wk-muted"><?php esc_html_e( '没出错的也每天点名，一眼见分晓', 'wink-gatekeeper' ); ?></span></h2>
+			<div class="wk-roster-cards">
+				<?php foreach ( $cards as $roster_card ) { self::render_roster_card( $roster_card ); } ?>
+			</div>
+			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::local_rules_footnote() ); ?></p>
+			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::pass_uncounted_note() ); ?></p>
+		</section>
+		<?php
+	}
+
+	/**
+	 * 点名册数据收集（WP 边界：registry 全集×配置树×DriverHealth×Usage×StatsCache
+	 * 只读取数；推导收口 OverviewRoster::cards 纯函数——排班态矩阵单测钉在
+	 * OverviewRosterTest）。
+	 *
+	 * @return array<int, array<string, mixed>> 点名册卡组（异常置顶微排序后）。
+	 */
+	private static function overview_roster_cards(): array {
+		if ( null === self::$driver_registry ) {
+			return array();
+		}
+		$settings = self::settings();
+		$captcha  = isset( $settings['captcha'] ) && is_array( $settings['captcha'] ) ? $settings['captcha'] : array();
+		$cloud    = isset( $settings['review']['cloud'] ) && is_array( $settings['review']['cloud'] ) ? $settings['review']['cloud'] : array();
+		$chain    = isset( $cloud['chain'] ) && is_array( $cloud['chain'] ) ? $cloud['chain'] : array();
+		$usage    = \WinkGatekeeper\Stats\Usage::get();
+		$cache    = \WinkGatekeeper\Stats\StatsCache::get();
+
+		$drivers    = array();
+		$configs    = array();
+		$halted     = array();
+		$usage_map  = array();
+		$counts_map = array();
+		foreach ( array( 'captcha', 'review' ) as $driver_type ) {
+			foreach ( self::$driver_registry->by_type( $driver_type ) as $driver_id => $meta ) {
+				$driver_id = (string) $driver_id;
+				// 本地驱动不入册（无外部故障面——脚注交代，B 提案块 C）。
+				if ( 'local_rules' === $driver_id ) {
+					continue;
+				}
+				$config = 'captcha' === $driver_type
+					? ( isset( $captcha[ $driver_id ] ) && is_array( $captcha[ $driver_id ] ) ? $captcha[ $driver_id ] : array() )
+					: ( isset( $cloud[ $driver_id ] ) && is_array( $cloud[ $driver_id ] ) ? $cloud[ $driver_id ] : array() );
+				$drivers[]                = $meta;
+				$configs[ $driver_id ]    = $config;
+				$halted[ $driver_id ]     = DriverHealth::state_today( $driver_id );
+				$usage_map[ $driver_id ]  = \WinkGatekeeper\Stats\Usage::daily_total_for( $usage, $driver_id );
+				$counts_map[ $driver_id ] = \WinkGatekeeper\Stats\InterceptDigest::driver_counts( $cache, $driver_id, false );
+			}
 		}
 
-		if ( ! empty( $cloud['enabled'] ) && array() !== $chain && 0 === $usable ) {
-			// 「云端审核已启用但无可用驱动」黄条（全入待审+计数空类故障形态的可见性兜底）。
-			echo '<div class="notice notice-warning inline"><p><strong>' . esc_html__( '云端审核已启用但无可用驱动——评论将按本地规则 + 降级档处理。', 'wink-gatekeeper' ) . '</strong></p></div>';
+		return \WinkGatekeeper\Stats\OverviewRoster::cards( $drivers, array(
+			'captcha_driver' => isset( $captcha['driver'] ) && is_string( $captcha['driver'] ) ? $captcha['driver'] : '',
+			'cloud_enabled'  => ! empty( $cloud['enabled'] ),
+			'chain'          => $chain,
+			'configs'        => $configs,
+			'halted'         => $halted,
+			'usage'          => $usage_map,
+			'counts'         => $counts_map,
+		) );
+	}
+
+	/**
+	 * 点名册单卡渲染（未配置=灰卡；停转=警示/黄色状态点——颜色映射在渲染层）。
+	 *
+	 * @param array<string, mixed> $roster_card OverviewRoster::cards 输出行。
+	 * @return void
+	 */
+	private static function render_roster_card( array $roster_card ): void {
+		$duty    = (string) ( $roster_card['duty'] ?? '' );
+		$classes = 'wk-roster-card';
+		if ( 'unconfigured' === $duty ) {
+			$classes .= ' wk-roster-card--disabled';
+		}
+		$dot = 'wk-dot--ok';
+		if ( ! ( $roster_card['healthy'] ?? true ) ) {
+			$dot = 'quota_exhausted' === ( $roster_card['halt'] ?? '' ) ? 'wk-dot--warn' : 'wk-dot--alert';
 		}
 
-		if ( array() === $rows ) {
-			echo '<p class="wk-muted">' . esc_html__( '未启用云端驱动（本地规则无外部故障面，恒正常）。', 'wink-gatekeeper' ) . '</p>';
-			return;
+		$status = (string) ( $roster_card['duty_word'] ?? '' );
+		if ( '' !== (string) ( $roster_card['health_word'] ?? '' ) ) {
+			$status .= ' · ' . (string) $roster_card['health_word'];
 		}
 		?>
-		<table class="wk-table">
-			<thead>
-				<tr>
-					<th scope="col"><?php esc_html_e( '驱动', 'wink-gatekeeper' ); ?></th>
-					<th scope="col"><?php esc_html_e( '状态', 'wink-gatekeeper' ); ?></th>
-					<th scope="col"><?php esc_html_e( '说明', 'wink-gatekeeper' ); ?></th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php foreach ( $rows as $row ) : ?>
-					<tr>
-						<td><?php echo esc_html( $row[0] ); ?></td>
-						<td><span class="wk-dot <?php echo esc_attr( $row[2] ); ?>" aria-hidden="true"></span> <?php echo esc_html( $row[1] ); ?></td>
-						<td class="wk-muted"><?php echo esc_html( $row[3] ); ?></td>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
+		<div class="<?php echo esc_attr( $classes ); ?>">
+			<p class="wk-roster-role"><?php echo esc_html( (string) ( $roster_card['role'] ?? '' ) ); ?></p>
+			<p><strong><?php echo esc_html( (string) ( $roster_card['label'] ?? '' ) ); ?></strong></p>
+			<p class="wk-roster-status">
+				<span class="wk-dot <?php echo esc_attr( $dot ); ?>" aria-hidden="true"></span>
+				<?php echo esc_html( $status ); ?>
+			</p>
+			<?php if ( '' !== (string) ( $roster_card['halt_note'] ?? '' ) ) : ?>
+				<p class="wk-muted"><?php echo esc_html( (string) $roster_card['halt_note'] ); ?></p>
+			<?php endif; ?>
+			<?php if ( '' !== (string) ( $roster_card['summary'] ?? '' ) ) : ?>
+				<p class="wk-muted"><?php echo esc_html( (string) $roster_card['summary'] ); ?></p>
+			<?php endif; ?>
+			<?php if ( 'unconfigured' === $duty && '' !== (string) ( $roster_card['config_tab'] ?? '' ) ) : ?>
+				<p><a href="<?php echo esc_url( self::tab_url( (string) $roster_card['config_tab'] ) ); ?>"><?php esc_html_e( '去配置 →', 'wink-gatekeeper' ); ?></a></p>
+			<?php endif; ?>
+		</div>
 		<?php
+	}
+
+	/**
+	 * 块 D·最近岔子（原「事件流预览」占位卡升级——批 2 N2∪N3 合并时间线的紧凑形态）。
+	 *
+	 * 入口性质：只留 5 条（明细与筛选归 Tab⑥）；故障与解除记录都入列（「故障→修复」
+	 * 完整小剧场，F9 停转留痕）；空态显式人话「最近 7 天风平浪静」；卡头入口链接
+	 * Tab⑥（事件流筛选页 roadmap——先链页顶，agent C C4）。
+	 *
+	 * @return void
+	 */
+	private static function render_overview_incidents(): void {
+		$faults = \WinkGatekeeper\Stats\EventsTable::recent_faults( \WinkGatekeeper\Stats\OverviewRoster::INCIDENT_LIMIT );
+		$health = \WinkGatekeeper\Stats\EventsTable::recent_health_timeline( \WinkGatekeeper\Stats\OverviewRoster::INCIDENT_LIMIT, 7 );
+
+		$driver_labels = array();
+		if ( null !== self::$driver_registry ) {
+			foreach ( self::$driver_registry->all() as $driver_id => $meta ) {
+				$driver_labels[ (string) $driver_id ] = is_string( $meta['label'] ?? null ) ? $meta['label'] : (string) $driver_id;
+			}
+		}
+
+		$timeline  = \WinkGatekeeper\Stats\InterceptDigest::fault_timeline_rows( $faults, $health, $driver_labels );
+		$now       = current_time( 'mysql' ); // WP 边界（站点时区）。
+		$today     = substr( $now, 0, 10 );
+		$yesterday = gmdate( 'Y-m-d', (int) strtotime( $now . ' -1 day' ) );
+		$lines     = \WinkGatekeeper\Stats\OverviewRoster::incident_lines( $timeline, $today, $yesterday, \WinkGatekeeper\Stats\OverviewRoster::INCIDENT_LIMIT );
+		?>
+		<section id="wk-overview-incidents" class="wk-card">
+			<h2><?php esc_html_e( '最近岔子', 'wink-gatekeeper' ); ?><?php if ( array() !== $lines ) : ?> <span class="wk-muted"><?php
+				echo esc_html( sprintf(
+					/* translators: %d: 条数. */
+					__( '（最近 %d 条）', 'wink-gatekeeper' ),
+					count( $lines )
+				) );
+			?></span><?php endif; ?>
+				<a class="wk-overview-more" href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '完整记录 → 统计页', 'wink-gatekeeper' ); ?></a></h2>
+			<?php if ( array() === $lines ) : ?>
+				<p class="wk-muted wk-overview-calm"><?php esc_html_e( '最近 7 天风平浪静。', 'wink-gatekeeper' ); ?></p>
+			<?php else : ?>
+				<ul class="wk-incident-list">
+					<?php foreach ( $lines as $line ) : ?>
+						<li>
+							<span class="wk-muted"><?php echo esc_html( (string) $line['time_word'] ); ?></span>
+							<strong><?php echo esc_html( (string) $line['driver'] ); ?></strong>
+							<?php echo esc_html( (string) $line['text'] ); ?>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+		</section>
+		<?php
+	}
+
+	/**
+	 * 块 E·站点底账（一行灰字带——「不出错没人看、出错才重要」的全局开关态收纳）。
+	 *
+	 * 内容：统计计数开/关 · 演练模式开/关（开时与块 A 通栏呼应）· 事件表容量读数
+	 * （N11——agent C B-6 裁决替代无指标的「事件记录正常」）· 首次使用引导（未配置
+	 * 任何服务商时显示，配好自动消失——docs 03 原承诺）。
+	 *
+	 * @return void
+	 */
+	private static function render_overview_footer(): void {
+		$settings  = self::settings();
+		$stats_on  = ! empty( $settings['stats']['enabled'] );
+		$rows      = \WinkGatekeeper\Stats\EventsTable::row_count();
+		$max_rows  = \WinkGatekeeper\Stats\EventsTable::MAX_ROWS;
+		$first_use = self::overview_configured_count( $settings ) === 0;
+		?>
+		<section id="wk-overview-footer" class="wk-overview-footer">
+			<?php echo esc_html( sprintf(
+				/* translators: 1: 统计计数态. 2: 演练模式态. 3: 当前事件行数. 4: 容量上限. */
+				__( '统计计数 %1$s · %2$s %3$s · 事件记录 %4$d / %5$d 条', 'wink-gatekeeper' ),
+				$stats_on ? __( '开启', 'wink-gatekeeper' ) : __( '停用', 'wink-gatekeeper' ),
+				\WinkGatekeeper\Stats\Labels::test_mode_word(),
+				\WinkGatekeeper\Gates\TestMode::wp_active() ? __( '进行中', 'wink-gatekeeper' ) : __( '未开启', 'wink-gatekeeper' ),
+				$rows,
+				$max_rows
+			) ); ?>
+			<?php if ( $first_use ) : ?>
+				· <a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '首次使用？三步配好 →', 'wink-gatekeeper' ); ?></a>
+			<?php endif; ?>
+		</section>
+		<?php
+	}
+
+	/**
+	 * 全站已配好服务商计数（首次使用引导显隐判定——验证码与云审两域合并；
+	 * 必填缺失判定单一来源 DriverConfigSpec——F11）。
+	 *
+	 * @param array<string, mixed> $settings 设置树。
+	 * @return int
+	 */
+	private static function overview_configured_count( array $settings ): int {
+		if ( null === self::$driver_registry ) {
+			return 0;
+		}
+		$captcha = isset( $settings['captcha'] ) && is_array( $settings['captcha'] ) ? $settings['captcha'] : array();
+		$cloud   = isset( $settings['review']['cloud'] ) && is_array( $settings['review']['cloud'] ) ? $settings['review']['cloud'] : array();
+		$chain   = isset( $cloud['chain'] ) && is_array( $cloud['chain'] ) ? $cloud['chain'] : array();
+
+		$count = 0;
+		foreach ( self::$driver_registry->by_type( 'captcha' ) as $driver_id => $meta ) {
+			$driver_id = (string) $driver_id;
+			$config    = isset( $captcha[ $driver_id ] ) && is_array( $captcha[ $driver_id ] ) ? $captcha[ $driver_id ] : array();
+			if ( array() === DriverConfigSpec::missing_fields( is_array( $meta ) ? $meta : array(), $config ) ) {
+				$count++;
+			}
+		}
+		$registered = self::$driver_registry->by_type( 'review' );
+		foreach ( $chain as $driver_id ) {
+			if ( ! is_string( $driver_id ) || ! isset( $registered[ $driver_id ] ) || ! is_array( $registered[ $driver_id ] ) ) {
+				continue;
+			}
+			$config = isset( $cloud[ $driver_id ] ) && is_array( $cloud[ $driver_id ] ) ? $cloud[ $driver_id ] : array();
+			if ( array() === DriverConfigSpec::missing_fields( $registered[ $driver_id ], $config ) ) {
+				$count++;
+			}
+		}
+		return $count;
 	}
 
 	/* -------------------------------------------------------------------

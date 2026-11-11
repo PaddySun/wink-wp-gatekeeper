@@ -15,7 +15,7 @@
  * Plugin Name:       Wink 门口保安
  * Plugin URI:        https://github.com/wink/wink-wp-gatekeeper
  * Description:       对真人眨眨眼，对机器人睁着眼——评论验证 + 登录验证 + 内容过滤三闸合一，验证码与云端审核驱动化可插拔。
- * Version:           0.3.9
+ * Version:           0.4.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Wink
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * 常量
  * -------------------------------------------------------------------- */
 
-define( 'WINK_GATEKEEPER_VERSION', '0.3.9' ); // UI 批 2·事件查询面×5+Tab⑥ 批 1 占位接线（DESIGN-UI-tech-feasibility §D：N1 登录拦截明细卡/N2 全闸故障时间线/N3 停转进入·解除时间线/N4 今日按规则分布/N6+N7a 服务商卡出错格——全部只读 SELECT 零 DDL；EventsTableQueriesTest+InterceptDigestRowsTest 回归门）+ UI 批 1·Tab⑥ 五段重构 + FIX 轮 5·flood 品牌页 + FIX 轮 4·登录错误掩码分域 + FIX 轮 3·Tab③ 下拉联动——wp plugin list 可辨轮次。
+define( 'WINK_GATEKEEPER_VERSION', '0.4.0' ); // UI 批 3·Tab① 总览页点名册形态重构（DESIGN-UI-tab1 B 提案五块：站务提醒通栏/今日战报三闸小票/服务商点名册——渲染侧推导零存储变更/最近岔子 N2∪N3/站点底账——OverviewRosterTest+UiTab1OverviewContractTest 回归门；总览大改版小版本号进位 0.3.9→0.4.0）+ UI 批 2·事件查询面×5 + UI 批 1·Tab⑥ 五段重构 + FIX 轮 5·flood 品牌页 + FIX 轮 4·登录错误掩码分域 + FIX 轮 3·Tab③ 下拉联动——wp plugin list 可辨轮次。
 define( 'WINK_GATEKEEPER_FILE', __FILE__ );
 define( 'WINK_GATEKEEPER_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WINK_GATEKEEPER_URL', plugin_dir_url( __FILE__ ) );

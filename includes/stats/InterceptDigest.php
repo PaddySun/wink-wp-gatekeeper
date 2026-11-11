@@ -204,9 +204,12 @@ final class InterceptDigest {
 	}
 
 	/**
-	 * N2+N3 全闸故障 ∪ 停转解除合并时间线行组装（Tab⑥「三、报错历史②最近报错」）。
+	 * N2+N3 全闸故障 ∪ 停转解除合并时间线行组装（Tab⑥「三、报错历史②最近报错」；
+	 * Tab① 块 D「最近岔子」同源消费——批 3）。
 	 *
-	 * 两源同表自增主键全局可比——按 id 倒序归并（各源查询已 id DESC，归并线性合并保持序）。
+	 * 两源同表自增主键全局可比——按 id 倒序归并（各源查询已 id DESC）+ **按 id 去重**
+	 * （UI 批 3 修正：停转行 verdict=error 同时命中故障谓词与健康谓词——两源重复入列；
+	 * 去重保留首见=最大 id；id 缺位（防御形态）不去重不虚构）。
 	 * 服务商名解析：registry label 映射（未注册 id 原样显示——不虚构人话名）。
 	 * 「当时怎么处理」= handling_word() 组合映射；meta.raw 透传（展开行渲染层判空）。
 	 *
@@ -227,6 +230,20 @@ final class InterceptDigest {
 			$id_b = isset( $b['id'] ) && is_numeric( $b['id'] ) ? (int) $b['id'] : 0;
 			return $id_b <=> $id_a;
 		} );
+
+		// 按 id 去重（保首见=最大 id；停转行两谓词双命中只渲染一次；id=0 防御形态不去重）。
+		$seen = array();
+		$merged = array_values( array_filter( $merged, static function ( array $event ) use ( &$seen ): bool {
+			$id = isset( $event['id'] ) && is_numeric( $event['id'] ) ? (int) $event['id'] : 0;
+			if ( $id <= 0 ) {
+				return true;
+			}
+			if ( isset( $seen[ $id ] ) ) {
+				return false;
+			}
+			$seen[ $id ] = true;
+			return true;
+		} ) );
 
 		$rows = array();
 		foreach ( $merged as $event ) {

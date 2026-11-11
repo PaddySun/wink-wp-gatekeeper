@@ -54,7 +54,7 @@ final class EventsTableQueriesTest extends TestCase {
 	public function test_n2_faults_sql_reuses_fault_predicate(): void {
 		$sql = EventsTable::recent_faults_sql( self::TABLE );
 
-		$this->assertStringContainsString( 'SELECT event_no, created_at, gate, stage, driver, verdict, rule_hit, meta FROM ' . self::TABLE, $sql, '列集含 gate/verdict/meta——门名/处理列映射/meta.raw 展开行数据源' );
+		$this->assertStringContainsString( 'SELECT id, event_no, created_at, gate, stage, driver, verdict, rule_hit, meta FROM ' . self::TABLE, $sql, '列集含 gate/verdict/meta——门名/处理列映射/meta.raw 展开行数据源；id=两源归并序键（UI 批 3 修正——批 2 文档声称在列而 SQL 漏选，真机 DOM 断言实锤归并退化+停转行双源重复）' );
 		$this->assertStringContainsString( 'WHERE ' . EventsTable::fault_predicate_sql(), $sql, '故障口径谓词同源复用（F7——唯一权威定义）' );
 		$this->assertStringContainsString( 'ORDER BY id DESC LIMIT %d', $sql );
 	}
@@ -74,7 +74,7 @@ final class EventsTableQueriesTest extends TestCase {
 	public function test_n3_health_timeline_sql_predicate(): void {
 		$sql = EventsTable::recent_health_timeline_sql( self::TABLE );
 
-		$this->assertStringContainsString( 'SELECT event_no, created_at, gate, stage, driver, verdict, rule_hit FROM ' . self::TABLE, $sql );
+		$this->assertStringContainsString( 'SELECT id, event_no, created_at, gate, stage, driver, verdict, rule_hit FROM ' . self::TABLE, $sql, 'id 列在列（两源归并序键——UI 批 3 修正）' );
 		$this->assertStringContainsString( "WHERE gate = 'system' AND stage = 'health'", $sql, '健康留痕行域（04 §3 写入矩阵 system 行）' );
 		$this->assertStringContainsString( 'AND ' . EventsTable::health_timeline_predicate_sql(), $sql );
 		$this->assertStringContainsString( 'AND created_at >= %s', $sql, '查询窗口（days）走 prepare 占位' );

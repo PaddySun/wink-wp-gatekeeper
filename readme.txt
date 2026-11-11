@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.3.9
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.4.0 =
+
+UI 批 3·Tab① 总览页点名册形态重构（2026-11-12，DESIGN-UI-tab1 B 提案五块 + 统筹裁决——「服务商」语汇/点名册直白命名不用保安比喻/闸字保留为分组名；总览大改版小版本号进位 0.3.9→0.4.0）：①五块新布局（DOM 锚 wk-overview-alerts/report/roster/incidents/footer）：站务提醒通栏（演练模式/统计停用/验证码域兜底新黄条/审核域兜底——从卡内迁出置顶）、今日战报（评论闸/登录闸/注册·找回闸三张小票——0=平静的一天显式空态，评论副行=N4 今日按规则分布人话族；行动行=待你过目 WP 待审队列实数（W2/N8 口径）+ IP 信誉强制验证码单列行（>0 才出现）+ 垃圾箱存档（≥500 该清一清））、服务商点名册（registry 全集五服务商一字排开——排班态（当班/待命/未配置）×健康态（正常/故障/额度用完）渲染侧推导 OverviewRoster 纯函数，不改 DriverHealth 存储；异常置顶微排序；未配置灰卡带 [去配置]；本地规则不入册给脚注；旧「驱动健康」表退役）、最近岔子（批 2 N2∪N3 合并时间线紧凑形态 5 条——故障与解除都入列，空态「最近 7 天风平浪静」，入口链 Tab⑥）、站点底账一行（统计计数 · 演练模式 · 事件记录 N/10,000 容量读数（N11，EventsTable::row_count）· 首次使用三步引导）；②Labels 扩表：DESIGN-UI-tab1 对照表并入（当班/待命/未配置、故障/额度用完+原因括号注、待你过目/备胎方案/每日额度/演练模式/垃圾箱存档、站内规矩脚注/当前审核服务/放行不记数注、按岗位动词 验/审/查、战报副行人话族——批 1 rule_hit_word 同资产回落）；③旧占位卡退役（待审队列/事件流预览/驱动健康表——render_driver_health_rows 除名）；分层纪律：Tab① 只看今天、每数字一句人话、无表格化明细（明细归 Tab⑥）；④批 2 读路径缺陷修正（真机 DOM 断言拦截）：N2/N3 列集补 id 列（两源归并序键——批 2 文档声称在列而 SQL 漏选，归并退化）+ fault_timeline_rows 按 id 去重（停转行双谓词命中只渲染一次）——Tab⑥ 时间线与 Tab① 岔子两消费面同时受益，零 DDL 零写路径变更。测试：OverviewRosterTest 13 + LabelsTest 扩 6 + UiTab1OverviewContractTest 16 + InterceptDigestRowsTest 去重钉 1 新例，版本钉 0.4.0 四文件同步。真机（厦门 wpclean）：部署 0.4.0 后三相 DOM 断言 clean 52/52+通栏 9/9+seeded 45/45（IMPL 报告：docs/reports/IMPL-UI3-overview-2026-11-12.md）。
 
 = 0.3.9 =
 

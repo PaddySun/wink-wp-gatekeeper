@@ -192,4 +192,81 @@ final class LabelsTest extends TestCase {
 		$this->assertSame( '经 XML-RPC 接口尝试', Labels::trigger_word( 'xmlrpc' ) );
 		$this->assertSame( 'mystery', Labels::trigger_word( 'mystery' ), '未知归因键原样返回' );
 	}
+
+	/* ================================================================
+	 * UI 批 3·Tab① 点名册（DESIGN-UI-tab1 §3 对照表 17 条并入——批 1 已收录键
+	 * （驱动→服务商/额度用完/今日没用到/人机验证·内容审核/转人工复核）不重复落表，
+	 * 本段只钉总览新增面；统筹裁决：点名册直白命名、系统层叫「服务商」。
+	 * ================================================================ */
+
+	/* ---------- 对照表 B-5：排班态词（当班/待命/未配置） ---------- */
+
+	public function test_duty_words(): void {
+		$this->assertSame( '当班', Labels::duty_word( 'active' ) );
+		$this->assertSame( '待命', Labels::duty_word( 'standby' ) );
+		$this->assertSame( '未配置', Labels::duty_word( 'unconfigured' ) );
+		$this->assertSame( 'other', Labels::duty_word( 'other' ), '未知排班键原样' );
+	}
+
+	/* ---------- 对照表 B-2/B-3：健康态词（正常/故障/额度用完）+ 原因括号注 ---------- */
+
+	public function test_health_words_and_halt_notes(): void {
+		$this->assertSame( '正常', Labels::health_word( null ) );
+		$this->assertSame( '正常', Labels::health_word( '' ) );
+		$this->assertSame( '故障', Labels::health_word( 'config_error' ) );
+		$this->assertSame( '额度用完', Labels::health_word( 'quota_exhausted' ) );
+		$this->assertSame( 'weird', Labels::health_word( 'weird' ), '未知停转态原样（不吞键）' );
+
+		$this->assertSame( '', Labels::halt_note( null ) );
+		$this->assertSame( '', Labels::halt_note( '' ) );
+		$this->assertStringContainsString( '密钥被拒', Labels::halt_note( 'config_error' ) );
+		$this->assertStringContainsString( '次日自动恢复', Labels::halt_note( 'quota_exhausted' ) );
+		// 状态码不出站长文案。
+		$this->assertStringNotContainsString( 'config_error', Labels::halt_note( 'config_error' ) );
+		$this->assertStringNotContainsString( 'quota_exhausted', Labels::halt_note( 'quota_exhausted' ) );
+	}
+
+	/* ---------- 对照表 B-10/11/13/14/16：待你过目/备胎方案/每日额度/演练模式/垃圾箱存档 ---------- */
+
+	public function test_overview_term_words(): void {
+		$this->assertSame( '待你过目', Labels::pending_word() );
+		$this->assertSame( '备胎方案', Labels::failover_word() );
+		$this->assertSame( '每日额度', Labels::quota_word() );
+		$this->assertSame( '演练模式', Labels::test_mode_word() );
+		$this->assertSame( '垃圾箱存档', Labels::spam_word() );
+	}
+
+	/* ---------- 对照表 B-7/8/9：本地规则脚注/当前审核服务/放行不记数注 ---------- */
+
+	public function test_overview_note_sentences(): void {
+		$this->assertSame( '站内规矩（本地规则）始终在岗，不依赖任何外部服务，无需密钥', Labels::local_rules_footnote() );
+		$this->assertSame( '当前审核服务', Labels::review_service_word() );
+		$this->assertSame( '「全部通过」为推算——正常放行不记数（只记被拦和待审的）', Labels::pass_uncounted_note() );
+	}
+
+	/* ---------- 对照表 B-12：按岗位动词（今日验 N 次/今日审 N 次） ---------- */
+
+	public function test_action_verbs(): void {
+		$this->assertSame( '验', Labels::action_verb( 'captcha' ) );
+		$this->assertSame( '审', Labels::action_verb( 'review' ) );
+		$this->assertSame( '查', Labels::action_verb( 'ip' ) );
+		$this->assertSame( '动作', Labels::action_verb( 'unknown' ), '未知类型不回落「调用」黑话' );
+	}
+
+	/* ---------- 对照表 B-15：战报副行人话族（规则键→短词；未收录回落 rule_hit_word 同资产） ---------- */
+
+	public function test_rule_family_words(): void {
+		$this->assertSame( '关键词黑名单', Labels::rule_family_word( 'banned_word' ) );
+		$this->assertSame( '纯外文', Labels::rule_family_word( 'no_chinese' ) );
+		$this->assertSame( '字数太少', Labels::rule_family_word( 'too_short' ) );
+		$this->assertSame( '超字数上限', Labels::rule_family_word( 'too_long' ) );
+		$this->assertSame( '转人工', Labels::rule_family_word( 'hold_moderation' ) );
+		$this->assertSame( '没带票据', Labels::rule_family_word( 'captcha_missing' ) );
+		$this->assertSame( '票据签名不对', Labels::rule_family_word( 'bad-signature' ) );
+		$this->assertSame( '人机验证没通过', Labels::rule_family_word( 'CaptchaCode=8' ) );
+		$this->assertSame( '服务商通讯故障', Labels::rule_family_word( 'remote_transport' ) );
+		$this->assertSame( '服务商故障', Labels::rule_family_word( 'contract_mismatch' ) );
+		// 未收录键回落 rule_hit_word 同一资产（对照表 13-17——两页共用一张映射表）。
+		$this->assertSame( '信用免验通过', Labels::rule_family_word( 'trust_pass' ) );
+	}
 }

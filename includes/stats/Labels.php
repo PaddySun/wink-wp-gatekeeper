@@ -295,4 +295,170 @@ final class Labels {
 			default          => $source,
 		};
 	}
+
+	/* -------------------------------------------------------------------
+	 * UI 批 3·Tab① 点名册（DESIGN-UI-tab1 §3 对照表 17 条并入——批 1 已收录键
+	 * 不重复落表：驱动→服务商（driver_word）/额度用完·配置有问题（halt_word）/
+	 * 今日没用到（zero_call_word）/人机验证·内容审核（stage_word）/转人工复核
+	 * （review_word，Tab⑥ 语境）；本段只落总览新增面。统筹裁决：点名册直白命名
+	 * （不用保安比喻）、系统层统一叫「服务商」。
+	 * ------------------------------------------------------------------- */
+
+	/**
+	 * 排班态词（对照表 B-5——当班/待命/未配置；点名册主行）。
+	 *
+	 * @param string $duty 排班键（active|standby|unconfigured；未知键原样返回）。
+	 */
+	public static function duty_word( string $duty ): string {
+		return match ( $duty ) {
+			'active'       => '当班',
+			'standby'      => '待命',
+			'unconfigured' => '未配置',
+			default        => $duty,
+		};
+	}
+
+	/**
+	 * 健康态词（对照表 B-2/B-3——null=正常；config_error→故障；quota_exhausted→
+	 * 额度用完；未知停转态原样返回不吞键）。
+	 *
+	 * @param string|null $state DriverHealth 当日停转态（null/''=正常）。
+	 */
+	public static function health_word( ?string $state ): string {
+		if ( null === $state || '' === $state ) {
+			return '正常';
+		}
+		return match ( $state ) {
+			'config_error'    => '故障',
+			'quota_exhausted' => '额度用完',
+			default           => $state,
+		};
+	}
+
+	/**
+	 * 停转原因括号注（对照表 B-2/B-3/B-4——主语化原因，状态码不出站长文案；
+	 * 正常态空串）。
+	 *
+	 * @param string|null $state DriverHealth 当日停转态（null/''=无注）。
+	 */
+	public static function halt_note( ?string $state ): string {
+		if ( null === $state || '' === $state ) {
+			return '';
+		}
+		return match ( $state ) {
+			'config_error'    => '（密钥被拒或服务没开通，当日暂停；修正凭据后点「测试凭据」解除）',
+			'quota_exhausted' => '（今日额度用完，次日自动恢复）',
+			default           => '（' . $state . '）',
+		};
+	}
+
+	/**
+	 * 待审队列 → 待你过目（对照表 B-10——总览行动行语境；Tab⑥ 明细语境仍用
+	 * review_word「转人工复核」，两词各安其位）。
+	 */
+	public static function pending_word(): string {
+		return '待你过目';
+	}
+
+	/**
+	 * fail_mode/降级档/故障降级 → 备胎方案（对照表 B-11）。
+	 */
+	public static function failover_word(): string {
+		return '备胎方案';
+	}
+
+	/**
+	 * daily_quota → 每日额度（对照表 B-13）。
+	 */
+	public static function quota_word(): string {
+		return '每日额度';
+	}
+
+	/**
+	 * test_mode → 演练模式（对照表 B-14——总览通栏标题词；说明句在渲染层）。
+	 */
+	public static function test_mode_word(): string {
+		return '演练模式';
+	}
+
+	/**
+	 * spam 留档 → 垃圾箱存档（对照表 B-16——拦下的垃圾评论自动存档备查）。
+	 */
+	public static function spam_word(): string {
+		return '垃圾箱存档';
+	}
+
+	/**
+	 * pass 默认不计数 → 推算口径注（对照表 B-9——点名册「全部通过」脚注；
+	 * 显式说清「通过」是怎么算出来的，不撒谎）。
+	 */
+	public static function pass_uncounted_note(): string {
+		return '「全部通过」为推算——正常放行不记数（只记被拦和待审的）';
+	}
+
+	/**
+	 * 本地规则脚注（对照表 B-7——「本地规则无外部故障面，恒正常」人话）。
+	 */
+	public static function local_rules_footnote(): string {
+		return '站内规矩（本地规则）始终在岗，不依赖任何外部服务，无需密钥';
+	}
+
+	/**
+	 * chain/审核链 → 当前审核服务（对照表 B-8——首发单驱动语境不出现「链」）。
+	 */
+	public static function review_service_word(): string {
+		return '当前审核服务';
+	}
+
+	/**
+	 * 按岗位动词（对照表 B-12——「今日验 N 次/今日审 N 次」；ip=查；
+	 * 未知类型回落「动作」，不回落「调用」黑话）。
+	 *
+	 * @param string $driver_type 服务商类型（captcha|review|ip）。
+	 */
+	public static function action_verb( string $driver_type ): string {
+		return match ( $driver_type ) {
+			'captcha' => '验',
+			'review'  => '审',
+			'ip'      => '查',
+			default   => '动作',
+		};
+	}
+
+	/**
+	 * 战报副行人话族（对照表 B-15——规则键→人话族短词，前 3 段紧凑形态
+	 * 「关键词黑名单 2 · 纯外文 1」；未收录键回落 rule_hit_word 同一资产——
+	 * 两页共用一张映射表，agent C W6 结论）。
+	 *
+	 * 注：B 提案示例族词「广告骚扰/骂人灌水」调整为诚实键名族词——banned_word
+	 * 黑名单由站长自定义（可含广告词也可含辱骂词），归并为「广告骚扰」会撒谎
+	 * （不撒谎纪律优先，偏差已列入批 3 报告 docs 差异清单给统筹）。
+	 *
+	 * @param string $rule_hit 命中规则键（可能逗号拼接/前缀族）。
+	 */
+	public static function rule_family_word( string $rule_hit ): string {
+		if ( '' === $rule_hit ) {
+			return '';
+		}
+		$exact = array(
+			'banned_word'       => '关键词黑名单',
+			'no_chinese'        => '纯外文',
+			'too_short'         => '字数太少',
+			'too_long'          => '超字数上限',
+			'hold_moderation'   => '转人工',
+			'captcha_missing'   => '没带票据',
+			'bad-signature'     => '票据签名不对',
+			'contract_mismatch' => '服务商故障',
+		);
+		if ( isset( $exact[ $rule_hit ] ) ) {
+			return $exact[ $rule_hit ];
+		}
+		if ( 0 === strpos( $rule_hit, 'CaptchaCode=' ) ) {
+			return '人机验证没通过';
+		}
+		if ( 0 === strpos( $rule_hit, 'remote_' ) ) {
+			return '服务商通讯故障';
+		}
+		return self::rule_hit_word( $rule_hit );
+	}
 }

@@ -201,6 +201,48 @@ final class InterceptDigestRowsTest extends TestCase {
 		);
 	}
 
+	/**
+	 * UI 批 3·真机缺陷修正钉：停转行（verdict=error + driver_halted 前缀）同时命中
+	 * N2 故障谓词与 N3 健康谓词——两源重复入列须按 id 去重（保首见=最大 id）。
+	 * 批 2 SQL 漏选 id 列时归并退化且无法去重（真机 DOM 断言实锤——notes #10 形态）。
+	 */
+	public function test_fault_timeline_rows_dedupes_halt_rows_matched_by_both_predicates(): void {
+		$halt_row = array(
+			'id'         => 20,
+			'event_no'   => 'WK-20261112-0020',
+			'created_at' => '2026-11-12 08:20:00',
+			'gate'       => 'system',
+			'stage'      => 'health',
+			'driver'     => 'tencent_tms',
+			'verdict'    => 'error',
+			'rule_hit'   => 'driver_halted:quota_exhausted',
+		);
+		$health_copy          = $halt_row; // 同一行（同 id）在 N3 健康时间线重复出现。
+		$health_copy['meta']  = array();
+
+		$faults = array( $halt_row, array(
+			'id'       => 10,
+			'event_no'   => 'WK-20261112-0010',
+			'created_at' => '2026-11-12 08:10:00',
+			'gate'       => 'comment',
+			'stage'      => 'review',
+			'driver'     => 'tencent_tms',
+			'verdict'    => 'error',
+			'rule_hit'   => 'remote_transport',
+			'meta'       => array(),
+		) );
+
+		$rows = InterceptDigest::fault_timeline_rows( $faults, array( $health_copy ), self::driver_labels() );
+
+		$this->assertCount( 2, $rows, '同 id 双命中只渲染一次（去重保首见=最大 id）' );
+		$this->assertSame( array( 20, 10 ), array_column( $rows, 'id' ) );
+
+		// id 缺位（防御形态）不去重不虚构。
+		$no_id = array( 'event_no' => 'WK-X', 'created_at' => 't', 'gate' => 'system', 'stage' => 'health', 'driver' => 'x', 'verdict' => 'pass', 'rule_hit' => 'driver_resumed' );
+		$rows  = InterceptDigest::fault_timeline_rows( array( $no_id, $no_id ), array(), self::driver_labels() );
+		$this->assertCount( 2, $rows, 'id=0 防御形态不去重（不虚构序键）' );
+	}
+
 	public function test_fault_timeline_rows_health_words_and_driver_labels(): void {
 		$rows = InterceptDigest::fault_timeline_rows( self::fault_events(), self::health_events(), self::driver_labels() );
 

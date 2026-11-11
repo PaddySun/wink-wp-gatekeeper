@@ -203,6 +203,20 @@ DDL;
 	}
 
 	/**
+	 * 事件表容量读数（UI 批 3·N11——Tab① 块 E「站点底账」消费；agent C B-6 裁决：
+	 * 「事件记录 正常」无站内健康指标砍除，换可行的事件表容量读数）。
+	 *
+	 * 只读 COUNT；非数值/查询失败回落 0（不虚构）。
+	 *
+	 * @return int 当前行数。
+	 */
+	public static function row_count(): int {
+		global $wpdb;
+		$count = $wpdb->get_var( 'SELECT COUNT(*) FROM ' . self::table_name( $wpdb->prefix ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return is_numeric( $count ) ? (int) $count : 0;
+	}
+
+	/**
 	 * meta JSON 编码（LONGTEXT 列；NULL 值键剔除）。
 	 *
 	 * 【CI 扫描红线（02 §7.4 v1.4·红线 4 延伸到 events.meta——代码注释落点）】本列携带的
@@ -474,13 +488,15 @@ DDL;
 
 	/**
 	 * N2 纯 SQL 模板：全闸故障时间线（fault_predicate_sql 同源复用——F7 唯一权威口径）。
-	 * 列集含 gate/verdict/meta：门名列、「当时怎么处理」组合映射、meta.raw 展开行数据源。
+	 * 列集含 gate/verdict/meta：门名列、「当时怎么处理」组合映射、meta.raw 展开行数据源；
+	 * **id 列=两源归并序键**（UI 批 3 修正——批 2 文档声称在列而 SQL 漏选，fault_timeline_rows
+	 * 归并退化；id 缺位时同 id 行无法去重——见 fault_timeline_rows）。
 	 *
 	 * @param string $table 完整表名。
 	 * @return string
 	 */
 	public static function recent_faults_sql( string $table ): string {
-		return 'SELECT event_no, created_at, gate, stage, driver, verdict, rule_hit, meta FROM ' . $table . ' '
+		return 'SELECT id, event_no, created_at, gate, stage, driver, verdict, rule_hit, meta FROM ' . $table . ' '
 			. 'WHERE ' . self::fault_predicate_sql() . ' '
 			. 'ORDER BY id DESC LIMIT %d';
 	}
@@ -520,12 +536,13 @@ DDL;
 	 * N3 纯 SQL 模板：停转进入·解除时间线（04 §3 写入矩阵 system 行：gate=system、
 	 * stage=health；events 表无健康快照行——driver_halted 驱动行（verdict=error、闸侧留痕）
 	 * 归故障口径进 N2，本查询只取健康域留痕）。窗口/行数走 prepare 占位。
+	 * **id 列=两源归并序键**（UI 批 3 修正——同 recent_faults_sql）。
 	 *
 	 * @param string $table 完整表名。
 	 * @return string
 	 */
 	public static function recent_health_timeline_sql( string $table ): string {
-		return 'SELECT event_no, created_at, gate, stage, driver, verdict, rule_hit FROM ' . $table . ' '
+		return 'SELECT id, event_no, created_at, gate, stage, driver, verdict, rule_hit FROM ' . $table . ' '
 			. "WHERE gate = 'system' AND stage = 'health' AND " . self::health_timeline_predicate_sql() . ' '
 			. 'AND created_at >= %s '
 			. 'ORDER BY id DESC LIMIT %d';
