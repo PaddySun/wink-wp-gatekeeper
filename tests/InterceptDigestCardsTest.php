@@ -159,7 +159,8 @@ final class InterceptDigestCardsTest extends TestCase {
 		$this->assertSame( '未启用', $card['health'] );
 		$this->assertFalse( $card['enabled'] );
 		$this->assertStringContainsString( '未启用', (string) $card['placeholder_note'] );
-		$this->assertSame( 'review', $card['config_tab'], '占位卡带跳转目标（D6）' );
+		$this->assertStringNotContainsString( '去 Tab', (string) $card['placeholder_note'], '占位句去 Tab 序号引用（UI-FIX B②——指引收敛段标题，卡内极简一句无链接）' );
+		$this->assertSame( 'review', $card['config_tab'], '占位卡带跳转目标（D6 数据面保留——段级 stats_config_hint 消费）' );
 		$this->assertSame( array(), $card['lines'], '未启用卡无数字行' );
 	}
 

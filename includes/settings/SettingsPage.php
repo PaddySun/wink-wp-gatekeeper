@@ -610,11 +610,14 @@ final class SettingsPage {
 	}
 
 	/**
-	 * 块 C·服务商点名册（本次核心——原「驱动健康」表退役）。
+	 * 块 C·服务商点名册（本次核心——原「驱动健康」表退役；UI-FIX A 收拢行）。
 	 *
-	 * registry 全集（验证码 2 + 云端审核 3）一字排开；本地规则不入册给脚注。每卡
-	 * 固定信息：岗位小字 + 人话名 / 排班态·健康态（Labels 词）/ 今日一句摘要
-	 * （未配置灰卡给 [去配置] 去处——不给数字给去处）。数据=渲染侧推导
+	 * registry 全集（验证码 2 + 云端审核 3）；本地规则不入册给脚注。UI-FIX A
+	 * （2026-11-12 用户实测反馈折中方案）：默认只展开已配置卡（当班+待命，含其上
+	 * 异常卡）；未配置服务商收拢一行「未配置的服务商：人话名 · 人话名 [去配置 →]」
+	 * ——保留可发现性、不占屏；单入口替代每卡一入口（跳转目标=未配置卡 config_tab
+	 * 去重，全同域链对应 Tab，混合域回落 Tab② 三步引导）。每卡固定信息：岗位小字
+	 * + 人话名 / 排班态·健康态（Labels 词）/ 今日一句摘要。数据=渲染侧推导
 	 * （overview_roster_cards 边界收集 + OverviewRoster::cards 纯函数组装）——
 	 * 不改 DriverHealth 存储（agent C §E-b 方案甲，N9 不采纳）。
 	 *
@@ -622,6 +625,27 @@ final class SettingsPage {
 	 */
 	private static function render_overview_roster(): void {
 		$cards = self::overview_roster_cards();
+		$shown = array();
+		$pending_setup = array();
+		foreach ( $cards as $roster_card ) {
+			if ( 'unconfigured' === (string) ( $roster_card['duty'] ?? '' ) ) {
+				$pending_setup[] = $roster_card;
+			} else {
+				$shown[] = $roster_card;
+			}
+		}
+		// 收拢行单入口目标：未配置卡 config_tab 去重——恰一域=该域 Tab；混合域=Tab②（三步引导起点）。
+		$setup_tabs = array_values( array_unique( array_filter( array_map(
+			static function ( array $roster_card ): string {
+				return (string) ( $roster_card['config_tab'] ?? '' );
+			},
+			$pending_setup
+		) ) ) );
+		$setup_tab = 1 === count( $setup_tabs ) ? (string) $setup_tabs[0] : 'captcha';
+		$setup_names = array();
+		foreach ( $pending_setup as $roster_card ) {
+			$setup_names[] = (string) ( $roster_card['label'] ?? '' );
+		}
 		?>
 		<section id="wk-overview-roster" class="wk-card">
 			<h2><?php
@@ -632,8 +656,17 @@ final class SettingsPage {
 				) );
 				?> <span class="wk-muted"><?php esc_html_e( '没出错的也每天点名，一眼见分晓', 'wink-gatekeeper' ); ?></span></h2>
 			<div class="wk-roster-cards">
-				<?php foreach ( $cards as $roster_card ) { self::render_roster_card( $roster_card ); } ?>
+				<?php foreach ( $shown as $roster_card ) { self::render_roster_card( $roster_card ); } ?>
 			</div>
+			<?php if ( array() !== $pending_setup ) : ?>
+				<p class="wk-roster-unconfigured"><?php
+					echo esc_html( sprintf(
+						/* translators: %s: 未配置服务商人话名清单. */
+						__( '未配置的服务商：%s', 'wink-gatekeeper' ),
+						implode( ' · ', $setup_names )
+					) );
+					?> <a href="<?php echo esc_url( self::tab_url( $setup_tab ) ); ?>"><?php esc_html_e( '去配置 →', 'wink-gatekeeper' ); ?></a></p>
+			<?php endif; ?>
 			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::local_rules_footnote() ); ?></p>
 			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::pass_uncounted_note() ); ?></p>
 		</section>
@@ -693,17 +726,13 @@ final class SettingsPage {
 	}
 
 	/**
-	 * 点名册单卡渲染（未配置=灰卡；停转=警示/黄色状态点——颜色映射在渲染层）。
+	 * 点名册单卡渲染（只接已配置卡——未配置收拢行见 render_overview_roster；
+	 * 停转=警示/黄色状态点——颜色映射在渲染层）。
 	 *
 	 * @param array<string, mixed> $roster_card OverviewRoster::cards 输出行。
 	 * @return void
 	 */
 	private static function render_roster_card( array $roster_card ): void {
-		$duty    = (string) ( $roster_card['duty'] ?? '' );
-		$classes = 'wk-roster-card';
-		if ( 'unconfigured' === $duty ) {
-			$classes .= ' wk-roster-card--disabled';
-		}
 		$dot = 'wk-dot--ok';
 		if ( ! ( $roster_card['healthy'] ?? true ) ) {
 			$dot = 'quota_exhausted' === ( $roster_card['halt'] ?? '' ) ? 'wk-dot--warn' : 'wk-dot--alert';
@@ -714,7 +743,7 @@ final class SettingsPage {
 			$status .= ' · ' . (string) $roster_card['health_word'];
 		}
 		?>
-		<div class="<?php echo esc_attr( $classes ); ?>">
+		<div class="wk-roster-card">
 			<p class="wk-roster-role"><?php echo esc_html( (string) ( $roster_card['role'] ?? '' ) ); ?></p>
 			<p><strong><?php echo esc_html( (string) ( $roster_card['label'] ?? '' ) ); ?></strong></p>
 			<p class="wk-roster-status">
@@ -726,9 +755,6 @@ final class SettingsPage {
 			<?php endif; ?>
 			<?php if ( '' !== (string) ( $roster_card['summary'] ?? '' ) ) : ?>
 				<p class="wk-muted"><?php echo esc_html( (string) $roster_card['summary'] ); ?></p>
-			<?php endif; ?>
-			<?php if ( 'unconfigured' === $duty && '' !== (string) ( $roster_card['config_tab'] ?? '' ) ) : ?>
-				<p><a href="<?php echo esc_url( self::tab_url( (string) $roster_card['config_tab'] ) ); ?>"><?php esc_html_e( '去配置 →', 'wink-gatekeeper' ); ?></a></p>
 			<?php endif; ?>
 		</div>
 		<?php
@@ -2284,10 +2310,11 @@ final class SettingsPage {
 		$settings = self::settings();
 		$cache    = \WinkGatekeeper\Stats\StatsCache::get();
 
-		/* UI 批 1（DESIGN-UI-tab6 A 提案三口径骨架）：五段编排——速览条→一、评论防护→
-		 * 二、登录防护→三、报错历史→四、拦截记录流水→五、统计设置·清零；每段
-		 * 「结果→归因→案例」节奏。批 2 已接线：登录④明细卡（N1）/全闸报错时间线
-		 * （N2+N3）/服务商卡出错格（N6+N7a）——占位提示全部移除。 */
+		/* UI 批 1（DESIGN-UI-tab6 A 提案三口径骨架）：五段编排——速览条→评论防护→
+		 * 登录防护→报错历史→拦截记录流水→统计设置·清零；每段「结果→归因→案例」节奏。
+		 * 批 2 已接线：登录明细卡（N1）/全闸报错时间线（N2+N3）/服务商卡出错格（N6+N7a）
+		 * ——占位提示全部移除。UI-FIX B（2026-11-12 用户反馈）：两级标题制全页零序号
+		 * （段标题 wk-sec-title > 段内小标题 wk-sub-title），配置指引收敛段标题单入口。 */
 		$registry      = null !== self::$driver_registry ? self::$driver_registry : null;
 		$ip_driver_ids = array_keys( null !== $registry ? $registry->by_type( 'ip' ) : array() );
 		$split_today   = \WinkGatekeeper\Stats\InterceptDigest::review_split( $cache, $ip_driver_ids, false );
@@ -2332,7 +2359,7 @@ final class SettingsPage {
 		$spam_count = \WinkGatekeeper\Stats\StatsCache::archived_spam_count();
 		?>
 		<section class="wk-card wk-card--metric" id="wk-stats-overview">
-			<h2><?php esc_html_e( '今日速览', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( '今日速览', 'wink-gatekeeper' ); ?></h2>
 			<p class="wk-metric"><span class="wk-metric__num"><?php echo esc_html( (string) $today_reject ); ?></span></p>
 			<p>
 				<?php
@@ -2370,7 +2397,10 @@ final class SettingsPage {
 	}
 
 	/**
-	 * 一、评论防护（口径一——DESIGN-UI-tab6 §2.1：①今日概览→②谁拦的→③最近明细）。
+	 * 评论防护段（口径一——DESIGN-UI-tab6 §2.1：今日概览→谁拦的→最近明细）。
+	 *
+	 * UI-FIX B：段标题两级制（wk-sec-title/wk-sub-title，零序号）；配置指引收敛到
+	 * 段标题单入口（stats_config_hint——段内有未启用卡才出现）。
 	 *
 	 * @param array<string, mixed> $cache       StatsCache 树。
 	 * @param array{review: int, ip_review: int, ip_captcha: int} $split_today 待审拆分（今日）。
@@ -2385,9 +2415,10 @@ final class SettingsPage {
 		$ip_captcha    = (int) ( $split_today['ip_captcha'] ?? 0 );
 		?>
 		<section class="wk-card" id="wk-stats-comment">
-			<h2><?php esc_html_e( '一、评论防护', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( '评论防护', 'wink-gatekeeper' ); ?><?php echo self::stats_config_hint( $cards ); // phpcs:ignore WordPress.Security.EscapeOutput -- 内部组装已转义。 ?></h2>
 
-			<p><strong><?php esc_html_e( '① 今日概览', 'wink-gatekeeper' ); ?></strong>
+			<h3 class="wk-sub-title"><?php esc_html_e( '今日概览', 'wink-gatekeeper' ); ?></h3>
+			<p>
 				<?php
 				echo esc_html( sprintf(
 					/* translators: 1: 拦下, 2: 转人工复核, 3: 出错 */
@@ -2409,7 +2440,7 @@ final class SettingsPage {
 			</p>
 			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: %d: IP 风控强制验证码次数 */ __( 'IP 信誉强制验证码 %d 次（单列口径——不计入上方转人工复核数字）。', 'wink-gatekeeper' ), $ip_captcha ) ); ?></p>
 
-			<h3><?php esc_html_e( '② 谁拦的（按拦截链顺序）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( '谁拦的（按拦截链顺序）', 'wink-gatekeeper' ); ?></h3>
 			<div class="wk-driver-card">
 				<p><strong><?php echo esc_html( (string) $local_rules['label'] ); ?></strong> <span class="wk-muted"><?php esc_html_e( '——字数 / 关键词 / 中文检查，不花钱', 'wink-gatekeeper' ); ?></span></p>
 				<p><?php echo esc_html( (string) $local_rules['line'] ); ?></p>
@@ -2425,16 +2456,18 @@ final class SettingsPage {
 			<?php foreach ( $cards as $card ) : ?>
 				<?php if ( 'review' === ( $card['type'] ?? '' ) ) { self::render_driver_card( $card ); } ?>
 			<?php endforeach; ?>
-			<p class="wk-muted"><?php esc_html_e( '放行=推算值（今日动作数−拦下−转人工−出错）；「未启用」的防线去 Tab②/③ 配置后这里会出现它的数字。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( '放行=推算值（今日动作数−拦下−转人工−出错）。', 'wink-gatekeeper' ); ?></p>
 
-			<h3><?php esc_html_e( '③ 最近拦下的评论（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( '最近拦下的评论（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
 			<?php self::render_comment_recent_table(); ?>
 		</section>
 		<?php
 	}
 
 	/**
-	 * 二、登录防护（口径二——DESIGN-UI-tab6 §2.2：①今日概览→②三张门分账→③服务商口径→④明细占位）。
+	 * 登录防护段（口径二——DESIGN-UI-tab6 §2.2：今日概览→三张门分账→服务商口径→明细）。
+	 *
+	 * UI-FIX B：段标题两级制零序号；配置指引收敛段标题单入口（「登录防护 · 去配置」）。
 	 *
 	 * @param array<string, mixed> $cache    StatsCache 树。
 	 * @param array<string, mixed> $settings 设置树。
@@ -2455,9 +2488,10 @@ final class SettingsPage {
 		$cards = self::stats_driver_cards( 'login' );
 		?>
 		<section class="wk-card" id="wk-stats-login">
-			<h2><?php esc_html_e( '二、登录防护（登录 / 注册 / 找回密码 三张门）', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( '登录防护（登录 / 注册 / 找回密码 三张门）', 'wink-gatekeeper' ); ?><?php echo self::stats_config_hint( $cards ); // phpcs:ignore WordPress.Security.EscapeOutput -- 内部组装已转义。 ?></h2>
 
-			<p><strong><?php esc_html_e( '① 今日概览', 'wink-gatekeeper' ); ?></strong>
+			<h3 class="wk-sub-title"><?php esc_html_e( '今日概览', 'wink-gatekeeper' ); ?></h3>
+			<p>
 				<?php
 				echo esc_html( sprintf(
 					/* translators: 1: 拦下, 2: 验证放行, 3: 密码输错, 4: 窗口分钟 */
@@ -2471,7 +2505,7 @@ final class SettingsPage {
 			</p>
 			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: 1: 累计拦下, 2: 累计密码输错 */ __( '累计拦下 %1$d 次 · 密码输错 %2$d 次', 'wink-gatekeeper' ), (int) ( $total_overview['reject'] ?? 0 ), (int) ( $total_overview['attempts'] ?? 0 ) ) ); ?></p>
 
-			<h3><?php esc_html_e( '② 三张门分账', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( '三张门分账', 'wink-gatekeeper' ); ?></h3>
 			<table class="wk-table">
 				<thead>
 					<tr>
@@ -2493,12 +2527,12 @@ final class SettingsPage {
 				</tbody>
 			</table>
 
-			<h3><?php esc_html_e( '③ 谁拦的（按服务商口径）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( '谁拦的（按服务商口径）', 'wink-gatekeeper' ); ?></h3>
 			<?php foreach ( $cards as $card ) : ?>
 				<?php self::render_driver_card( $card ); ?>
 			<?php endforeach; ?>
 
-			<h3><?php esc_html_e( '④ 最近拦下的登录尝试（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( '最近拦下的登录尝试（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
 			<?php self::render_account_recent_table(); ?>
 		</section>
 		<?php
@@ -2556,7 +2590,7 @@ final class SettingsPage {
 	/**
 	 * 三、报错历史（口径三——DESIGN-UI-tab6 §2.3：今日出错 + 人话分布 + 最近报错表迁入）。
 	 *
-	 * 【UI 批 2 接线】②最近报错 = 全闸报错时间线（N2：EventsTable::recent_faults，
+	 * 【UI 批 2 接线】最近报错小节 = 全闸报错时间线（N2：EventsTable::recent_faults，
 	 * fault_predicate_sql 同源复用——F7）∪ 停转进入·解除时间线（N3：recent_health_timeline，
 	 * driver_resumed 非故障口径的解除留痕）——InterceptDigest::fault_timeline_rows 按 id
 	 * 倒序归并，「当时怎么处理」组合映射（handling_word），meta.raw 展开行保留。
@@ -2588,9 +2622,10 @@ final class SettingsPage {
 		$fault_rows = \WinkGatekeeper\Stats\InterceptDigest::fault_timeline_rows( $fault_events, $health_events, $driver_labels );
 		?>
 		<section class="wk-card" id="wk-stats-faults">
-			<h2><?php esc_html_e( '三、报错历史（和第三方服务商打交道时出的岔子）', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( '报错历史（和第三方服务商打交道时出的岔子）', 'wink-gatekeeper' ); ?></h2>
 
-			<p><strong><?php esc_html_e( '① 今日出错', 'wink-gatekeeper' ); ?></strong>
+			<h3 class="wk-sub-title"><?php esc_html_e( '今日出错', 'wink-gatekeeper' ); ?></h3>
+			<p>
 				<?php echo esc_html( sprintf( /* translators: %d: 今日出错次数 */ __( '%d 次', 'wink-gatekeeper' ), $fault_total ) ); ?>
 			</p>
 			<?php if ( array() !== $fault_dist ) : ?>
@@ -2608,7 +2643,7 @@ final class SettingsPage {
 				<p class="wk-muted"><?php esc_html_e( '今日没出过错——各防线都正常。', 'wink-gatekeeper' ); ?></p>
 			<?php endif; ?>
 
-			<h3><?php esc_html_e( '② 最近报错（全闸，含服务商暂停与恢复）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( '最近报错（全闸，含服务商暂停与恢复）', 'wink-gatekeeper' ); ?></h3>
 			<p class="wk-muted"><?php esc_html_e( '四张门和服务商的岔子都在一张时间线上；服务商当日暂停与次日恢复也会留痕在此。', 'wink-gatekeeper' ); ?></p>
 			<?php if ( array() === $fault_rows ) : ?>
 				<p class="wk-muted"><?php esc_html_e( '最近没出过错——一切正常。', 'wink-gatekeeper' ); ?></p>
@@ -2639,9 +2674,9 @@ final class SettingsPage {
 										<span class="wk-muted">（<?php echo esc_html( mb_substr( $fault_brief, 0, 120, 'UTF-8' ) ); ?>）</span>
 									<?php endif; ?>
 									<?php if ( array() !== $fault_row['raw'] ) : ?>
-										<details style="margin-top:4px;">
+										<details class="wk-fault-raw">
 											<summary><?php esc_html_e( '展开看服务商原始回复（排障用，已脱敏）', 'wink-gatekeeper' ); ?></summary>
-											<pre style="white-space:pre-wrap;font-size:12px;"><?php echo esc_textarea( (string) wp_json_encode( $fault_row['raw'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) ); ?></pre>
+											<pre><?php echo esc_textarea( (string) wp_json_encode( $fault_row['raw'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) ); ?></pre>
 										</details>
 									<?php endif; ?>
 								</td>
@@ -2663,7 +2698,7 @@ final class SettingsPage {
 	private static function render_stats_records_card(): void {
 		?>
 		<section class="wk-card" id="wk-stats-records">
-			<h2><?php esc_html_e( '四、拦截记录流水（查全部记录 / 导出）', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( '拦截记录流水（查全部记录 / 导出）', 'wink-gatekeeper' ); ?></h2>
 			<p class="wk-muted"><?php esc_html_e( '每一条拦下、转人工复核、报错都有编号（如 WK-20261112-0042）。访客报障时报编号即可精确定位；按门/服务商/结果筛选与导出表格接入后启用。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
@@ -2679,7 +2714,7 @@ final class SettingsPage {
 	private static function render_stats_settings_card( array $settings ): void {
 		?>
 		<section class="wk-card" id="wk-stats-settings">
-			<h2><?php esc_html_e( '五、统计设置 · 清零', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( '统计设置 · 清零', 'wink-gatekeeper' ); ?></h2>
 			<p>
 				<label>
 					<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'stats', 'enabled' ) ) ); ?>" value="0" />
@@ -2817,7 +2852,28 @@ final class SettingsPage {
 	}
 
 	/**
-	 * 服务商统一卡渲染（头=服务商名+四档健康徽标；行=箭头式；额度行；未启用灰卡带跳转——D6）。
+	 * 段级配置指引（UI-FIX B②——2026-11-12 用户反馈「指引只在段级小标题位置出现一次」）。
+	 *
+	 * 段内驱动卡存在未启用卡时，段标题尾部追加「 · 去配置」链接（形如「登录防护 ·
+	 * 去配置」）；目标=首个未启用卡的 config_tab（卡组序=captcha 在前——混合域时
+	 * 指向第一道防线）。全部启用返回空串（无卡段不调用）。
+	 *
+	 * @param array<int, array<string, mixed>> $cards stats_driver_cards 输出。
+	 * @return string HTML 片段（''=无指引；esc_url/esc_html 全转义）。
+	 */
+	private static function stats_config_hint( array $cards ): string {
+		foreach ( $cards as $hint_card ) {
+			if ( empty( $hint_card['enabled'] ) && '' !== (string) ( $hint_card['config_tab'] ?? '' ) ) {
+				return ' · <a class="wk-config-link" href="' . esc_url( self::tab_url( (string) $hint_card['config_tab'] ) ) . '">'
+					. esc_html( __( '去配置', 'wink-gatekeeper' ) ) . '</a>';
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * 服务商统一卡渲染（头=服务商名+四档健康徽标；行=箭头式；额度行；未启用灰卡
+	 * 极简一句无链接——UI-FIX B②：跳转指引收敛段标题单入口，卡不承担导航职责）。
 	 *
 	 * @param array<string, mixed> $card InterceptDigest::driver_card 输出。
 	 * @return void
@@ -2825,14 +2881,10 @@ final class SettingsPage {
 	private static function render_driver_card( array $card ): void {
 		$label = (string) ( $card['label'] ?? '' );
 		if ( empty( $card['enabled'] ) ) {
-			// 未启用占位灰卡（○——不给数字给去处）。
+			// 未启用占位灰卡（○——灰徽标+极简一句，无链接）。
 			echo '<div class="wk-driver-card wk-driver-card--disabled">';
 			echo '<p><strong>' . esc_html( $label ) . '</strong> <span class="wk-muted">' . esc_html( (string) $card['badge'] . ' ' . $card['health'] ) . '</span></p>';
-			if ( '' !== (string) ( $card['config_tab'] ?? '' ) ) {
-				echo '<p class="wk-muted"><a href="' . esc_url( self::tab_url( (string) $card['config_tab'] ) ) . '">' . esc_html( (string) $card['placeholder_note'] ) . ' →</a></p>';
-			} else {
-				echo '<p class="wk-muted">' . esc_html( (string) $card['placeholder_note'] ) . '</p>';
-			}
+			echo '<p class="wk-muted">' . esc_html( (string) $card['placeholder_note'] ) . '</p>';
 			echo '</div>';
 			return;
 		}
@@ -2922,9 +2974,9 @@ final class SettingsPage {
 				</tbody>
 			</table>
 		<?php endif; ?>
-		<p style="margin-top:0.75rem;">
-			<a class="button" href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php esc_html_e( '查看垃圾评论分类', 'wink-gatekeeper' ); ?></a>
-		</p>
+			<p class="wk-table-foot">
+				<a class="button" href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php esc_html_e( '查看垃圾评论分类', 'wink-gatekeeper' ); ?></a>
+			</p>
 		<?php
 	}
 

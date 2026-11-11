@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.4.2 =
+
+UI-FIX·设置页 UI 密度与样式克制修正（2026-11-12 用户实测反馈两条合并批，UI-FIX-FEEDBACK-2026-11-12 拍板方向）：①FIX-A·Tab① 点名册未配置收拢行（反馈 1 折中方案）：默认只展开已配置卡（当班+待命，含其上异常卡——异常置顶微排序不变），未配置服务商收拢一行「未配置的服务商：人话名 · 人话名 [去配置 →]」——保留可发现性不占屏；单入口替代每卡一入口（跳转目标=未配置卡 config_tab 去重，全同域链对应 Tab②/③，混合域回落 Tab② 三步引导）；未配置灰卡不再单独渲染（wk-roster-card--disabled 退役）；纯渲染层改动（OverviewRoster::cards 纯函数/存储/排序零变更）。②FIX-B·Tab⑥ 文字样式克制（反馈 2 三宗罪）：两级标题制——段标题 wk-sec-title（1.15rem）>段内小标题 wk-sub-title（16px 加粗）两档全页统一，样式走 admin-settings.css 类禁内联（原始回复展开块内联 style 迁 .wk-fault-raw 类）；全页零序号——「一、二、三」「①②③」双序号体系全清（契约扫渲染体含函数体内注释）；配置指引收敛——「未启用/未配置」跳转指引只在段标题位置出现一次（stats_config_hint：段内有未启用卡才出现「 · 去配置」，评论段/登录段两调用点恰各≤1），驱动卡内部蓝链接退役（未启用卡=灰徽标+极简一句无链接，占位句去 Tab 序号引用，卡不承担导航职责——config_tab 数据面保留供段级消费）；密度对齐 O3 widget——正文单层字号（wk-defense-group 0.9rem 多级字号收敛），徽标/数字加粗即强调。③测试：UiTab6StatsContractTest 契约翻转（序号断言清零/蓝链接计数/标题类三新例+五段骨架断言翻新）+ UiTab1OverviewContractTest 收拢行新例（「五卡齐」形态断言翻转「已配置展开+未配置一行」）+ InterceptDigestCardsTest 占位句反钉，版本钉 0.4.2 五测试文件同步。真机（厦门 wpclean）：部署 0.4.2 后 render 通道 DOM 断言 Tab① 收拢行在场+未配置卡零单独渲染、Tab⑥ 零序号字符+段标题类在场+蓝链接每段≤1（IMPL 报告：docs/reports/IMPL-UIFIX-2026-11-12.md）。
 
 = 0.4.1 =
 

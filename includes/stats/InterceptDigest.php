@@ -441,12 +441,12 @@ final class InterceptDigest {
 			'config_tab'       => $config_tab,
 		);
 
-		// 未启用占位灰卡（残留停转态不盖排班态——不当班为准）。
+		// 未启用占位灰卡（残留停转态不盖排班态——不当班为准；UI-FIX B② 极简一句无 Tab 引用）。
 		if ( ! $enabled ) {
 			$card['badge']            = '○';
 			$card['health']           = '未启用';
 			$card['health_note']      = '未启用——配置后这里会出现它的数字';
-			$card['placeholder_note'] = '未启用——去 Tab②/③ 配置后这里会出现它的数字';
+			$card['placeholder_note'] = '未启用——配置后这里会出现它的数字';
 			return $card;
 		}
 

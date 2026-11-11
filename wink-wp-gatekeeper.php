@@ -15,7 +15,7 @@
  * Plugin Name:       Wink 门口保安
  * Plugin URI:        https://github.com/wink/wink-wp-gatekeeper
  * Description:       对真人眨眨眼，对机器人睁着眼——评论验证 + 登录验证 + 内容过滤三闸合一，验证码与云端审核驱动化可插拔。
- * Version:           0.4.1
+ * Version:           0.4.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Wink
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * 常量
  * -------------------------------------------------------------------- */
 
-define( 'WINK_GATEKEEPER_VERSION', '0.4.1' ); // O3·仪表盘统计卡片三卡（O3-统计卡片设计建议 §七 步骤 1-5：DashboardDigest 视图①纯逻辑类零明细查询不变式/Bootstrap wp_dashboard_setup 注册 manage_options 门禁+开关键/三卡 HTML+CSS+行动出口深链/cron 存活检测+重新激活通道/StatsCache disaster_pass 计数特例+写入矩阵 pass 特例——DashboardDigestTest+O3DashboardWidgetContractTest 回归门；小版本号进位 0.4.0→0.4.1）+ UI 批 3·Tab① 总览页点名册形态重构（DESIGN-UI-tab1 B 提案五块，0.3.9→0.4.0）+ UI 批 2·事件查询面×5 + UI 批 1·Tab⑥ 五段重构 + FIX 轮 5·flood 品牌页 + FIX 轮 4·登录错误掩码分域 + FIX 轮 3·Tab③ 下拉联动——wp plugin list 可辨轮次。
+define( 'WINK_GATEKEEPER_VERSION', '0.4.2' ); // UI-FIX·设置页密度与样式克制（2026-11-12 用户实测反馈两条合并批：FIX-A Tab① 点名册未配置收拢行+单入口 / FIX-B Tab⑥ 两级标题制全页零序号+指引收敛段标题+密度对齐 O3——UiTab1OverviewContractTest+UiTab6StatsContractTest 契约翻转；0.4.1→0.4.2）+ O3·仪表盘统计卡片三卡（O3-统计卡片设计建议 §七 步骤 1-5：DashboardDigest 视图①纯逻辑类零明细查询不变式/Bootstrap wp_dashboard_setup 注册 manage_options 门禁+开关键/三卡 HTML+CSS+行动出口深链/cron 存活检测+重新激活通道/StatsCache disaster_pass 计数特例+写入矩阵 pass 特例——DashboardDigestTest+O3DashboardWidgetContractTest 回归门；小版本号进位 0.4.0→0.4.1）+ UI 批 3·Tab① 总览页点名册形态重构（DESIGN-UI-tab1 B 提案五块，0.3.9→0.4.0）+ UI 批 2·事件查询面×5 + UI 批 1·Tab⑥ 五段重构 + FIX 轮 5·flood 品牌页 + FIX 轮 4·登录错误掩码分域 + FIX 轮 3·Tab③ 下拉联动——wp plugin list 可辨轮次。
 define( 'WINK_GATEKEEPER_FILE', __FILE__ );
 define( 'WINK_GATEKEEPER_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WINK_GATEKEEPER_URL', plugin_dir_url( __FILE__ ) );

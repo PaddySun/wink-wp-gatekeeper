@@ -150,7 +150,25 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringContainsString( 'render_roster_card', $body, '单卡渲染函数' );
 		$this->assertStringContainsString( 'Labels::local_rules_footnote', $body, '本地规则不入册给脚注（对照表 B-7）' );
 		$this->assertStringContainsString( 'Labels::pass_uncounted_note', $body, '推算口径注（对照表 B-9）' );
-		$this->assertStringContainsString( '去配置', self::body( 'render_roster_card' ), '未配置灰卡带去处（不给数字给去处）' );
+	}
+
+	/**
+	 * UI-FIX A（2026-11-12 用户实测反馈折中方案）：点名册默认只展开已配置卡
+	 * （当班+待命，含其上异常卡）；未配置服务商收拢一行——「未配置的服务商：
+	 * 人话名 · 人话名 [去配置 →]」，单入口替代每卡一入口。
+	 */
+	public function test_roster_unconfigured_collapsed_row(): void {
+		$roster = self::body( 'render_overview_roster' );
+		$this->assertStringContainsString( '未配置的服务商', $roster, '收拢行文案（反馈 1 拍板形态）' );
+		$this->assertStringContainsString( 'wk-roster-unconfigured', $roster, '收拢行样式类（CSS 承载——不内联）' );
+		$this->assertStringContainsString( '去配置 →', $roster, '收拢行单入口去处（保留可发现性）' );
+		$this->assertStringContainsString( "'unconfigured' === ", $roster, '展开/收拢分流按排班态（OverviewRoster::cards 的 duty）' );
+		$this->assertStringContainsString( 'array_unique', $roster, '单入口跳转目标=未配置卡 config_tab 去重（全同域链对应 Tab，混合回落 Tab② 三步引导）' );
+		$this->assertStringContainsString( 'implode', $roster, '收拢行服务商名册组装（人话 label 名单——Labels 体系）' );
+
+		$card = self::body( 'render_roster_card' );
+		$this->assertStringNotContainsString( '去配置', $card, '卡内去配置入口退役（单入口取代——反馈 1「不再每卡一入口」）' );
+		$this->assertStringNotContainsString( 'wk-roster-card--disabled', $roster . $card, '未配置灰卡不再单独渲染（收拢行取代）' );
 	}
 
 	public function test_roster_cards_collector_derives_from_registry(): void {
@@ -167,7 +185,6 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringContainsString( 'health_word', $render, '健康态词（正常/故障/额度用完）' );
 		$this->assertStringContainsString( 'halt_note', $render, '停转原因括号注' );
 		$this->assertStringContainsString( 'wk-dot', $render, '健康状态点（绿/黄/红）' );
-		$this->assertStringContainsString( 'wk-roster-card--disabled', self::body( 'render_overview_roster' ) . $render, '未配置=灰卡' );
 	}
 
 	/* ---------- 块 D：最近岔子（N2∪N3 批 2 谓词复用） ---------- */
@@ -236,14 +253,14 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringNotContainsString( '本地规则无外部故障面', $bodies, '恒正常黑话退役（对照表 B-7）' );
 	}
 
-	/* ---------- 版本 0.4.1（随批次推进同步——O3 仪表盘卡片批次） ---------- */
+	/* ---------- 版本 0.4.2（随批次推进同步——UI-FIX 密度与样式克制批次） ---------- */
 
-	public function test_version_bumped_to_0_4_0_in_four_places(): void {
+	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.1$/m', $entry, '插件头 Version 0.4.1' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.1' )", $entry, '版本常量 0.4.1' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.1$/m', $readme, 'readme Stable tag 0.4.1' );
-		$this->assertStringContainsString( '= 0.4.1 =', $readme, 'Changelog 0.4.1 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.2$/m', $entry, '插件头 Version 0.4.2' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.2' )", $entry, '版本常量 0.4.2' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.2$/m', $readme, 'readme Stable tag 0.4.2' );
+		$this->assertStringContainsString( '= 0.4.2 =', $readme, 'Changelog 0.4.2 条目' );
 	}
 }

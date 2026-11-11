@@ -1,12 +1,14 @@
 <?php
 /**
- * UI 批 1·Tab⑥ 统计页五段重构契约测试（2026-11-12，DESIGN-UI-tab6 A 提案 + 统筹裁决）。
+ * UI 批 1·Tab⑥ 统计页五段重构契约测试（2026-11-12，DESIGN-UI-tab6 A 提案 + 统筹裁决；
+ * 2026-11-12 UI-FIX B 批断言翻转：两级标题制/全页去序号/指引段级收敛——用户实测反馈落档）。
  *
  * 骨架契约面（源码契约测试，纯 PHP 零 WP 依赖——方法论与 Fix3Tab3ToggleContractTest
  * 同一形态；行为面由真机 DOM 断言承载）：
- *   ① 速览条 → 一、评论防护 → 二、登录防护 → 三、报错历史 → 四、拦截记录流水 → 五、统计设置·清零
+ *   ① 速览条 → 评论防护 → 登录防护 → 报错历史 → 拦截记录流水 → 统计设置·清零
  *     ——五段各带独立渲染函数与 DOM 锚 id（wk-stats-overview/comment/login/faults/records/settings）；
- *   ② 驱动统一卡模板复用（评论段与登录段共用 render_driver_card）；
+ *     段标题 wk-sec-title > 段内小标题 wk-sub-title 两级统一，全页零序号（UI-FIX B①）；
+ *   ② 驱动统一卡模板复用（评论段与登录段共用 render_driver_card；未启用卡无链接——指引收敛段标题）；
  *   ③ 待审排除 IP 风控口径（review_split 消费 + IP 信誉强制验证码单列行）；
  *   ④ 术语黑话清理（P4-P12：开发者备忘删除/roadmap 去/开关归位/故障卡归属/重置文案/明细占位）。
  *
@@ -93,18 +95,24 @@ final class UiTab6StatsContractTest extends TestCase {
 
 	public function test_comment_section_skeleton(): void {
 		$body = self::body( 'render_stats_comment_section' );
-		$this->assertStringContainsString( '一、评论防护', $body );
+		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B① 两级标题制）' );
+		$this->assertStringContainsString( '评论防护', $body );
+		$this->assertStringContainsString( 'stats_config_hint', $body, '段级配置指引单入口（UI-FIX B②）' );
+		$this->assertStringContainsString( 'wk-sub-title', $body, '段内小标题走统一类（UI-FIX B①）' );
+		$this->assertStringContainsString( '今日概览', $body );
 		$this->assertStringContainsString( '转人工复核', $body, '待审→转人工复核（对照表 4）' );
 		$this->assertStringContainsString( '进了待审区，等你处理', $body, '首次出现处带括号注（A §4 对照表备注）' );
 		$this->assertStringContainsString( 'IP 信誉强制验证码', $body, 'IP 风控单列一行（统筹裁决 2，不入待审数字）' );
-		// ② 谁拦的：本地规则卡 + 两道防线分组（按拦截链排序）。
+		// 谁拦的：本地规则卡 + 两道防线分组（按拦截链排序）。
 		$this->assertStringContainsString( '谁拦的', $body );
 		$this->assertStringContainsString( '中文检查，不花钱', $body, '本地规则卡描述（标签本体来自 local_rules_card 纯函数）' );
 		$this->assertStringContainsString( '人机验证防线', $body );
 		$this->assertStringContainsString( '云端审核防线', $body );
-		// ③ 最近拦下的评论：明细表迁位本段（P3），列头人话化在表渲染函数内（P4）。
+		// 最近拦下的评论：明细表迁位本段（P3），列头人话化在表渲染函数内（P4）。
 		$this->assertStringContainsString( '最近拦下的评论', $body );
 		$this->assertStringContainsString( 'render_comment_recent_table', $body );
+		$this->assertStringNotContainsString( '去 Tab②/③ 配置后这里会出现它的数字', $body, '卡内/段尾跳转指引退役（UI-FIX B②——只在段标题出现一次）' );
+		$this->assertStringContainsString( '放行=推算值', $body, '推算口径注保留（指引句拆出）' );
 		$table = self::body( 'render_comment_recent_table' );
 		$this->assertStringContainsString( '哪道防线拦的', $table, '「阶段」列头人话化（对照表 8/12）' );
 		$this->assertStringContainsString( '说了什么', $table, '「正文摘要」列头人话化' );
@@ -132,8 +140,11 @@ final class UiTab6StatsContractTest extends TestCase {
 
 	public function test_login_section_skeleton(): void {
 		$body = self::body( 'render_stats_login_section' );
-		$this->assertStringContainsString( '二、登录防护', $body );
+		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
+		$this->assertStringContainsString( '登录防护', $body );
+		$this->assertStringContainsString( 'stats_config_hint', $body, '段级配置指引单入口（UI-FIX B②——「登录防护 · 去配置」形态）' );
 		$this->assertStringContainsString( '三张门', $body, '副标题保留三张门语境（D5）' );
+		$this->assertStringContainsString( 'wk-sub-title', $body, '段内小标题统一类（UI-FIX B①）' );
 		$this->assertStringContainsString( '三张门分账', $body );
 		$this->assertStringContainsString( 'account_gate_rows', $body, '三张门分账数据源（门名走 Labels::gate_word）' );
 		$this->assertStringContainsString( 'Labels::gate_word', $body, '门名映射资产消费（对照表 23）' );
@@ -142,7 +153,7 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringContainsString( 'window_minutes', $body, '窗口标注随配置动态（D3）' );
 		$this->assertStringContainsString( 'stats_driver_cards', $body, '登录段服务商口径卡' );
 		$this->assertStringContainsString( 'render_driver_card', $body, '登录段复用统一卡模板' );
-		$this->assertStringContainsString( 'render_account_recent_table', $body, '④明细表接线（批 2 N1——占位卡退役）' );
+		$this->assertStringContainsString( 'render_account_recent_table', $body, '明细表接线（批 2 N1——占位卡退役）' );
 		$this->assertStringNotContainsString( '明细接入后启用', $body, '批 1 占位文案随接线移除' );
 	}
 
@@ -183,12 +194,15 @@ final class UiTab6StatsContractTest extends TestCase {
 
 	public function test_fault_section_skeleton(): void {
 		$body = self::body( 'render_stats_fault_section' );
-		$this->assertStringContainsString( '三、报错历史', $body );
+		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
+		$this->assertStringContainsString( '报错历史', $body );
+		$this->assertStringContainsString( 'wk-sub-title', $body, '段内小标题统一类（UI-FIX B①）' );
 		$this->assertStringContainsString( '今日出错', $body, '今日故障→今日出错（对照表 5）' );
 		$this->assertStringContainsString( 'Labels::rule_hit_word', $body, '分布键名人话映射（N5 消费）' );
 		$this->assertStringContainsString( '服务商原始回复', $body, 'meta.raw 展开行人话（对照表 18）' );
 		$this->assertStringContainsString( '哪个服务商', $body );
 		$this->assertStringNotContainsString( '今日故障', $body, '故障卡归属明确为报错历史（P8）' );
+		$this->assertStringNotContainsString( 'style="', $body, '内联样式退役（UI-FIX B①——样式一律走 CSS 类，原始回复展开块迁 .wk-fault-raw）' );
 	}
 
 	/**
@@ -210,7 +224,8 @@ final class UiTab6StatsContractTest extends TestCase {
 
 	public function test_records_card_copy(): void {
 		$body = self::body( 'render_stats_records_card' );
-		$this->assertStringContainsString( '四、拦截记录流水', $body );
+		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
+		$this->assertStringContainsString( '拦截记录流水', $body );
 		$this->assertStringContainsString( 'WK-', $body, '事件编号示例在文案中' );
 		$this->assertStringNotContainsString( '事件流列表 / 导出', $body, 'roadmap 文案退役（P6）' );
 		$this->assertStringNotContainsString( '统计面板 v2', $body );
@@ -218,7 +233,8 @@ final class UiTab6StatsContractTest extends TestCase {
 
 	public function test_settings_card_holds_switches_and_reset(): void {
 		$body = self::body( 'render_stats_settings_card' );
-		$this->assertStringContainsString( '五、统计设置', $body );
+		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
+		$this->assertStringContainsString( '统计设置', $body );
 		// 统计开关三项迁入本卡（P7——单一大 form 迁位零风险，agent C F18）。
 		$this->assertStringContainsString( "array( 'stats', 'enabled' )", $body );
 		$this->assertStringContainsString( "array( 'stats', 'raw_capture' )", $body );
@@ -252,14 +268,117 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringContainsString( '计数已停用', $body, '统计停用黄字注保留（FIX-δ）' );
 	}
 
-	/* ---------- ⑦ 版本 0.4.1（随批次推进同步——O3 仪表盘卡片批次） ---------- */
+	/* ---------- UI-FIX B（2026-11-12 用户实测反馈：两级标题制/去序号/指引收敛/样式克制） ---------- */
 
-	public function test_version_bumped_to_0_4_0_in_four_places(): void {
+	/**
+	 * 全页零序号：「一、二、三」与「①②③」双序号体系全清（反馈 2 宗罪 3——
+	 * 这不是文章）；两段明细表+驱动卡+边界收集器一并扫（含函数体内注释——渲染体
+	 * 真机 DOM grep 零命中同一口径）。
+	 */
+	public function test_tab6_zero_serial_numbering(): void {
+		$bodies = self::body( 'render_tab_stats' )
+			. self::body( 'render_stats_overview_strip' )
+			. self::body( 'render_stats_comment_section' )
+			. self::body( 'render_stats_login_section' )
+			. self::body( 'render_stats_fault_section' )
+			. self::body( 'render_stats_records_card' )
+			. self::body( 'render_stats_settings_card' )
+			. self::body( 'render_driver_card' )
+			. self::body( 'render_comment_recent_table' )
+			. self::body( 'render_account_recent_table' )
+			. self::body( 'stats_driver_cards' )
+			. self::body( 'stats_config_hint' );
+		foreach ( array( '一、', '二、', '三、', '四、', '五、', '①', '②', '③', '④', '⑤', '⑥', '⑦' ) as $serial ) {
+			$this->assertStringNotContainsString( $serial, $bodies, "Tab⑥ 渲染体序号 {$serial} 退役（UI-FIX B①）" );
+		}
+	}
+
+	/**
+	 * 两级标题制：段标题 wk-sec-title（h2）+ 段内小标题 wk-sub-title（h3）两档，
+	 * 全页统一——样式一律走 admin-settings.css 类，禁内联字号（反馈 2 修正方向 1）。
+	 */
+	public function test_two_level_heading_classes_uniform(): void {
+		foreach ( array(
+			'render_stats_overview_strip' => array( '今日速览' ),
+			'render_stats_comment_section' => array( '评论防护', '今日概览', '谁拦的（按拦截链顺序）', '最近拦下的评论（最近 10 条）' ),
+			'render_stats_login_section'  => array( '登录防护（登录 / 注册 / 找回密码 三张门）', '今日概览', '三张门分账', '谁拦的（按服务商口径）', '最近拦下的登录尝试（最近 10 条）' ),
+			'render_stats_fault_section'  => array( '报错历史（和第三方服务商打交道时出的岔子）', '今日出错', '最近报错（全闸，含服务商暂停与恢复）' ),
+			'render_stats_records_card'   => array( '拦截记录流水（查全部记录 / 导出）' ),
+			'render_stats_settings_card'  => array( '统计设置 · 清零' ),
+		) as $fn => $titles ) {
+			$body = self::body( $fn );
+			$this->assertStringContainsString( 'wk-sec-title', $body, "{$fn} 段标题带类" );
+			foreach ( $titles as $title ) {
+				$this->assertStringContainsString( $title, $body, "{$fn} 标题文案在场" );
+			}
+			if ( 'render_stats_overview_strip' !== $fn && 'render_stats_records_card' !== $fn && 'render_stats_settings_card' !== $fn ) {
+				$this->assertStringContainsString( 'wk-sub-title', $body, "{$fn} 段内小标题带统一类" );
+			}
+		}
+		// 今日概览从 p>strong 升格为小标题级（原 ①②③ 三种元素形态 → 全部统一 h3.wk-sub-title）；
+		// 反钉形态=strong 内静态译文（假标题）——卡名变量加粗（本地规则卡）不在禁列。
+		$comment = self::body( 'render_stats_comment_section' );
+		$this->assertStringNotContainsString( '<strong><?php esc_html_e', $comment, 'p>strong 假标题退役（UI-FIX B① 元素统一——今日概览升格小标题）' );
+		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'今日概览\'', $comment, '今日概览=小标题级' );
+		$login = self::body( 'render_stats_login_section' );
+		$this->assertStringNotContainsString( '<strong><?php esc_html_e', $login, 'p>strong 假标题退役（UI-FIX B① 元素统一）' );
+		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'今日概览\'', $login, '今日概览=小标题级' );
+		$fault = self::body( 'render_stats_fault_section' );
+		$this->assertStringNotContainsString( '<strong><?php esc_html_e', $fault, 'p>strong 假标题退役（UI-FIX B① 元素统一——今日出错升格小标题）' );
+		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'今日出错\'', $fault, '今日出错=小标题级' );
+
+		$css = self::source( 'assets/css/admin-settings.css' );
+		$this->assertStringContainsString( '.wk-sec-title', $css, '段标题类入 CSS（字号>小标题——样式走类不走内联）' );
+		$this->assertStringContainsString( '.wk-sub-title', $css, '小标题类入 CSS' );
+		$this->assertStringContainsString( '.wk-config-link', $css, '段级指引链接类入 CSS' );
+		$this->assertStringContainsString( '.wk-fault-raw', $css, '原始回复展开块类入 CSS（内联 style 退役）' );
+		$this->assertStringContainsString( '.wk-table-foot', $css, '表尾动作行类入 CSS（明细表内联 margin 退役）' );
+
+		// 全页禁内联样式（UI-FIX B①/③——明细表表尾/原始回复展开块一并走类）。
+		$all_bodies = self::body( 'render_stats_overview_strip' )
+			. self::body( 'render_stats_comment_section' )
+			. self::body( 'render_stats_login_section' )
+			. self::body( 'render_stats_fault_section' )
+			. self::body( 'render_stats_records_card' )
+			. self::body( 'render_stats_settings_card' )
+			. self::body( 'render_driver_card' )
+			. self::body( 'render_comment_recent_table' )
+			. self::body( 'render_account_recent_table' );
+		$this->assertStringNotContainsString( 'style="', $all_bodies, 'Tab⑥ 渲染体内联 style 全清（样式一律走 CSS 类）' );
+	}
+
+	/**
+	 * 配置指引收敛：跳转指引只在段标题位置出现一次（stats_config_hint——首个
+	 * 未启用卡的 config_tab 定目标）；驱动卡内部不再有链接（未启用卡=灰徽标+
+	 * 极简一句，卡不承担导航职责——反馈 2 修正方向 2）；占位句去 Tab 序号引用。
+	 */
+	public function test_config_guide_converged_to_section_heading(): void {
+		$hint = self::body( 'stats_config_hint' );
+		$this->assertStringContainsString( 'wk-config-link', $hint, '段级指引链接类' );
+		$this->assertStringContainsString( 'empty( $hint_card[\'enabled\'] )', $hint, '只对未启用卡给指引' );
+		$this->assertStringContainsString( '去配置', $hint, '指引文案' );
+
+		$card = self::body( 'render_driver_card' );
+		$this->assertStringNotContainsString( '<a ', $card, '驱动卡内部零链接（UI-FIX B②——卡不承担导航职责）' );
+		$this->assertStringNotContainsString( 'tab_url', $card, '驱动卡不再带跳转（段级单入口取代）' );
+		$this->assertStringContainsString( 'wk-driver-card--disabled', $card, '未启用灰卡形态保留' );
+
+		$digest = self::source( 'includes/stats/InterceptDigest.php' );
+		$this->assertStringNotContainsString( '去 Tab②/③ 配置后这里会出现它的数字', $digest, '占位句 Tab 序号引用退役（UI-FIX B②）' );
+
+		// 指引调用点恰两处（评论段+登录段——报错/流水/设置段无卡不给指引）。
+		$settings_src = self::settings_src();
+		$this->assertSame( 2, substr_count( $settings_src, 'self::stats_config_hint(' ), '段级指引调用点恰两处（每段≤1 的源头纪律）' );
+	}
+
+	/* ---------- 版本 0.4.2（随批次推进同步——UI-FIX 密度与样式克制批次） ---------- */
+
+	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.1$/m', $entry, '插件头 Version 0.4.1' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.1' )", $entry, '版本常量 0.4.1' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.1$/m', $readme, 'readme Stable tag 0.4.1' );
-		$this->assertStringContainsString( '= 0.4.1 =', $readme, 'Changelog 0.4.1 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.2$/m', $entry, '插件头 Version 0.4.2' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.2' )", $entry, '版本常量 0.4.2' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.2$/m', $readme, 'readme Stable tag 0.4.2' );
+		$this->assertStringContainsString( '= 0.4.2 =', $readme, 'Changelog 0.4.2 条目' );
 	}
 }

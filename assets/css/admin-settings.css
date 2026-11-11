@@ -152,12 +152,40 @@
 	padding: 1.2rem 1.3rem;
 }
 
-.wk-card h2 {
+.wk-card h2,
+.wk-sec-title {
 	margin: 0 0 0.5rem;
-	font-size: 1.05rem;
+	font-size: 1.15rem; /* 段标题（UI-FIX B① 两级标题制上层——段标题>小标题，全页统一） */
 	font-weight: 600;
 	letter-spacing: -0.01em;
 	color: var(--wk-ink);
+}
+
+/* ---------- UI-FIX B · Tab⑥ 两级标题制与样式克制（2026-11-12 用户实测反馈） ---------- */
+
+/* 段内小标题（下层——单层正文字号+加粗即强调；序号退役后以类控级）。 */
+.wk-sub-title {
+	margin: 1.1rem 0 0.4rem;
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--wk-ink);
+}
+
+/* 段级配置指引链接（每段≤1——卡内蓝链接退役，指引收敛段标题单入口）。 */
+.wk-sec-title .wk-config-link {
+	font-weight: 400;
+}
+
+/* 报错历史·服务商原始回复展开块（内联 style 退役；等宽小字=作证，非正文层级）。 */
+.wk-fault-raw {
+	margin-top: 4px;
+}
+
+.wk-fault-raw pre {
+	margin: 0.25rem 0 0;
+	white-space: pre-wrap;
+	font-size: 0.75rem;
+	font-family: var(--wk-mono);
 }
 
 .wk-muted {
@@ -243,6 +271,11 @@
 	border: 1px solid var(--wk-blush-line);
 	border-radius: 0.3rem;
 	padding: 0.1rem 0.35rem;
+}
+
+/* 表尾动作行（UI-FIX B——内联 margin 退役，样式一律走类）。 */
+.wk-table-foot {
+	margin-top: 0.75rem;
 }
 
 /* ---------- 提交按钮区微调 ---------- */
@@ -365,8 +398,7 @@
 
 .wk-defense-group {
 	margin: 0.75rem 0 0.25rem;
-	font-size: 0.9rem;
-	color: var(--wk-fog);
+	color: var(--wk-fog); /* 防线分组小字（UI-FIX B③ 密度收敛——单层正文字号，加粗即强调） */
 	font-weight: 600;
 }
 
@@ -419,8 +451,9 @@
 	margin: 0.15rem 0;
 }
 
-.wk-roster-card--disabled {
-	background: var(--wk-paper);
+/* 未配置服务商收拢行（UI-FIX A——默认只展开已配置卡，未配置一行带单入口）。 */
+.wk-roster-unconfigured {
+	margin: 0.5rem 0 0;
 	color: var(--wk-fog);
 }
 
