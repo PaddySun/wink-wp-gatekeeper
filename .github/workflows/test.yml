@@ -8,12 +8,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 基线说明（2026-11-11，B0）：
-        # - tests/phpunit.xml 使用 PHPUnit 12 schema（cacheDirectory / displayDetailsOn* 为 10+ 专属属性），
-        #   PHPUnit 12 要求 PHP >= 8.2，故矩阵下限 8.2 而非插件头声明的 7.4。
-        # - tests/InterceptDigestUsageTest.php 使用 str_contains()（PHP 8.0+）——7.4/8.0 即使降 PHPUnit 也跑不过。
+        # 基线说明（2026-11-11，B0；CI 实锤修订 c070d42 后）：
+        # - PHPUnit 12 平台要求 PHP >= 8.3（CI 实锤：8.2 job composer 解析无可装版本，
+        #   B0 报告「PHPUnit 12 要求 >=8.2」为静态推断失误已修正）——矩阵收敛 8.3，
+        #   与本机开发基线一致（PHP 8.3.36 + phpunit 12 phar，782→1104 全部 8.3 产出）。
+        # - tests/InterceptDigestUsageTest.php 使用 str_contains()（PHP 8.0+）——7.4/8.0 需降 PHPUnit 另配 schema，暂不承诺。
         # - Requires PHP: 7.4 的运行时兼容性未经机制验证，留档待验（见 docs/reports/IMPL-B0-2026-11-11.md）。
-        php: ['8.2', '8.3']
+        php: ['8.3']
     steps:
       - uses: actions/checkout@v4
 
