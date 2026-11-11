@@ -346,6 +346,11 @@ final class Bootstrap {
 							'label_overrides' => apply_filters( 'wink_gatekeeper_error_messages', array() ), // WP 边界。
 						);
 					},
+					// 【v1.5·FIX】require_gate：null = WP 边界默认闭包（02 §2.1 豁免过滤器）。
+					// ⚠️ 此 null 占位不可省——B2 曾在此处少传一位，$degraded_allow 顶入 require_gate
+					// 位（DegradedPassLimiter::allow 被当豁免判定调用→恒 false→评论闸渲染+验证
+					// 双双静默跳过，真机「无按钮+无票直发」）。装配实参数由 BootstrapAssemblyContractTest 钉死。
+					null,
 					// 【v1.5·C1】pass_limited 降级放行限流器（errorPolicy 默认 block=零消费）。
 					$degraded_allow
 				);

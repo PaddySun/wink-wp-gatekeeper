@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.3.2
+Stable tag: 0.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.3.3 =
+
+FIX 轮·评论闸装配错位修复（2026-11-11 真机人工测试暴露，统筹诊断闭环）：B2（0.2.5，71840e3）重写 CommentGate 构造尾部时吞掉 require_gate 的 null 占位——17 实参 vs 18 形参，PHP 缺省参数静默错位一格，$degraded_allow（DegradedPassLimiter::allow 回调）顶入 require_gate 位被当豁免判定调用恒 false → 评论闸渲染+验证自 0.2.5 起双双静默跳过（前台无「完成人机验证」按钮、无票评论直发、captcha 阶段零事件——B2/B3/B5/B6 四批真机无一踩中该点：B2 被 test_mode 旁路巧合掩盖、B3 断言面在登录闸、B5/B6 只断言 review 链）。修复：Bootstrap 装配尾部补 null 占位（防回归注释）+ 新增 BootstrapAssemblyContractTest（四闸装配实参数（源码顶层逗号计数）=== 反射构造形参数——末位缺省参数静默错位在此红；+ CommentGate require_gate 占位注释语义锚点）。1109 tests / 7638 assertions 全绿（1104 基线 + 5 新例）。诊断法留档：真机 wp eval 反射生产装配实例逐关探测（is_enabled/captcha_driver/is_configured/require_gate 回调+过滤器监听清单）→ REQ_RESULT=false ∧ NO_LISTENERS 锤定闭包非默认闭包 → 参数计数对位。
 
 = 0.3.2 =
 
