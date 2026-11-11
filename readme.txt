@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.3.4
+Stable tag: 0.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.3.5 =
+
+FIX 轮 3·Tab③ 云端审核驱动下拉切换联动修复（2026-11-11 用户人工测试反馈「tab=review 下拉选阿里云内容安全但下方配置区仍是腾讯云 TMS」，统筹多 agent 流水线 FIX-3 批次）：根因=Tab③ 三厂商配置区按 chain[0] 互斥 if/elseif 单区渲染（v1.4 遗留形态），前端切下拉后无区可显（TMS 区残留恒显）；修复对齐 Tab② 验证码配置区 data-wk-vendor 形态：① SettingsPage render_tab_review 三区（wk-tms-config-area / wk-green-config-area / wk-baidu-config-area）并列渲染 + data-wk-vendor="tencent_tms|aliyun_green|baidu" 属性 + PHP 初始 hidden 按 $cloud_selected（chain[0]），互斥分支除名；未配置（chain 空）三区全 hidden + 空态说明行 #wk-review-unconfigured-note（状态点+描述行，对齐 Tab② unconfiguredNote）；三区 sanitize 保存链 /「测试凭据」AJAX / PIPL 合规行 / 接入指引 / 链路汇总行零改动；② admin-brand.js Tab② 专属 syncCaptchaArea 泛化公用 bindVendorSwitcher( select, noteId )——area 容器作用域取 select 所属 .wk-panel 内 [data-wk-vendor]（Tab 页隔离防跨 Tab 误显隐；M4 后续驱动自动入列不硬化名单），Tab②（wk-captcha-driver，现行为零变化）与 Tab③（wk-cloud-driver）各挂一处 change；必填缺失弹窗（closest form 拦截+标红+二次放行）推广 Tab③——必填面=TMS SecretId/SecretKey + 阿里 AccessKey 对 + 百度 API Key/Secret Key（05 §1.2/§2.4/§2.5 registry settings.required 语义渲染面；password 已配置留空不算缺契约保持）；③ 契约测试 Fix3Tab3ToggleContractTest 8 例（全区 vendor 形态 / 互斥分支除名 / 空态说明行 / 保护现行为钉 / JS 泛化两挂接 / 必填弹窗推广 / 面板作用域 / 版本 0.3.5）+ B1a/B1b 版本钉同步 0.3.5。1118 tests / 7710 assertions 全绿（1110 基线 + 8 新例）；node --check admin-brand.js 过。真机（厦门 wpclean）：部署 0.3.5 后 tab=review DOM 断言三区 data-wk-vendor + 初始 hidden=chain[0]，select change 显隐翻转实测（FIX-3 报告：docs/reports/IMPL-FIX3-tab3-toggle-2026-11-11.md）。
 
 = 0.3.4 =
 

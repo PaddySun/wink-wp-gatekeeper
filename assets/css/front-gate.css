@@ -208,3 +208,24 @@
 		transition: none; /* 动效降级：reduced-motion 用户不参与过渡动画。 */
 	}
 }
+
+/* --------------------------------------------------------------------------
+ * 【v1.5·FIX】阿里滑块容器宽度收敛（用户反馈 2026-11-11：checkbox-body 合适，
+ * 外层 aliyunCaptcha-checkbox-wrapper / window-embed 留白难看——SDK 默认撑满容器）。
+ * 评论区：外层贴内容宽（fit-content），不留右侧空白；登录页：与 wp-pwd 等宽
+ * （对齐 B1b F4-5「.login .wk-gate-embed{width:100%}」通用条款）。
+ * 类名是阿里 SDK 注入的固定结构（aliyun.js 渲染面），此处按类名写补丁属驱动样式层，
+ * 不影响「前端通用优先」纪律（主题无关）。
+ * -------------------------------------------------------------------------- */
+.wk-gate-embed #aliyunCaptcha-window-embed,
+.wk-gate-embed .aliyunCaptcha-checkbox-wrapper {
+	width: fit-content;
+	max-width: 100%;
+}
+
+.login .wk-gate-embed #aliyunCaptcha-window-embed,
+.login .wk-gate-embed .aliyunCaptcha-checkbox-wrapper,
+.login .wk-gate-embed .aliyunCaptcha-checkbox-body {
+	width: 100%;
+	max-width: none;
+}

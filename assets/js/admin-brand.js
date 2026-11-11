@@ -153,82 +153,104 @@
 	}
 
 	/* -----------------------------------------------------------------
-	 * C1 · Tab② 驱动配置交互（03 §1 v1.3 用户建议1+2）
-	 *   - select 切换：配置区/未配置说明行即时显隐（切换保留：不清空任何字段）；
+	 * C1/FIX-3 · 驱动下拉切换联动（Tab② 验证码 / Tab③ 云端审核共用，03 §1 v1.3 用户建议1+2）
+	 *   - 公用 bindVendorSwitcher( select, noteId )：select 切换 → select 所属 .wk-panel
+	 *     内全部 [data-wk-vendor] 配置区显隐（vendor=选中值者显）+ 未配置说明行即时显隐
+	 *     （切换保留：不清空任何字段，各厂商独立保存）；
 	 *   - 必填双层校验 JS 侧：选了厂商且必填空 → 标红缺失字段 + 阻止提交一次
-	 *     （提示具体字段名；第二次提交放行——服务端黄条兜底）；
-	 *   - 测试凭据按钮：全参假票核验三态（绿/红/黄/灰），结果缓存在按钮旁（不落库）。
+	 *     （提示具体字段名；第二次提交放行——服务端黄条兜底）；Tab②③ 同款推广；
+	 *   - 测试凭据按钮：各驱动 AJAX 三态（绿/红/黄/灰），结果缓存在按钮旁（不落库）。
 	 * ----------------------------------------------------------------- */
 
-	var driverSelect = document.getElementById( 'wk-captcha-driver' );
-	var configArea = document.getElementById( 'wk-captcha-config-area' );
-	var unconfiguredNote = document.getElementById( 'wk-captcha-unconfigured-note' );
-	/* 【v1.5·B3】逐厂商配置区（天御/阿里……M4 后续驱动自动入列）：下拉切换显隐——
-	 * 厂商切换保留各自已填配置（schema 按厂商分子树，UI 只切可视区不清字段）。 */
-	var vendorAreas = Array.prototype.slice.call( document.querySelectorAll( '[data-wk-vendor]' ) );
-
-	function syncCaptchaArea() {
-		if ( ! driverSelect || ! unconfiguredNote ) {
-			return;
+	function bindVendorSwitcher( select, noteId ) {
+		if ( ! select ) {
+			return null;
 		}
-		var vendorSelected = '' !== driverSelect.value;
-		unconfiguredNote.classList.toggle( 'hidden', vendorSelected );
-		vendorAreas.forEach( function ( area ) {
-			area.hidden = area.getAttribute( 'data-wk-vendor' ) !== driverSelect.value;
-		} );
-	}
+		/* 【FIX-3】area 容器作用域=select 所属面板（每页仅渲染一个 Tab，.wk-panel 缺失兜底
+		 * document）——Tab②③ 互不越界（防跨 Tab 误显隐）；M4 后续驱动注册后自动入列
+		 * （不硬化厂商名单）。 */
+		var scope = select.closest( '.wk-panel' ) || document;
+		var areas = Array.prototype.slice.call( scope.querySelectorAll( '[data-wk-vendor]' ) );
+		var note = noteId ? document.getElementById( noteId ) : null;
+		var blockOnce = false;
 
-	if ( driverSelect ) {
-		driverSelect.addEventListener( 'change', syncCaptchaArea );
-		syncCaptchaArea();
-	}
+		function syncAreas() {
+			var vendorSelected = '' !== select.value;
+			if ( note ) {
+				note.classList.toggle( 'hidden', vendorSelected );
+			}
+			areas.forEach( function ( area ) {
+				area.hidden = area.getAttribute( 'data-wk-vendor' ) !== select.value;
+			} );
+		}
 
-	// 必填标红缺失字段清单（password 已配置且留空 = 不算缺——「留空保存则不修改」契约）。
-	function captchaMissingFields() {
-		var missing = [];
-		if ( ! driverSelect || '' === driverSelect.value ) {
+		select.addEventListener( 'change', syncAreas );
+		syncAreas();
+
+		// 必填标红缺失字段清单（password 已配置且留空 = 不算缺——「留空保存则不修改」契约）。
+		function missingFields() {
+			var missing = [];
+			if ( '' === select.value ) {
+				return missing;
+			}
+			areas.forEach( function ( area ) {
+				if ( area.hidden ) {
+					return;
+				}
+				area.querySelectorAll( '[data-wk-required="1"]' ).forEach( function ( field ) {
+					var label = field.getAttribute( 'data-wk-label' ) || field.name;
+					var configured = '1' === ( field.getAttribute( 'data-wk-configured' ) || '0' );
+					var isPassword = 'password' === field.type;
+					if ( '' === field.value.trim() && ! ( isPassword && configured ) ) {
+						missing.push( { field: field, label: label } );
+					}
+				} );
+			} );
 			return missing;
 		}
-		vendorAreas.forEach( function ( area ) {
-			if ( area.hidden ) {
-				return;
-			}
-			area.querySelectorAll( '[data-wk-required="1"]' ).forEach( function ( field ) {
-				var label = field.getAttribute( 'data-wk-label' ) || field.name;
-				var configured = '1' === ( field.getAttribute( 'data-wk-configured' ) || '0' );
-				var isPassword = 'password' === field.type;
-				if ( '' === field.value.trim() && ! ( isPassword && configured ) ) {
-					missing.push( { field: field, label: label } );
+
+		var form = select.closest( 'form' );
+		if ( form ) {
+			form.addEventListener( 'submit', function ( event ) {
+				var missing = missingFields();
+				if ( missing.length > 0 && ! blockOnce ) {
+					event.preventDefault();
+					blockOnce = true;
+					missing.forEach( function ( item ) {
+						item.field.classList.add( 'wk-field-missing' );
+					} );
+					var names = missing.map( function ( item ) { return item.label; } ).join( '、' );
+					window.alert( '驱动「' + select.options[ select.selectedIndex ].text.replace( /\s*—.*$/, '' ) + '」缺少：' + names + '——请补齐后再保存（本次已拦截，再次点击保存可强制提交，服务端将按「驱动视为未配置」处理）。' );
 				}
 			} );
-		} );
-		return missing;
+		}
+		return {
+			// 字段有输入即重置「阻止一次」标志（标红摘除走共用 document 监听）。
+			resetBlockOnce: function () {
+				blockOnce = false;
+			}
+		};
 	}
 
-	var captchaForm = driverSelect ? ( driverSelect.closest( 'form' ) || null ) : null;
-	var captchaBlockOnce = false;
-	if ( captchaForm ) {
-		captchaForm.addEventListener( 'submit', function ( event ) {
-			var missing = captchaMissingFields();
-			if ( missing.length > 0 && ! captchaBlockOnce ) {
-				event.preventDefault();
-				captchaBlockOnce = true;
-				missing.forEach( function ( item ) {
-					item.field.classList.add( 'wk-field-missing' );
-				} );
-				var names = missing.map( function ( item ) { return item.label; } ).join( '、' );
-				window.alert( '驱动「' + driverSelect.options[ driverSelect.selectedIndex ].text.replace( /\s*—.*$/, '' ) + '」缺少：' + names + '——请补齐后再保存（本次已拦截，再次点击保存可强制提交，服务端将按「驱动视为未配置」处理）。' );
-			}
-		} );
-		// 字段有输入即摘除标红 + 重置「阻止一次」标志。
-		document.addEventListener( 'input', function ( event ) {
-			var target = event.target;
-			if ( target && target.classList && target.classList.contains( 'wk-field-missing' ) ) {
-				target.classList.remove( 'wk-field-missing' );
-				captchaBlockOnce = false;
-			}
-		} );
-	}
+	var driverGroups = [];
+	// Tab② 验证码驱动（C1 既有行为原样——函数名泛化，语义零变化）。
+	driverGroups.push( bindVendorSwitcher( document.getElementById( 'wk-captcha-driver' ), 'wk-captcha-unconfigured-note' ) );
+	// 【FIX-3】Tab③ 云端审核驱动：三厂商配置区（data-wk-vendor）并列渲染，PHP 初始
+	// hidden=chain[0]；此处接管切换显隐（病株修复：此前 Tab③ 无 JS 联动、无区可切）。
+	driverGroups.push( bindVendorSwitcher( document.getElementById( 'wk-cloud-driver' ), 'wk-review-unconfigured-note' ) );
+
+	// 字段有输入即摘除标红 + 重置「阻止一次」标志（全部驱动组共用一个监听）。
+	document.addEventListener( 'input', function ( event ) {
+		var target = event.target;
+		if ( target && target.classList && target.classList.contains( 'wk-field-missing' ) ) {
+			target.classList.remove( 'wk-field-missing' );
+			driverGroups.forEach( function ( group ) {
+				if ( group ) {
+					group.resetBlockOnce();
+				}
+			} );
+		}
+	} );
 
 	var probeButton = document.getElementById( 'wk-tencent-test-credentials' );
 	if ( probeButton ) {

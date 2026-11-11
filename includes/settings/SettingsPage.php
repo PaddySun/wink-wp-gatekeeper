@@ -1501,308 +1501,300 @@ final class SettingsPage {
 				</tr>
 			</table>
 		</section>
-		<?php if ( $tms_in_chain ) : ?>
-			<?php
-			/* 【v1.4·反馈9/R4 §C】v1.2「顶部集中 PIPL 黄条」作废——合规行迁入各驱动配置栏
-			 * （registry privacy 维渲染，禁 SettingsPage 硬编码合规文案）；集中位降级为链路汇总行（底部）。 */
-			$tms_meta      = isset( $cloud_registered['tencent_tms'] ) ? $cloud_registered['tencent_tms'] : TencentTmsDriver::registry_entry();
-			$tms_privacy   = DriverConfigSpec::privacy_notice( $tms_meta, '腾讯云 TMS 文本审核' );
-			?>
-			<section class="wk-card" id="wk-tms-config-area">
-				<h2><?php esc_html_e( '腾讯云 TMS 文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
+		<?php
+		/* 【v1.4·反馈9/R4 §C】v1.2「顶部集中 PIPL 黄条」作废——合规行迁入各驱动配置栏
+		 * （registry privacy 维渲染，禁 SettingsPage 硬编码合规文案）；集中位降级为链路汇总行（底部）。
+		 * 【FIX-3·2026-11-11】三厂商配置区并列渲染（对齐 Tab② data-wk-vendor 形态）：互斥 if/elseif
+		 * 分支作废（病株：只渲染 chain[0] 一个区，下拉切换无区可显）——三区恒渲染，PHP 初始
+		 * hidden 按 $cloud_selected（chain[0]）；前端 admin-brand.js bindVendorSwitcher 监听
+		 * #wk-cloud-driver 切换显隐（各厂商 schema 子树独立保存、切换不清空已填）；
+		 * 「未配置」= 三区全 hidden + 说明行 #wk-review-unconfigured-note。 */
+		$tms_meta      = isset( $cloud_registered['tencent_tms'] ) ? $cloud_registered['tencent_tms'] : TencentTmsDriver::registry_entry();
+		$tms_privacy   = DriverConfigSpec::privacy_notice( $tms_meta, '腾讯云 TMS 文本审核' );
+		$green_meta    = isset( $cloud_registered['aliyun_green'] ) ? $cloud_registered['aliyun_green'] : AliyunGreenPlusDriver::registry_entry();
+		$green_privacy = DriverConfigSpec::privacy_notice( $green_meta, '阿里云内容安全·文本审核增强版 PLUS' );
+		$baidu_meta    = isset( $cloud_registered['baidu'] ) ? $cloud_registered['baidu'] : BaiduTextModerationDriver::registry_entry();
+		$baidu_privacy = DriverConfigSpec::privacy_notice( $baidu_meta, '百度文本审核' );
+		?>
+		<section class="wk-card" id="wk-tms-config-area" data-wk-vendor="tencent_tms"<?php echo ( 'tencent_tms' === $cloud_selected ) ? '' : ' hidden'; ?>>
+			<h2><?php esc_html_e( '腾讯云 TMS 文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
 
-				<?php if ( null !== $tms_privacy ) : ?>
-					<div class="notice <?php echo 'warn' === $tms_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
-						<p><?php echo esc_html( $tms_privacy['text'] ); ?></p>
-					</div>
-				<?php endif; ?>
-
-				<details class="wk-guide">
-					<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
-					<ol>
-						<li><?php esc_html_e( '腾讯云控制台开通「内容安全 · 文本审核」并购买/领取套餐包（TextModeration 按策略计费）。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( '内容安全控制台获取策略编号（BizType，如 TencentCloudDefault 或自定义策略）——建议填写绑定套餐包的策略。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( '准备 CAM 密钥对（访问管理 → API 密钥管理，与验证码的 CAM 密钥同体系，可复用同对）。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( '粘贴至下方 → 点「测试凭据」（正常文本实测应返回 Pass）。', 'wink-gatekeeper' ); ?></li>
-					</ol>
-					<p><a href="https://cloud.tencent.com/document/api/1124/51860" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModeration API 文档', 'wink-gatekeeper' ); ?></a></p>
-				</details>
-
-				<table class="form-table" role="presentation">
-					<tr>
-						<th scope="row"><label for="wk-tms-secret-id"><?php esc_html_e( 'SecretId（CAM）', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_id' ), '' !== (string) ( $tms['secret_id'] ?? '' ), 'SecretId（CAM）' ); ?>
-							<p class="description"><?php esc_html_e( '云 API 密钥（TC3 签名用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-tms-secret-key"><?php esc_html_e( 'SecretKey（CAM）', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_key' ), '' !== (string) ( $tms['secret_key'] ?? '' ), 'SecretKey（CAM）' ); ?>
-							<p class="description"><?php esc_html_e( '与 SecretId 配对的 CAM 密钥。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-tms-biz-type"><?php esc_html_e( 'BizType（策略编号）', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<input type="text" id="wk-tms-biz-type" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'biz_type' ) ) ); ?>"
-								value="<?php echo esc_attr( (string) ( $tms['biz_type'] ?? '' ) ); ?>" class="regular-text" />
-							<p class="description"><?php esc_html_e( '内容安全控制台的识别策略编号。官方参数可选（留空走默认策略）；建议填写绑定套餐包的策略，未开通对应策略时会收到「未获接口授权」。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-tms-reject-score"><?php esc_html_e( '直拒分数阈值', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<input type="number" id="wk-tms-reject-score" min="0" max="100" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'reject_score' ) ) ); ?>"
-								value="<?php echo esc_attr( (string) ( $tms['reject_score'] ?? 80 ) ); ?>" class="small-text" />
-							<span class="wk-muted"><?php esc_html_e( '（0-100，默认 80）', 'wink-gatekeeper' ); ?></span>
-							<p class="description"><?php esc_html_e( '腾讯判定 Block 且分数 ≥ 此值才直接拦截；低于阈值降为入待审（人工复核）。实测恶意广告样本 99 分，默认 80 留出灰区缓冲。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-tms-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<input type="number" id="wk-tms-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'timeout' ) ) ); ?>"
-								value="<?php echo esc_attr( (string) ( $tms['timeout'] ?? 8 ) ); ?>" class="small-text" />
-							<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-tms-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<input type="number" id="wk-tms-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'daily_quota' ) ) ); ?>"
-								value="<?php echo esc_attr( (string) ( $tms['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
-							<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理', 'wink-gatekeeper' ); ?></span>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
-						<td>
-							<?php $fail_mode = 'open' === ( $tms['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
-							<label style="display:block;margin-bottom:6px;">
-								<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $fail_mode ); ?> />
-								<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
-							</label>
-							<label style="display:block;">
-								<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $fail_mode ); ?> />
-								<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
-							</label>
-						</td>
-					</tr>
-				</table>
-
-				<p>
-					<button type="button" class="button" id="wk-tms-test-credentials"
-						data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_TMS ) ); ?>">
-						<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
-					</button>
-					<span id="wk-tms-test-result" aria-live="polite"></span>
-				</p>
-				<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果不落库。', 'wink-gatekeeper' ); ?></p>
-			</section>
-
-			<?php elseif ( $green_in_chain ) : ?>
-				<?php
-				/* 【v1.5·B5】阿里文本审核增强版 PLUS 配置区（03 Tab③【v1.5】——与 TMS 配置区同构：
-				 * 合规行（registry privacy 维）/ 接入指引折叠 / 测试凭据三态按钮 / 双层必填校验。
-				 * 无 reject_score 字段（RiskLevel 双轨制，05 §2.5——不引入阈值语义）。 */
-				$green_meta    = isset( $cloud_registered['aliyun_green'] ) ? $cloud_registered['aliyun_green'] : AliyunGreenPlusDriver::registry_entry();
-				$green_privacy = DriverConfigSpec::privacy_notice( $green_meta, '阿里云内容安全·文本审核增强版 PLUS' );
-				?>
-				<section class="wk-card" id="wk-green-config-area">
-					<h2><?php esc_html_e( '阿里云内容安全·文本审核增强版 PLUS · 配置', 'wink-gatekeeper' ); ?></h2>
-
-					<?php if ( null !== $green_privacy ) : ?>
-						<div class="notice <?php echo 'warn' === $green_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
-							<p><?php echo esc_html( $green_privacy['text'] ); ?></p>
-						</div>
-					<?php endif; ?>
-
-					<details class="wk-guide">
-						<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
-						<ol>
-							<li><?php esc_html_e( '阿里云控制台开通「内容安全 · 文本审核增强版」（TextModerationPlus，Green 2022-03-02）。', 'wink-gatekeeper' ); ?></li>
-							<li><?php esc_html_e( '准备 RAM AccessKey 对（可与验证码 2.0 共用同一 RAM 用户），并授予 AliyunYundunGreenWebFullAccess 权限。', 'wink-gatekeeper' ); ?></li>
-							<li><?php esc_html_e( '粘贴至下方（双 Service 名默认 nickname/comment_detection_pro，一般无需修改）→ 点「测试凭据」。', 'wink-gatekeeper' ); ?></li>
-							<li><?php esc_html_e( '判定映射（站长不可调）：RiskLevel none/low→放行、medium→入待审、high→直接拦截；分档界线在阿里控制台规则配置。如需 medium/low 中间态与小数置信分，请在内容安全控制台规则配置中开启细粒度检测。', 'wink-gatekeeper' ); ?></li>
-						</ol>
-						<p><a href="https://help.aliyun.com/zh/green/developer-reference/api-green-2022-03-02-textmoderationplus" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModerationPlus API 文档', 'wink-gatekeeper' ); ?></a></p>
-					</details>
-
-					<table class="form-table" role="presentation">
-						<tr>
-							<th scope="row"><label for="wk-green-ak-id"><?php esc_html_e( 'AccessKeyId', 'wink-gatekeeper' ); ?></label></th>
-							<td>
-								<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_id' ), '' !== (string) ( $green['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
-								<p class="description"><?php esc_html_e( 'RAM AccessKey（ACS3 签名用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="wk-green-ak-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-gatekeeper' ); ?></label></th>
-							<td>
-								<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_secret' ), '' !== (string) ( $green['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
-								<p class="description"><?php esc_html_e( '与 AccessKeyId 配对的密钥。', 'wink-gatekeeper' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="wk-green-service-nickname"><?php esc_html_e( '昵称 Service 名', 'wink-gatekeeper' ); ?></label></th>
-							<td>
-								<input type="text" id="wk-green-service-nickname" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_nickname' ) ) ); ?>"
-									value="<?php echo esc_attr( (string) ( $green['service_nickname'] ?? 'nickname_detection_pro' ) ); ?>" class="regular-text" />
-								<p class="description"><?php esc_html_e( '昵称分送通道（默认 nickname_detection_pro）。昵称特化模型对短广告串命中更细；一般无需修改。', 'wink-gatekeeper' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="wk-green-service-comment"><?php esc_html_e( '正文 Service 名', 'wink-gatekeeper' ); ?></label></th>
-							<td>
-								<input type="text" id="wk-green-service-comment" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_comment' ) ) ); ?>"
-									value="<?php echo esc_attr( (string) ( $green['service_comment'] ?? 'comment_detection_pro' ) ); ?>" class="regular-text" />
-								<p class="description"><?php esc_html_e( '邮箱+正文送审通道（默认 comment_detection_pro）。', 'wink-gatekeeper' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php esc_html_e( '双 Service 分送', 'wink-gatekeeper' ); ?></th>
-							<td>
-								<label>
-									<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="0" />
-									<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="1" <?php checked( ! isset( $green['dual_dispatch'] ) || ! empty( $green['dual_dispatch'] ) ); ?> />
-									<?php esc_html_e( '昵称单独一调 + 邮箱/正文一调（默认，精度更好，成本 ×2 可忽略）', 'wink-gatekeeper' ); ?>
-								</label>
-								<p class="description"><?php esc_html_e( '关闭 = 兼容回退：按「昵称\\n邮箱\\n正文」拼接串单调一次（与其他云驱动同口径）。', 'wink-gatekeeper' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="wk-green-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
-							<td>
-								<input type="number" id="wk-green-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'timeout' ) ) ); ?>"
-									value="<?php echo esc_attr( (string) ( $green['timeout'] ?? 8 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="wk-green-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
-							<td>
-								<input type="number" id="wk-green-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'daily_quota' ) ) ); ?>"
-									value="<?php echo esc_attr( (string) ( $green['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理；双送按两次调用计量', 'wink-gatekeeper' ); ?></span>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
-							<td>
-								<?php $green_fail_mode = 'open' === ( $green['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
-								<label style="display:block;margin-bottom:6px;">
-									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $green_fail_mode ); ?> />
-									<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
-								</label>
-								<label style="display:block;">
-									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $green_fail_mode ); ?> />
-									<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
-								</label>
-							</td>
-						</tr>
-					</table>
-
-					<p>
-						<button type="button" class="button" id="wk-green-test-credentials"
-							data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN ) ); ?>">
-							<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
-						</button>
-						<span id="wk-green-test-result" aria-live="polite"></span>
-					</p>
-					<p class="description"><?php esc_html_e( '发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
-				</section>
-		<?php elseif ( $baidu_in_chain ) : ?>
-			<?php
-			/* 【v1.5·B6】百度文本审核配置区（03 Tab③——与 TMS/阿里配置区同构：
-			 * 合规行（registry privacy 维）/ 接入指引折叠 / 测试凭据三态按钮 / 双层必填校验。
-			 * 无策略/阈值字段（conclusionType 映射站长不可调，05 §2.4；token 由插件缓存）。 */
-			$baidu_meta    = isset( $cloud_registered['baidu'] ) ? $cloud_registered['baidu'] : BaiduTextModerationDriver::registry_entry();
-			$baidu_privacy = DriverConfigSpec::privacy_notice( $baidu_meta, '百度文本审核' );
-			?>
-			<section class="wk-card" id="wk-baidu-config-area">
-				<h2><?php esc_html_e( '百度文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
-
-				<?php if ( null !== $baidu_privacy ) : ?>
-					<div class="notice <?php echo 'warn' === $baidu_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
-						<p><?php echo esc_html( $baidu_privacy['text'] ); ?></p>
-					</div>
-				<?php endif; ?>
-
-				<details class="wk-guide">
-					<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
-					<ol>
-						<li><?php esc_html_e( '百度智能云控制台开通「内容审核 · 文本审核」（现行 v2 端点，文本审核按量计费）。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( '控制台「应用列表」创建应用获取 API Key 与 Secret Key（AppID 仅控制台标识，不参与请求）。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( '粘贴至下方 → 点「测试凭据」（正常文本实测应返回合规）。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( '判定映射（站长不可调）：conclusionType 1 合规→放行、2 不合规→直接拦截、3 疑似→入待审；access_token 由插件缓存复用（30 天有效期，无需手动管理）。', 'wink-gatekeeper' ); ?></li>
-					</ol>
-					<p><a href="https://cloud.baidu.com/doc/ANTIPORN/s/Rk3h6xb3i" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '文本审核 v2 API 文档', 'wink-gatekeeper' ); ?></a></p>
-				</details>
-
-				<table class="form-table" role="presentation">
-					<tr>
-						<th scope="row"><label for="wk-baidu-api-key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<?php self::password_field( array( 'review', 'cloud', 'baidu', 'api_key' ), '' !== (string) ( $baidu['api_key'] ?? '' ), 'API Key' ); ?>
-							<p class="description"><?php esc_html_e( '百度智能云应用 API Key（client_credentials 鉴权用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-baidu-secret-key"><?php esc_html_e( 'Secret Key', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<?php self::password_field( array( 'review', 'cloud', 'baidu', 'secret_key' ), '' !== (string) ( $baidu['secret_key'] ?? '' ), 'Secret Key' ); ?>
-							<p class="description"><?php esc_html_e( '与 API Key 配对的 Secret Key（access_token 有效期 30 天，由插件缓存复用）。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-baidu-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<input type="number" id="wk-baidu-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'timeout' ) ) ); ?>"
-								value="<?php echo esc_attr( (string) ( $baidu['timeout'] ?? 8 ) ); ?>" class="small-text" />
-							<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wk-baidu-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<input type="number" id="wk-baidu-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'daily_quota' ) ) ); ?>"
-								value="<?php echo esc_attr( (string) ( $baidu['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
-							<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理（计费防呆，立项书 §6.4）', 'wink-gatekeeper' ); ?></span>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
-						<td>
-							<?php $baidu_fail_mode = 'open' === ( $baidu['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
-							<label style="display:block;margin-bottom:6px;">
-								<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $baidu_fail_mode ); ?> />
-								<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
-							</label>
-							<label style="display:block;">
-								<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $baidu_fail_mode ); ?> />
-								<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
-							</label>
-						</td>
-					</tr>
-				</table>
-
-				<p>
-					<button type="button" class="button" id="wk-baidu-test-credentials"
-						data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_BAIDU ) ); ?>">
-						<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
-					</button>
-					<span id="wk-baidu-test-result" aria-live="polite"></span>
-				</p>
-				<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
-			</section>
-		<?php else : ?>
-			<section class="wk-card">
-				<h2><?php esc_html_e( '云端审核驱动', 'wink-gatekeeper' ); ?></h2>
-					<p class="wk-muted"><?php esc_html_e( '未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动并保存后，此处出现该驱动的配置区与逐驱动合规行（常驻不可关闭）。', 'wink-gatekeeper' ); ?></p>
-				</section>
+			<?php if ( null !== $tms_privacy ) : ?>
+				<div class="notice <?php echo 'warn' === $tms_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+					<p><?php echo esc_html( $tms_privacy['text'] ); ?></p>
+				</div>
 			<?php endif; ?>
+
+			<details class="wk-guide">
+				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<ol>
+					<li><?php esc_html_e( '腾讯云控制台开通「内容安全 · 文本审核」并购买/领取套餐包（TextModeration 按策略计费）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '内容安全控制台获取策略编号（BizType，如 TencentCloudDefault 或自定义策略）——建议填写绑定套餐包的策略。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '准备 CAM 密钥对（访问管理 → API 密钥管理，与验证码的 CAM 密钥同体系，可复用同对）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '粘贴至下方 → 点「测试凭据」（正常文本实测应返回 Pass）。', 'wink-gatekeeper' ); ?></li>
+				</ol>
+				<p><a href="https://cloud.tencent.com/document/api/1124/51860" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModeration API 文档', 'wink-gatekeeper' ); ?></a></p>
+			</details>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-tms-secret-id"><?php esc_html_e( 'SecretId（CAM）', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_id' ), '' !== (string) ( $tms['secret_id'] ?? '' ), 'SecretId（CAM）' ); ?>
+						<p class="description"><?php esc_html_e( '云 API 密钥（TC3 签名用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-tms-secret-key"><?php esc_html_e( 'SecretKey（CAM）', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_key' ), '' !== (string) ( $tms['secret_key'] ?? '' ), 'SecretKey（CAM）' ); ?>
+						<p class="description"><?php esc_html_e( '与 SecretId 配对的 CAM 密钥。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-tms-biz-type"><?php esc_html_e( 'BizType（策略编号）', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-tms-biz-type" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'biz_type' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $tms['biz_type'] ?? '' ) ); ?>" class="regular-text" />
+						<p class="description"><?php esc_html_e( '内容安全控制台的识别策略编号。官方参数可选（留空走默认策略）；建议填写绑定套餐包的策略，未开通对应策略时会收到「未获接口授权」。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-tms-reject-score"><?php esc_html_e( '直拒分数阈值', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-tms-reject-score" min="0" max="100" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'reject_score' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $tms['reject_score'] ?? 80 ) ); ?>" class="small-text" />
+						<span class="wk-muted"><?php esc_html_e( '（0-100，默认 80）', 'wink-gatekeeper' ); ?></span>
+						<p class="description"><?php esc_html_e( '腾讯判定 Block 且分数 ≥ 此值才直接拦截；低于阈值降为入待审（人工复核）。实测恶意广告样本 99 分，默认 80 留出灰区缓冲。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-tms-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-tms-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'timeout' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $tms['timeout'] ?? 8 ) ); ?>" class="small-text" />
+						<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-tms-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-tms-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'daily_quota' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $tms['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
+						<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<?php $fail_mode = 'open' === ( $tms['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
+						<label style="display:block;margin-bottom:6px;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $fail_mode ); ?> />
+							<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+						</label>
+						<label style="display:block;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $fail_mode ); ?> />
+							<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+						</label>
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				<button type="button" class="button" id="wk-tms-test-credentials"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_TMS ) ); ?>">
+					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+				</button>
+				<span id="wk-tms-test-result" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果不落库。', 'wink-gatekeeper' ); ?></p>
+		</section>
+
+		<section class="wk-card" id="wk-green-config-area" data-wk-vendor="aliyun_green"<?php echo ( 'aliyun_green' === $cloud_selected ) ? '' : ' hidden'; ?>>
+			<h2><?php esc_html_e( '阿里云内容安全·文本审核增强版 PLUS · 配置', 'wink-gatekeeper' ); ?></h2>
+
+			<?php if ( null !== $green_privacy ) : ?>
+				<div class="notice <?php echo 'warn' === $green_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+					<p><?php echo esc_html( $green_privacy['text'] ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<details class="wk-guide">
+				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<ol>
+					<li><?php esc_html_e( '阿里云控制台开通「内容安全 · 文本审核增强版」（TextModerationPlus，Green 2022-03-02）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '准备 RAM AccessKey 对（可与验证码 2.0 共用同一 RAM 用户），并授予 AliyunYundunGreenWebFullAccess 权限。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '粘贴至下方（双 Service 名默认 nickname/comment_detection_pro，一般无需修改）→ 点「测试凭据」。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '判定映射（站长不可调）：RiskLevel none/low→放行、medium→入待审、high→直接拦截；分档界线在阿里控制台规则配置。如需 medium/low 中间态与小数置信分，请在内容安全控制台规则配置中开启细粒度检测。', 'wink-gatekeeper' ); ?></li>
+				</ol>
+				<p><a href="https://help.aliyun.com/zh/green/developer-reference/api-green-2022-03-02-textmoderationplus" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModerationPlus API 文档', 'wink-gatekeeper' ); ?></a></p>
+			</details>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-green-ak-id"><?php esc_html_e( 'AccessKeyId', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_id' ), '' !== (string) ( $green['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
+						<p class="description"><?php esc_html_e( 'RAM AccessKey（ACS3 签名用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-green-ak-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_secret' ), '' !== (string) ( $green['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
+						<p class="description"><?php esc_html_e( '与 AccessKeyId 配对的密钥。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-green-service-nickname"><?php esc_html_e( '昵称 Service 名', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-green-service-nickname" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_nickname' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $green['service_nickname'] ?? 'nickname_detection_pro' ) ); ?>" class="regular-text" />
+						<p class="description"><?php esc_html_e( '昵称分送通道（默认 nickname_detection_pro）。昵称特化模型对短广告串命中更细；一般无需修改。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-green-service-comment"><?php esc_html_e( '正文 Service 名', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-green-service-comment" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_comment' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $green['service_comment'] ?? 'comment_detection_pro' ) ); ?>" class="regular-text" />
+						<p class="description"><?php esc_html_e( '邮箱+正文送审通道（默认 comment_detection_pro）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '双 Service 分送', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<label>
+							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="0" />
+							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="1" <?php checked( ! isset( $green['dual_dispatch'] ) || ! empty( $green['dual_dispatch'] ) ); ?> />
+							<?php esc_html_e( '昵称单独一调 + 邮箱/正文一调（默认，精度更好，成本 ×2 可忽略）', 'wink-gatekeeper' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( '关闭 = 兼容回退：按「昵称\\n邮箱\\n正文」拼接串单调一次（与其他云驱动同口径）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-green-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-green-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'timeout' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $green['timeout'] ?? 8 ) ); ?>" class="small-text" />
+						<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-green-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-green-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'daily_quota' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $green['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
+						<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理；双送按两次调用计量', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<?php $green_fail_mode = 'open' === ( $green['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
+						<label style="display:block;margin-bottom:6px;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $green_fail_mode ); ?> />
+							<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+						</label>
+						<label style="display:block;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $green_fail_mode ); ?> />
+							<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+						</label>
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				<button type="button" class="button" id="wk-green-test-credentials"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN ) ); ?>">
+					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+				</button>
+				<span id="wk-green-test-result" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+		</section>
+		<section class="wk-card" id="wk-baidu-config-area" data-wk-vendor="baidu"<?php echo ( 'baidu' === $cloud_selected ) ? '' : ' hidden'; ?>>
+			<h2><?php esc_html_e( '百度文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
+
+			<?php if ( null !== $baidu_privacy ) : ?>
+				<div class="notice <?php echo 'warn' === $baidu_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+					<p><?php echo esc_html( $baidu_privacy['text'] ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<details class="wk-guide">
+				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<ol>
+					<li><?php esc_html_e( '百度智能云控制台开通「内容审核 · 文本审核」（现行 v2 端点，文本审核按量计费）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '控制台「应用列表」创建应用获取 API Key 与 Secret Key（AppID 仅控制台标识，不参与请求）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '粘贴至下方 → 点「测试凭据」（正常文本实测应返回合规）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '判定映射（站长不可调）：conclusionType 1 合规→放行、2 不合规→直接拦截、3 疑似→入待审；access_token 由插件缓存复用（30 天有效期，无需手动管理）。', 'wink-gatekeeper' ); ?></li>
+				</ol>
+				<p><a href="https://cloud.baidu.com/doc/ANTIPORN/s/Rk3h6xb3i" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '文本审核 v2 API 文档', 'wink-gatekeeper' ); ?></a></p>
+			</details>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-baidu-api-key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'api_key' ), '' !== (string) ( $baidu['api_key'] ?? '' ), 'API Key' ); ?>
+						<p class="description"><?php esc_html_e( '百度智能云应用 API Key（client_credentials 鉴权用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-baidu-secret-key"><?php esc_html_e( 'Secret Key', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'secret_key' ), '' !== (string) ( $baidu['secret_key'] ?? '' ), 'Secret Key' ); ?>
+						<p class="description"><?php esc_html_e( '与 API Key 配对的 Secret Key（access_token 有效期 30 天，由插件缓存复用）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-baidu-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-baidu-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'timeout' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $baidu['timeout'] ?? 8 ) ); ?>" class="small-text" />
+						<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-baidu-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-baidu-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'daily_quota' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $baidu['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
+						<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理（计费防呆，立项书 §6.4）', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<?php $baidu_fail_mode = 'open' === ( $baidu['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
+						<label style="display:block;margin-bottom:6px;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $baidu_fail_mode ); ?> />
+							<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+						</label>
+						<label style="display:block;">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $baidu_fail_mode ); ?> />
+							<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+						</label>
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				<button type="button" class="button" id="wk-baidu-test-credentials"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_BAIDU ) ); ?>">
+					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+				</button>
+				<span id="wk-baidu-test-result" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+		</section>
+
+		<!-- 【FIX-3】未配置空态说明行（对齐 Tab② unconfiguredNote 形态；JS 切换联动显隐）。 -->
+		<p id="wk-review-unconfigured-note" class="description<?php echo '' !== $cloud_selected ? ' hidden' : ''; ?>">
+			<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+			<?php esc_html_e( '未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动后下方显示对应厂商配置区；各厂商配置独立保存、切换不清空已填。', 'wink-gatekeeper' ); ?>
+		</p>
 
 			<?php
 			/* 链路汇总行（03 Tab③ v1.4：链启用期间底部小字——任一配置区共用；链上任一驱动
