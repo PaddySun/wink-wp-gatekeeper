@@ -60,6 +60,14 @@ final class AliyunFrontendJsContractTest extends TestCase {
 		$this->assertStringContainsString( "createElement( 'script' )", $src, '动态创建 script 节点' );
 	}
 
+	public function test_adapter_reveals_hidden_embed_mount(): void {
+		// 【v1.5·FIX】真机 v7 测试页实锤：SubmitRow 的 .wk-gate-embed 初始 hidden，B3 漏抄
+		// tencent.js:287「挂载点展开」课程——SDK 往 hidden 容器照常渲染但用户不可见
+		// （视角=「验证码加载中」永恒卡住）。initCaptcha 必须 mount.hidden = false。
+		$src = self::adapter();
+		$this->assertStringContainsString( "mount.hidden = false", $src, 'embed 挂载点展开（hidden 容器内渲染不可见——加载中永恒卡住回归门）' );
+	}
+
 	public function test_adapter_global_config_before_script(): void {
 		$src = self::adapter();
 		$this->assertStringContainsString( 'AliyunCaptchaConfig', $src, '三步①全局配置' );

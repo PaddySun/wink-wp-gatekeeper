@@ -186,6 +186,7 @@
 		var STATE_TEXT = {
 			unverified: [ 'unverified', 'idle', '完成人机验证' ],
 			loading:    [ 'loading', 'loading', '验证码加载中……' ],
+			pending:    [ 'pending', 'pending', '验证中……' ],
 			verified:   [ 'verified', 'done', '已通过验证' ],
 			retry:      [ 'retry', 'retry', '验证未完成，点击重试' ],
 			mismatch:   [ 'retry', 'mismatch', '验证组件加载异常，请刷新页面重试。' ],
@@ -269,6 +270,12 @@
 			if ( button && ! button.id ) {
 				button.id = btnId;
 			}
+			/* 【v1.5·FIX】embed 挂载点展开（对齐 tencent.js:287 同款课程）：SubmitRow 输出的
+			 * .wk-gate-embed 初始带 hidden——hidden 容器内 SDK 照常渲染（真机 v7 测试页实锤
+			 * 5955 字符组件藏于其中）但用户不可见，视角即「验证码加载中」永恒卡住。B3 漏抄。 */
+			if ( 'embed' === mode && mount ) {
+				mount.hidden = false;
+			}
 			try {
 				window.initAliyunCaptcha( {
 					SceneId: sceneId,
@@ -300,6 +307,9 @@
 						}
 					}
 				} );
+				// 【v1.5·FIX】组件已渲染（embed=下方滑块 / popup=弹层）——按钮进 pending
+				// 态（对齐 tencent.js:296；避免停留在「加载中」误导用户）。
+				setState( 'pending' );
 			} catch ( err ) {
 				inited = false;
 				setState( 'error' );
