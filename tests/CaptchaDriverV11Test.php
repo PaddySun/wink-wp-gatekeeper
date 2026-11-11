@@ -384,5 +384,9 @@ final class CaptchaDriverV11Test extends TestCase {
 		$this->assertSame( 'tencent', $disaster_events[0][1]->driver_id() );
 		$this->assertSame( 'CaptchaCode=21/trerror', $disaster_events[0][1]->reason() );
 		$this->assertTrue( $disaster_events[0][2]['disaster_pass'] ?? false );
+		// 【O3 §三卡 2】hits 携带 disaster_pass 审计标签（should_record pass 特例通道——
+		// 与 verify_cache_hit/trust_pass 同法；写入矩阵据此放行容灾放行事件落库）。
+		$this->assertContains( 'disaster_pass', $disaster_events[0][1]->hits(), 'verdict hits 须含 disaster_pass 审计标签' );
+		$this->assertContains( 'CaptchaCode=21/trerror', $disaster_events[0][1]->hits() );
 	}
 }

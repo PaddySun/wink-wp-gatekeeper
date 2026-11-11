@@ -108,6 +108,7 @@ DDL;
 	 *   ip    + reject | review | error          → 落库（review 为「疑似→强制验证码」语义）
 	 *   captcha + reject（含 drill 演练事件）    → 落库
 	 *   review + reject | review | error         → 落库
+	 *   captcha + pass（disaster_pass 容灾放行） → 落库【O3 §三卡 2 审计足迹】
 	 *   全阶段 + pass                            → 默认不落库；pass_sampling 开启才采样
 	 *
 	 * 注：stats.enabled 为统计面板开关（计数卡计数），不改变事件落库口径（审计链路）。
@@ -124,9 +125,11 @@ DDL;
 			// 【v1.4·04 §3 矩阵 pass 特例】免验票审计足迹（verify_cache_hit / trust_pass）、
 			// 【v1.5·C1】test_mode 旁路（test_mode_pass——旁路恒落库，drill 标注不进统计）
 			// 与停转解除（driver_resumed——DriverHealth 留痕行经 insert 直入不经本判定）落库；
+			// 【O3 §三卡 2】容灾放行审计足迹（disaster_pass——CaptchaCode=21/trerror 票据
+			// allow 档放行，CommentGate meta.disaster_pass 语境；hits 携带标签同法放行）落库；
 			// 其余 pass 默认不记，pass_sampling 开启才采样。
 			foreach ( $verdict->hits() as $hit ) {
-				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit || 'test_mode_pass' === $hit ) ) {
+				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit || 'test_mode_pass' === $hit || 'disaster_pass' === $hit ) ) {
 					return true;
 				}
 			}

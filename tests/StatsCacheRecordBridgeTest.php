@@ -184,5 +184,30 @@ namespace WinkGatekeeper\Tests {
 			$cache = $GLOBALS['wk_stats_option_store'][ StatsCache::OPTION_NAME ];
 			$this->assertSame( 1, $cache['by_gate']['login']['attempts'] );
 		}
+
+		/* ---------- 【O3 §三卡 2】disaster_pass 计数特例键（仪表盘卡片读 option 非 COUNT 明细） ---------- */
+
+		public function test_record_disaster_pass_bumps_dedicated_key(): void {
+			// CommentGate 默认 recorder 在 meta.disaster_pass 语境调 record('comment', driver,
+			// 'disaster_pass')——独立计数键落 by_gate/by_driver 双树（今日+累计），pass 维不动
+			// （由 pass 判定行照常 bump——两键并行不互斥）。
+			StatsCache::record( 'comment', 'tencent', 'disaster_pass' );
+			StatsCache::record( 'comment', 'tencent', 'disaster_pass' );
+
+			$cache = $GLOBALS['wk_stats_option_store'][ StatsCache::OPTION_NAME ];
+			$this->assertSame( 2, $cache['by_gate']['comment']['disaster_pass'], '今日树独立键' );
+			$this->assertSame( 2, $cache['by_driver']['tencent']['disaster_pass'] );
+			$this->assertSame( 2, $cache['total']['by_gate']['comment']['disaster_pass'], '累计树同步滚动' );
+			$this->assertArrayNotHasKey( 'pass', $cache['by_gate']['comment'], 'disaster_pass 键独立——不混入 pass 维' );
+		}
+
+		public function test_default_recorder_bumps_disaster_pass_key(): void {
+			// 源码契约：CommentGate 默认 recorder 含 disaster_pass 语境的计数特例（meta 标注
+			// → record 独立键）；无此行则仪表盘容灾放行读数恒 0（O3 卡 2 数据源断供）。
+			$src = file_get_contents( __DIR__ . '/../includes/gates/CommentGate.php' );
+			self::assertIsString( $src, 'CommentGate.php 必须可读' );
+			$this->assertStringContainsString( "StatsCache::record( 'comment', \$driver_id, 'disaster_pass' )", $src, '默认 recorder 须 bump disaster_pass 独立键（O3 卡 2 计数源）' );
+			$this->assertStringContainsString( "! empty( \$meta['disaster_pass'] )", $src, '计数语境判定 = meta.disaster_pass' );
+		}
 	}
 }

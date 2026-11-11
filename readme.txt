@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.4.1 =
+
+O3·仪表盘统计卡片三卡上线（2026-11-12，O3-统计卡片设计建议.md §七 步骤 1-5——参照 Wordfence 9.1.0 wfActivityReport 三视图分级架构：wordfenceClass.php:7410-7429 注册骨架 + activity-report.php 转义/深链纪律）：①DashboardDigest 纯逻辑视图模型类（widget_overview 全可注入——类头注钉「视图①零 EventsTable 明细查询、只读 option 计数器」不变式，19 单测覆盖三卡各字段/空态/达限红态/disaster_pass 键/异形输入防御）；②Bootstrap 注册（wp_dashboard_setup + 两处有意改造：manage_options 能力门禁自拦/暂不挂网络仪表盘 + stats.dashboard_widget_enabled 开关键入 SettingsSchema（默认 true，仿 wfConfig email_summary_dashboard_widget_enabled）+Sanitize bool 规则——schema↔rules 双向一致性测试自动封口）；③三卡 HTML/CSS（卡 1 系统健康=四闸状态点+验证码配置态+停转红警报+cron 存活；卡 2 调用量=各驱动今日行+配额「N / M」达限红+站点总外呼+容灾放行行；卡 3 概览迷你条=「今日：拦截 N ｜ 待审 N ｜ 驱动错误 N」；每卡一条 button-primary 行动出口深链——健康卡→Tab①/调用量卡与概览条→Tab⑥；assets/css/admin-widget.css 品牌同款 token 版本化入队；esc_html/esc_attr/esc_url/(int) 转义全覆盖）；④cron 存活检测（wp_next_scheduled(EventsTable::HOOK_DAILY) 丢失红点+「重新激活」admin_action 通道——nonce+manage_options 双闸+register_cron 幂等重排）；⑤StatsCache disaster_pass 计数特例（CommentGate 默认 recorder meta.disaster_pass 语境 bump 独立键；写入矩阵 pass 特例同步放行容灾放行事件落库——hits 携带 disaster_pass 标签与 trust_pass 同法）。测试：DashboardDigestTest 19 + O3DashboardWidgetContractTest 16 + EventsTableWriteMatrixTest/StatsCacheRecordBridgeTest/CaptchaDriverV11Test 各扩 1-2 例，版本钉 0.4.1 五测试文件同步。
 
 = 0.4.0 =
 

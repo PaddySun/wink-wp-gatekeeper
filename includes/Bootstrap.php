@@ -38,6 +38,7 @@ use WinkGatekeeper\Ip\IpResolver;
 use WinkGatekeeper\Ip\IpReputationService;
 use WinkGatekeeper\Settings\SettingsPage;
 use WinkGatekeeper\Settings\SettingsSchema;
+use WinkGatekeeper\Stats\DashboardDigest;
 use WinkGatekeeper\Stats\DriverHealth;
 use WinkGatekeeper\Stats\EventsTable;
 use WinkGatekeeper\Stats\StatsCache;
@@ -146,6 +147,12 @@ final class Bootstrap {
 
 		// 每日维护 cron（04 §3：90 天清理 + 滚动上限）。
 		add_action( EventsTable::HOOK_DAILY, array( EventsTable::class, 'daily_maintenance' ) );
+
+		// 【O3 §五】仪表盘统计卡片（Wordfence wordfenceClass.php:7410-7429 同款骨架 + 两处
+		// 有意改造——manage_options 能力门禁自拦 / 暂不挂 wp_network_dashboard_setup）。
+		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
+		// cron 丢失时健康卡「重新激活」通道（nonce + manage_options 双闸，重排后回仪表盘）。
+		add_action( 'admin_action_wink_gatekeeper_reactivate_cron', array( $this, 'handle_reactivate_cron' ) );
 
 		// 【v1.5·C1】test_mode 管理员提醒双位之二：admin-bar 黄条（02 §2.8 安全门 #3——
 		// 仅 manage_options 用户可见，前台+后台常显防遗忘；Tab① 红点行在 SettingsPage）。
@@ -830,6 +837,225 @@ final class Bootstrap {
 			SettingsPage::PAGE_SLUG,
 			array( SettingsPage::class, 'render' )
 		);
+	}
+
+	/* -------------------------------------------------------------------
+	 * 【O3 §五/§七 步骤 2-5】仪表盘统计卡片（Wordfence wordfenceClass.php:7410-7429
+	 * 同款注册骨架；渲染回调形态对齐 wfActivityReport::outputDashboardWidget 的静态
+	 * 回调位——wink 按分层把 echo 放边界层方法，DashboardDigest 纯逻辑类零 echo）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 仪表盘 widget 注册（wp_dashboard_setup）。
+	 *
+	 * 两处有意改造（O3 §五）：
+	 *   ① 能力门禁用 current_user_can('manage_options') 而非只判 is_admin——Wordfence 用
+	 *     wfUtils::isAdmin()（wordfenceClass.php:7412），wink 的统计含拦截量与驱动健康，
+	 *     默认只给管理员看；WP 仪表盘 widget 本身不提供能力过滤，必须在注册回调里自拦。
+	 *   ② 暂不挂 wp_network_dashboard_setup——wink 的表/option 都是 per-site 口径
+	 *     （O2 P2-1 多站点议题收口后再议，避免网络仪表盘显示某个子站的数字造成误读）。
+	 */
+	public function add_dashboard_widget(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return; // 改造①：能力门禁。
+		}
+		$stored   = get_option( SettingsPage::OPTION_NAME, array() );
+		$settings = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		if ( empty( $settings['stats']['dashboard_widget_enabled'] ) ) {
+			return; // 开关键（默认 true，仿 email_summary_dashboard_widget_enabled，wfConfig.php:124）。
+		}
+		wp_enqueue_style(
+			'wink-gatekeeper-widget',
+			$this->base_url . 'assets/css/admin-widget.css',
+			array(),
+			WINK_GATEKEEPER_VERSION
+		);
+		wp_add_dashboard_widget(
+			'wink_gatekeeper_dashboard_widget',
+			__( 'Wink 门口保安 · 今日态势', 'wink-gatekeeper' ),
+			array( $this, 'render_dashboard_widget' )
+		);
+	}
+
+	/**
+	 * 仪表盘卡片渲染（echo 边界；数据面 = DashboardDigest::widget_overview 视图模型）。
+	 *
+	 * 数据源纪律（DashboardDigest 类头注不变式）：视图①零 EventsTable 明细查询——
+	 * 只读三个 option 计数器 + 设置树 + 两处真实态布尔（验证码 is_configured /
+	 * wp_next_scheduled）。转义纪律（Wordfence views/reports/activity-report.php:37
+	 * 同款）：文本 esc_html / 属性 esc_attr / 链接 esc_url / 计数 (int) 强转。
+	 * 管理面文案一律 __()（text domain），不走访客侧文案工坊 Copywork（O3 §六）。
+	 *
+	 * @return void
+	 */
+	public function render_dashboard_widget(): void {
+		$stored   = get_option( SettingsPage::OPTION_NAME, array() );
+		$settings = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+
+		// 验证码驱动配置态：真实驱动 is_configured 判定（纯逻辑层不复制凭据规则——单点真相；
+		// 传输脊空壳构造不发起任何网络调用——is_configured 只读凭据字段）。
+		$captcha_driver = is_string( $settings['captcha']['driver'] ?? null ) && '' !== $settings['captcha']['driver']
+			? $settings['captcha']['driver'] : 'tencent';
+		$captcha_configured = false;
+		$captcha_label      = $captcha_driver;
+		if ( 'tencent' === $captcha_driver ) {
+			$tencent = new TencentCaptchaDriver( $settings, new RemoteClient() );
+			$captcha_configured = $tencent->is_configured();
+			$captcha_label      = $tencent->label();
+		} elseif ( 'aliyun' === $captcha_driver ) {
+			$aliyun = new AliyunCaptchaDriver( $settings, new RemoteClient() );
+			$captcha_configured = $aliyun->is_configured();
+			$captcha_label      = $aliyun->label();
+		}
+
+		// cron 存活（每日维护——events 表 90 天清理/滚动上限依赖；false = 丢失）。
+		$cron_alive = false !== wp_next_scheduled( EventsTable::HOOK_DAILY );
+
+		// 用量行人话名（registry_entry label 单一来源；abuseipdb 两键 M3 前手名——
+		// 未注册 id 经 DashboardDigest 回落原名，不虚构）。
+		$driver_labels = array(
+			'tencent'          => (string) TencentCaptchaDriver::registry_entry()['label'],
+			'aliyun'           => (string) AliyunCaptchaDriver::registry_entry()['label'],
+			'local_rules'      => (string) LocalRulesDriver::registry_entry()['label'],
+			'tencent_tms'      => (string) TencentTmsDriver::registry_entry()['label'],
+			'aliyun_green'     => (string) AliyunGreenPlusDriver::registry_entry()['label'],
+			'baidu'            => (string) BaiduTextModerationDriver::registry_entry()['label'],
+			'abuseipdb'        => 'AbuseIPDB',
+			'abuseipdb_report' => 'AbuseIPDB（上报）',
+		);
+
+		$health_tree = get_option( DriverHealth::OPTION_NAME, array() );
+
+		$view = DashboardDigest::widget_overview( array(
+			'settings'             => $settings,
+			'stats'                => StatsCache::get(),
+			'usage'                => Usage::get(),
+			'health'               => is_array( $health_tree ) ? $health_tree : array(),
+			'today_ymd'            => current_time( 'Ymd' ),
+			'today_dash'           => current_time( 'Y-m-d' ),
+			'captcha_configured'   => $captcha_configured,
+			'captcha_driver'       => $captcha_driver,
+			'captcha_driver_label' => $captcha_label,
+			'driver_labels'        => $driver_labels,
+			'cron_alive'           => $cron_alive,
+			'debug'                => defined( 'WP_DEBUG' ) && WP_DEBUG,
+		) );
+
+		$tab1_url = admin_url( 'options-general.php?page=' . SettingsPage::PAGE_SLUG . '&tab=overview' );
+		$tab6_url = admin_url( 'options-general.php?page=' . SettingsPage::PAGE_SLUG . '&tab=stats' );
+		$reactivate_url = wp_nonce_url(
+			admin_url( 'admin.php?action=wink_gatekeeper_reactivate_cron' ),
+			'wink_gatekeeper_reactivate_cron'
+		);
+		?>
+		<div class="wk-widget">
+			<?php /* 卡 1：系统健康——四闸状态点 + 验证码配置态 + 停转红警报 + cron 存活。 */ ?>
+			<div class="wk-widget-card" id="wk-widget-health">
+				<p class="wk-widget-card-title"><?php echo esc_html( __( '系统健康', 'wink-gatekeeper' ) ); ?></p>
+				<ul class="wk-widget-dots">
+					<?php foreach ( $view['health']['gates'] as $gate ) : ?>
+						<li class="wk-widget-dot<?php echo esc_attr( ! empty( $gate['enabled'] ) ? ' is-on' : ' is-off' ); ?>">
+							<span class="wk-widget-light" aria-hidden="true"></span><?php echo esc_html( (string) $gate['label'] ); ?>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+				<p class="wk-widget-line">
+					<span class="wk-widget-light<?php echo esc_attr( $captcha_configured ? ' is-on' : ' is-warn' ); ?>" aria-hidden="true"></span>
+					<?php echo esc_html( (string) $view['health']['captcha']['label'] ); ?>：
+					<?php echo esc_html( $captcha_configured ? __( '已配置', 'wink-gatekeeper' ) : __( '未配置——验证码阶段整体跳过', 'wink-gatekeeper' ) ); ?>
+				</p>
+				<?php foreach ( $view['health']['halts'] as $halt ) : ?>
+					<?php
+					$halt_label = isset( $driver_labels[ (string) $halt['driver_id'] ] ) ? $driver_labels[ (string) $halt['driver_id'] ] : (string) $halt['driver_id'];
+					?>
+					<p class="wk-widget-line is-alert">
+						<span class="wk-widget-light is-red" aria-hidden="true"></span>
+						<?php echo esc_html( $halt_label ); ?>：<?php echo esc_html( (string) $halt['note'] ); ?><?php echo esc_html( (string) $halt['detail'] ); ?>
+					</p>
+				<?php endforeach; ?>
+				<p class="wk-widget-line">
+					<span class="wk-widget-light<?php echo esc_attr( $view['health']['cron_alive'] ? ' is-on' : ' is-red' ); ?>" aria-hidden="true"></span>
+					<?php echo esc_html( __( '每日维护任务', 'wink-gatekeeper' ) ); ?>：
+					<?php echo esc_html( $view['health']['cron_alive'] ? __( '已排程', 'wink-gatekeeper' ) : __( '丢失——事件清理已停摆', 'wink-gatekeeper' ) ); ?>
+					<?php if ( ! $view['health']['cron_alive'] ) : ?>
+						<a class="wk-widget-fix" href="<?php echo esc_url( $reactivate_url ); ?>"><?php echo esc_html( __( '重新激活', 'wink-gatekeeper' ) ); ?></a>
+					<?php endif; ?>
+				</p>
+				<p class="wk-widget-actions">
+					<a class="button button-primary" href="<?php echo esc_url( $tab1_url ); ?>"><?php echo esc_html( __( '总览详情', 'wink-gatekeeper' ) ); ?></a>
+				</p>
+			</div>
+
+			<?php /* 卡 2：第三方调用量——各驱动今日行 + 配额 N / M + 站点总外呼 + 容灾放行。 */ ?>
+			<div class="wk-widget-card" id="wk-widget-usage">
+				<p class="wk-widget-card-title"><?php echo esc_html( __( '第三方调用量（今日）', 'wink-gatekeeper' ) ); ?></p>
+				<?php if ( array() === $view['usage']['rows'] ) : ?>
+					<p class="wk-widget-empty"><?php echo esc_html( __( '今日无外呼。', 'wink-gatekeeper' ) ); ?></p>
+				<?php else : ?>
+					<ul class="wk-widget-usage">
+						<?php foreach ( $view['usage']['rows'] as $row ) : ?>
+							<li class="wk-widget-usage-row<?php echo esc_attr( ! empty( $row['quota_reached'] ) ? ' is-red' : '' ); ?>">
+								<?php echo esc_html( (string) $row['label'] ); ?>
+								<?php if ( (int) $row['quota'] > 0 ) : ?>
+									<span class="wk-widget-num"><?php echo (int) $row['used']; ?> / <?php echo (int) $row['quota']; ?></span>
+									<?php echo ! empty( $row['quota_reached'] ) ? esc_html( __( '——已达限，当日暂停', 'wink-gatekeeper' ) ) : ''; ?>
+								<?php else : ?>
+									<span class="wk-widget-num"><?php echo (int) $row['used']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?>
+								<?php endif; ?>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<p class="wk-widget-line">
+						<?php echo esc_html( __( '站点今日总外呼', 'wink-gatekeeper' ) ); ?>
+						<span class="wk-widget-num"><?php echo (int) $view['usage']['site_total']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?>
+					</p>
+				<?php endif; ?>
+				<p class="wk-widget-line">
+					<?php echo esc_html( __( '今日容灾放行', 'wink-gatekeeper' ) ); ?>
+					<span class="wk-widget-num<?php echo esc_attr( (int) $view['usage']['disaster_pass'] > 0 ? ' is-red' : '' ); ?>"><?php echo (int) $view['usage']['disaster_pass']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?><?php echo (int) $view['usage']['disaster_pass'] > 0 ? esc_html( __( '——验证码服务不稳的晴雨表', 'wink-gatekeeper' ) ) : ''; ?>
+				</p>
+				<p class="wk-widget-actions">
+					<a class="button button-primary" href="<?php echo esc_url( $tab6_url ); ?>"><?php echo esc_html( __( '查调用明细', 'wink-gatekeeper' ) ); ?></a>
+				</p>
+			</div>
+
+			<?php /* 卡 3：今日拦截概览迷你条——三格计数 + 行动出口。 */ ?>
+			<div class="wk-widget-card" id="wk-widget-overview">
+				<p class="wk-widget-strip">
+					<?php echo esc_html( __( '今日：拦截', 'wink-gatekeeper' ) ); ?>
+					<span class="wk-widget-num"><?php echo (int) $view['overview']['reject']; ?></span>
+					<?php echo esc_html( __( '｜ 待审', 'wink-gatekeeper' ) ); ?>
+					<span class="wk-widget-num"><?php echo (int) $view['overview']['review']; ?></span>
+					<?php echo esc_html( __( '｜ 驱动错误', 'wink-gatekeeper' ) ); ?>
+					<span class="wk-widget-num<?php echo esc_attr( (int) $view['overview']['error'] > 0 ? ' is-red' : '' ); ?>"><?php echo (int) $view['overview']['error']; ?></span>
+				</p>
+				<p class="wk-widget-actions">
+					<a class="button button-primary" href="<?php echo esc_url( $tab6_url ); ?>"><?php echo esc_html( __( '查看详情', 'wink-gatekeeper' ) ); ?></a>
+				</p>
+			</div>
+
+			<?php if ( '' !== $view['debug_note'] ) : ?>
+				<p class="wk-widget-debug"><?php echo esc_html( (string) $view['debug_note'] ); ?></p>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * cron 重新激活处理（健康卡「重新激活」深链落点；nonce + manage_options 双闸）。
+	 *
+	 * 重排逻辑 = EventsTable::register_cron（幂等——已排程不重复注册）；完成后回仪表盘。
+	 *
+	 * @return void
+	 */
+	public function handle_reactivate_cron(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( 'wink_gatekeeper_reactivate_cron' );
+		EventsTable::register_cron();
+		wp_safe_redirect( admin_url( 'index.php' ) );
+		exit;
 	}
 
 	/**

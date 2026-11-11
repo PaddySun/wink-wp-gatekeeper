@@ -1,0 +1,180 @@
+/**
+ * Wink 门口保安 · 仪表盘统计卡片样式（O3 §三 三卡：系统健康/第三方调用量/今日拦截概览）
+ *
+ * 色彩与字 token 同 admin-settings.css（Night/Paper/Wink Red/Blush/Ink/Fog/Line）——
+ * 仪表盘卡片是设置页品牌面在 wp-admin 首屏的延伸，同一套视觉语言不另起炉灶。
+ * 状态点语义：绿=在岗/已配置/已排程；黄=未配置（验证码阶段整体跳过）；
+ * 红=停转/达限/cron 丢失（健康卡核心警报位）。
+ */
+
+.wk-widget {
+	font-size: 13px;
+	line-height: 1.6;
+	color: #17171b;
+}
+
+.wk-widget-card {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border: 1px solid #e9e9ec;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.wk-widget-card:last-of-type {
+	margin-bottom: 0;
+}
+
+.wk-widget-card-title {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #111114;
+}
+
+/* ---------- 状态点（绿=在岗 黄=未配置 红=停转/丢失 灰=关闭） ---------- */
+
+.wk-widget-dots {
+	margin: 0 0 8px;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 14px;
+}
+
+.wk-widget-dot {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.wk-widget-light {
+	display: inline-block;
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: #b5b5bd; /* 灰=关闭/未知 */
+	flex: 0 0 auto;
+}
+
+.wk-widget-light.is-on {
+	background: #2fb344; /* 绿=在岗 */
+}
+
+.wk-widget-light.is-warn {
+	background: #f0a020; /* 黄=未配置 */
+}
+
+.wk-widget-light.is-red {
+	background: #ff4d4f; /* 红=停转/丢失/达限（Wink Red） */
+}
+
+/* ---------- 行/警报/空态 ---------- */
+
+.wk-widget-line {
+	margin: 0 0 6px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.wk-widget-line.is-alert {
+	margin: 6px 0;
+	padding: 6px 8px;
+	border-radius: 4px;
+	background: #fff2f2; /* Blush 警报底 */
+	border: 1px solid #ffd9d9;
+	color: #8a1f21;
+	display: block;
+}
+
+.wk-widget-line.is-alert .wk-widget-light {
+	margin-right: 5px;
+}
+
+.wk-widget-empty {
+	margin: 0 0 6px;
+	color: #86868f;
+}
+
+.wk-widget-usage {
+	margin: 0 0 8px;
+	padding: 0;
+	list-style: none;
+}
+
+.wk-widget-usage-row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 3px 0;
+	border-bottom: 1px dashed #e9e9ec;
+}
+
+.wk-widget-usage-row:last-child {
+	border-bottom: 0;
+}
+
+.wk-widget-usage-row.is-red {
+	color: #e8383a;
+	font-weight: 600;
+}
+
+/* ---------- 计数数字（等宽负责作证——品牌排版规范） ---------- */
+
+.wk-widget-num {
+	font-family: Consolas, "JetBrains Mono", Menlo, monospace;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.wk-widget-num.is-red {
+	color: #e8383a;
+}
+
+/* ---------- 概览迷你条（今日：拦截 N ｜ 待审 N ｜ 驱动错误 N） ---------- */
+
+.wk-widget-strip {
+	margin: 0 0 8px;
+	font-size: 14px;
+}
+
+.wk-widget-strip .wk-widget-num {
+	margin: 0 2px;
+}
+
+/* ---------- 行动出口（每卡一条——Wordfence button-primary 同款形态） ---------- */
+
+.wk-widget-actions {
+	margin: 8px 0 0;
+}
+
+.wk-widget-actions .button-primary {
+	background: #ff4d4f;
+	border-color: #e8383a;
+	text-shadow: none;
+}
+
+.wk-widget-actions .button-primary:hover,
+.wk-widget-actions .button-primary:focus {
+	background: #e8383a;
+	border-color: #d02f31;
+}
+
+.wk-widget-fix {
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+/* ---------- 调试行（仅 WP_DEBUG 显示——仿 activity-report.php:209-210 Generated in） ---------- */
+
+.wk-widget-debug {
+	margin: 8px 0 0;
+	color: #86868f;
+	font-family: Consolas, "JetBrains Mono", Menlo, monospace;
+	font-size: 11px;
+}

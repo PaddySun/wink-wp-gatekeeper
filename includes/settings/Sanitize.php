@@ -173,6 +173,8 @@ final class Sanitize {
 			// 【v1.4·R4 §D.4】错误事件 meta.raw 快照开关 + 截断字节（钳 128-2048）。
 			'stats.raw_capture'                         => 'bool',
 			'stats.raw_max_bytes'                       => 'raw_bytes',
+			// 【O3 §五】仪表盘统计卡片开关（默认 true——wfConfig.php:124 同款键位思路）。
+			'stats.dashboard_widget_enabled'                  => 'bool',
 			'brand.contact_email'                       => 'email',
 			'coexist.hcaptcha_yield_comment'            => 'bool',
 			'coexist.hcaptcha_yield_login'              => 'bool',

@@ -279,6 +279,10 @@ final class SettingsSchema {
 				// 关=raw 字段省略、错误事件其余字段照记）与截断字节（钳 128-2048）。
 				'raw_capture'     => true,
 				'raw_max_bytes'   => 512,
+				// 【O3 §五】仪表盘统计卡片开关（默认 true，仿 Wordfence
+				// email_summary_dashboard_widget_enabled，wfConfig.php:124）——Bootstrap
+				// wp_dashboard_setup 注册回调消费；关=仪表盘零 DOM 变化。
+				'dashboard_widget_enabled' => true,
 			),
 
 			'brand'                  => array(

@@ -273,6 +273,12 @@ final class CommentGate extends AbstractGate {
 				if ( ! in_array( $verdict->reason(), array( 'hold_moderation', 'cloud_all_failed' ), true ) ) {
 					StatsCache::record( 'comment', $driver_id, $verdict->verdict() );
 				}
+				// 【O3 §三卡 2】容灾放行计数特例（meta.disaster_pass 语境 → 独立键
+				// disaster_pass 落 by_gate/by_driver 双树）——仪表盘卡片读 option 计数器，
+				// 不 COUNT 事件明细（DashboardDigest 类头注不变式）；pass 维照常 bump 不变。
+				if ( ! empty( $meta['disaster_pass'] ) ) {
+					StatsCache::record( 'comment', $driver_id, 'disaster_pass' );
+				}
 				return $event_no;
 			};
 		$this->resolver  = $resolver ?? new IpResolver( is_array( $settings['network'] ?? null ) ? $settings['network'] : array() );
@@ -638,10 +644,12 @@ final class CommentGate extends AbstractGate {
 
 						/* 容灾放行事件（02 §2.1 disasterPolicy allow 档 + 05 §1.1「统计可查容灾放行量」）：
 						 * 驱动 meta 标注 disaster_pass（CaptchaCode=21 + trerror 票据、限速内放行）→
-						 * 落一条 pass 事件（rule_hit=trerror）；不拦截，编排继续。 */
+						 * 落一条 pass 事件（rule_hit=CaptchaCode=21/trerror）；不拦截，编排继续。
+						 * 【O3 §三卡 2】hits 携带 disaster_pass 审计标签——写入矩阵 pass 特例通道
+						 * （与 verify_cache_hit/trust_pass 同法）据此放行事件落库。 */
 						if ( ! empty( $outcome['meta']['disaster_pass'] ) ) {
 							$rule = isset( $outcome['meta']['rule'] ) && is_string( $outcome['meta']['rule'] ) ? $outcome['meta']['rule'] : 'CaptchaCode=21/trerror';
-							call_user_func( $this->recorder, 'captcha', Verdict::pass( $this->captcha_driver_id(), $rule, array( $rule ) ), array(
+							call_user_func( $this->recorder, 'captcha', Verdict::pass( $this->captcha_driver_id(), $rule, array( $rule, 'disaster_pass' ) ), array(
 								'ip_src'        => $resolved['ip_src'],
 								'client_ip'     => $resolved['ip'],
 								'disaster_pass' => true,

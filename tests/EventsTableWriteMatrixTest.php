@@ -90,6 +90,16 @@ final class EventsTableWriteMatrixTest extends TestCase {
 		$this->assertFalse( EventsTable::should_record( 'captcha', Verdict::pass(), self::settings() ) );
 	}
 
+	public function test_captcha_pass_disaster_pass_hit_is_recorded(): void {
+		// 【O3 §三卡 2】captcha + pass（disaster_pass）✓ 特例——容灾放行审计足迹
+		// （CaptchaCode=21/trerror 票据 allow 档放行；CommentGate meta.disaster_pass 语境，
+		// hits 携带 disaster_pass 标签与 verify_cache_hit/trust_pass 同法）。
+		$disaster = Verdict::pass( 'tencent', 'CaptchaCode=21/trerror', array( 'CaptchaCode=21/trerror', 'disaster_pass' ) );
+		$this->assertTrue( EventsTable::should_record( 'captcha', $disaster, self::settings() ), '容灾放行 pass 事件须落库（审计足迹）' );
+		// 采样关态下不带标签的 pass 仍不落库（对照行——rule 相同无标签不放行）。
+		$this->assertFalse( EventsTable::should_record( 'captcha', Verdict::pass( 'tencent', 'CaptchaCode=21/trerror', array( 'CaptchaCode=21/trerror' ) ), self::settings() ) );
+	}
+
 	/* ---------- rule_hit 拼接（v1.2：逗号连接 + 120 字符截断 + 截断保序去重） ---------- */
 
 	public function test_hits_to_rule_hit_joins_with_comma(): void {
