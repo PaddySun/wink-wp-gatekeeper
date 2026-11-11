@@ -41,13 +41,11 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 
 = 0.4.3 =
 
-FIX 轮 6·Tab①⑥ 视觉层级与三色状态点（2026-11-12 用户实测浏览器反馈）：① 防线分组标题（h4 wk-defense-group）由灰(--wk-fog)改墨(--wk-ink)+字号 0.95rem+weight 700——与段标题(1.15rem)层级拉开（原灰色+近字号=层级消失）；② 驱动卡状态点由字符(●○◐✕)改彩色圆点 span（wk-dot 体系复用+新增 wk-dot--standby 蓝=#2271b1）：绿=启用/蓝=已配置未启用/红=配置问题/黄=今日暂停——dot_class 字段入 driver_card 纯函数（四分支单测钉）。1262 tests / 8636 assertions 全绿。
+FIX 轮 6·Tab①⑥ 视觉层级与三色状态点（2026-11-12 用户实测浏览器反馈）：① 防线分组标题（h4 wk-defense-group）由灰(--wk-fog)改墨(--wk-ink)+字号 0.95rem+weight 700——与段标题(1.15rem)层级拉开（原灰色+近字号=层级消失）；② 驱动卡状态点由字符(●○◐✕)改彩色圆点 span（wk-dot 体系复用+新增 wk-dot--standby 蓝=#2271b1）：绿=启用/蓝=已配置未启用/红=配置问题/黄=今日暂停——dot_class 字段入 driver_card 纯函数（四分支单测钉）。1262 tests / 8634 assertions 全绿。
 
 = 0.4.2 =
 
-= 0.4.3 =
-
-UI-FIX·设置页 UI 密度与样式克制修正（2026-11-12 用户实测反馈两条合并批，UI-FIX-FEEDBACK-2026-11-12 拍板方向）：①FIX-A·Tab① 点名册未配置收拢行（反馈 1 折中方案）：默认只展开已配置卡（当班+待命，含其上异常卡——异常置顶微排序不变），未配置服务商收拢一行「未配置的服务商：人话名 · 人话名 [去配置 →]」——保留可发现性不占屏；单入口替代每卡一入口（跳转目标=未配置卡 config_tab 去重，全同域链对应 Tab②/③，混合域回落 Tab② 三步引导）；未配置灰卡不再单独渲染（wk-roster-card--disabled 退役）；纯渲染层改动（OverviewRoster::cards 纯函数/存储/排序零变更）。②FIX-B·Tab⑥ 文字样式克制（反馈 2 三宗罪）：两级标题制——段标题 wk-sec-title（1.15rem）>段内小标题 wk-sub-title（16px 加粗）两档全页统一，样式走 admin-settings.css 类禁内联（原始回复展开块内联 style 迁 .wk-fault-raw 类）；全页零序号——「一、二、三」「①②③」双序号体系全清（契约扫渲染体含函数体内注释）；配置指引收敛——「未启用/未配置」跳转指引只在段标题位置出现一次（stats_config_hint：段内有未启用卡才出现「 · 去配置」，评论段/登录段两调用点恰各≤1），驱动卡内部蓝链接退役（未启用卡=灰徽标+极简一句无链接，占位句去 Tab 序号引用，卡不承担导航职责——config_tab 数据面保留供段级消费）；密度对齐 O3 widget——正文单层字号（wk-defense-group 0.9rem 多级字号收敛），徽标/数字加粗即强调。③测试：UiTab6StatsContractTest 契约翻转（序号断言清零/蓝链接计数/标题类三新例+五段骨架断言翻新）+ UiTab1OverviewContractTest 收拢行新例（「五卡齐」形态断言翻转「已配置展开+未配置一行」）+ InterceptDigestCardsTest 占位句反钉，版本钉 0.4.3 五测试文件同步。真机（厦门 wpclean）：部署 0.4.3 后 render 通道 DOM 断言 Tab① 收拢行在场+未配置卡零单独渲染、Tab⑥ 零序号字符+段标题类在场+蓝链接每段≤1（IMPL 报告：docs/reports/IMPL-UIFIX-2026-11-12.md）。
+UI-FIX·设置页 UI 密度与样式克制修正（2026-11-12 用户实测反馈两条合并批，UI-FIX-FEEDBACK-2026-11-12 拍板方向）：①FIX-A·Tab① 点名册未配置收拢行（反馈 1 折中方案）：默认只展开已配置卡（当班+待命，含其上异常卡——异常置顶微排序不变），未配置服务商收拢一行「未配置的服务商：人话名 · 人话名 [去配置 →]」——保留可发现性不占屏；单入口替代每卡一入口（跳转目标=未配置卡 config_tab 去重，全同域链对应 Tab②/③，混合域回落 Tab② 三步引导）；未配置灰卡不再单独渲染（wk-roster-card--disabled 退役）；纯渲染层改动（OverviewRoster::cards 纯函数/存储/排序零变更）。②FIX-B·Tab⑥ 文字样式克制（反馈 2 三宗罪）：两级标题制——段标题 wk-sec-title（1.15rem）>段内小标题 wk-sub-title（16px 加粗）两档全页统一，样式走 admin-settings.css 类禁内联（原始回复展开块内联 style 迁 .wk-fault-raw 类）；全页零序号——「一、二、三」「①②③」双序号体系全清（契约扫渲染体含函数体内注释）；配置指引收敛——「未启用/未配置」跳转指引只在段标题位置出现一次（stats_config_hint：段内有未启用卡才出现「 · 去配置」，评论段/登录段两调用点恰各≤1），驱动卡内部蓝链接退役（未启用卡=灰徽标+极简一句无链接，占位句去 Tab 序号引用，卡不承担导航职责——config_tab 数据面保留供段级消费）；密度对齐 O3 widget——正文单层字号（wk-defense-group 0.9rem 多级字号收敛），徽标/数字加粗即强调。③测试：UiTab6StatsContractTest 契约翻转（序号断言清零/蓝链接计数/标题类三新例+五段骨架断言翻新）+ UiTab1OverviewContractTest 收拢行新例（「五卡齐」形态断言翻转「已配置展开+未配置一行」）+ InterceptDigestCardsTest 占位句反钉，版本钉 0.4.2 五测试文件同步。真机（厦门 wpclean）：部署 0.4.2 后 render 通道 DOM 断言 Tab① 收拢行在场+未配置卡零单独渲染、Tab⑥ 零序号字符+段标题类在场+蓝链接每段≤1（IMPL 报告：docs/reports/IMPL-UIFIX-2026-11-12.md）。
 
 = 0.4.1 =
 
@@ -71,15 +69,11 @@ FIX 轮 5·flood 拦截页品牌化接管（2026-11-12 用户实测「手速比�
 
 = 0.3.6 =
 
-= 0.3.7 =
-
 FIX 轮 4·登录错误掩码场景串域修复（2026-11-12 用户实测「登录页错用户名密码却显示重置邮件文案」，统筹真机复现闭环）：登录框支持邮箱登录——不存在的邮箱形态输入报 invalid_email，原按码分域把它固定映射到找回域文案（「暂时无法发送重置邮件」打到登录页）。修复：掩码分域改按**消费场景**（mask_message 增加 scene 参数：SCENE_LOGIN 登录框一律「用户名或口令不正确」/SCENE_RESET 找回框一律「无法发送重置邮件」——同一码两场景语义不同，场景由消费 filter 决定）。LoginErrorMaskTest 场景断言×3 新增。1118 tests / 7713 assertions 全绿。真机复现：错用户名→登录文案 ✓；邮箱形态→登录文案 ✓（修复前=重置邮件文案实锤复现）。
 
 = 0.3.5 =
 
-= 0.3.7 =
-
-FIX 轮 3·Tab③ 云端审核驱动下拉切换联动修复（2026-11-11 用户人工测试反馈「tab=review 下拉选阿里云内容安全但下方配置区仍是腾讯云 TMS」，统筹多 agent 流水线 FIX-3 批次）：根因=Tab③ 三厂商配置区按 chain[0] 互斥 if/elseif 单区渲染（v1.4 遗留形态），前端切下拉后无区可显（TMS 区残留恒显）；修复对齐 Tab② 验证码配置区 data-wk-vendor 形态：① SettingsPage render_tab_review 三区（wk-tms-config-area / wk-green-config-area / wk-baidu-config-area）并列渲染 + data-wk-vendor="tencent_tms|aliyun_green|baidu" 属性 + PHP 初始 hidden 按 $cloud_selected（chain[0]），互斥分支除名；未配置（chain 空）三区全 hidden + 空态说明行 #wk-review-unconfigured-note（状态点+描述行，对齐 Tab② unconfiguredNote）；三区 sanitize 保存链 /「测试凭据」AJAX / PIPL 合规行 / 接入指引 / 链路汇总行零改动；② admin-brand.js Tab② 专属 syncCaptchaArea 泛化公用 bindVendorSwitcher( select, noteId )——area 容器作用域取 select 所属 .wk-panel 内 [data-wk-vendor]（Tab 页隔离防跨 Tab 误显隐；M4 后续驱动自动入列不硬化名单），Tab②（wk-captcha-driver，现行为零变化）与 Tab③（wk-cloud-driver）各挂一处 change；必填缺失弹窗（closest form 拦截+标红+二次放行）推广 Tab③——必填面=TMS SecretId/SecretKey + 阿里 AccessKey 对 + 百度 API Key/Secret Key（05 §1.2/§2.4/§2.5 registry settings.required 语义渲染面；password 已配置留空不算缺契约保持）；③ 契约测试 Fix3Tab3ToggleContractTest 8 例（全区 vendor 形态 / 互斥分支除名 / 空态说明行 / 保护现行为钉 / JS 泛化两挂接 / 必填弹窗推广 / 面板作用域 / 版本 0.3.7）+ B1a/B1b 版本钉同步 0.3.7。1118 tests / 7710 assertions 全绿（1110 基线 + 8 新例）；node --check admin-brand.js 过。真机（厦门 wpclean）：部署 0.3.7 后 tab=review DOM 断言三区 data-wk-vendor + 初始 hidden=chain[0]，select change 显隐翻转实测（FIX-3 报告：docs/reports/IMPL-FIX3-tab3-toggle-2026-11-11.md）。
+FIX 轮 3·Tab③ 云端审核驱动下拉切换联动修复（2026-11-11 用户人工测试反馈「tab=review 下拉选阿里云内容安全但下方配置区仍是腾讯云 TMS」，统筹多 agent 流水线 FIX-3 批次）：根因=Tab③ 三厂商配置区按 chain[0] 互斥 if/elseif 单区渲染（v1.4 遗留形态），前端切下拉后无区可显（TMS 区残留恒显）；修复对齐 Tab② 验证码配置区 data-wk-vendor 形态：① SettingsPage render_tab_review 三区（wk-tms-config-area / wk-green-config-area / wk-baidu-config-area）并列渲染 + data-wk-vendor="tencent_tms|aliyun_green|baidu" 属性 + PHP 初始 hidden 按 $cloud_selected（chain[0]），互斥分支除名；未配置（chain 空）三区全 hidden + 空态说明行 #wk-review-unconfigured-note（状态点+描述行，对齐 Tab② unconfiguredNote）；三区 sanitize 保存链 /「测试凭据」AJAX / PIPL 合规行 / 接入指引 / 链路汇总行零改动；② admin-brand.js Tab② 专属 syncCaptchaArea 泛化公用 bindVendorSwitcher( select, noteId )——area 容器作用域取 select 所属 .wk-panel 内 [data-wk-vendor]（Tab 页隔离防跨 Tab 误显隐；M4 后续驱动自动入列不硬化名单），Tab②（wk-captcha-driver，现行为零变化）与 Tab③（wk-cloud-driver）各挂一处 change；必填缺失弹窗（closest form 拦截+标红+二次放行）推广 Tab③——必填面=TMS SecretId/SecretKey + 阿里 AccessKey 对 + 百度 API Key/Secret Key（05 §1.2/§2.4/§2.5 registry settings.required 语义渲染面；password 已配置留空不算缺契约保持）；③ 契约测试 Fix3Tab3ToggleContractTest 8 例（全区 vendor 形态 / 互斥分支除名 / 空态说明行 / 保护现行为钉 / JS 泛化两挂接 / 必填弹窗推广 / 面板作用域 / 版本 0.3.5）+ B1a/B1b 版本钉同步 0.3.5。1118 tests / 7710 assertions 全绿（1110 基线 + 8 新例）；node --check admin-brand.js 过。真机（厦门 wpclean）：部署 0.3.5 后 tab=review DOM 断言三区 data-wk-vendor + 初始 hidden=chain[0]，select change 显隐翻转实测（FIX-3 报告：docs/reports/IMPL-FIX3-tab3-toggle-2026-11-11.md）。
 
 = 0.3.4 =
 
@@ -87,14 +81,14 @@ FIX 轮 2·阿里验证码 embed 挂载点不可见修复（2026-11-11 用户人
 
 = 0.3.3 =
 
-= 0.3.3 =
-
 FIX 轮·评论闸装配错位修复（2026-11-11 真机人工测试暴露，统筹诊断闭环）：B2（0.2.5，71840e3）重写 CommentGate 构造尾部时吞掉 require_gate 的 null 占位——17 实参 vs 18 形参，PHP 缺省参数静默错位一格，$degraded_allow（DegradedPassLimiter::allow 回调）顶入 require_gate 位被当豁免判定调用恒 false → 评论闸渲染+验证自 0.2.5 起双双静默跳过（前台无「完成人机验证」按钮、无票评论直发、captcha 阶段零事件——B2/B3/B5/B6 四批真机无一踩中该点：B2 被 test_mode 旁路巧合掩盖、B3 断言面在登录闸、B5/B6 只断言 review 链）。修复：Bootstrap 装配尾部补 null 占位（防回归注释）+ 新增 BootstrapAssemblyContractTest（四闸装配实参数（源码顶层逗号计数）=== 反射构造形参数——末位缺省参数静默错位在此红；+ CommentGate require_gate 占位注释语义锚点）。1109 tests / 7638 assertions 全绿（1104 基线 + 5 新例）。诊断法留档：真机 wp eval 反射生产装配实例逐关探测（is_enabled/captcha_driver/is_configured/require_gate 回调+过滤器监听清单）→ REQ_RESULT=false ∧ NO_LISTENERS 锤定闭包非默认闭包 → 参数计数对位。
 
-= 0.3.4 =
+= 0.3.2 =
 
 M3' 轻量批·百度文本审核驱动上线 B6（2026-11-11，设计文档 05 §2.4 百度行——L0-baidu-2026-11-09 在线核验+冒烟实测定稿）：① 新驱动 baidu——includes/drivers/review/BaiduTextModerationDriver.php（ReviewDriver 契约：check/last_check_meta/fail_mode 闸侧），文本审核 v2（aip.baidubce.com text_censor/v2/user_defined——v2 即现行版，2020 前老接口已下线）+ oauth client_credentials token 流；**token 30 天 transient 缓存复用**（L0 实测 expires_in=2592000；WP 边界闭包注入 get_transient/set_transient，TTL=expires_in-300s 安全边际，键含凭据指纹防换 AK 串用旧 token；token 获取不计审核 usage，缓存命中与否落 meta.token_cache=hit/miss 供侧证；error_code 110/111 自动清缓存自愈重取）；AppID 不参与请求（L0 实测，仅控制台标识不作配置门槛）；② 判定映射（05 §2.4 规范性，L0 逐项实测吻合）：conclusionType 唯一判据——1 合规→pass / 2 不合规→reject（reason=conclusion+首条命中）/ 3 疑似→review / 4 审核失败→error（链上 failover+闸按 fail_mode 收口）；枚举漂移→review fail-safe（TMS unknown_suggestion 先例）；hits=data[].type/subType 人类可读格式（「12-文本反作弊(subType=4)」——L0 广告文本三条标签逐项，TYPE_NAMES 表内置）；送审串口径**邮箱不并入**（真机实锤偏差 1：百度对任何邮箱地址本身判 36-广告 subType=360104 误杀——隔离实验 email_only→reject/body_only→pass，与阿里 pt_to_contact 误杀同类、IMPL-B5 偏差 3 先例；送审串=「昵称
 正文」分字段两行，include_author_fields 关=仅正文；邮箱防线收回到 LocalRules 拼接串，TMS/LLM 口径零改动）；text ≤20000 字节按字节安全截断（meta 标 truncated/original_bytes）；error_map body error_code 级（110/111/100/6/17/19→semantic 当日停转、2/3/4/5/18→transport 退避重试、未知码→契约哨兵）；空内容本地防呆零外发；③ Tab③ 百度配置区——API Key+Secret Key password 型不回显（P0-α 教训）+ 超时/日配额（计费防呆 500 次/天默认）/降级单选 + 合规行（privacy 维：aip.baidubce.com 境内不出境/拼接串含邮箱）+ 接入指引；「测试凭据」三态（绿=conclusionType=1 探测合规顺带解除停转；黄=键缺或 error_code=100；红=鉴权失败 error_code=110/111/6 指明控制台核对）；registry 登记（Tab③ 下拉 chain[0] 可选，脱离 future 里程碑段——F42 切换机制：切百度/TMS/阿里配置各自独立保留零改代码）；④ schema review.cloud.baidu 子树 M0 已落位（本批零新键，Sanitize password 型核对钉测）。1104 tests / 7620 assertions 全绿（1050 基线 + 54 新例：驱动 34（含邮箱排除回归钉 4）/设置面 9/凭据三态 11——L0 实测响应形态金测试+真机隔离实验夹具；含真机偏差 1 修正轮追加 4 例，B7 收线核准数）。真机（厦门 wpclean）：凭据三态绿（conclusionType=1，990ms）/黄/红（HTTP 401 鉴权）全过；正常评论 pass、广告样文 reject（36-广告 360101+12-文本反作弊 subType=4）；meta.token_cache=hit 侧证 token 缓存复用；Tab③ 切百度→切回 TMS 双驱动配置零清空（F42）。
+
+**B7 收线补记（2026-11-11）**：收线批（IMPL-B7-closeout-2026-11-12.md）完成 01 验收行登记、本 Changelog 结构核准、e2e 工具箱脱敏入库 26 件（占位符化+六类敏感 token 复扫零命中；evidence/ 与含凭据快照保持本地）、人工测试卡 18 卡总呈（MANUAL-CARD-M3-阿里系.md）。
 
 = 0.3.1 =
 
