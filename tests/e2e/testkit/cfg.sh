@@ -194,7 +194,9 @@ echo "  driver=", (string) ($b["captcha"]["driver"] ?? "?"), "（captcha 不动�
         # C1 教训（REGISTRY）：env 值尾随  必 trim（ACS3 HMAC 密钥含不可见字符 → SignatureDoesNotMatch）。
         V_AKID="$(env_val WINK_ALIYUN_CAPTCHA_ACCESS_KEY_ID)"
         V_AKSEC="$(env_val WINK_ALIYUN_CAPTCHA_ACCESS_KEY_SECRET)"
-        V_PREFIX="$(env_val WINK_ALIYUN_CAPTCHA_PREFIX)"
+        # prefix 键名双探：真实 .env 为小写 prefix（B3 对实键写就）；.env.example 模板为大写 PREFIX。
+        V_PREFIX="$(env_val WINK_ALIYUN_CAPTCHA_prefix)"
+        [ -n "$V_PREFIX" ] || V_PREFIX="$(env_val WINK_ALIYUN_CAPTCHA_PREFIX)"
         V_SCENE="$(env_val WINK_ALIYUN_CAPTCHA_SCENE_ID)"
         for pair in "ACCESS_KEY_ID:$V_AKID" "ACCESS_KEY_SECRET:$V_AKSEC" "prefix:$V_PREFIX"; do
           [ -n "${pair#*:}" ] || { echo "ENV_VALUE_EMPTY: ${pair%%:*} （$ENV_FILE）" >&2; exit 1; }
