@@ -977,7 +977,20 @@ final class CommentGate extends AbstractGate {
 	 */
 	public function hook_comment_flood_trigger( int $time_lastcomment, int $time_newcomment ): void {
 		unset( $time_lastcomment, $time_newcomment );
-		$this->core_rejection( 'comment_flood', isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() );
+		$payload = $this->core_rejection( 'comment_flood', isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() );
+
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return; // 核心各自响应（die 纯文案 / WP_Error JSON，文案已 filter 换）；本闸只补事件。
+		}
+
+		/* 【v1.5·FIX】原生上下文：品牌页接管（对齐 duplicate_comment 形态——此前只换文案、
+		 * 页面壳保持 WP 原生 wp_die，用户实测「文案品牌化但页面无品牌」（2026-11-12））。
+		 * DiePage::show 自身 wp_die 终止，先于核心 flood die——语义不变只换壳。 */
+		DiePage::show( 'comment_flood', array(
+			'event_no' => isset( $payload['evidence']['事件编号'] ) ? $payload['evidence']['事件编号'] : '',
+			'rule'     => 'comment_flood',
+			'time'     => isset( $payload['evidence']['时间'] ) ? $payload['evidence']['时间'] : '',
+		), $payload['evidence'] );
 	}
 
 	/**

@@ -45,16 +45,28 @@ final class B1aContractTest extends TestCase {
 		$this->assertStringContainsString( 'gmdate', $src );
 	}
 
+	/**
+	 * 【v1.5·FIX】comment_flood 原生上下文品牌页接管（用户实测：flood 文案品牌化但
+	 * 页面壳保持 WP 原生 wp_die——对齐 duplicate_comment 接管形态；AJAX/REST 分支豁免）。
+	 */
+	public function test_flood_trigger_reveals_die_page_on_native_context(): void {
+		$src = $this->source( 'includes/gates/CommentGate.php' );
+		$this->assertStringContainsString( "DiePage::show( 'comment_flood'", $src, 'flood 原生上下文须走 DiePage 品牌页' );
+		$hook = substr( $src, (int) strpos( $src, 'function hook_comment_flood_trigger' ) );
+		$hook = substr( $hook, 0, (int) strpos( $hook, 'function filter_comment_flood_message' ) );
+		$this->assertStringContainsString( 'DOING_AJAX', $hook, 'flood 接管须豁免 AJAX/REST 分支' );
+	}
+
 	/* ---------- 版本三处同步（R1 G7） ---------- */
 
 	public function test_version_is_bumped_to_0_2_3_in_three_places(): void {
-		// 版本断言随批次推进更新（B6 批次递增 0.3.6（FIX-3 同步）——当前批次契约面在 B6SettingsTest）。
+		// 版本断言随批次推进更新（B6 批次递增 0.3.7（FIX-3 同步）——当前批次契约面在 B6SettingsTest）。
 		$entry = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.6$/m', $entry, '插件头 Version 须为 0.3.6' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.6' )", $entry, '版本常量须为 0.3.6' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.6$/m', $readme, 'readme Stable tag 须为 0.3.6' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.3\.7$/m', $entry, '插件头 Version 须为 0.3.7' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.3.7' )", $entry, '版本常量须为 0.3.7' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.3\.7$/m', $readme, 'readme Stable tag 须为 0.3.7' );
 		$this->assertStringContainsString( '819 tests / 3657 assertions', $readme, 'Changelog 须含测试数（R1 G7 纪律）' );
 		$this->assertStringContainsString( 'F4-1', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-3', $readme, 'Changelog 须含设计锚点' );
