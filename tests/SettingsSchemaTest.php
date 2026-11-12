@@ -96,7 +96,7 @@ final class SettingsSchemaTest extends TestCase {
 			array( array( 'iprep', 'abuseipdb', 'daily_quota' ), 4750 ),
 			array( array( 'iprep', 'abuseipdb', 'timeout' ), 1 ),
 			// 【I3·定稿 §4.3】总开关默认 true→**false**（拍板 0.4：涉数据出境与隐私，默认从关开始
-			// ——T1 触发面默认开但子系统关=完全静默；存量特征值 true 经 migrate 平移至新默认）。
+			// ——T1 触发面默认开但子系统关=完全静默；存量不迁移 P0-B 先例——存储值原样保留）。
 			array( array( 'iprep', 'report', 'enabled' ), false ),
 			array( array( 'iprep', 'report', 'triggers', 'captcha_failed' ), true ),
 			array( array( 'iprep', 'report', 'triggers', 'review_reject' ), false ),
@@ -445,19 +445,20 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertSame( $migrated, $twice, '幂等' );
 	}
 
-	public function test_migrate_shifts_report_enabled_true_legacy_default_to_false(): void {
-		// 总开关默认 true→false（拍板 0.4：出境与隐私默认从关开始）：存量特征值 true 只能来自
-		// 旧默认（Tab④ UI 是 I4 批占位——无任何控件可自选 true）→ 特征值法平移新默认 false
-		// （v1.4 ③b 两 TTL 平移同法）。
+	public function test_migrate_preserves_stored_report_enabled_true(): void {
+		// 总开关默认 true→false（拍板 0.4：出境与隐私默认从关开始）——**存量不迁移**
+		// （P0-B xmlrpc_login 先例：读取路径 migrate 每请求执行且不回写存储，特征值翻转
+		// 会把站长此后显式开启的 true 永久打回 false=开关失灵；只改默认值，breaking 注明）。
 		$merged = SettingsSchema::merge_defaults( array(
 			'iprep' => array( 'report' => array( 'enabled' => true ) ),
 		) );
-		$this->assertFalse( $merged['iprep']['report']['enabled'], '存量旧默认 true 平移至新默认 false' );
+		$this->assertTrue( $merged['iprep']['report']['enabled'], '存量存储值 true 原样保留（migrate 不动）' );
 
-		$explicit = SettingsSchema::merge_defaults( array(
-			'iprep' => array( 'report' => array( 'enabled' => false ) ),
+		// 新装站点（无存储值）→ merge 补新默认 false。
+		$fresh = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'report' => array( 'triggers' => array( 'captcha_failed' => true ) ) ),
 		) );
-		$this->assertFalse( $explicit['iprep']['report']['enabled'], '显式 false 原样' );
+		$this->assertFalse( $fresh['iprep']['report']['enabled'], '新装站点默认关（出境与隐私默认从关开始）' );
 	}
 
 	public function test_sanitize_rules_cover_report_new_keys_and_drop_ip_reject(): void {

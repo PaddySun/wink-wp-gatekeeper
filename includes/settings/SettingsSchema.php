@@ -274,7 +274,8 @@ final class SettingsSchema {
 				),
 				'report'    => array( // 验证失败上报（D12），独立于 iprep.enabled.
 					// 【I3·定稿 §4.3 拍板 0.4】总开关默认 true→**false**（涉数据出境与隐私，默认从关
-					// 开始——T1 触发面默认开但子系统关=完全静默；存量特征值 true migrate 平移新默认）。
+					// 开始——T1 触发面默认开但子系统关=完全静默；**存量不迁移** P0-B xmlrpc_login
+					// 先例——新装默认关，存量保留存储值，breaking 注明 readme/changelog）。
 					'enabled'          => false,
 					'triggers'         => array(
 						'captcha_failed'             => true,  // T1 有票核验失败才上报；captcha_missing 不上报（默认开）.
@@ -348,9 +349,10 @@ final class SettingsSchema {
 	 *     特征值 60 / iprep.negative_cache_minutes 旧默认特征值 10 → 移除键由 merge_defaults
 	 *     补新默认 1440/60（站长自定义值原样保留；soft_quota 新键同批整树补齐）；
 	 *   ③c【I3·定稿 §4.2/O5-P1-3】iprep.report.triggers.ip_reject 废弃清除（自反馈回路）；
-	 *   ③d【I3·定稿 §4.3/拍板 0.4】iprep.report.enabled 旧默认特征值 true → 平移新默认 false
-	 *     （出境与隐私默认从关开始；新键 triggers.login_attempts/local_rules_fail+两 _threshold
-	 *     子键+daily_cap+category_/comment_ 每面覆盖键由 merge_defaults 整树补齐）；
+	 *   ③d【I3·定稿 §4.3/拍板 0.4】iprep.report.enabled 默认 true→false **存量不迁移**
+	 *     （P0-B xmlrpc_login 先例——新装站点默认关；存量站点保留存储值，breaking 注明；
+	 *     新键 triggers.login_attempts/local_rules_fail+两 _threshold 子键+daily_cap+
+	 *     category_/comment_ 每面覆盖键由 merge_defaults 整树补齐）；
 	 *   ④ review.cloud.chain == ['deepseek']（v1.3 前的默认值、站长从未动过）→ []；
 	 *     其它已存值（如 ['tencent_tms']）原样保留（merge_defaults 不覆盖已存值）；
 	 *   ⑤ 新键（gates.register/lostpassword、captcha.trust 六键、iprep.negative_cache_minutes、
@@ -414,14 +416,11 @@ final class SettingsSchema {
 			unset( $existing['iprep']['report']['triggers']['ip_reject'] );
 		}
 
-		// 【I3·定稿 §4.3/拍板 0.4】⑥ iprep.report.enabled 旧默认特征值 true → 平移新默认 false
-		// （出境与隐私默认从关开始；存量 true 只能来自旧默认——Tab④ UI 为 I4 批占位零控件，
-		// 无站长自选形态；v1.4 ③b 两 TTL 特征值平移同法，merge_defaults 随后补新默认）。
-		if ( isset( $existing['iprep']['report'] ) && is_array( $existing['iprep']['report'] )
-			&& array_key_exists( 'enabled', $existing['iprep']['report'] )
-			&& true === (bool) $existing['iprep']['report']['enabled'] ) {
-			unset( $existing['iprep']['report']['enabled'] );
-		}
+		// 【I3·定稿 §4.3/拍板 0.4】⑥ iprep.report.enabled 默认 true→false **存量不迁移**
+		// （P0-B xmlrpc_login 先例——读取路径 migrate 每请求执行且不回写存储，特征值翻转
+		// 会把站长此后显式开启的 true 永久打回 false=开关失灵；只改默认值：新装站点默认关，
+		// 存量站点保留升级前存储值，breaking 注明 readme/changelog——存量 true 站长在 Tab④
+		// 手动关闭）。
 
 		// ④ v1.3 前默认链 ['deepseek']（站长从未动过云审核的特征值）→ []；其余已存值保留。
 		if ( isset( $existing['review']['cloud']['chain'] )
