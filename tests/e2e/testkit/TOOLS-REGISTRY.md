@@ -71,4 +71,11 @@
 - **绿态（I2 check/测试凭据）**：probe('8.8.8.8') 真外呼 950ms→pass score=0+`wk_ip_abuseipdb_eb47ace5bc52de48` 落位+usage delta=1；同参复探 1ms cached:true delta=0；Tab④「测试凭据」AJAX 真页 nonce 通道 **HTTP 200/1.42s state=green**（I4 灰态 11.1s 清账）；bad nonce 403 反证。
 - **受理（report 429 面）**：report_ip('127.0.0.2') 官方矢量外呼→**HTTP 429 官方语义 body**（"You can only report the same IP address once in 15 minutes"/source.parameter=ip）→静默 false+事件 error meta.raw http=429+冷却/last_report_at/usage 按尝试落账三形态全证=丢报无损；3/3 次全 429（矢量 15min 去重窗被全球测试流量占用，含窗净首发）——200 受理面未现（如实 FAIL 登记，人工卡 M4 备注）；`check(127.0.0.2) totalReports=0`=矢量丢弃语义+零污染自证。
 - **四源 live（I0 浏览器出数）**：`wk_gatekeeper_ip_diagnose` ip=8.8.8.8 → HTTP 200/5.32s **ok:true×4**（AbuseIPDB verbose/StopForumSpam/ip.nc.gy/ip.sb 全字段）+ Edge headless 四卡同框截图（fetch 劫持注入实抓 live JSON+程序化点击——**坑：headless `--screenshot` 场景 `scrollIntoView()` 产出确定性空白帧，用全页大窗替代**；transient 落位证据走 `redis-cli --scan`——wp_options 在 redis drop-in 下恒空）。
-- 详录：`docs/reports/VERIFY-出境补验-2026-11-13.md`（外层 docs）；截图 `i5-credential-green.png`/`panel-live-four-sources.png`。。
+- 详录：`docs/reports/VERIFY-出境补验-2026-11-13.md`（外层 docs）；截图 `i5-credential-green.png`/`panel-live-four-sources.png`。
+
+## I5 白名单链验证据（2026-11-13，0.5.1）
+
+- **豁免链判据**：加白 `8.8.8.8` → eval 公网形态（REMOTE_ADDR=203.0.113.7）probe 完整模式 = **NULL(skip) 1ms / usage delta=0 / 零写**；cache_only 同 skip（先于防呆）；report_ip 命中=false 零突增计数。**移除复探=pass score 0 / 1121ms / delta=1**（对照=VERIFY §1 形态吻合），二探 cached 0ms。载荷形态=i5-wl-skip/i5-wl-control 两件 push+eval-file（--skip-plugins 下手动 require Autoloader——I2 先例；usage_mark/real_ip_ok 注入隔离 WP 边界与闸④变量）。
+- **复位**：白名单空/enabled 双 false/usage 测试增量归 0（tencent/aliyun_green 站点真实流量不动）/events 13 行/缓存 flush 后 wk_ip_/wk_irb_/wk_rp_ 全零；顺带代清 VERIFY 批残留容器 /tmp 四件（含失效临时密码文本 wk-i5-tp.txt）。
+- **截图**：`i6-whitelist.png`（外层 docs/reports/screenshots/——白名单区+文案三行+校验按钮 live 出「全部 2 行格式合法。」+诊断面板「白名单豁免」徽标同框）；真页副本 `testkit-local/evidence/i6-tab4-whitelist-live.html`。
+- 详录：`docs/reports/IMPL-I5-白名单UI-2026-11-13.md`（外层 docs）；回写=定稿【实施注记·I5】+人工卡 M7 #2 指针更新。
