@@ -127,9 +127,10 @@ DDL;
 			// 与停转解除（driver_resumed——DriverHealth 留痕行经 insert 直入不经本判定）落库；
 			// 【O3 §三卡 2】容灾放行审计足迹（disaster_pass——CaptchaCode=21/trerror 票据
 			// allow 档放行，CommentGate meta.disaster_pass 语境；hits 携带标签同法放行）落库；
-			// 其余 pass 默认不记，pass_sampling 开启才采样。
+			// 【I3·定稿 §4】上报送达审计足迹（report_sent——stage=report、meta.score=上报后
+			// 新分值）落库；其余 pass 默认不记，pass_sampling 开启才采样。
 			foreach ( $verdict->hits() as $hit ) {
-				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit || 'test_mode_pass' === $hit || 'disaster_pass' === $hit ) ) {
+				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit || 'test_mode_pass' === $hit || 'disaster_pass' === $hit || 'report_sent' === $hit ) ) {
 					return true;
 				}
 			}
@@ -216,6 +217,29 @@ DDL;
 	public static function row_count(): int {
 		global $wpdb;
 		$count = $wpdb->get_var( 'SELECT COUNT(*) FROM ' . self::table_name( $wpdb->prefix ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		return is_numeric( $count ) ? (int) $count : 0;
+	}
+
+	/**
+	 * 当日指定规则键事件计数（【I3·定稿 §4.5/§9】Tab① 站务提醒通栏消费 usage_spike 当日
+	 * 事件——rule_hit 精确匹配；只读 COUNT，非数值/查询失败回落 0）。
+	 *
+	 * @param string $rule 规则键（usage_spike）。
+	 * @return int 当日行数（站点时区当日）。
+	 */
+	public static function today_rule_count( string $rule ): int {
+		global $wpdb;
+		if ( '' === $rule ) {
+			return 0;
+		}
+		$table = self::table_name( $wpdb->prefix );
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE rule_hit = %s AND created_at >= %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$rule,
+				current_time( 'Y-m-d' ) . ' 00:00:00'
+			)
+		);
 		return is_numeric( $count ) ? (int) $count : 0;
 	}
 

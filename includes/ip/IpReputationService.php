@@ -33,6 +33,16 @@ final class IpReputationService {
 	public static function assemble( array $settings, ?RemoteClient $remote = null ): IpReputationProbe {
 		$iprep = isset( $settings['iprep'] ) && is_array( $settings['iprep'] ) ? $settings['iprep'] : array();
 		if ( empty( $iprep['enabled'] ) ) {
+			/* 【I3·定稿 §4/04 §2】report 独立于 iprep.enabled：上报子系统开启（report.enabled）
+			 * 且密钥在 → 仍装配 AbuseIpdbService（report-only 形态——probe 的 check 面由服务内
+			 * iprep.enabled 开关承载，恒 null skip 与 Null 服务语义等价、零外呼零计量；report_ip
+			 * 经 instanceof 能力探测可达）。密钥缺 → 上报面无从发送 → Null（静默；防呆只属 check 面）。 */
+			$report = isset( $iprep['report'] ) && is_array( $iprep['report'] ) ? $iprep['report'] : array();
+			$abuse  = isset( $iprep['abuseipdb'] ) && is_array( $iprep['abuseipdb'] ) ? $iprep['abuseipdb'] : array();
+			$key    = isset( $abuse['api_key'] ) && is_string( $abuse['api_key'] ) ? $abuse['api_key'] : '';
+			if ( ! empty( $report['enabled'] ) && '' !== $key ) {
+				return new AbuseIpdbService( $settings, $remote );
+			}
 			return new NullIpReputationService();
 		}
 

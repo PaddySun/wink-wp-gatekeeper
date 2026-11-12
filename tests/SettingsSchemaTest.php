@@ -14,6 +14,7 @@ namespace WinkGatekeeper\Tests;
 
 use PHPUnit\Framework\TestCase;
 use WinkGatekeeper\Intercept\Copywork;
+use WinkGatekeeper\Settings\Sanitize;
 use WinkGatekeeper\Settings\SettingsSchema;
 
 final class SettingsSchemaTest extends TestCase {
@@ -94,13 +95,29 @@ final class SettingsSchemaTest extends TestCase {
 			array( array( 'iprep', 'abuseipdb', 'soft_quota' ), 3000 ),
 			array( array( 'iprep', 'abuseipdb', 'daily_quota' ), 4750 ),
 			array( array( 'iprep', 'abuseipdb', 'timeout' ), 1 ),
-			array( array( 'iprep', 'report', 'enabled' ), true ),
+			// 【I3·定稿 §4.3】总开关默认 true→**false**（拍板 0.4：涉数据出境与隐私，默认从关开始
+			// ——T1 触发面默认开但子系统关=完全静默；存量特征值 true 经 migrate 平移至新默认）。
+			array( array( 'iprep', 'report', 'enabled' ), false ),
 			array( array( 'iprep', 'report', 'triggers', 'captcha_failed' ), true ),
 			array( array( 'iprep', 'report', 'triggers', 'review_reject' ), false ),
-			array( array( 'iprep', 'report', 'triggers', 'ip_reject' ), false ),
+			// 【I3·O5-P1-3】ip_reject 键废弃清除（自反馈回路——migrate_fields 幂等清除）；
+			// 【定稿 §4.2】T3/T4 两新键 + 各阈值子键（T3 沿用 10 不单设）。
+			array( array( 'iprep', 'report', 'triggers', 'login_attempts' ), false ),
+			array( array( 'iprep', 'report', 'triggers', 'local_rules_fail' ), false ),
+			array( array( 'iprep', 'report', 'triggers', 'review_reject_threshold' ), 5 ),
+			array( array( 'iprep', 'report', 'triggers', 'local_rules_fail_threshold' ), 5 ),
 			array( array( 'iprep', 'report', 'cooldown_minutes' ), 60 ),
 			array( array( 'iprep', 'report', 'hourly_limit' ), 60 ),
+			array( array( 'iprep', 'report', 'daily_cap' ), 500 ),
 			array( array( 'iprep', 'report', 'category' ), 0 ),
+			array( array( 'iprep', 'report', 'category_captcha_failed' ), 0 ),
+			array( array( 'iprep', 'report', 'category_review_reject' ), 0 ),
+			array( array( 'iprep', 'report', 'category_login_attempts' ), 0 ),
+			array( array( 'iprep', 'report', 'category_local_rules_fail' ), 0 ),
+			array( array( 'iprep', 'report', 'comment_captcha_failed' ), '' ),
+			array( array( 'iprep', 'report', 'comment_review_reject' ), '' ),
+			array( array( 'iprep', 'report', 'comment_login_attempts' ), '' ),
+			array( array( 'iprep', 'report', 'comment_local_rules_fail' ), '' ),
 
 			array( array( 'stats', 'enabled' ), true ),
 			array( array( 'stats', 'pass_sampling' ), false ),
@@ -389,5 +406,71 @@ final class SettingsSchemaTest extends TestCase {
 		) );
 		$this->assertSame( '200013', $merged['review']['cloud']['tencent_tms']['biz_type'] );
 		$this->assertSame( 95, $merged['review']['cloud']['tencent_tms']['reject_score'] );
+	}
+
+	/* ---------- 【I3·定稿 §4】report 子树键集（T3/T4 两新键+阈值子键+daily_cap+类目/Comment 覆盖键） ---------- */
+
+	public function test_merge_defaults_backfills_report_new_keys_for_old_options(): void {
+		// 旧站点 option（v0.4.6 存量：triggers 三键+ip_reject）：升级合并补 T3/T4 两键+阈值子键
+		// +daily_cap+每面 category_/comment_ 覆盖键（定稿 §4.2/§4.5——merge_defaults 整树补齐）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'report' => array(
+				'enabled'  => false,
+				'triggers' => array( 'captcha_failed' => true, 'review_reject' => false ),
+			) ),
+		) );
+		$triggers = $merged['iprep']['report']['triggers'];
+		$this->assertSame( false, $triggers['login_attempts'], 'T3 新键默认关' );
+		$this->assertSame( false, $triggers['local_rules_fail'], 'T4 新键默认关' );
+		$this->assertSame( 5, $triggers['review_reject_threshold'] );
+		$this->assertSame( 5, $triggers['local_rules_fail_threshold'] );
+		$this->assertSame( 500, $merged['iprep']['report']['daily_cap'], 'report 独立日顶 500（分桶不占 check 4750 池）' );
+		foreach ( array( 'captcha_failed', 'review_reject', 'login_attempts', 'local_rules_fail' ) as $face ) {
+			$this->assertSame( 0, $merged['iprep'][ 'report' ][ 'category_' . $face ], "category_{$face} 覆盖键补默认（0=用该面默认类目）" );
+			$this->assertSame( '', $merged['iprep'][ 'report' ][ 'comment_' . $face ], "comment_{$face} 覆盖键补默认（空=默认短语）" );
+		}
+	}
+
+	public function test_migrate_purges_deprecated_ip_reject_trigger(): void {
+		// 【O5-P1-3】ip_reject 键废弃清除（check 判 reject 再报同一 IP=自反馈回路无信息增量）
+		// ——migrate_fields 幂等清除，同 v1.4 清 fail_mode 先例。
+		$legacy  = array( 'iprep' => array( 'report' => array( 'triggers' => array(
+			'captcha_failed' => true, 'review_reject' => false, 'ip_reject' => true,
+		) ) ) );
+		$migrated = SettingsSchema::migrate( $legacy );
+		$this->assertArrayNotHasKey( 'ip_reject', $migrated['iprep']['report']['triggers'], '废弃键清除' );
+		$this->assertTrue( $migrated['iprep']['report']['triggers']['captcha_failed'], '既有键原样保留' );
+
+		$twice = SettingsSchema::migrate( $migrated );
+		$this->assertSame( $migrated, $twice, '幂等' );
+	}
+
+	public function test_migrate_shifts_report_enabled_true_legacy_default_to_false(): void {
+		// 总开关默认 true→false（拍板 0.4：出境与隐私默认从关开始）：存量特征值 true 只能来自
+		// 旧默认（Tab④ UI 是 I4 批占位——无任何控件可自选 true）→ 特征值法平移新默认 false
+		// （v1.4 ③b 两 TTL 平移同法）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'report' => array( 'enabled' => true ) ),
+		) );
+		$this->assertFalse( $merged['iprep']['report']['enabled'], '存量旧默认 true 平移至新默认 false' );
+
+		$explicit = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'report' => array( 'enabled' => false ) ),
+		) );
+		$this->assertFalse( $explicit['iprep']['report']['enabled'], '显式 false 原样' );
+	}
+
+	public function test_sanitize_rules_cover_report_new_keys_and_drop_ip_reject(): void {
+		$rules = Sanitize::rules();
+		$this->assertSame( 'bool', $rules['iprep.report.triggers.login_attempts'] );
+		$this->assertSame( 'bool', $rules['iprep.report.triggers.local_rules_fail'] );
+		$this->assertSame( 'absint', $rules['iprep.report.triggers.review_reject_threshold'] );
+		$this->assertSame( 'absint', $rules['iprep.report.triggers.local_rules_fail_threshold'] );
+		$this->assertSame( 'absint', $rules['iprep.report.daily_cap'] );
+		foreach ( array( 'captcha_failed', 'review_reject', 'login_attempts', 'local_rules_fail' ) as $face ) {
+			$this->assertSame( 'absint', $rules[ 'iprep.report.category_' . $face ] );
+			$this->assertSame( 'text', $rules[ 'iprep.report.comment_' . $face ] );
+		}
+		$this->assertArrayNotHasKey( 'iprep.report.triggers.ip_reject', $rules, '废弃键不再白名单' );
 	}
 }

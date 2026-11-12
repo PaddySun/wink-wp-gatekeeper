@@ -23,6 +23,7 @@ use WinkGatekeeper\Ip\AbuseIpdbService;
 use WinkGatekeeper\Ip\IpReputationProbe;
 use WinkGatekeeper\Ip\IpReputationService;
 use WinkGatekeeper\Ip\NullIpReputationService;
+use WinkGatekeeper\Ip\SupportsReportingInterface;
 
 final class IpReputationServiceTest extends TestCase {
 
@@ -64,6 +65,41 @@ final class IpReputationServiceTest extends TestCase {
 		// （本测试环境无 WP 边界闭包，不可直接调 probe——形态断言在此）。
 		$probe = IpReputationService::assemble( self::settings( array( 'enabled' => true ) ) );
 		$this->assertInstanceOf( AbuseIpdbService::class, $probe );
+	}
+
+	/* ---------- 【I3·定稿 §4】report-only 装配（report 独立于 iprep.enabled——04 §2） ---------- */
+
+	public function test_assemble_report_only_returns_service_when_check_disabled(): void {
+		// iprep.enabled=false 但 report.enabled && api_key 在 → 仍装配 AbuseIpdbService
+		//（check 面由服务内 iprep.enabled 开关承载=probe 恒 null 与 Null 服务语义等价；
+		// report_ip 经 instanceof 能力探测可达——触发点消费形态 O2-P2-7）。
+		$probe = IpReputationService::assemble( self::settings( array(
+			'enabled'   => false,
+			'abuseipdb' => array( 'api_key' => 'k' ),
+			'report'    => array( 'enabled' => true ),
+		) ) );
+		$this->assertInstanceOf( AbuseIpdbService::class, $probe );
+		$this->assertInstanceOf( SupportsReportingInterface::class, $probe );
+		$this->assertNull( $probe->probe( '198.51.100.9' ), 'check 面关=probe 恒 null skip' );
+	}
+
+	public function test_assemble_report_without_key_returns_null_service(): void {
+		// report 开但密钥缺 → 上报面无从发送 → Null（装配形态静默——防呆只属 check 面）。
+		$probe = IpReputationService::assemble( self::settings( array(
+			'enabled' => false,
+			'report'  => array( 'enabled' => true ),
+		) ) );
+		$this->assertInstanceOf( NullIpReputationService::class, $probe );
+	}
+
+	public function test_report_only_probe_cache_only_also_skips(): void {
+		// report-only 服务 probe cache_only 同 null（report_ip 行为在 AbuseIpdbServiceTest 钉）。
+		$probe = IpReputationService::assemble( self::settings( array(
+			'enabled'   => false,
+			'abuseipdb' => array( 'api_key' => 'k' ),
+			'report'    => array( 'enabled' => true ),
+		) ) );
+		$this->assertNull( $probe->probe( '198.51.100.9', array( 'cache_only' => true ) ) );
 	}
 
 	/* ---------- 健康面（Tab④ 分区二健康行消费——【v1.7·M3-IP】第三态落地） ---------- */

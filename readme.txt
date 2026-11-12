@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.4.6
+Stable tag: 0.4.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.4.7 =
+
+I3·IP 信誉 report 路径（M3-IP 定稿 §4/§7/§9/§10-3，2026-11-12）。① **接口面**：SupportsReportingInterface 新件（`report_ip(ip, context): bool`——02 §2.3a 旧三参草案作废）+AbuseIpdbService 实现之；触发点消费=instanceof 能力探测（O2-P2-7——CommentGate/Precheck/LoginGate 构造器零改动）；传输走 RemoteClient mode='report'（2s 超时零重试永不阻塞），发送失败静默（事件 meta 记 error 分类）、丢报无损（冷却后下触发点自然重试）。② **触发集 T1–T4**（每面独立开关+阈值）：T1 captcha_failed（有票核验失败才报——无票 captcha_missing 与 transport error 不触发）/T2 review_reject（云端 reject 累计 N=5 可调）/T3 login_attempts（登录 IP 聚合维度饱和判定处，复用 LoginCounters 现有 10 次/IP 零新增计数器）/T4 local_rules_fail（本地四闸预检+提交两处幂等计数，累计 N=5 可调）；计数键 `wk_rp_cnt_<触发面>_<ip_hash16>` 24h 滚动窗。③ **四道闸**：①总开关 `iprep.report.enabled` 默认 true→**false**（涉数据出境与隐私默认从关开始——存量旧默认特征值 migrate 平移，升级站点默认静默）②每 IP 冷却 `wk_rp_cool_<hash16>` 60min（发送成败都落——丢报无损；冷却命中视为成功免重报）③全局 `wk_rp_global` 小时桶 60/h（TransientRateLimiter 参数化共享件）+`iprep.report.daily_cap` 500/日独立分桶（abuseipdb_report 独立计量——配额尽停 report **不停 check**）④启用门禁：真实 IP 自检未过（Docker NAT 共显类环境）上报强制失效（无开关）。④ **突增告警**：10min 内 report 原始触发>20（计数点=四道闸之前，含被冷却/限速丢弃者）→usage_spike 事件+Tab① 站务提醒通栏黄条。⑤ **Comment 设计**（拍板 0.8）：硬前缀 `[wink-wp-gatekeeper] `发送前拼接（不存设置）+默认英文短语四条（只述攻击形态——不含域名/事件编号/规则词表/正文片段）+每面自定义覆盖键 `comment_<trigger>`（空=默认；占位符白名单 {event_no}/{category}/{gate}，白名单外原样保留，渲染后 255 截断）+AbuseIpdbCategories 官方类目码表常量类（1–23）+每面 `category_<trigger>` 覆盖键（0=默认 T1/T3=18 T2/T4=10）。⑥ **schema**：report 子树新键（triggers.login_attempts/local_rules_fail+两阈值子键+daily_cap+category_/comment_ 每面覆盖键）；`triggers.ip_reject` 废弃键 migrate 幂等清除（O5-P1-3 自反馈回路裁决）；Usage last_report_at 落 option；assemble report-only 分支（report 独立于 iprep.enabled——check 面开关在 probe 内承载恒 skip）。测试 1390→1445 / 断言 9357→9747 全绿（AbuseIpdbReportTest 新 35 + IpReportTriggerWiringTest 新 11 + SettingsSchemaTest +4 + IpReputationServiceTest +3 + EventsTableWriteMatrixTest +2 + UiTab1OverviewContractTest +1（突增通栏锚）；版本钉五测试文件同步 0.4.7）。
 
 = 0.4.6 =
 

@@ -273,15 +273,36 @@ final class SettingsSchema {
 					'timeout'         => 1,    // 【v1.4·澄清A】查询超时秒（无重试短超时档；防呆 1-5；R2/R3 超时键合并裁决=驱动级一键，登录/评论预检/提交期三处消费）。【v1.4 作废】fail_mode 键删除（三态语义定死强制验证码，02 §2.3b）。
 				),
 				'report'    => array( // 验证失败上报（D12），独立于 iprep.enabled.
-					'enabled'          => true,
+					// 【I3·定稿 §4.3 拍板 0.4】总开关默认 true→**false**（涉数据出境与隐私，默认从关
+					// 开始——T1 触发面默认开但子系统关=完全静默；存量特征值 true migrate 平移新默认）。
+					'enabled'          => false,
 					'triggers'         => array(
-						'captcha_failed' => true,  // 有票核验失败才上报；captcha_missing 不上报.
-						'review_reject'  => false,
-						'ip_reject'      => false,
+						'captcha_failed'             => true,  // T1 有票核验失败才上报；captcha_missing 不上报（默认开）.
+						'review_reject'              => false, // T2 云审 reject 累计达 N（24h 窗）.
+						// 【I3·定稿 §4.2/O5-P1-3】T3/T4 两新键（默认关）；ip_reject 废弃键已清除
+						// （自反馈回路——migrate_fields 幂等清除，v1.4 清 fail_mode 先例）.
+						'login_attempts'             => false, // T3 登录 IP 聚合维度饱和（复用 LoginCounters 10 不单设阈值）.
+						'local_rules_fail'           => false, // T4 本地四规则闸累计达 N（预检+提交两处幂等计数）.
+						'review_reject_threshold'    => 5,      // T2 阈值 N（可调）.
+						'local_rules_fail_threshold' => 5,      // T4 阈值 N（可调；T3 无子键）.
 					),
 					'cooldown_minutes' => 60,
 					'hourly_limit'     => 60,
+					// 【I3·定稿 §4.3/拍板 0.6】report 独立日顶 500/日——分桶独立不占 check 4750 池
+					// （abuseipdb_report 独立计量；配额尽=停 report 不停 check）.
+					'daily_cap'        => 500,
 					'category'         => 0, // 只读：类目码实现期对照官方表固化.
+					// 【I3·定稿 §4.5】每面类目覆盖键 category_<trigger>（0=用该面默认：T1/T3=18、
+					// T2/T4=10——AbuseIpdbCategories 全表 1–23）+ 每面 Comment 自定义覆盖键
+					// comment_<trigger>（空=默认英文短语；硬前缀发送前拼接不存设置）.
+					'category_captcha_failed'   => 0,
+					'category_review_reject'    => 0,
+					'category_login_attempts'   => 0,
+					'category_local_rules_fail' => 0,
+					'comment_captcha_failed'    => '',
+					'comment_review_reject'     => '',
+					'comment_login_attempts'    => '',
+					'comment_local_rules_fail'  => '',
 				),
 			),
 
@@ -326,6 +347,10 @@ final class SettingsSchema {
 	 *   ③b【v1.7·M3-IP 定稿 §3.3】两 TTL 默认平移——iprep.abuseipdb.cache_minutes 旧默认
 	 *     特征值 60 / iprep.negative_cache_minutes 旧默认特征值 10 → 移除键由 merge_defaults
 	 *     补新默认 1440/60（站长自定义值原样保留；soft_quota 新键同批整树补齐）；
+	 *   ③c【I3·定稿 §4.2/O5-P1-3】iprep.report.triggers.ip_reject 废弃清除（自反馈回路）；
+	 *   ③d【I3·定稿 §4.3/拍板 0.4】iprep.report.enabled 旧默认特征值 true → 平移新默认 false
+	 *     （出境与隐私默认从关开始；新键 triggers.login_attempts/local_rules_fail+两 _threshold
+	 *     子键+daily_cap+category_/comment_ 每面覆盖键由 merge_defaults 整树补齐）；
 	 *   ④ review.cloud.chain == ['deepseek']（v1.3 前的默认值、站长从未动过）→ []；
 	 *     其它已存值（如 ['tencent_tms']）原样保留（merge_defaults 不覆盖已存值）；
 	 *   ⑤ 新键（gates.register/lostpassword、captcha.trust 六键、iprep.negative_cache_minutes、
@@ -381,6 +406,21 @@ final class SettingsSchema {
 			&& array_key_exists( 'negative_cache_minutes', $existing['iprep'] )
 			&& 10 === (int) $existing['iprep']['negative_cache_minutes'] ) {
 			unset( $existing['iprep']['negative_cache_minutes'] );
+		}
+
+		// 【I3·定稿 §4.2/O5-P1-3】⑤ iprep.report.triggers.ip_reject 废弃清除（check 判 reject
+		// 后再报同一 IP=自反馈回路无信息增量——同 ③ fail_mode 先例；migrate_fields 幂等）。
+		if ( isset( $existing['iprep']['report']['triggers'] ) && is_array( $existing['iprep']['report']['triggers'] ) ) {
+			unset( $existing['iprep']['report']['triggers']['ip_reject'] );
+		}
+
+		// 【I3·定稿 §4.3/拍板 0.4】⑥ iprep.report.enabled 旧默认特征值 true → 平移新默认 false
+		// （出境与隐私默认从关开始；存量 true 只能来自旧默认——Tab④ UI 为 I4 批占位零控件，
+		// 无站长自选形态；v1.4 ③b 两 TTL 特征值平移同法，merge_defaults 随后补新默认）。
+		if ( isset( $existing['iprep']['report'] ) && is_array( $existing['iprep']['report'] )
+			&& array_key_exists( 'enabled', $existing['iprep']['report'] )
+			&& true === (bool) $existing['iprep']['report']['enabled'] ) {
+			unset( $existing['iprep']['report']['enabled'] );
 		}
 
 		// ④ v1.3 前默认链 ['deepseek']（站长从未动过云审核的特征值）→ []；其余已存值保留。

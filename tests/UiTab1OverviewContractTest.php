@@ -99,6 +99,11 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringContainsString( '人机验证还没选服务商', $body, '验证码域兜底新黄条（B-1——对齐审核域兜底）' );
 		$this->assertStringContainsString( '还没配好任何一家审核服务商', $body, '审核域兜底黄条迁位保留' );
 		$this->assertStringContainsString( "tab_url( 'review' )", $body, '审核兜底跳 Tab③' );
+		// 【I3·定稿 §4.5/§9】上报突增告警黄条（usage_spike 当日事件消费——块 A 形态既有）。
+		$this->assertStringContainsString( 'today_rule_count', $body, 'usage_spike 当日事件走 EventsTable 只读计数' );
+		$this->assertStringContainsString( 'RULE_USAGE_SPIKE', $body, '事件键单一来源（AbuseIpdbService 常量）' );
+		$this->assertStringContainsString( 'IP 上报请求今天突然增多', $body, '突增通栏黄条文案锚' );
+		$this->assertStringContainsString( "tab_url( 'iprep' )", $body, '突增通栏跳 Tab④ 上报设置' );
 	}
 
 	public function test_review_fallback_counts_usable_drivers(): void {
@@ -254,14 +259,14 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringNotContainsString( '本地规则无外部故障面', $bodies, '恒正常黑话退役（对照表 B-7）' );
 	}
 
-	/* ---------- 版本 0.4.6（随批次推进同步——I2 IP 信誉 check 路径批 M3-IP 定稿 §2/§3） ---------- */
+	/* ---------- 版本 0.4.7（随批次推进同步——I3 IP 信誉 report 路径批 M3-IP 定稿 §4/§7/§9） ---------- */
 
 	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.6$/m', $entry, '插件头 Version 0.4.6' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.6' )", $entry, '版本常量 0.4.6' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.6$/m', $readme, 'readme Stable tag 0.4.6' );
-		$this->assertStringContainsString( '= 0.4.6 =', $readme, 'Changelog 0.4.6 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.7$/m', $entry, '插件头 Version 0.4.7' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.7' )", $entry, '版本常量 0.4.7' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.7$/m', $readme, 'readme Stable tag 0.4.7' );
+		$this->assertStringContainsString( '= 0.4.7 =', $readme, 'Changelog 0.4.7 条目' );
 	}
 }

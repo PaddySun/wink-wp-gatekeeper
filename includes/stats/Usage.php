@@ -34,7 +34,8 @@ final class Usage {
 	}
 
 	/**
-	 * 计数递增（纯函数；跨日翻转清零）。M3 的 last_report_at 持久兜底字段随上报能力一并落此 option。
+	 * 计数递增（纯函数；跨日翻转清零）。last_report_at 持久兜底字段见 mark_report_at()
+	 * （【I3】上报能力随本批落此 option——Usage.php:37 注释位兑现）。
 	 *
 	 * @param array<string, mixed> $usage 当前用量树。
 	 * @param string               $date  当前日期 YYYY-MM-DD。
@@ -92,6 +93,23 @@ final class Usage {
 		return is_array( $counters ) && isset( $counters[ $key ] ) ? (int) $counters[ $key ] : 0;
 	}
 
+	/**
+	 * 上报时刻标记（纯函数；【I3·定稿 §4.3/02 §2.3a】last_report_at 持久兜底——transient
+	 * 重启丢失场景；Usage.php:37 注释位兑现。report 发送**按尝试落**（成功失败都标——
+	 * 每次外呼即一次上报动作）。
+	 *
+	 * @param array<string, mixed> $usage 当前用量树。
+	 * @param int                  $ts    上报尝试时刻（Unix 秒）。
+	 * @return array<string, mixed>
+	 */
+	public static function mark_report_at( array $usage, int $ts ): array {
+		if ( ! is_array( $usage ) || ! isset( $usage['date'], $usage['counters'] ) || ! is_array( $usage['counters'] ) ) {
+			$usage = self::seed();
+		}
+		$usage['last_report_at'] = $ts;
+		return $usage;
+	}
+
 	/* -------------------------------------------------------------------
 	 * WP 边界（option 读写；RemoteClient 计量回调注入用）
 	 * ------------------------------------------------------------------ */
@@ -116,5 +134,18 @@ final class Usage {
 	public static function get(): array {
 		$usage = get_option( self::OPTION_NAME, null );
 		return is_array( $usage ) ? $usage : self::seed();
+	}
+
+	/**
+	 * 上报时刻标记落 option（WP 边界；AbuseIpdbService report 流装配缺省消费——
+	 * last_report_at 持久兜底，定稿 §4.3/02 §2.3a）。
+	 *
+	 * @param int $ts 上报尝试时刻（Unix 秒）。
+	 * @return void
+	 */
+	public static function mark_report_at_option( int $ts ): void {
+		$usage = get_option( self::OPTION_NAME, null );
+		$usage = self::mark_report_at( is_array( $usage ) ? $usage : self::seed(), $ts );
+		update_option( self::OPTION_NAME, $usage, false );
 	}
 }

@@ -520,6 +520,21 @@ final class LoginGate extends AccountFormGate {
 				: $submitted_username;
 		}
 		$this->counters->record_failure( $ip, $user_dim );
+
+		/* 【I3·定稿 §4.2 T3】login_attempts：登录 IP 聚合维度计数**饱和判定处**（复用
+		 * LoginCounters 现有 ip_threshold=10——零新增计数器零新键；用户名维度饱和不触发
+		 * ——T3 只认单 IP password spray 形态，分布式单账号爆破归用户名维度）。
+		 * 消费=instanceof 能力探测（O2-P2-7，LoginIpRep::reporter() 透出装配面）；
+		 * 触发面开关/四道闸（冷却 60min 去重等）全在服务面 report_ip 内承载——饱和态持续
+		 * 触发被冷却去重，无重复外呼。 */
+		$reporter = ( null !== $this->iprep ) ? $this->iprep->reporter() : null;
+		if ( null !== $reporter && '' !== $ip
+			&& 'ip_threshold' === $this->counters->saturation_source( $ip, '' ) ) {
+			$reporter->report_ip( $ip, array(
+				'trigger' => 'login_attempts',
+				'gate'    => 'login',
+			) );
+		}
 	}
 
 	/* -------------------------------------------------------------------

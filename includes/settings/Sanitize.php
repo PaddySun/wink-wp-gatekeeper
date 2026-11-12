@@ -160,12 +160,30 @@ final class Sanitize {
 			'iprep.abuseipdb.daily_quota'               => 'absint',
 			'iprep.abuseipdb.timeout'                   => 'absint',
 			'iprep.report.enabled'                      => 'bool',
+			// 【I3·定稿 §4.2】触发面键集：T1/T2 既有 + T3/T4 两新键 + 各阈值子键（T3 沿用
+			// LoginCounters 10 不单设）；ip_reject 废弃键不再白名单（保存即剥除——存量经
+			// migrate_fields 幂等清理）。
 			'iprep.report.triggers.captcha_failed'      => 'bool',
 			'iprep.report.triggers.review_reject'       => 'bool',
-			'iprep.report.triggers.ip_reject'           => 'bool',
+			'iprep.report.triggers.login_attempts'      => 'bool',
+			'iprep.report.triggers.local_rules_fail'    => 'bool',
+			'iprep.report.triggers.review_reject_threshold'    => 'absint',
+			'iprep.report.triggers.local_rules_fail_threshold' => 'absint',
 			'iprep.report.cooldown_minutes'             => 'absint',
 			'iprep.report.hourly_limit'                 => 'absint',
+			// 【I3·定稿 §4.3】report 独立日顶（分桶不占 check 4750 池）。
+			'iprep.report.daily_cap'                    => 'absint',
 			'iprep.report.category'                     => 'absint',
+			// 【I3·定稿 §4.5】每面类目覆盖键（0=该面默认类目）+ Comment 自定义覆盖键
+			// （空=默认英文短语；占位符渲染/255 截断在服务面）。
+			'iprep.report.category_captcha_failed'      => 'absint',
+			'iprep.report.category_review_reject'       => 'absint',
+			'iprep.report.category_login_attempts'      => 'absint',
+			'iprep.report.category_local_rules_fail'    => 'absint',
+			'iprep.report.comment_captcha_failed'       => 'text',
+			'iprep.report.comment_review_reject'        => 'text',
+			'iprep.report.comment_login_attempts'       => 'text',
+			'iprep.report.comment_local_rules_fail'     => 'text',
 
 			// 拦截留档（F37/D15，04 §2 v1.3）。
 			'intercept.archive_spam'                    => 'bool',

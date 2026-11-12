@@ -466,6 +466,20 @@ final class SettingsPage {
 			</p></div>
 			<?php
 		}
+
+		// ⑤ 上报突增告警（【I3·定稿 §4.5/§9】usage_spike 当日事件消费——诬报/攻击感知黄条；
+		// 事件由 AbuseIpdbService report 面在 10min 原始触发 >20 时落库，gate=system/stage=ip）。
+		$spike_rows = \WinkGatekeeper\Stats\EventsTable::today_rule_count( \WinkGatekeeper\Ip\AbuseIpdbService::RULE_USAGE_SPIKE );
+		if ( $spike_rows > 0 ) {
+			?>
+			<div class="notice notice-warning inline"><p>
+				<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+				<strong><?php esc_html_e( '可疑：IP 上报请求今天突然增多', 'wink-gatekeeper' ); ?></strong>
+				——<?php esc_html_e( '可能有伪造验证码的脚本在批量触发上报，或有人试图把你的站点当枪使（诬报）。拦截照常有效、上报有冷却与限额兜底；若持续出现，可在 IP 信誉 → 上报分区临时关闭对应触发面。', 'wink-gatekeeper' ); ?>
+				<a href="<?php echo esc_url( self::tab_url( 'iprep' ) ); ?>"><?php esc_html_e( '去看上报设置', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
+		}
 		?>
 		</section>
 		<?php

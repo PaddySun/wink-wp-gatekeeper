@@ -100,6 +100,23 @@ final class EventsTableWriteMatrixTest extends TestCase {
 		$this->assertFalse( EventsTable::should_record( 'captcha', Verdict::pass( 'tencent', 'CaptchaCode=21/trerror', array( 'CaptchaCode=21/trerror' ) ), self::settings() ) );
 	}
 
+	/* ---------- 【I3·定稿 §4/§9】report 行（stage=report 开放枚举） ---------- */
+
+	public function test_report_send_pass_hit_is_recorded(): void {
+		// report + pass（report_sent）✓ 特例——上报送达审计足迹（meta.score=上报后新分值）。
+		$sent = Verdict::pass( 'abuseipdb', 'report_sent', array( 'report_sent' ) );
+		$this->assertTrue( EventsTable::should_record( 'report', $sent, self::settings() ), '上报送达 pass 事件须落库' );
+		// 采样关态下不带标签的 pass 仍不落库（对照行）。
+		$this->assertFalse( EventsTable::should_record( 'report', Verdict::pass( 'abuseipdb', 'report_sent', array() ), self::settings() ) );
+	}
+
+	public function test_report_failure_and_spike_are_recorded(): void {
+		// report 发送失败（verdict=error）✓ 与 usage_spike 突增告警（gate=system/stage=ip、
+		// verdict=review）✓——非 pass 恒落库（开放枚举保守口径）。
+		$this->assertTrue( EventsTable::should_record( 'report', Verdict::error( 'abuseipdb', 'remote_transport', array( 'remote_transport' ) ), self::settings() ) );
+		$this->assertTrue( EventsTable::should_record( 'ip', Verdict::review( 'abuseipdb', 'usage_spike', array( 'usage_spike' ) ), self::settings() ) );
+	}
+
 	/* ---------- rule_hit 拼接（v1.2：逗号连接 + 120 字符截断 + 截断保序去重） ---------- */
 
 	public function test_hits_to_rule_hit_joins_with_comma(): void {

@@ -33,6 +33,7 @@ use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
 use WinkGatekeeper\Intercept\Copywork;
 use WinkGatekeeper\Intercept\Stub;
 use WinkGatekeeper\Ip\IpReputationProbe;
+use WinkGatekeeper\Ip\SupportsReportingInterface;
 use WinkGatekeeper\Verdict;
 
 final class Precheck {
@@ -220,7 +221,18 @@ final class Precheck {
 			if ( method_exists( $this->rules, 'notes' ) && array() !== $this->rules->notes() ) {
 				$meta['notes'] = $this->rules->notes();
 			}
-			call_user_func( $this->recorder, 'precheck', $verdict, $meta );
+			$event_no = call_user_func( $this->recorder, 'precheck', $verdict, $meta );
+
+			/* 【I3·定稿 §4.2 T4】local_rules_fail 计数点①（预检四闸 reject——与 CommentGate
+			 * 提交四闸两处消费点，每请求恰一次幂等计 1）；消费=instanceof 能力探测（O2-P2-7
+			 * ——Null/未装配=零上报面）；触发面开关/阈值累计/四道闸全在服务面 report_ip 内。 */
+			if ( $this->iprep instanceof SupportsReportingInterface ) {
+				$this->iprep->report_ip( $client_ip, array(
+					'trigger'  => 'local_rules_fail',
+					'gate'     => 'comment',
+					'event_no' => is_string( $event_no ) ? $event_no : '',
+				) );
+			}
 
 			return array(
 				'result'  => self::RESULT_FOUR_GATE,

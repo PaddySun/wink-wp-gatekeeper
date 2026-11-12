@@ -56,6 +56,7 @@ use WinkGatekeeper\Intercept\DiePage;
 use WinkGatekeeper\Intercept\Stub;
 use WinkGatekeeper\Ip\IpReputationProbe;
 use WinkGatekeeper\Ip\IpResolver;
+use WinkGatekeeper\Ip\SupportsReportingInterface;
 use WinkGatekeeper\Gates\CaptchaTriInterpreter;
 use WinkGatekeeper\Gates\ResponseDispatcher;
 use WinkGatekeeper\Gates\TestMode;
@@ -1280,6 +1281,11 @@ final class CommentGate extends AbstractGate {
 
 		$event_no = (string) call_user_func( $this->recorder, $stage, $verdict, $meta );
 
+		/* 【I3·定稿 §4.2】report 触发点收口（事件已记录、event_no 可对账的落点）：
+		 * 三触发面在此按 stage/driver 分派——instanceof 能力探测（O2-P2-7），触发面开关/
+		 * 阈值累计/四道闸全在服务面 report_ip 内承载（fire-and-forget 零阻塞零行为变化）。 */
+		$this->maybe_fire_ip_report( $stage, $verdict, $meta, $event_no );
+
 		// 证据行仅事件编号/规则名/时间（03 §3 不暴露清单：IP/原文/内部码/reason 不出）。
 		// 【v1.5·F4-3】「命中规则」对云端驱动 Label,Score 形态做人类可读化（驱动人类名前缀 +
 		// 标签中文 + 置信；未收录标签原样兜底；LocalRules 键/核心拒绝键原样不放宽）。
@@ -1305,6 +1311,58 @@ final class CommentGate extends AbstractGate {
 			'message'     => $message,
 			'evidence'    => $evidence,
 		);
+	}
+
+	/**
+	 * report 触发点分派（【I3·定稿 §4.2 触发集】——事件已落库、event_no 可对账的收口位）：
+	 *
+	 *   T1 captcha_failed   stage=captcha ∧ verdict=reject ∧ 有票核验失败（driver=验证码驱动
+	 *                       非空 ∧ reason≠captcha_missing——无票/强制标志下的无票拦截与
+	 *                       transport error 态不触发，「有票才报」纵深）；
+	 *   T4 local_rules_fail stage=review ∧ verdict=reject ∧ driver=local_rules（步骤 2.5
+	 *                       本地四闸 reject——与 Precheck 预检四闸两处消费点幂等计 1）；
+	 *   T2 review_reject    stage=review ∧ verdict=reject ∧ 云端驱动（driver≠local_rules）。
+	 *
+	 * 消费形态=instanceof 能力探测（O2-P2-7）：装配 probe 兼实现 SupportsReportingInterface
+	 * （AbuseIpdbService）方可上报——Null/未装配=零上报面零行为变化；触发面开关/阈值累计/
+	 * 四道闸全在服务面 report_ip 内（fire-and-forget——返回值不消费，丢报无损）。
+	 *
+	 * @param string               $stage    阶段。
+	 * @param Verdict              $verdict  判定。
+	 * @param array<string, mixed> $meta     事件 meta（client_ip 在场）。
+	 * @param string               $event_no 已落库事件编号（{event_no} 占位符渲染所需）。
+	 * @return void
+	 */
+	private function maybe_fire_ip_report( string $stage, Verdict $verdict, array $meta, string $event_no ): void {
+		if ( ! ( $this->iprep instanceof SupportsReportingInterface ) ) {
+			return; // 能力探测：Null 服务/未装配=零上报面（现行行为零变化）。
+		}
+
+		$trigger = null;
+		if ( 'captcha' === $stage
+			&& Verdict::REJECT === $verdict->verdict()
+			&& '' !== $verdict->driver_id()
+			&& 'captcha_missing' !== $verdict->reason() ) {
+			$trigger = 'captcha_failed'; // T1：有票核验失败（伪造/重放票）。
+		} elseif ( 'review' === $stage && Verdict::REJECT === $verdict->verdict() ) {
+			// 步骤 2.5 本地四闸（driver=local_rules）→ T4；云端链 reject → T2。
+			$trigger = 'local_rules' === $verdict->driver_id() ? 'local_rules_fail' : 'review_reject';
+		}
+
+		if ( null === $trigger ) {
+			return;
+		}
+
+		$ip = isset( $meta['client_ip'] ) && is_string( $meta['client_ip'] ) ? $meta['client_ip'] : '';
+		if ( '' === $ip ) {
+			return; // 无归属 IP（unresolved）不上报。
+		}
+
+		$this->iprep->report_ip( $ip, array(
+			'trigger'  => $trigger,
+			'gate'     => $this->id,
+			'event_no' => $event_no,
+		) );
 	}
 
 	/**

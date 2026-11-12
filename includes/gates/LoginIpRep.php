@@ -30,6 +30,7 @@ declare( strict_types=1 );
 namespace WinkGatekeeper\Gates;
 
 use WinkGatekeeper\Ip\IpReputationProbe;
+use WinkGatekeeper\Ip\SupportsReportingInterface;
 use WinkGatekeeper\Verdict;
 
 final class LoginIpRep {
@@ -100,5 +101,16 @@ final class LoginIpRep {
 
 		// review/reject/error → fail 同档（登录不存在「入待审」——02 §2.3b fail ④）。
 		return ( Verdict::PASS === $verdict->verdict() ) ? 'pass' : 'fail';
+	}
+
+	/**
+	 * 上报能力透出（【I3·定稿 §4.2 T3】instanceof 能力探测 O2-P2-7 的装配面收口）：
+	 * 底层探测服务兼实现 SupportsReportingInterface（AbuseIpdbService）时返回之，
+	 * Null/纯 probe（无上报能力）返回 null——LoginGate T3 触发点据此零上报面静默。
+	 *
+	 * @return SupportsReportingInterface|null
+	 */
+	public function reporter(): ?SupportsReportingInterface {
+		return ( $this->probe instanceof SupportsReportingInterface ) ? $this->probe : null;
 	}
 }
