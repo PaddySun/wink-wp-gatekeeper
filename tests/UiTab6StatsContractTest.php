@@ -108,6 +108,9 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringContainsString( '中文检查，不花钱', $body, '本地规则卡描述（标签本体来自 local_rules_card 纯函数）' );
 		$this->assertStringContainsString( '人机验证防线', $body );
 		$this->assertStringContainsString( '云端审核防线', $body );
+		// 【v1.7·M3-IP】IP 信誉防线组（registry type='ip' 驱动卡——定稿 §9 驱动统一卡）。
+		$this->assertStringContainsString( 'IP 信誉防线', $body, 'IP 信誉防线分组（abuseipdb 卡入服务商统一卡）' );
+		$this->assertStringContainsString( "'ip' === ( \$card['type'] ?? '' )", $body, 'IP 卡筛选（stats_driver_cards 三域收集 + 渲染分组过滤）' );
 		// 最近拦下的评论：明细表迁位本段（P3），列头人话化在表渲染函数内（P4）。
 		$this->assertStringContainsString( '最近拦下的评论', $body );
 		$this->assertStringContainsString( 'render_comment_recent_table', $body );
@@ -371,14 +374,14 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertSame( 2, substr_count( $settings_src, 'self::stats_config_hint(' ), '段级指引调用点恰两处（每段≤1 的源头纪律）' );
 	}
 
-	/* ---------- 版本 0.4.5（随批次推进同步——I1 CC 防线批 M3-IP 定稿 §8） ---------- */
+	/* ---------- 版本 0.4.6（随批次推进同步——I2 IP 信誉 check 路径批 M3-IP 定稿 §2/§3） ---------- */
 
 	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.5$/m', $entry, '插件头 Version 0.4.5' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.5' )", $entry, '版本常量 0.4.5' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.5$/m', $readme, 'readme Stable tag 0.4.5' );
-		$this->assertStringContainsString( '= 0.4.5 =', $readme, 'Changelog 0.4.5 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.4\.6$/m', $entry, '插件头 Version 0.4.6' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.4.6' )", $entry, '版本常量 0.4.6' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.4\.6$/m', $readme, 'readme Stable tag 0.4.6' );
+		$this->assertStringContainsString( '= 0.4.6 =', $readme, 'Changelog 0.4.6 条目' );
 	}
 }

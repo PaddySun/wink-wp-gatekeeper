@@ -96,13 +96,16 @@ final class CommentGateTrustTest extends TestCase {
 		};
 	}
 
-	private function fake_probe( ?Verdict $verdict ): \WinkGatekeeper\Ip\IpReputationProbe {
-		return new class( $verdict ) implements \WinkGatekeeper\Ip\IpReputationProbe {
+	private function fake_probe( ?Verdict $verdict, array &$seen_ctx = array() ): \WinkGatekeeper\Ip\IpReputationProbe {
+		return new class( $verdict, $seen_ctx ) implements \WinkGatekeeper\Ip\IpReputationProbe {
 			private $verdict;
-			public function __construct( ?Verdict $verdict ) {
-				$this->verdict = $verdict;
+			private $seen_ctx;
+			public function __construct( ?Verdict $verdict, array &$seen_ctx ) {
+				$this->verdict  = $verdict;
+				$this->seen_ctx = &$seen_ctx;
 			}
-			public function probe( string $ip ): ?Verdict {
+			public function probe( string $ip, array $ctx = array() ): ?Verdict {
+				$this->seen_ctx[] = $ctx;
 				return $this->verdict;
 			}
 		};

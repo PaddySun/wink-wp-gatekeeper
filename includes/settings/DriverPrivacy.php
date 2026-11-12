@@ -107,8 +107,14 @@ final class DriverPrivacy {
 			),
 			'abuseipdb'   => array(
 				'cross_border' => true,
-				'privacy_url'  => 'https://www.abuseipdb.com/privacy', // M3 核对（05 §4 置信列）。
-				'data_fields'  => '访客 IP（check 查询与 report 上报两方向）；上报备注仅站点域名+事件编号（无 PII）',
+				// 【v1.7·M3-IP 定稿 §12-5】隐私政策 URL 已在线核对（2026-11-12：
+				// https://www.abuseipdb.com/privacy 返回官方「Privacy Policy for AbuseIPDB」
+				// 页面——在线抓取实证；裸 curl UA 被 Cloudflare 防护拦 403 属站点侧防护，
+				// URL 本身无误）：「M3 核对」待核标注清除。
+				'privacy_url'  => 'https://www.abuseipdb.com/privacy',
+				// 05 §4 v1.7 备注口径：硬前缀 [wink-wp-gatekeeper] + 每触发面英文攻击形态
+				// 短句——不含站点域名/事件编号/规则词表/PII（原「站点域名+事件编号」口径作废）。
+				'data_fields'  => '访客 IP（check 查询与 report 上报两方向）；上报备注=工具前缀+英文攻击形态短句（不含站点域名/事件编号/规则词表/PII）',
 				'region_note'  => '境外信誉库——数据出境',
 			),
 		);

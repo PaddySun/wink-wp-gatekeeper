@@ -155,6 +155,8 @@ final class Sanitize {
 			'iprep.abuseipdb.suspect_score'             => 'absint',
 			'iprep.abuseipdb.malicious_score'           => 'absint',
 			'iprep.abuseipdb.cache_minutes'            => 'absint',
+			// 【v1.7·M3-IP 定稿 §3.1 步 4】软顶（当日查询 ≥soft_quota → fail 不外呼——从严例外）。
+			'iprep.abuseipdb.soft_quota'               => 'absint',
 			'iprep.abuseipdb.daily_quota'               => 'absint',
 			'iprep.abuseipdb.timeout'                   => 'absint',
 			'iprep.report.enabled'                      => 'bool',

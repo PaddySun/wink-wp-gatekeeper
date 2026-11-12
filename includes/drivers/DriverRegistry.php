@@ -25,7 +25,11 @@ final class DriverRegistry {
 
 	private const TYPES = array( self::TYPE_CAPTCHA, self::TYPE_REVIEW, self::TYPE_IP );
 
-	private const BILLINGS = array( 'free', 'usage', 'token' );
+	/**
+	 * billing 枚举：free（无远端调用）/ usage（按量计费）/ token（预购套餐包）/
+	 * free_quota（免费配额档——【v1.7·M3-IP·O5-P3-3】AbuseIPDB 贡献者 5000/天形态）。
+	 */
+	private const BILLINGS = array( 'free', 'usage', 'token', 'free_quota' );
 
 	private const INTERACTIONS = array( 'click', 'inline', 'invisible' );
 
@@ -68,7 +72,7 @@ final class DriverRegistry {
 			throw new \InvalidArgumentException( '驱动注册字段非法：label 必须为非空字符串' );
 		}
 		if ( ! in_array( $driver['billing'], self::BILLINGS, true ) ) {
-			throw new \InvalidArgumentException( '驱动注册字段非法：billing 必须为 free|usage|token' );
+			throw new \InvalidArgumentException( '驱动注册字段非法：billing 必须为 free|usage|token|free_quota' );
 		}
 		if ( ! is_string( $driver['api_version'] ) || '' === $driver['api_version'] ) {
 			throw new \InvalidArgumentException( '驱动注册字段非法：api_version 必须为非空字符串（版本键，落事件 meta）' );

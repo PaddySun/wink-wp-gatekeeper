@@ -61,18 +61,28 @@ final class Verdict {
 	private $confidence;
 
 	/**
+	 * @var array<string, mixed> 事件 meta 增量（【v1.7·M3-IP·定稿 §9】——verdict 携带，
+	 *                            消费方记录事件时并入 meta：score（0–100 整数直存）/
+	 *                            cached（缓存命中）/ soft_quota（软顶命中）/ raw（失败
+	 *                            脱敏快照）。缺省空数组=零增量（既有 verdict 形态不变）。
+	 */
+	private $event_meta;
+
+	/**
 	 * @param string     $verdict    判定枚举。
 	 * @param string     $reason     理由。
 	 * @param array      $hits       命中标签。
 	 * @param string     $driver_id  驱动 id。
 	 * @param float|null $confidence 0–1 置信度（非法/越界归 null）。
+	 * @param array<string, mixed> $event_meta 事件 meta 增量（【v1.7·M3-IP】缺省空）。
 	 */
-	private function __construct( string $verdict, string $reason, array $hits, string $driver_id, $confidence = null ) {
+	private function __construct( string $verdict, string $reason, array $hits, string $driver_id, $confidence = null, array $event_meta = array() ) {
 		$this->verdict    = $verdict;
 		$this->reason     = $reason;
 		$this->hits       = $hits;
 		$this->driver_id  = $driver_id;
 		$this->confidence = self::normalize_confidence( $confidence );
+		$this->event_meta = $event_meta;
 	}
 
 	public static function pass( string $driver_id = '', string $reason = '', array $hits = array() ): Verdict {
@@ -120,6 +130,29 @@ final class Verdict {
 
 	public function confidence(): ?float {
 		return $this->confidence;
+	}
+
+	/**
+	 * 事件 meta 增量（【v1.7·M3-IP·定稿 §9】IP 信誉域新键的承载面——score/cached/
+	 * soft_quota/raw；缺省空数组=既有 verdict 零增量）。消费方记录事件时并入 meta，
+	 * 记录代码形态不变（新键自然落 meta——定稿 §9「消费方既有事件写入代码保持形态」）。
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function event_meta(): array {
+		return $this->event_meta;
+	}
+
+	/**
+	 * 带事件 meta 增量的副本（不可变语义——with_attempts/with_latency_ms 同模式 wither）。
+	 *
+	 * @param array<string, mixed> $meta meta 增量（score/cached/soft_quota/raw…）。
+	 * @return self
+	 */
+	public function with_meta( array $meta ): Verdict {
+		$clone            = clone $this;
+		$clone->event_meta = $meta;
+		return $clone;
 	}
 
 	/**

@@ -35,6 +35,7 @@ use WinkGatekeeper\Gates\TestMode;
 use WinkGatekeeper\Gates\TransientRateLimiter;
 use WinkGatekeeper\Gates\VerifyCache;
 use WinkGatekeeper\Http\RemoteClient;
+use WinkGatekeeper\Ip\AbuseIpdbService;
 use WinkGatekeeper\Ip\IpResolver;
 use WinkGatekeeper\Ip\IpReputationService;
 use WinkGatekeeper\Settings\SettingsPage;
@@ -239,6 +240,10 @@ final class Bootstrap {
 		$registry->register( TencentTmsDriver::registry_entry() ); // C4：腾讯 TMS 文本审核。
 		$registry->register( AliyunGreenPlusDriver::registry_entry() ); // B5：阿里文本审核增强版 PLUS（05 §2.5）。
 		$registry->register( BaiduTextModerationDriver::registry_entry() ); // B6：百度文本审核（05 §2.4——token 30 天缓存复用）。
+		/* 【v1.7·M3-IP·定稿 §2 I2】abuseipdb 注册（type='ip'/billing='free_quota'/frontend=[]/
+		 * supports_report=true——O5-P3-3 三字段占位）：by_type('ip') 非空后 Tab① 点名册卡/
+		 * Tab⑥ IP 单列行/review_split 折减/Labels「信誉查询」自动生效（渲染侧既有逻辑零改动）。 */
+		$registry->register( AbuseIpdbService::registry_entry() );
 		SettingsPage::set_driver_registry( $registry );
 
 		// 传输脊（全库唯一 HTTP 出口；计量钩子接用量计数——04 §6）。
@@ -321,9 +326,12 @@ final class Bootstrap {
 			}
 		);
 
-		/* IP 信誉三态服务（02 §2.3b/05 §3.0——【v1.4·R2】M2.5：IpReputationService::assemble
-		 * 默认 Null 实现=恒 skip=现行行为；M3 AbuseIPDB 驱动接入同一接口后三处消费方零改动）。 */
-		$iprep = IpReputationService::assemble( $settings );
+		/* IP 信誉三态服务（02 §2.3b/05 §3.0——【v1.7·M3-IP·定稿 §2 I2】enabled=false → Null
+		 * 恒 skip=现行行为；enabled=true → AbuseIpdbService（api_key 空的防呆从严在服务内
+		 * 承载）。传输脊传共享实例——check 外呼计量走 RemoteClient 钩子（Usage::bump_option
+		 * 'abuseipdb'，外呼尝试即计）。三处消费方零改动（预检 cache_only / 评论提交期完整模式 /
+		 * 登录闸 LoginIpRep 渲染 cache_only+提交完整模式）。 */
+		$iprep = IpReputationService::assemble( $settings, $client );
 
 		/* ---------- 评论闸（M1；仅启用时挂钩，关闭 = 零 DOM 变化零验证） ---------- */
 		if ( ! empty( $settings['gates']['comment']['enabled'] ) ) {
@@ -518,8 +526,10 @@ final class Bootstrap {
 
 		/* ---------- 登录族三闸（【v1.4·R3】C3 登录闸 + register/lostpassword 两新闸；独立启停） ---------- */
 
-		/* LoginIpRep 生产装配（02 §3.2 联动；M2.5=Null 恒 skip=现行行为——M3 AbuseIPDB
-		 * 驱动接入后 IpReputationService::assemble 返回真实现，本接线零改动自动生效）。 */
+		/* LoginIpRep 生产装配（02 §3.2 联动；【v1.7·M3-IP·定稿 §2 I2 缓存归一】缓存职能已
+		 * 内化 AbuseIpdbService——本类退化纯映射。下方 get/set/hmac 三闭包为退役占位适配层
+		 * （形参位保持装配形态稳定，闭包不再被调用；wk_ip_ 键读写/回填全部由服务承载，
+		 * 消灭「服务缓存+登录域缓存」双写双读）。 */
 		$login_iprep = new LoginIpRep(
 			$settings,
 			$iprep,

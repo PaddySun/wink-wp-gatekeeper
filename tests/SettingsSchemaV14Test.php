@@ -57,7 +57,8 @@ final class SettingsSchemaV14Test extends TestCase {
 		$this->assertArrayNotHasKey( 'max_user_keys', $defaults['captcha']['login_adaptive'] );
 
 		// iprep：负缓存 + 驱动级超时（R2/R3 超时键合并裁决——一键三消费）；fail_mode 不再出现。
-		$this->assertSame( 10, $defaults['iprep']['negative_cache_minutes'] );
+		// 【v1.7·M3-IP 定稿 §3.3】负缓存默认 10→60 平移（v1.4 原默认 10 的键位保留）。
+		$this->assertSame( 60, $defaults['iprep']['negative_cache_minutes'] );
 		$this->assertSame( 1, $defaults['iprep']['abuseipdb']['timeout'] );
 		$this->assertArrayNotHasKey( 'fail_mode', $defaults['iprep']['abuseipdb'] );
 
@@ -127,7 +128,8 @@ final class SettingsSchemaV14Test extends TestCase {
 		$this->assertSame( array( 'enabled' => true, 'render_mode' => 'always' ), $migrated['gates']['lostpassword'] );
 		$this->assertSame( true, $migrated['stats']['raw_capture'] );
 		$this->assertSame( 512, $migrated['stats']['raw_max_bytes'] );
-		$this->assertSame( 10, $migrated['iprep']['negative_cache_minutes'] );
+		// 【v1.7·M3-IP】旧默认特征值 10 → 平移新默认 60（cache_minutes 60→1440 同批）。
+		$this->assertSame( 60, $migrated['iprep']['negative_cache_minutes'] );
 	}
 
 	public function test_migrate_is_idempotent(): void {

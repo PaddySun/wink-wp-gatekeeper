@@ -73,13 +73,16 @@ final class PrecheckTest extends TestCase {
 		);
 	}
 
-	private function fake_probe( ?Verdict $verdict ): \WinkGatekeeper\Ip\IpReputationProbe {
-		return new class( $verdict ) implements \WinkGatekeeper\Ip\IpReputationProbe {
+	private function fake_probe( ?Verdict $verdict, array &$seen_ctx = array() ): \WinkGatekeeper\Ip\IpReputationProbe {
+		return new class( $verdict, $seen_ctx ) implements \WinkGatekeeper\Ip\IpReputationProbe {
 			private $verdict;
-			public function __construct( ?Verdict $verdict ) {
-				$this->verdict = $verdict;
+			private $seen_ctx;
+			public function __construct( ?Verdict $verdict, array &$seen_ctx ) {
+				$this->verdict  = $verdict;
+				$this->seen_ctx = &$seen_ctx;
 			}
-			public function probe( string $ip ): ?Verdict {
+			public function probe( string $ip, array $ctx = array() ): ?Verdict {
+				$this->seen_ctx[] = $ctx;
 				return $this->verdict;
 			}
 		};
@@ -265,6 +268,16 @@ final class PrecheckTest extends TestCase {
 				->handle( self::input(), true, '203.0.113.7', 0 );
 			$this->assertSame( array( 'result' => 'captcha_needed' ), $result, 'IP 三态 fail（review/reject/error）→ 出码（过码即放行——反馈 6.5）' );
 		}
+	}
+
+	public function test_ip_probe_receives_cache_only_context(): void {
+		// 【v1.7·M3-IP·定稿 §3.4】预检调用 probe 必传 cache_only=true（点击期永远零外呼——
+		// 只读缓存；未命中从严 fail 走既有 captcha_needed 路径零改动承接）。
+		$seen_ctx = array();
+		$result = $this->precheck( self::settings(), null, $this->fake_probe( Verdict::pass( 'abuseipdb' ), $seen_ctx ) )
+			->handle( self::input(), true, '203.0.113.7', 0 );
+		$this->assertSame( 'trust_pass', $result['result'] );
+		$this->assertSame( array( array( 'cache_only' => true ) ), $seen_ctx, '预检 probe ctx=cache_only:true（零外呼只读模式）' );
 	}
 
 	/* ---------- ③ 历史信用 ---------- */

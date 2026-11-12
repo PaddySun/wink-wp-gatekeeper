@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.4.5
+Stable tag: 0.4.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.4.6 =
+
+I2·IP 信誉 check 路径全链（M3-IP 定稿 §2/§3/§9，2026-11-12）。① **AbuseIpdbService 新件**（includes/ip/）：probe() 七步流水线——白名单（站长白名单∨manage_options∨服务器自身 IP→skip）→防呆（enabled+未配钥=fail not_configured 从严）→规范化（IpResolver::normalize 防变体稀释缓存）→退避（`wk_irb_` transient 300s 零外呼）→停转（DriverHealth 当日 skip）→软顶（`iprep.abuseipdb.soft_quota` 新键默认 3000/日→fail 不外呼，从严例外——宁可从严不可静默放行）→缓存（`wk_ip_<HMAC16(ip)>` 命中零外呼 meta.cached）→外呼映射（GET api/v2/check maxAgeInDays=90，Key+Accept 头，timeout 1s；score≥85 reject/≥60 review/其余 pass；isPublic=false skip）→落账（缓存只在外呼成功后写；外呼尝试即计 Usage::bump_option('abuseipdb') 经 RemoteClient 计量钩子）。fail-open 四类失败处置：transport→退避 300s 不停转；429→退避+quota_exhausted 当日停转+Retry-After≥300s 按其值；401/402→config_error 当日停转；契约不符→contract_mismatch 哨兵+退避；失败 meta.raw 脱敏快照（512B 红线）。**cache_only 只读模式**（O5-P1-1）：预检端点与登录渲染期必传——零外呼，未命中∨退避∨停转返 fail（cache_miss_strict/backoff/halted）不返 null，软顶不评估；提交期与登录提交期=唯二完整模式外呼点。事件 meta 增量经 Verdict::event_meta 携带（score 0–100 整数直存/cached/soft_quota/tor）。② **装配与归一**：IpReputationService::assemble 三分支（!enabled→Null 恒 skip=现行行为零变化）；registry 注册 abuseipdb（type='ip'/billing='free_quota' 枚举扩展/frontend=[]/supports_report=true）+ **Tab① 点名册与 Tab⑥ 服务商统一卡收集扩展 type='ip'**（overview_roster_cards/stats_driver_cards 三域收集 captcha|review|ip——收集过滤器为 M3 前遗缺；当班=iprep.enabled、!enabled+必填齐=蓝点待命「已配置未启用」、必填缺=收拢行；Tab⑥ 新增「IP 信誉防线」分组——Labels「信誉查询」/stage_word/action_verb 原生词零新增；Tab⑥ IP 单列行 review_split 折减 registry 注册即自动生效）；**缓存归一**——缓存内化 AbuseIpdbService，LoginIpRep 退化纯映射（get/set/hmac 退役占位形参，无双写双读）；LoginGate 渲染路径 cache_only/验证与 XML-RPC 路径完整模式分接线；CommentGate::order() 口径统一 (ip,captcha,review)；uninstall.php 补 `wk_irb_` 前缀。③ **schema v1.7 平移**：`iprep.abuseipdb.soft_quota` 新键默认 3000；pass 缓存 `iprep.abuseipdb.cache_minutes` 默认 60→1440（24h）、负缓存 `iprep.negative_cache_minutes` 默认 10→60（1h）——旧默认特征值 migrate 平移（站长自定义值原样保留）；Sanitize 白名单同步。④ DriverPrivacy abuseipdb privacy_url 在线核验（2026-11-12 官方 Privacy Policy 页实证）「M3 核对」标注清除。iprep.enabled=false 站升级后行为零变化（Null 恒 skip）。测试 1349→1390 / 断言 9191→9357 全绿（AbuseIpdbServiceTest 新 33（含真钥冒烟夹具钉映射 2 例）+ LoginIpRepTest 重写 9→8 + IpReputationServiceTest 6→7 + SettingsSchemaTest +4 + SanitizeTest +1 + PrecheckTest +1 + LoginGateTest +1 + OverviewRosterTest +1（IP 排班矩阵）；版本钉五测试文件同步 0.4.6）。
 
 = 0.4.5 =
 

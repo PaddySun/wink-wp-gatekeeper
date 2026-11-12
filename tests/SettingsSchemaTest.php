@@ -86,10 +86,12 @@ final class SettingsSchemaTest extends TestCase {
 			array( array( 'iprep', 'enabled' ), false ),
 			array( array( 'iprep', 'driver' ), 'abuseipdb' ),
 			// 【v1.4·R3】负缓存；【澄清A】驱动级超时键；fail_mode 作废删除。
-			array( array( 'iprep', 'negative_cache_minutes' ), 10 ),
+			// 【v1.7·M3-IP 定稿 §3.3】两 TTL 默认平移（60→1440 / 10→60）+ soft_quota 新键 3000。
+			array( array( 'iprep', 'negative_cache_minutes' ), 60 ),
 			array( array( 'iprep', 'abuseipdb', 'suspect_score' ), 60 ),
 			array( array( 'iprep', 'abuseipdb', 'malicious_score' ), 85 ),
-			array( array( 'iprep', 'abuseipdb', 'cache_minutes' ), 60 ),
+			array( array( 'iprep', 'abuseipdb', 'cache_minutes' ), 1440 ),
+			array( array( 'iprep', 'abuseipdb', 'soft_quota' ), 3000 ),
 			array( array( 'iprep', 'abuseipdb', 'daily_quota' ), 4750 ),
 			array( array( 'iprep', 'abuseipdb', 'timeout' ), 1 ),
 			array( array( 'iprep', 'report', 'enabled' ), true ),
@@ -314,6 +316,48 @@ final class SettingsSchemaTest extends TestCase {
 			'gates' => array( 'comment' => array( 'enabled' => true, 'render_mode' => 'always', 'submit_rate_limit' => 0 ) ),
 		) );
 		$this->assertSame( 0, $merged['gates']['comment']['submit_rate_limit'] );
+	}
+
+	/* ---------- v1.7·M3-IP：iprep 双 TTL 平移 + soft_quota 新键（定稿 §3.3/§3.1 步 4） ---------- */
+
+	public function test_migrate_shifts_default_cache_minutes_60_to_1440(): void {
+		// 旧默认特征值 60（站长从未动过）→ 平移新默认 1440（24h——WF V5 变体省配额）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'enabled' => true, 'abuseipdb' => array( 'cache_minutes' => 60 ) ),
+		) );
+		$this->assertSame( 1440, $merged['iprep']['abuseipdb']['cache_minutes'] );
+	}
+
+	public function test_migrate_shifts_default_negative_cache_minutes_10_to_60(): void {
+		// 旧默认特征值 10（iprep 顶层实况键名——O5-P1-2）→ 平移新默认 60（1h）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'enabled' => true, 'negative_cache_minutes' => 10 ),
+		) );
+		$this->assertSame( 60, $merged['iprep']['negative_cache_minutes'] );
+	}
+
+	public function test_migrate_preserves_custom_ttl_values(): void {
+		// 站长自定义值原样保留（v1.4 chain 特征值先例——只平移未动过的旧默认）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array(
+				'enabled' => true,
+				'negative_cache_minutes' => 30,
+				'abuseipdb' => array( 'cache_minutes' => 720 ),
+			),
+		) );
+		$this->assertSame( 30, $merged['iprep']['negative_cache_minutes'], '自定义负缓存 30 不被平移' );
+		$this->assertSame( 720, $merged['iprep']['abuseipdb']['cache_minutes'], '自定义 pass 缓存 720 不被平移' );
+	}
+
+	public function test_merge_defaults_backfills_soft_quota_for_old_options(): void {
+		// soft_quota 新键（定稿 §3.1 步 4——软顶 3000 先行于 daily_quota 4750）由整树合并补齐。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'enabled' => true, 'abuseipdb' => array( 'api_key' => 'k' ) ),
+		) );
+		$this->assertSame( 3000, $merged['iprep']['abuseipdb']['soft_quota'] );
+		$this->assertSame( 1440, $merged['iprep']['abuseipdb']['cache_minutes'] );
+		$this->assertSame( 60, $merged['iprep']['negative_cache_minutes'] );
+		$this->assertSame( 4750, $merged['iprep']['abuseipdb']['daily_quota'], '软顶 3000 < 硬停转 4750——两道额度闸' );
 	}
 
 	/* ---------- C4：review.cloud.tencent_tms 新键（biz_type / reject_score） ---------- */

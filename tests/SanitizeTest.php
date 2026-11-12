@@ -169,6 +169,23 @@ final class SanitizeTest extends TestCase {
 		$this->assertSame( 0, $cleanN['gates']['comment']['submit_rate_limit'] );
 	}
 
+	/* ---------- v1.7·M3-IP：iprep.abuseipdb.soft_quota（软顶，absint——定稿 §3.1 步 4） ---------- */
+
+	public function test_iprep_abuseipdb_soft_quota_absint_roundtrip(): void {
+		list( $clean, $rejected ) = Sanitize::clean( array(
+			'iprep' => array( 'abuseipdb' => array( 'soft_quota' => ' 3000 ' ) ),
+		) );
+		$this->assertSame( 3000, $clean['iprep']['abuseipdb']['soft_quota'] );
+		$this->assertSame( array(), $rejected );
+
+		// 负缓存 TTL 平移后的新默认值形态同验（iprep 顶层 absint 既有规则回归）。
+		list( $clean2, ) = Sanitize::clean( array(
+			'iprep' => array( 'negative_cache_minutes' => '60', 'abuseipdb' => array( 'cache_minutes' => '1440' ) ),
+		) );
+		$this->assertSame( 60, $clean2['iprep']['negative_cache_minutes'] );
+		$this->assertSame( 1440, $clean2['iprep']['abuseipdb']['cache_minutes'] );
+	}
+
 	/* ---------- C3：gates.login.xmlrpc_login（一键加固开关，反选形态 0/1） ---------- */
 
 	public function test_gates_login_xmlrpc_login_bool_roundtrip(): void {

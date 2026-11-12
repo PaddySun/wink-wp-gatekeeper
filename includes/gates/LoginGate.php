@@ -175,11 +175,17 @@ final class LoginGate extends AccountFormGate {
 	/**
 	 * IP 信誉三态（null 未装配=skip 短路，零 I/O）。
 	 *
-	 * @param string $ip 真实 IP。
+	 * 【v1.7·M3-IP·定稿 §3.4】$cache_only=true 用于渲染路径（render_orchestrate——登录页
+	 * 输出期零外呼只读，未命中从严 fail 出码）；验证路径（verify_orchestrate/XML-RPC——
+	 * 登录提交期）保持完整模式（唯二完整模式外呼点之二）。判定逻辑零改动：fail 无论来源
+	 * （缓存命中 reject/未命中 cache_miss_strict/退避/停转）都走既有出码/拒绝路径。
+	 *
+	 * @param string $ip         真实 IP。
+	 * @param bool   $cache_only true=渲染期只读模式（零外呼）。
 	 * @return string 'skip'|'pass'|'fail'
 	 */
-	private function iprep_state( string $ip ): string {
-		return null === $this->iprep ? 'skip' : $this->iprep->state( $ip );
+	private function iprep_state( string $ip, bool $cache_only = false ): string {
+		return null === $this->iprep ? 'skip' : $this->iprep->state( $ip, $cache_only );
 	}
 
 	public function render_hooks(): array {
@@ -452,8 +458,9 @@ final class LoginGate extends AccountFormGate {
 	 * 渲染编排（login_form / login_form_middle 的纯逻辑面——v1.4 嵌入式）。
 	 *
 	 * 渲染条件（渲染期未知将提交的用户名）：mode=always ∨ flag(ip) ∨ alarm(site) ∨
-	 * (iprep_gate ∧ iprep_fail(ip))——判定次序固定本地在前（flag→alarm→iprep 缓存→
-	 * 远程，渲染期预算，03 §2.2）。输出 = 播报位 + 驱动 render()（embed 白名单 +
+	 * (iprep_gate ∧ iprep_fail(ip))——判定次序固定本地在前（flag→alarm→iprep；
+	 * 【v1.7·M3-IP·定稿 §3.4】iprep 段 cache_only 只读缓存——渲染期永远零外呼，
+	 * 03 §2.2）。输出 = 播报位 + 驱动 render()（embed 白名单 +
 	 * .wk-gate-embed 挂载点）——「隐藏包裹 + 提交时唤起」旧形态退役（03 §2.2 v1.4）。
 	 *
 	 * @param array<string, mixed> $server            $_SERVER。
@@ -474,10 +481,11 @@ final class LoginGate extends AccountFormGate {
 			if ( '' === $ip ) {
 				return '';
 			}
-			// 本地短路在前：flag → alarm → iprep（缓存优先，未命中才远程——LoginIpRep 内建）。
+			// 本地短路在前：flag → alarm → iprep（【v1.7·M3-IP】缓存内化服务——渲染期
+			// cache_only 只读，未命中从严 fail 出码，零外呼）。
 			if ( ! $this->counters->render_flag( $ip )
 				&& ! $this->counters->site_alarm()
-				&& 'fail' !== $this->iprep_state( $ip ) ) {
+				&& 'fail' !== $this->iprep_state( $ip, true ) ) {
 				return ''; // adaptive 未触发：零 DOM（D9 零打扰基线不变）。
 			}
 		}

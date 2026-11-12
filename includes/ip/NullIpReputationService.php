@@ -17,11 +17,12 @@ use WinkGatekeeper\Verdict;
 final class NullIpReputationService implements IpReputationProbe {
 
 	/**
-	 * @param string $ip
+	 * @param string               $ip
+	 * @param array<string, mixed> $ctx 【v1.7·M3-IP】cache_only 占位（Null 服务零行为差异——恒 null）。
 	 * @return null
 	 */
-	public function probe( string $ip ): ?Verdict {
-		unset( $ip );
+	public function probe( string $ip, array $ctx = array() ): ?Verdict {
+		unset( $ip, $ctx );
 		return null;
 	}
 }

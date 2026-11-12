@@ -337,12 +337,14 @@ final class CommentGate extends AbstractGate {
 	}
 
 	/**
-	 * 闸内启用阶段顺序（M1：captcha → review；ip 阶段 M3 接入 IPDriver 后置首）。
+	 * 闸内启用阶段顺序（【v1.7·M3-IP】与实际编排口径统一——步骤 2 Stage:ip 自 M2.5 起已
+	 * 真实现（orchestrate 硬编码执行），清单如实反映防编排漂移（盘点 §7.3-2）；
+	 * GateRegistry comment 行 stages=(ip, captcha, review) 同源）。
 	 *
 	 * @return string[]
 	 */
 	public function order(): array {
-		return array( 'captcha', 'review' ); // M3: array( 'ip', 'captcha', 'review' ) + 云端链。
+		return array( 'ip', 'captcha', 'review' );
 	}
 
 	/* -------------------------------------------------------------------
@@ -451,17 +453,20 @@ final class CommentGate extends AbstractGate {
 		 * （阈值证据保留，meta.ip_force_captcha）。
 		 * 【v1.4·反馈6.5/02 §2.3 修订表】reject 档不再 wp_die/不再当步拦截——「强制验证码、
 		 * 过码即放行进内容闸」（脏 VPN IP 不误伤；防线=该 IP 上脚本必须真过码）；终拦若发生
-		 * 移至 captcha 阶段按该阶段留档。上报「有票才报」触发点（02 §2.3a）M3 实装。 */
+		 * 移至 captcha 阶段按该阶段留档。上报「有票才报」触发点（02 §2.3a）I3 实装。
+		 * 【v1.7·M3-IP】提交期=完整模式（唯二外呼点之一，缺省无 ctx）；事件 meta 并入
+		 * verdict 携带的增量键（verdict->event_meta()——score/cached/soft_quota/raw，
+		 * 定稿 §9「消费方既有事件写入代码保持形态，新键自然落 meta」；闸键优先）。 */
 		$ip_force_captcha = false;
 		if ( null !== $this->iprep ) {
 			$ip_verdict = $this->iprep->probe( is_string( $resolved['ip'] ) ? $resolved['ip'] : '' );
 			if ( null !== $ip_verdict && Verdict::PASS !== $ip_verdict->verdict() ) {
 				$ip_force_captcha = true;
-				call_user_func( $this->recorder, 'ip', $ip_verdict, array(
+				call_user_func( $this->recorder, 'ip', $ip_verdict, array_merge( $ip_verdict->event_meta(), array(
 					'ip_src'           => $resolved['ip_src'],
 					'client_ip'        => $resolved['ip'],
 					'ip_force_captcha' => true,
-				) );
+				) ) );
 			}
 		}
 		$force = $force_captcha || $ip_force_captcha;

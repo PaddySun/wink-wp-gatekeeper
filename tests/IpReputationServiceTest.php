@@ -1,14 +1,15 @@
 <?php
 /**
- * IpReputationService 骨架单元测试（02 §2.3b/05 §3.0，M2.5——F38/D17 三态语义载体）。
+ * IpReputationService 装配器单元测试（02 §2.3b/05 §3.0——【v1.7·M3-IP·定稿 §2】I2 三态装配）。
  *
  * 权威三态（澄清 A）：
- *   null           = 未启用（skip——iprep.enabled=false 或 M2.5 未装配 Null 服务）；
+ *   null           = 未启用（skip——iprep.enabled=false → Null 服务）；
  *   Verdict::PASS  = 已启用且正常且低于阈值；
- *   review/reject/error = 已启用但超阈值/故障/防呆（fail——处置=强制验证码，出码过码放行）。
+ *   review/reject/error = 已启用但超阈值/故障/防呆/软顶（fail——处置=强制验证码，出码过码放行）。
  *
- * 装配约定（02 §2.3b 实现载体节）：Bootstrap `iprep.enabled && 驱动已配置 ? AbuseIPDB(M3) : Null`；
- * 健康面：未启用 = 「未启用」态（Tab④ M3 消费，本批为纯函数占位）。
+ * 装配约定（定稿 §2）：!enabled → Null；enabled → AbuseIpdbService（api_key 空的防呆从严
+ * 在服务内承载——probe 恒 fail reason=not_configured，白名单/管理员前置豁免）；
+ * remote 形参可省（服务内缺省 WP 边界薄包装——单测只断言形态，行为在 AbuseIpdbServiceTest）。
  *
  * @package WinkGatekeeper\Tests
  */
@@ -18,6 +19,7 @@ declare( strict_types=1 );
 namespace WinkGatekeeper\Tests;
 
 use PHPUnit\Framework\TestCase;
+use WinkGatekeeper\Ip\AbuseIpdbService;
 use WinkGatekeeper\Ip\IpReputationProbe;
 use WinkGatekeeper\Ip\IpReputationService;
 use WinkGatekeeper\Ip\NullIpReputationService;
@@ -31,36 +33,48 @@ final class IpReputationServiceTest extends TestCase {
 		$this->assertNull( $service->probe( '203.0.113.7' ) );
 		$this->assertNull( $service->probe( '' ) );
 		$this->assertNull( $service->probe( '2001:db8::1' ) );
+		// 【v1.7·M3-IP】cache_only 上下文同 null（Null 服务零行为差异——向后兼容签名）。
+		$this->assertNull( $service->probe( '203.0.113.7', array( 'cache_only' => true ) ) );
 	}
 
 	public function test_null_service_implements_probe_interface(): void {
 		$this->assertInstanceOf( IpReputationProbe::class, new NullIpReputationService() );
 	}
 
-	/* ---------- 装配器（Bootstrap 单一接线点） ---------- */
+	/* ---------- 装配器（Bootstrap 单一接线点；定稿 §2 两处装配变更之一） ---------- */
 
 	public function test_assemble_disabled_returns_null_service(): void {
 		// iprep.enabled=false（默认）→ Null 实现 → probe()===null → 三处消费方见 skip。
+		// 现行站点（iprep.enabled=false）升级后行为零变化。
 		$probe = IpReputationService::assemble( self::settings( array( 'enabled' => false ) ) );
 		$this->assertInstanceOf( NullIpReputationService::class, $probe );
 		$this->assertNull( $probe->probe( '198.51.100.9' ) );
 	}
 
-	public function test_assemble_enabled_without_driver_still_null_service(): void {
-		// M2.5：开关开了但 AbuseIPDB 驱动未实装（M3）→ 仍 Null（防呆语义由 M3 驱动接入后生效）。
+	public function test_assemble_enabled_returns_abuseipdb_service(): void {
+		// 【v1.7·M3-IP】enabled=true → AbuseIpdbService（check 七步流水线全量）。
 		$probe = IpReputationService::assemble( self::settings( array( 'enabled' => true ) ) );
-		$this->assertInstanceOf( NullIpReputationService::class, $probe );
+		$this->assertInstanceOf( AbuseIpdbService::class, $probe );
+		$this->assertInstanceOf( IpReputationProbe::class, $probe );
 	}
 
-	/* ---------- 健康面（纯函数占位：未启用态可见化） ---------- */
+	public function test_assemble_enabled_without_key_still_service_not_null(): void {
+		// 防呆分支（从严例外之二）：enabled && api_key 空 → 仍装配 AbuseIpdbService——
+		// 不静默 skip；防呆 fail 行为（probe 恒 fail）在 AbuseIpdbServiceTest 钉
+		// （本测试环境无 WP 边界闭包，不可直接调 probe——形态断言在此）。
+		$probe = IpReputationService::assemble( self::settings( array( 'enabled' => true ) ) );
+		$this->assertInstanceOf( AbuseIpdbService::class, $probe );
+	}
+
+	/* ---------- 健康面（Tab④ 分区二健康行消费——【v1.7·M3-IP】第三态落地） ---------- */
 
 	public function test_state_label_disabled_is_not_enabled(): void {
 		$this->assertSame( '未启用', IpReputationService::state_label( self::settings( array( 'enabled' => false ) ) ) );
 	}
 
-	public function test_state_label_enabled_without_driver_is_not_assembled(): void {
-		// 开关开 + 驱动未实装（M2.5 唯一可达形态）→ 「未装配（M3）」——防呆可见化。
-		$this->assertSame( '未装配（M3）', IpReputationService::state_label( self::settings( array( 'enabled' => true ) ) ) );
+	public function test_state_label_enabled_is_enabled_abuseipdb(): void {
+		// enabled 即装配（M2.5 的「未装配（M3）」占位态随 I2 退役——防呆态由健康灯呈现）。
+		$this->assertSame( '已启用（AbuseIPDB）', IpReputationService::state_label( self::settings( array( 'enabled' => true ) ) ) );
 	}
 
 	/**

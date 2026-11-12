@@ -697,6 +697,9 @@ final class SettingsPage {
 		$captcha  = isset( $settings['captcha'] ) && is_array( $settings['captcha'] ) ? $settings['captcha'] : array();
 		$cloud    = isset( $settings['review']['cloud'] ) && is_array( $settings['review']['cloud'] ) ? $settings['review']['cloud'] : array();
 		$chain    = isset( $cloud['chain'] ) && is_array( $cloud['chain'] ) ? $cloud['chain'] : array();
+		/* 【v1.7·M3-IP·定稿 §9】iprep 子树入册（AbuseIPDB 卡自动入点名册——type='ip'
+		 * 驱动收集；config=iprep.<id>；当班=iprep.enabled，!enabled+必填齐=待命蓝点）。 */
+		$iprep    = isset( $settings['iprep'] ) && is_array( $settings['iprep'] ) ? $settings['iprep'] : array();
 		$usage    = \WinkGatekeeper\Stats\Usage::get();
 		$cache    = \WinkGatekeeper\Stats\StatsCache::get();
 
@@ -705,7 +708,7 @@ final class SettingsPage {
 		$halted     = array();
 		$usage_map  = array();
 		$counts_map = array();
-		foreach ( array( 'captcha', 'review' ) as $driver_type ) {
+		foreach ( array( 'captcha', 'review', 'ip' ) as $driver_type ) {
 			foreach ( self::$driver_registry->by_type( $driver_type ) as $driver_id => $meta ) {
 				$driver_id = (string) $driver_id;
 				// 本地驱动不入册（无外部故障面——脚注交代，B 提案块 C）。
@@ -714,7 +717,9 @@ final class SettingsPage {
 				}
 				$config = 'captcha' === $driver_type
 					? ( isset( $captcha[ $driver_id ] ) && is_array( $captcha[ $driver_id ] ) ? $captcha[ $driver_id ] : array() )
-					: ( isset( $cloud[ $driver_id ] ) && is_array( $cloud[ $driver_id ] ) ? $cloud[ $driver_id ] : array() );
+					: ( 'ip' === $driver_type
+						? ( isset( $iprep[ $driver_id ] ) && is_array( $iprep[ $driver_id ] ) ? $iprep[ $driver_id ] : array() )
+						: ( isset( $cloud[ $driver_id ] ) && is_array( $cloud[ $driver_id ] ) ? $cloud[ $driver_id ] : array() ) );
 				$drivers[]                = $meta;
 				$configs[ $driver_id ]    = $config;
 				$halted[ $driver_id ]     = DriverHealth::state_today( $driver_id );
@@ -731,6 +736,7 @@ final class SettingsPage {
 			'halted'         => $halted,
 			'usage'          => $usage_map,
 			'counts'         => $counts_map,
+			'iprep_enabled'  => ! empty( $iprep['enabled'] ),
 		) );
 	}
 
@@ -2704,6 +2710,12 @@ final class SettingsPage {
 			<?php foreach ( $cards as $card ) : ?>
 				<?php if ( 'review' === ( $card['type'] ?? '' ) ) { self::render_driver_card( $card ); } ?>
 			<?php endforeach; ?>
+
+			<?php /* 【v1.7·M3-IP·定稿 §9】IP 信誉防线组——registry type='ip' 驱动卡（动作名 Labels「信誉查询」）。 */ ?>
+			<h4 class="wk-defense-group"><?php esc_html_e( 'IP 信誉防线（第三方，按次计费）', 'wink-gatekeeper' ); ?></h4>
+			<?php foreach ( $cards as $card ) : ?>
+				<?php if ( 'ip' === ( $card['type'] ?? '' ) ) { self::render_driver_card( $card ); } ?>
+			<?php endforeach; ?>
 			<p class="wk-muted"><?php esc_html_e( '放行=推算值（今日动作数−拦下−转人工−出错）。', 'wink-gatekeeper' ); ?></p>
 
 			<h3 class="wk-sub-title"><?php esc_html_e( '最近拦下的评论（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
@@ -3025,12 +3037,15 @@ final class SettingsPage {
 		$cloud         = is_array( $settings['review']['cloud'] ?? null ) ? $settings['review']['cloud'] : array();
 		$chain         = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
 		$cloud_enabled = ! empty( $cloud['enabled'] );
+		/* 【v1.7·M3-IP·定稿 §9】IP 类驱动入服务商统一卡（type='ip'——卡=iprep.<id> 子树，
+		 * 启用=iprep.enabled；!enabled=蓝点未启用占位卡（已配置未启用态如实呈现）。 */
+		$iprep         = is_array( $settings['iprep'] ?? null ) ? $settings['iprep'] : array();
 
 		// 出错格数据源（N6/N7a——事件表真值；登录卡分域过滤 ACCOUNT_GATES）。
 		$fault_all       = \WinkGatekeeper\Stats\EventsTable::today_fault_by_driver();
 		$fault_in_account = \WinkGatekeeper\Stats\EventsTable::today_fault_by_driver( \WinkGatekeeper\Stats\InterceptDigest::ACCOUNT_GATES );
 
-		$types = 'login' === $context ? array( 'captcha' ) : array( 'captcha', 'review' );
+		$types = 'login' === $context ? array( 'captcha' ) : array( 'captcha', 'review', 'ip' );
 		$cards = array();
 		foreach ( $types as $type ) {
 			foreach ( $registry->by_type( $type ) as $driver_id => $meta ) {
@@ -3042,7 +3057,9 @@ final class SettingsPage {
 				$label   = is_string( $meta['label'] ?? null ) ? $meta['label'] : $driver_id;
 				$enabled = 'captcha' === $type
 					? ( '' !== $captcha_on && $captcha_on === $driver_id )
-					: ( $cloud_enabled && in_array( $driver_id, $chain, true ) );
+					: ( 'ip' === $type
+						? ! empty( $iprep['enabled'] )
+						: ( $cloud_enabled && in_array( $driver_id, $chain, true ) ) );
 				$halt    = DriverHealth::state_today( $driver_id );
 				$today   = \WinkGatekeeper\Stats\InterceptDigest::driver_counts( $cache, $driver_id, false );
 				$total   = \WinkGatekeeper\Stats\InterceptDigest::driver_counts( $cache, $driver_id, true );
@@ -3073,7 +3090,9 @@ final class SettingsPage {
 					continue;
 				}
 
-				$config = 'review' === $type && is_array( $cloud[ $driver_id ] ?? null ) ? $cloud[ $driver_id ] : array();
+				$config = 'ip' === $type && is_array( $iprep[ $driver_id ] ?? null )
+					? $iprep[ $driver_id ]
+					: ( 'review' === $type && is_array( $cloud[ $driver_id ] ?? null ) ? $cloud[ $driver_id ] : array() );
 				$cards[] = \WinkGatekeeper\Stats\InterceptDigest::driver_card( array(
 					'label'      => $label,
 					'type'       => $type,
@@ -3092,7 +3111,7 @@ final class SettingsPage {
 						'review'   => (int) ( $total['review'] ?? 0 ),
 						'errors'   => (int) ( $total['error'] ?? 0 ),
 					),
-					'config_tab' => 'captcha' === $type ? 'captcha' : 'review',
+					'config_tab' => 'captcha' === $type ? 'captcha' : ( 'ip' === $type ? 'iprep' : 'review' ),
 				) );
 			}
 		}

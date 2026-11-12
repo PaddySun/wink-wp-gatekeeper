@@ -229,9 +229,11 @@ final class Precheck {
 			);
 		}
 
-		/* ② IP 信誉三态（02 §2.3b：null=skip 不影响免验资格；fail=出码——过码放行在提交期闸内）。 */
+		/* ② IP 信誉三态（02 §2.3b：null=skip 不影响免验资格；fail=出码——过码放行在提交期闸内）。
+		 * 【v1.7·M3-IP·定稿 §3.4】点击期必须 cache_only=true（零外呼只读——未命中从严 fail
+		 * reason=cache_miss_strict，走既有 captcha_needed 路径零改动承接；预检永远零外呼）。 */
 		if ( null !== $this->iprep ) {
-			$ip_verdict = $this->iprep->probe( $client_ip );
+			$ip_verdict = $this->iprep->probe( $client_ip, array( 'cache_only' => true ) );
 			if ( null !== $ip_verdict && Verdict::PASS !== $ip_verdict->verdict() ) {
 				return array( 'result' => self::RESULT_CAPTCHA );
 			}

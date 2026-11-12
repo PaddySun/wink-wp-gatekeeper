@@ -15,9 +15,16 @@
  *
  * 缓存约定（02 §2.3b）：结果 transient 键 wk_ip_<driver>_<ip_hash>——只写于外呼之后（提交期/
  * 登录验证期外呼回填）；预检（点击期）与登录渲染期只读、不产生（点击期零外呼硬约束：已启用且
- * 缓存未命中时预检直接判 fail→出码，不发实时调用）；pass TTL=cache_minutes（60）、
- * fail TTL=negative_cache_minutes（10——短负缓存，配置修复/信誉恢复后 10min 自愈）。
- * 停转态（配置错误/当日停转）在服务内部返回 reject 语义（防呆从严——「开而不配好」可见、可自愈）。
+ * 缓存未命中时预检直接判 fail→出码，不发实时调用）；pass TTL=cache_minutes（1440=24h，
+ * 【v1.7·M3-IP】默认平移）、fail TTL=negative_cache_minutes（60=1h——短负缓存，配置修复/
+ * 信誉恢复后自愈）。停转态（配置错误/当日停转）在服务内部返回 reject 语义（防呆从严——
+ * 「开而不配好」可见、可自愈）。
+ *
+ * 【v1.7·M3-IP·定稿 §2 O5-P1-1】$ctx['cache_only']=true 为只读模式（预检/登录渲染期**必传**
+ * ——零外呼；未命中∨退避中∨停转中→返 fail Verdict reason=cache_miss_strict/backoff/halted，
+ * 不返 null——澄清 A「已启用但无证据=不通过」的精确落点；消费方 fail 路径零改动承接）。
+ * 完整模式（缺省）：七步流水线照旧（白名单→规范化→退避→停转→软顶→缓存→外呼映射→落账）。
+ * 缓存内化实现（ AbuseIpdbService ），本接口不承载缓存职能。
  *
  * @package WinkGatekeeper\Ip
  */
@@ -33,9 +40,11 @@ interface IpReputationProbe {
 	/**
 	 * 探测一个 IP 的信誉判定。
 	 *
-	 * @param string $ip 已归一化的访客 IP（IpResolver 解析产物）。
+	 * @param string                $ip  已归一化的访客 IP（IpResolver 解析产物）。
+	 * @param array<string, mixed>  $ctx 上下文（【v1.7·M3-IP】cache_only=true 只读模式——
+	 *                                   预检/登录渲染期必传，零外呼；参可省=完整模式，向后兼容）。
 	 * @return Verdict|null null=未启用（skip）；pass=通过；review/reject/error=fail 档
 	 *                      （消费方一律按「强制验证码」处置——02 §2.3b 三态表）。
 	 */
-	public function probe( string $ip ): ?Verdict;
+	public function probe( string $ip, array $ctx = array() ): ?Verdict;
 }

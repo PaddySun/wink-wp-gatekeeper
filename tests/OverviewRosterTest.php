@@ -128,6 +128,35 @@ final class OverviewRosterTest extends TestCase {
 		$this->assertSame( 'standby', self::card( $cards, 'tencent_tms' )['duty'], '总开关关=待命（不当班）' );
 	}
 
+	/**
+	 * 【v1.7·M3-IP·定稿 §9】IP 类驱动排班矩阵（AbuseIPDB 入点名册——AbuseIpdbService
+	 * registry 注册后 by_type('ip') 收集；当班=iprep.enabled；!enabled+必填齐=待命蓝点
+	 * 「已配置未启用」；必填缺=未配置收拢行；config_tab=iprep（Tab④）。
+	 */
+	public function test_ip_duty_matrix(): void {
+		$drivers = array( self::meta( 'abuseipdb', 'AbuseIPDB（IP 信誉查询）', 'ip', array( 'api_key' ) ) );
+
+		// enabled + 必填齐 = 当班。
+		$cards = OverviewRoster::cards( $drivers, self::ctx( array(
+			'iprep_enabled' => true,
+			'configs'       => array( 'abuseipdb' => array( 'api_key' => 'k' ) ),
+		) ) );
+		$this->assertSame( 'active', self::card( $cards, 'abuseipdb' )['duty'], 'iprep.enabled=true + api_key 齐 = 当班' );
+		$this->assertSame( 'IP 信誉', self::card( $cards, 'abuseipdb' )['role'], '分组词=stage_word(ip)' );
+		$this->assertSame( 'iprep', self::card( $cards, 'abuseipdb' )['config_tab'], '配置去向=Tab④' );
+
+		// !enabled + 必填齐 = 待命（已配置未启用——蓝点态如实）。
+		$cards = OverviewRoster::cards( $drivers, self::ctx( array(
+			'iprep_enabled' => false,
+			'configs'       => array( 'abuseipdb' => array( 'api_key' => 'k' ) ),
+		) ) );
+		$this->assertSame( 'standby', self::card( $cards, 'abuseipdb' )['duty'], 'enabled=false + api_key 在 = 待命（已配置未启用）' );
+
+		// 必填缺 = 未配置（enabled 与否不影响——排班态优先）。
+		$cards = OverviewRoster::cards( $drivers, self::ctx( array( 'iprep_enabled' => true ) ) );
+		$this->assertSame( 'unconfigured', self::card( $cards, 'abuseipdb' )['duty'], 'api_key 缺 = 未配置收拢行' );
+	}
+
 	/* ---------- 健康态推导（正常/故障/额度用完——DriverHealth state map 消费） ---------- */
 
 	public function test_health_states_and_notes(): void {

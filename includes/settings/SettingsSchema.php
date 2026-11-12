@@ -253,15 +253,24 @@ final class SettingsSchema {
 			'iprep'                  => array(
 				'enabled'   => false,
 				'driver'    => 'abuseipdb',
-				// 【v1.4·R3】fail 态负缓存 TTL（登录/评论共用，02 §2.3b）——配置修复/信誉恢复后 10min 自愈。
-				'negative_cache_minutes' => 10,
+				// 【v1.4·R3】fail 态负缓存 TTL（登录/评论共用，02 §2.3b）；【v1.7·M3-IP 定稿 §3.3】
+				// 默认 10→**60**（migrate 平移存量——恶意 IP 可复查降级+防同 IP 重复外呼；
+				// 键在 iprep 顶层非 abuseipdb 子树——实况键名，O5-P1-2「保实况键名」原则）。
+				// 缓存归一后由 AbuseIpdbService 统一消费（定稿 §2——LoginIpRep 退役缓存职能）。
+				'negative_cache_minutes' => 60,
 				'abuseipdb' => array(
-					'api_key'        => '',
-					'suspect_score'  => 60,
+					'api_key'         => '',
+					'suspect_score'   => 60,
 					'malicious_score' => 85,
-					'cache_minutes'  => 60,
-					'daily_quota'    => 4750, // 账户实配 5000/天（贡献者+认证站长档，2026-11-09 确认）留 5% 缓冲。
-					'timeout'        => 1,    // 【v1.4·澄清A】查询超时秒（无重试短超时档；防呆 1-5；R2/R3 超时键合并裁决=驱动级一键，登录/评论预检/提交期三处消费）。【v1.4 作废】fail_mode 键删除（三态语义定死强制验证码，02 §2.3b）。
+					// 【v1.7·M3-IP 定稿 §3.3】pass 缓存 TTL 默认 60→**1440**（24h，migrate 平移
+					// 存量——WF V5 变体「干净 IP 不重复查」省配额）。
+					'cache_minutes'   => 1440,
+					// 【v1.7·M3-IP 定稿 §3.1 步 4】软顶新键默认 **3000**/日：当日 abuseipdb 计数
+					// ≥3000 → 不再外呼按 fail 处理（宁可从严不可静默放行，02 §2.3b②）——
+					// < daily_quota 硬停转 4750，两道额度闸；AbuseIpdbService 统一消费。
+					'soft_quota'      => 3000,
+					'daily_quota'     => 4750, // 账户实配 5000/天（贡献者+认证站长档，2026-11-09 确认）留 5% 缓冲。
+					'timeout'         => 1,    // 【v1.4·澄清A】查询超时秒（无重试短超时档；防呆 1-5；R2/R3 超时键合并裁决=驱动级一键，登录/评论预检/提交期三处消费）。【v1.4 作废】fail_mode 键删除（三态语义定死强制验证码，02 §2.3b）。
 				),
 				'report'    => array( // 验证失败上报（D12），独立于 iprep.enabled.
 					'enabled'          => true,
@@ -314,10 +323,14 @@ final class SettingsSchema {
 	 *   ① captcha.login_adaptive.threshold 值平移至 user_threshold（老站自定义阈值不丢）；
 	 *   ② captcha.login_adaptive.max_user_keys 丢弃（真实用户过滤后洪泛面消失，02 §3.2 v1.4）；
 	 *   ③ iprep.abuseipdb.fail_mode 丢弃（澄清 A：三态语义定死强制验证码，旧值忽略）；
+	 *   ③b【v1.7·M3-IP 定稿 §3.3】两 TTL 默认平移——iprep.abuseipdb.cache_minutes 旧默认
+	 *     特征值 60 / iprep.negative_cache_minutes 旧默认特征值 10 → 移除键由 merge_defaults
+	 *     补新默认 1440/60（站长自定义值原样保留；soft_quota 新键同批整树补齐）；
 	 *   ④ review.cloud.chain == ['deepseek']（v1.3 前的默认值、站长从未动过）→ []；
 	 *     其它已存值（如 ['tencent_tms']）原样保留（merge_defaults 不覆盖已存值）；
 	 *   ⑤ 新键（gates.register/lostpassword、captcha.trust 六键、iprep.negative_cache_minutes、
-	 *     iprep.abuseipdb.timeout、stats.raw_*）由随后的 merge_defaults 补齐整树；
+	 *     iprep.abuseipdb.timeout、stats.raw_*、【v1.7】iprep.abuseipdb.soft_quota）由随后的
+	 *     merge_defaults 补齐整树；
 	 *   ⑥ schema_version 收口为当前常量。
 	 *
 	 * 旧登录 transient（组合键 wk_lf_* 非 ip/flag 形态、wk_lf_idx_*）零迁移——TTL 15min
@@ -352,6 +365,22 @@ final class SettingsSchema {
 		// ③ iprep.abuseipdb.fail_mode 丢弃。
 		if ( isset( $existing['iprep']['abuseipdb'] ) && is_array( $existing['iprep']['abuseipdb'] ) ) {
 			unset( $existing['iprep']['abuseipdb']['fail_mode'] );
+		}
+
+		// ③b【v1.7·M3-IP 定稿 §3.3】两 TTL 默认平移（O5-P1-2 保实况键名）：已存值==旧默认
+		// 特征值（cache_minutes=60 / negative_cache_minutes=10，站长从未动过）→ 移除键由
+		// 随后 merge_defaults 补新默认（1440/60）；站长自定义值原样保留（v1.4 ④ chain
+		// 特征值先例）。缓存 TTL 非站长关键运营参数——平移语义=新默认直接生效。
+		if ( isset( $existing['iprep']['abuseipdb'] ) && is_array( $existing['iprep']['abuseipdb'] ) ) {
+			if ( array_key_exists( 'cache_minutes', $existing['iprep']['abuseipdb'] )
+				&& 60 === (int) $existing['iprep']['abuseipdb']['cache_minutes'] ) {
+				unset( $existing['iprep']['abuseipdb']['cache_minutes'] );
+			}
+		}
+		if ( isset( $existing['iprep'] ) && is_array( $existing['iprep'] )
+			&& array_key_exists( 'negative_cache_minutes', $existing['iprep'] )
+			&& 10 === (int) $existing['iprep']['negative_cache_minutes'] ) {
+			unset( $existing['iprep']['negative_cache_minutes'] );
 		}
 
 		// ④ v1.3 前默认链 ['deepseek']（站长从未动过云审核的特征值）→ []；其余已存值保留。

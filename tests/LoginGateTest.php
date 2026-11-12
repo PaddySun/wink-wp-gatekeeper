@@ -169,19 +169,22 @@ final class LoginGateTest extends TestCase {
 	/**
 	 * 可编程假 iprep（state 可钉死；调用计数；settings 可覆盖 iprep_gate 等）。
 	 */
-	private function iprep( string $state, int &$calls = 0, array $overrides = array() ): \WinkGatekeeper\Gates\LoginIpRep {
+	private function iprep( string $state, int &$calls = 0, array $overrides = array(), array &$seen_ctx = array() ): \WinkGatekeeper\Gates\LoginIpRep {
 		$store = array();
 		return new \WinkGatekeeper\Gates\LoginIpRep(
 			self::settings( $overrides ),
-			new class( $state, $calls ) implements \WinkGatekeeper\Ip\IpReputationProbe {
+			new class( $state, $calls, $seen_ctx ) implements \WinkGatekeeper\Ip\IpReputationProbe {
 				private $state;
 				private $calls;
-				public function __construct( string $state, int &$calls ) {
-					$this->state = $state;
-					$this->calls = &$calls;
+				private $seen_ctx;
+				public function __construct( string $state, int &$calls, array &$seen_ctx ) {
+					$this->state    = $state;
+					$this->calls    = &$calls;
+					$this->seen_ctx = &$seen_ctx;
 				}
-				public function probe( string $ip ): ?Verdict {
+				public function probe( string $ip, array $ctx = array() ): ?Verdict {
 					$this->calls++;
+					$this->seen_ctx[] = $ctx;
 					if ( 'skip' === $this->state ) {
 						return null;
 					}
@@ -710,6 +713,29 @@ final class LoginGateTest extends TestCase {
 	}
 
 	/* ---------- 【v1.4·澄清A/F39】IP 信誉三态联动 ---------- */
+
+	/**
+	 * 【v1.7·M3-IP·定稿 §3.4】渲染路径 cache_only / 提交路径完整模式分接线：
+	 * render_orchestrate 的 iprep 查询传 cache_only=true（零外呼只读）；
+	 * verify_orchestrate 与 XML-RPC（登录提交期）保持完整模式（空 ctx）。
+	 */
+	public function test_iprep_render_uses_cache_only_and_verify_uses_full_mode(): void {
+		$calls = 0;
+		$seen_ctx = array();
+		$rep = $this->iprep( 'fail', $calls, array(), $seen_ctx );
+
+		$log = array();
+		$mk  = $this->gate( $this->fake_captcha( null ), $log, array(), null, $rep );
+		$this->assertStringContainsString( 'data-gate="login"', $mk['gate']->render_orchestrate( self::server(), true ), '渲染期 fail → 出码（fail 无论来源——未命中从严/cache 命中 reject 同路径）' );
+		$this->assertSame( array( array( 'cache_only' => true ) ), $seen_ctx, '渲染路径 probe ctx=cache_only:true（定稿 §3.4 渲染期永远零外呼）' );
+
+		$seen_ctx2 = array();
+		$rep2 = $this->iprep( 'fail', $calls, array(), $seen_ctx2 );
+		$log2 = array();
+		$mk2  = $this->gate( $this->fake_captcha( null ), $log2, array(), null, $rep2 );
+		$mk2['gate']->verify_orchestrate( 'admin', array( 'wk_stub' => self::unshown_stub() ), self::server(), false, true );
+		$this->assertSame( array( array() ), $seen_ctx2, '验证路径（登录提交期）probe ctx 空=完整模式（唯二外呼点之二）' );
+	}
 
 	public function test_iprep_fail_drives_render_verify_and_xmlrpc_block(): void {
 		$calls = 0;

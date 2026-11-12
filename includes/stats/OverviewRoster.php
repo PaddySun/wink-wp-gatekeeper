@@ -59,6 +59,9 @@ final class OverviewRoster {
 	 *       usage          array<string, int>                   driver_id => 今日调用数。
 	 *       counts         array<string, array<string, int>>    driver_id => by_driver
 	 *                                今日计数（InterceptDigest::driver_counts 形态）。
+	 *       iprep_enabled  bool     iprep.enabled（【v1.7·M3-IP】IP 类驱动当班判定——
+	 *                                定稿 §9 AbuseIPDB 卡入点名册；enabled+必填齐=当班，
+	 *                                !enabled+必填齐=待命蓝点（已配置未启用），必填缺=未配置）。
 	 * }
 	 * @return array<int, array<string, mixed>> 卡组（driver_id/label/type/role/duty/
 	 *                duty_word/halt/healthy/health_word/halt_note/summary/config_tab）。
@@ -71,6 +74,7 @@ final class OverviewRoster {
 		$halted         = isset( $ctx['halted'] ) && is_array( $ctx['halted'] ) ? $ctx['halted'] : array();
 		$usage          = isset( $ctx['usage'] ) && is_array( $ctx['usage'] ) ? $ctx['usage'] : array();
 		$counts         = isset( $ctx['counts'] ) && is_array( $ctx['counts'] ) ? $ctx['counts'] : array();
+		$iprep_enabled  = ! empty( $ctx['iprep_enabled'] );
 
 		$cards = array();
 		foreach ( $drivers as $meta ) {
@@ -89,7 +93,7 @@ final class OverviewRoster {
 			$missing = DriverConfigSpec::missing_fields( $meta, $config );
 			if ( array() !== $missing ) {
 				$duty = self::DUTY_UNCONFIGURED;
-			} elseif ( self::is_on_duty( $id, $type, $captcha_driver, $cloud_enabled, $chain ) ) {
+			} elseif ( self::is_on_duty( $id, $type, $captcha_driver, $cloud_enabled, $chain, $iprep_enabled ) ) {
 				$duty = self::DUTY_ACTIVE;
 			} else {
 				$duty = self::DUTY_STANDBY;
@@ -114,7 +118,7 @@ final class OverviewRoster {
 				'summary'     => self::DUTY_UNCONFIGURED === $duty
 					? ''
 					: self::card_summary( $duty, $type, $used, $driver_counts ),
-				'config_tab'  => 'captcha' === $type ? 'captcha' : 'review',
+				'config_tab'  => 'captcha' === $type ? 'captcha' : ( 'ip' === $type ? 'iprep' : 'review' ),
 			);
 		}
 
@@ -127,18 +131,22 @@ final class OverviewRoster {
 	}
 
 	/**
-	 * 当班判定（验证码=driver 选中；云审=启用 ∧ 在链）。
+	 * 当班判定（验证码=driver 选中；云审=启用 ∧ 在链；【v1.7·M3-IP】IP=iprep.enabled）。
 	 *
 	 * @param string   $id             驱动 id。
 	 * @param string   $type           驱动类型。
 	 * @param string   $captcha_driver settings captcha.driver。
 	 * @param bool     $cloud_enabled  review.cloud.enabled。
 	 * @param string[] $chain          review.cloud.chain。
+	 * @param bool     $iprep_enabled  iprep.enabled（IP 类驱动当班=功能开关开）。
 	 * @return bool
 	 */
-	private static function is_on_duty( string $id, string $type, string $captcha_driver, bool $cloud_enabled, array $chain ): bool {
+	private static function is_on_duty( string $id, string $type, string $captcha_driver, bool $cloud_enabled, array $chain, bool $iprep_enabled = false ): bool {
 		if ( 'captcha' === $type ) {
 			return '' !== $captcha_driver && $captcha_driver === $id;
+		}
+		if ( 'ip' === $type ) {
+			return $iprep_enabled; // iprep.enabled=false（现状）→ 待命蓝点（已配置未启用）。
 		}
 		return $cloud_enabled && in_array( $id, $chain, true );
 	}
