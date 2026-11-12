@@ -504,6 +504,91 @@ final class CredentialProbe {
 	}
 
 	/**
+	 * Tab④ 分区②「测试凭据」三态分类（M3-IP 定稿 §6【O5 回写·P2-6】+ 03 Tab④【v1.7·M3-IP】，
+	 * I4 收官批；判定法=O5-P2-6 拍板）。
+	 *
+	 * 发一次最小 check 查询（AbuseIpdbService::probe_credentials——保留地址 127.0.0.2 +
+	 * maxAgeInDays=1 省配额）：
+	 *   - 绿：HTTP 200 且 body JSON 可解析——**isPublic:false 亦绿**（验证的是凭据不是 IP，
+	 *     保留地址必回 isPublic:false 是正常业务响应）；
+	 *   - 红：HTTP 401/402（AbuseIPDB 错误面全部经 HTTP 状态码表达——密钥被拒/订阅或配额不可用）；
+	 *   - 灰：HTTP 429（限流——凭据有效性未知不误报红档）/ 传输终态（超时/网络不可达）/
+	 *     HTTP 200 但 body 非 JSON（契约不符）——给原文与排查方向。
+	 *
+	 * 纯逻辑零 WP 依赖；AJAX 边界在 SettingsPage::ajax_test_iprep。
+	 *
+	 * @param RemoteResult $result 最小 check 查询的传输脊结果。
+	 * @return array{state: string, message: string, missing: string[], code: string}
+	 */
+	public static function classify_abuseipdb( RemoteResult $result ): array {
+		$payload = array( 'state' => 'gray', 'message' => '', 'missing' => array(), 'code' => '' );
+		$status  = $result->status();
+
+		// 红：401（密钥无效）/402（订阅或每日配额不可用）——密钥面红档。
+		if ( 401 === $status || 402 === $status ) {
+			$payload['code']    = 'HTTP ' . $status;
+			$payload['state']   = 'red';
+			$payload['message'] = '密钥被拒（HTTP ' . $status . ( 401 === $status ? '：API Key 无效' : '：订阅或每日配额不可用' ) . '）——请到 AbuseIPDB 控制台核对 API Key 与订阅状态后重试。';
+			return $payload;
+		}
+
+		// 灰：429 限流——凭据可能有效，不误报红档（给排查方向）。
+		if ( 429 === $status ) {
+			$payload['code']    = 'HTTP 429';
+			$payload['message'] = 'HTTP 429（请求被限流——免费档速率/每日配额约束）。凭据有效性本次无法确认——请稍后再试，或在 AbuseIPDB 控制台核对配额。';
+			return $payload;
+		}
+
+		// 绿态判据：HTTP 200 且 body JSON 可解析（isPublic:false 亦绿——O5-P2-6）。
+		// 契约判定先于传输兜底——200 但不可解析须报「契约不符」而非「网络不可达」（防误诊）。
+		$body    = $result->body();
+		$decoded = ( $result->is_ok() || RemoteResult::PARSE === $result->category() || RemoteResult::CONTRACT === $result->category() )
+			? ( '' !== $body ? json_decode( $body, true ) : null ) : null;
+		if ( is_array( $decoded ) && $result->is_ok() ) {
+			$is_public = is_array( $decoded['data'] ?? null ) && array_key_exists( 'isPublic', $decoded['data'] )
+				? (bool) $decoded['data']['isPublic'] : null;
+			$payload['state']   = 'green';
+			$payload['code']    = 'HTTP 200 + JSON';
+			$payload['message'] = '凭据可用（HTTP 200，响应 JSON 可解析）——查询链路已通。'
+				. ( false === $is_public ? '本次查询的是保留地址（isPublic:false 亦属绿态——验证的是凭据不是 IP）。' : '' );
+			return $payload;
+		}
+		if ( null !== $decoded || RemoteResult::PARSE === $result->category() || RemoteResult::CONTRACT === $result->category() ) {
+			// 2xx 但坏 JSON（传输脊归 PARSE）或其它契约形态——给排查方向不误报三态。
+			$payload['message'] = 'HTTP ' . ( $status > 0 ? $status : '200' ) . ' 但响应不是合法 JSON（契约不符——可能被中间层劫持/返回了 HTML）——请截图此信息联系排查。';
+			return $payload;
+		}
+
+		if ( ! $result->is_ok() ) {
+			// 非 API 错误的传输终态（连接失败/超时/5xx 等）。
+			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试（无国际出口的网络环境会持续此态）。';
+			return $payload;
+		}
+
+		// 200 且 body 非空但解析为空串等剩余形态——契约兜底。
+		$payload['message'] = 'HTTP 200 但响应不是合法 JSON（契约不符——可能被中间层劫持/返回了 HTML）——请截图此信息联系排查。';
+		return $payload;
+	}
+
+	/**
+	 * Tab④ 分区② 本地预检：API Key 空（含纯空白）→ 黄态（不发远端调用——空 Key 的请求
+	 * 必 401 且无诊断价值）；非空 → null（放行走远端最小查询）。
+	 *
+	 * @param string $api_key 已并入表单覆盖语义的 API Key。
+	 * @return array{state: string, message: string, missing: string[]}|null
+	 */
+	public static function local_precheck_abuseipdb( string $api_key ): ?array {
+		if ( '' !== trim( $api_key ) ) {
+			return null;
+		}
+		return array(
+			'state'   => 'yellow',
+			'message' => '必填字段缺少：API Key——请先在上方填入并保存（或填入后直接重测），再点「测试凭据」。',
+			'missing' => array( 'API Key' ),
+		);
+	}
+
+	/**
 	 * 解析 body JSON（4xx 语义分类不 decode data，此处自行解码读 Response.Error）。
 	 *
 	 * @param RemoteResult $result

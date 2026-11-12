@@ -915,6 +915,31 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	}
 
 	/**
+	 * 测试凭据最小查询（Tab④ 分区②「测试凭据」按钮，I4 收官批——CredentialProbe 先例形态）：
+	 * GET check?ipAddress=127.0.0.2&maxAgeInDays=1——保留地址 + 最小窗口省配额；
+	 * 判定「HTTP 200 且 JSON 可解析」即绿（isPublic:false 亦绿——验证的是凭据不是 IP，
+	 * O5-P2-6），分类在 CredentialProbe::classify_abuseipdb。
+	 *
+	 * 红线自证：零计量（不带 usage_key）、零写（不落缓存/退避/停转）、零事件——探测调用
+	 * 只读不落账，结果不进任何判定路径。
+	 *
+	 * @return RemoteResult 传输脊终态（绿/红/灰分类交 CredentialProbe）。
+	 */
+	public function probe_credentials(): RemoteResult {
+		return $this->remote->get(
+			self::CHECK_ENDPOINT . '?ipAddress=' . rawurlencode( '127.0.0.2' ) . '&maxAgeInDays=1',
+			array(
+				'headers' => array(
+					'Key'    => $this->api_key(),
+					'Accept' => 'application/json', // 官方要求（probe 同款——否则 429 可能回 HTML）。
+				),
+				'timeout' => 3, // 手动一次性探测（诊断四源同款 3s——probe() 的 1s 是闸内预算非探测预算）。
+				'mode'    => 'standard',
+			)
+		);
+	}
+
+	/**
 	 * 突增告警原始计数（wk_rp_spike 10min 固定窗；跨 20 阈值 → usage_spike 事件一次，
 	 * gate=system/stage=ip/verdict=review——告警非故障不入故障口径；同窗闩锁去重）。
 	 *

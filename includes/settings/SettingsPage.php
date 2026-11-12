@@ -22,12 +22,17 @@ use WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Intercept\Copywork;
+use WinkGatekeeper\Ip\AbuseIpdbCategories;
+use WinkGatekeeper\Ip\AbuseIpdbService;
 use WinkGatekeeper\Ip\IpDiagnostic;
+use WinkGatekeeper\Ip\IpReputationService;
 use WinkGatekeeper\Ip\IpResolver;
+use WinkGatekeeper\Ip\TrustedProxies;
 use WinkGatekeeper\Settings\CaptchaTabSpec;
 use WinkGatekeeper\Settings\CredentialProbe;
 use WinkGatekeeper\Settings\DriverConfigSpec;
 use WinkGatekeeper\Stats\DriverHealth;
+use WinkGatekeeper\Stats\Usage;
 
 final class SettingsPage {
 
@@ -74,6 +79,14 @@ final class SettingsPage {
 	 * 零自动调用（不带 usage_key），任一源失败仅该卡片失败**；结果不落库（纯请求态渲染）。
 	 */
 	const AJAX_IP_DIAGNOSE = 'wink_gatekeeper_ip_diagnose';
+
+	/**
+	 * Tab④ 分区②「测试凭据」AJAX action（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批）：
+	 * nonce + manage_options 双闸（B4 声明式纪律）；最小 check 查询（127.0.0.2 保留地址+
+	 * maxAgeInDays=1 省配额）三态——绿=HTTP 200 且 JSON 可解析（isPublic:false 亦绿——验证的
+	 * 是凭据不是 IP）/黄=缺参（API Key 空）/红=401/402 错钥；结果不落库（零计量零写）。
+	 */
+	const AJAX_TEST_IPREP = 'wink_gatekeeper_test_iprep';
 
 	/**
 	 * @var \WinkGatekeeper\Drivers\DriverRegistry|null Bootstrap 装配期注入的驱动注册表。
@@ -2190,26 +2203,457 @@ final class SettingsPage {
 	}
 
 	/* -------------------------------------------------------------------
-	 * Tab④ IP 信誉（M0 骨架：分区一 真实 IP 来源 M1 起生效）
-	 * 【M3-IP 定稿 §5.1，I0 批】顶卡=「IP 检测」诊断面板两区（纯函数 IpDiagnostic
-	 * + 本边界渲染）；占位三卡其余部分不动——全量四分区重写是 I4 批的事（定稿 §6）。
+	 * Tab④ IP 信誉——四分区全量（M3-IP 定稿 §6 + 03 Tab④【v1.7·M3-IP】回写版蓝本，
+	 * I4 收官批；原 M0 占位三卡退役——950/fail_mode/M3 实装文案漂移一并修正）：
+	 *   分区① 真实 IP 来源（network 子树 + 诊断面板嵌入位——I0 件原样挪入，行为零改动）
+	 *   分区② IP 信誉查询（iprep/iprep.abuseipdb 子树 + 测试凭据 AJAX + 健康行 + 软顶黄条）
+	 *   分区③ 上报（iprep.report 子树 T1–T4 + 出境黄条 + 只读闸参数 + 启用门禁状态行）
+	 *   分区④ 说明卡（三态人话 + 信用免验联动 + 软顶人话句）
+	 * 表单全走 register_setting 主保存通道（零新端点——除测试凭据 AJAX，§1 契约④）。
 	 * ------------------------------------------------------------------ */
 
 	private static function render_tab_iprep(): void {
 		$settings = self::settings();
-		self::render_ip_diagnostic_panel( $settings );
+		self::render_iprep_zone_source( $settings );
+		self::render_iprep_zone_check( $settings );
+		self::render_iprep_zone_report( $settings );
+		self::render_iprep_zone_notes( $settings );
+	}
+
+	/**
+	 * 分区① 真实 IP 来源（03 Tab④【v1.7·M3-IP】：影响验证码核验/登录计数/IP 信誉/上报
+	 * 全部 IP 链路故置顶）：获取模式下拉（direct/xff/traverse/custom_header+适用拓扑注记）+
+	 * 自定义头名 + 预设选择器（Cloudflare 官方段+快照核对日期；EdgeOne 空预设 UI 隐藏——
+	 * 定稿 §5.3，I0 行为保持）+ 受信网段 textarea + CIDR 前端校验按钮（零新端点纪律——
+	 * 服务端解析仍以 TrustedProxies::parse_cidr 为准，非法行保存时被解析层跳过并在
+	 * 诊断面板「自定义网段非法行」标出）+ 诊断面板嵌入位。
+	 *
+	 * @param array<string, mixed> $settings 设置树（merge_defaults 后全树）。
+	 * @return void
+	 */
+	private static function render_iprep_zone_source( array $settings ): void {
+		$network = isset( $settings['network'] ) && is_array( $settings['network'] ) ? $settings['network'] : array();
+		$proxies = isset( $network['trusted_proxies'] ) && is_array( $network['trusted_proxies'] ) ? $network['trusted_proxies'] : array();
+		$mode    = isset( $network['ip_source'] ) && is_string( $network['ip_source'] ) ? $network['ip_source'] : IpResolver::MODE_DIRECT;
+		$modes   = array(
+			IpResolver::MODE_DIRECT        => __( '直连 direct（默认）', 'wink-gatekeeper' ),
+			IpResolver::MODE_XFF           => __( 'XFF 信任链（仅取最右）', 'wink-gatekeeper' ),
+			IpResolver::MODE_TRAVERSE      => __( 'traverse 链式回溯（自建反代多级）', 'wink-gatekeeper' ),
+			IpResolver::MODE_CUSTOM_HEADER => __( '自定义头 custom_header', 'wink-gatekeeper' ),
+		);
 		?>
-		<section class="wk-card">
-			<h2><?php esc_html_e( '真实 IP 来源', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '获取模式（直连/XFF 信任链/自定义头）+ 信任代理网段（Cloudflare/EdgeOne 预置 + 自定义 CIDR）+ 解析预览。影响全部 IP 链路，M1 起生效（F29）。', 'wink-gatekeeper' ); ?></p>
+		<section class="wk-card" id="wk-iprep-source">
+			<h2 class="wk-sec-title"><?php esc_html_e( '真实 IP 来源', 'wink-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( '这里决定「访客的真实 IP 从哪读」——验证码核验、登录计数、IP 信誉与上报全部链路都以它为准。先确认下方诊断面板解析对了，再往下配。', 'wink-gatekeeper' ); ?></p>
+
+			<?php self::render_ip_diagnostic_panel( $settings ); // 【I4】I0 件原样挪入分区①——行为零改动只挪渲染位置。 ?>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-iprep-mode"><?php esc_html_e( '获取模式', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<select id="wk-iprep-mode" name="<?php echo esc_attr( self::field_name( array( 'network', 'ip_source' ) ) ); ?>">
+							<?php foreach ( $modes as $mode_key => $mode_label ) : ?>
+								<option value="<?php echo esc_attr( $mode_key ); ?>" <?php selected( $mode, $mode_key ); ?>><?php echo esc_html( $mode_label ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<p class="description">
+							<?php esc_html_e( '适用拓扑：站点直连源站→direct；Cloudflare 等 CDN 托管→custom_header（头名填 CF-Connecting-IP）；自建反代多级→traverse，并在受信网段填反代出口。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'traverse=REMOTE_ADDR 必须命中受信网段，再沿 XFF 从右往左跳过受信代理取第一个非受信 IP——不作默认：可直连源站的部署下回溯会把伪造链当真。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'REMOTE_ADDR 不在受信网段时，转发头一律忽略（防伪造不变式）。', 'wink-gatekeeper' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-custom-header"><?php esc_html_e( '自定义头名', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-iprep-custom-header" class="regular-text" placeholder="CF-Connecting-IP"
+							name="<?php echo esc_attr( self::field_name( array( 'network', 'custom_header' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $network['custom_header'] ?? '' ) ); ?>" />
+						<p class="description"><?php esc_html_e( '获取模式=自定义头时生效（单值 IP 头——Cloudflare 官方头 CF-Connecting-IP 是权威覆写头，伪造面最小）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '受信网段', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<!-- 预设选择器（定稿 §5.3：EdgeOne 官方无静态网段列表——UI 隐藏，I0 行为保持）。 -->
+						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'network', 'trusted_proxies', 'cloudflare' ) ) ); ?>" value="0" />
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'network', 'trusted_proxies', 'cloudflare' ) ) ); ?>" value="1" <?php checked( ! empty( $proxies['cloudflare'] ) ); ?> />
+							<?php
+							printf(
+								/* translators: 1: 快照核对日期 2: 网段条数 */
+								esc_html__( '使用 Cloudflare 官方段（%1$s 核对，v4+v6 共 %2$d 条）', 'wink-gatekeeper' ),
+								esc_html( (string) TrustedProxies::PRESET_VERIFIED ),
+								(int) count( TrustedProxies::CLOUDFLARE_V4 ) + count( TrustedProxies::CLOUDFLARE_V6 )
+							);
+							?>
+						</label>
+						<p class="description"><?php esc_html_e( 'EdgeOne 无官方静态网段列表（api.edgeone.ai/ips 动态发布、3–6 月轮换——空预设入选=静默无保护），故不提供预设；托管在 EdgeOne 的站点请在下方手填官方文档公布的回源网段。', 'wink-gatekeeper' ); ?></p>
+						<label class="screen-reader-text" for="wk-iprep-custom-cidr"><?php esc_html_e( '自定义受信网段', 'wink-gatekeeper' ); ?></label>
+						<textarea id="wk-iprep-custom-cidr" class="large-text" rows="4" placeholder="203.0.113.0/24&#10;2001:db8::/32"
+							name="<?php echo esc_attr( self::field_name( array( 'network', 'trusted_proxies', 'custom' ) ) ); ?>"><?php echo esc_textarea( (string) ( $proxies['custom'] ?? '' ) ); ?></textarea>
+						<p class="description"><?php esc_html_e( '每行一条 CIDR（或裸 IP，v4/v6）——通常是反代/负载均衡的出口网段。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+			</table>
+			<p>
+				<button type="button" class="button" id="wk-iprep-cidr-check"><?php esc_html_e( '校验网段格式', 'wink-gatekeeper' ); ?></button>
+				<span id="wk-iprep-cidr-result" class="wk-muted" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '校验为前端格式预检；非法行保存时由解析层跳过，并在上方诊断面板「自定义网段非法行」标出（校准工具：tools/api-smoke/refresh-presets.php）。', 'wink-gatekeeper' ); ?></p>
 		</section>
-		<section class="wk-card">
-			<h2><?php esc_html_e( 'IP 信誉查询', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( 'AbuseIPDB（M3）：阈值双滑杆（疑似 60/恶意 85）、缓存 1h、日配额 950、降级（放行/强制验证码）。', 'wink-gatekeeper' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * 分区② IP 信誉查询（03 Tab④【v1.7·M3-IP】——三态语义权威=02 §2.3b 澄清 A）：
+	 * enabled 开关+驱动下拉+api_key（password 型——P0-α 丢键教训）+阈值双滑杆（85/60）+
+	 * 软顶 3000+日配额 4750+缓存双键（cache_minutes 在 abuseipdb 子树、negative_cache_minutes
+	 * 在 iprep 顶层——实况键名，渲染读实况）+timeout（1–5s 防呆范围）+「测试凭据」按钮
+	 * （AJAX 三态，O5-P2-6 判定法）+健康行（state_label 三态+DriverHealth 停转态）+
+	 * 软顶命中黄条（【O5 回写·P2-4】）。
+	 *
+	 * @param array<string, mixed> $settings 设置树。
+	 * @return void
+	 */
+	private static function render_iprep_zone_check( array $settings ): void {
+		$iprep      = isset( $settings['iprep'] ) && is_array( $settings['iprep'] ) ? $settings['iprep'] : array();
+		$abuse      = isset( $iprep['abuseipdb'] ) && is_array( $iprep['abuseipdb'] ) ? $iprep['abuseipdb'] : array();
+		$soft_quota = max( 0, (int) ( $abuse['soft_quota'] ?? 3000 ) );
+		$soft_hit   = $soft_quota > 0 && Usage::daily_total_for( Usage::get(), 'abuseipdb' ) >= $soft_quota;
+		$halt       = DriverHealth::state_today( AbuseIpdbService::DRIVER_ID );
+		$health     = null !== $halt
+			? ( DriverHealth::STATE_QUOTA_EXHAUSTED === $halt
+				? __( '额度用完（当日停转——次日自动恢复）', 'wink-gatekeeper' )
+				: __( '配置问题（密钥被拒——当日停转；重存密钥并「测试凭据」绿态即解除）', 'wink-gatekeeper' ) )
+			: __( '正常', 'wink-gatekeeper' );
+		?>
+		<section class="wk-card" id="wk-iprep-check">
+			<h2 class="wk-sec-title"><?php esc_html_e( 'IP 信誉查询', 'wink-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( '启用后，评论与登录判定前会向 AbuseIPDB 查询访客 IP 的信誉分——恶意 IP 强制访客先过人机验证再放行。', 'wink-gatekeeper' ); ?></p>
+
+			<?php if ( $soft_hit ) : ?>
+				<div class="notice notice-warning inline"><p>
+					<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+					<strong><?php esc_html_e( '当日查询配额已用尽——今日人机验证将临时对所有访客强制，次日自动恢复。', 'wink-gatekeeper' ); ?></strong>
+					<?php esc_html_e( '软顶保护：当日查询计数达到软顶后不再外呼、一律按「不通过」从严处理——把最后配额留给缓冲，防信誉层对攻击者静默。', 'wink-gatekeeper' ); ?>
+				</p></div>
+			<?php endif; ?>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( '启用', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="0" />
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $iprep['enabled'] ) ); ?> />
+							<?php esc_html_e( '启用 IP 信誉查询（同时提升评论闸与登录闸两处防护——Tab② 联动开关默认开）', 'wink-gatekeeper' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( '未启用时信任链跳过该项，不影响信用免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，出码验证）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-driver"><?php esc_html_e( '服务商', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<select id="wk-iprep-driver" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'driver' ) ) ); ?>">
+							<option value="abuseipdb" <?php selected( 'abuseipdb', (string) ( $iprep['driver'] ?? 'abuseipdb' ) ); ?>><?php esc_html_e( 'AbuseIPDB（IP 信誉查询）', 'wink-gatekeeper' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( '当前可用的 IP 信誉服务商（更多厂商随后续里程碑接入）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-field-iprep-abuseipdb-api_key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'iprep', 'abuseipdb', 'api_key' ), '' !== (string) ( $abuse['api_key'] ?? '' ), 'API Key' ); ?>
+						<p class="description">
+							<?php esc_html_e( 'AbuseIPDB 免费档（贡献者 5000 次/天）在 abuseipdb.com 注册获取。仅服务端使用，不回显已存值。', 'wink-gatekeeper' ); ?>
+							<a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '获取 API Key', 'wink-gatekeeper' ); ?></a>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-malicious-score"><?php esc_html_e( '恶意阈值', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="range" id="wk-iprep-malicious-score" class="wk-score-slider" min="1" max="100" step="1"
+							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'malicious_score' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $abuse['malicious_score'] ?? 85 ) ); ?>" />
+						<output for="wk-iprep-malicious-score"><?php echo esc_html( (string) ( $abuse['malicious_score'] ?? 85 ) ); ?></output>
+						<p class="description"><?php esc_html_e( '信誉分≥此值判恶意（默认 85）——强制访客过人机验证。AbuseIPDB 信誉分为多报告者聚合，单票不成黑 IP。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-suspect-score"><?php esc_html_e( '疑似阈值', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="range" id="wk-iprep-suspect-score" class="wk-score-slider" min="1" max="100" step="1"
+							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'suspect_score' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $abuse['suspect_score'] ?? 60 ) ); ?>" />
+						<output for="wk-iprep-suspect-score"><?php echo esc_html( (string) ( $abuse['suspect_score'] ?? 60 ) ); ?></output>
+						<p class="description"><?php esc_html_e( '信誉分≥此值判可疑（默认 60）——与恶意阈值同为「不通过」档，强制验证码；两档差别仅在事件留档口径。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-soft-quota"><?php esc_html_e( '软顶', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-iprep-soft-quota" min="0" class="small-text"
+							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'soft_quota' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $abuse['soft_quota'] ?? 3000 ) ); ?>" />
+						<span class="wk-muted"><?php esc_html_e( '次/天（默认 3000；0=不限）——当日达到后不再外呼、一律按「不通过」从严处理（宁可从严不可静默放行）。', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-daily-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-iprep-daily-quota" min="0" class="small-text"
+							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'daily_quota' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $abuse['daily_quota'] ?? 4750 ) ); ?>" />
+						<span class="wk-muted"><?php esc_html_e( '次/天（默认 4750）——账户实配 5000/天留 5% 缓冲；达到后当日停转（429 触发，次日自愈）。', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-cache-minutes"><?php esc_html_e( '干净 IP 缓存', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-iprep-cache-minutes" min="0" class="small-text"
+							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'cache_minutes' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $abuse['cache_minutes'] ?? 1440 ) ); ?>" />
+						<span class="wk-muted"><?php esc_html_e( '分钟（默认 1440=24h）——查询判「通过」的 IP 结果缓存时长，省配额。', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-negative-cache-minutes"><?php esc_html_e( '可疑 IP 缓存', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-iprep-negative-cache-minutes" min="0" class="small-text"
+							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'negative_cache_minutes' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $iprep['negative_cache_minutes'] ?? 60 ) ); ?>" />
+						<span class="wk-muted"><?php esc_html_e( '分钟（默认 60=1h）——判「可疑/恶意」的短缓存，恶意 IP 可复查降级。', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-iprep-timeout"><?php esc_html_e( '查询超时', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="number" id="wk-iprep-timeout" min="1" max="5" class="small-text"
+							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'timeout' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $abuse['timeout'] ?? 1 ) ); ?>" />
+						<span class="wk-muted"><?php esc_html_e( '秒（1–5，默认 1）——超时按「不通过」从严处理（出码验证）；登录/评论预检/提交期三处共用此键。', 'wink-gatekeeper' ); ?></span>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '健康状态', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<p class="description">
+							<?php if ( null !== $halt ) : ?>
+								<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+							<?php else : ?>
+								<span class="wk-dot wk-dot--ok" aria-hidden="true"></span>
+							<?php endif; ?>
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: 停转态/正常 2: 装配态标签（未启用/已启用（AbuseIPDB）） */
+									__( '%1$s · %2$s', 'wink-gatekeeper' ),
+									$health,
+									IpReputationService::state_label( $settings )
+								)
+							);
+							?>
+						</p>
+					</td>
+				</tr>
+			</table>
+			<p>
+				<button type="button" class="button" id="wk-iprep-test-credentials"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_IPREP ) ); ?>">
+					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+				</button>
+				<span id="wk-iprep-test-result" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '发一次最小查询实测（查询保留地址 127.0.0.2，几乎不耗配额）：绿 = HTTP 200 且响应 JSON 可解析（凭据可用——保留地址返回 isPublic:false 亦绿，验证的是凭据不是 IP）；红 = 401/402 密钥被拒；黄 = API Key 未填。结果不落库。', 'wink-gatekeeper' ); ?></p>
 		</section>
-		<section class="wk-card">
-			<h2><?php esc_html_e( '验证失败上报', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '「有票才报」：仅验证码核验失败（有票）触发；同 IP 冷却 60 分钟、全局速率 60 次/小时。启用门禁需先通过真实 IP 自检。M3 实装（F30）。', 'wink-gatekeeper' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * 分区③ 上报（M3-IP 定稿 §4——触发集 T1–T4，拍板 0.4：每面独立开关+独立阈值，
+	 * 涉出境与隐私默认从关开始 T1 除外）：总开关+出境黄条（PIPL）+T1–T4 勾选组
+	 * （每面开关+阈值数字框（T2/T4）+类目下拉（AbuseIpdbCategories 1–23，默认类目标注）+
+	 * Comment 自定义框（空=默认短语，占位符提示+公开可见警示））+ 冷却/限速/日顶只读展示 +
+	 * 启用门禁状态行（real_ip_self_check 消费——未过=上报强制失效无开关，定稿 §4.3 闸④）。
+	 *
+	 * @param array<string, mixed> $settings 设置树。
+	 * @return void
+	 */
+	private static function render_iprep_zone_report( array $settings ): void {
+		$report   = isset( $settings['iprep']['report'] ) && is_array( $settings['iprep']['report'] ) ? $settings['iprep']['report'] : array();
+		$triggers = isset( $report['triggers'] ) && is_array( $report['triggers'] ) ? $report['triggers'] : array();
+		$self_ok  = AbuseIpdbService::real_ip_self_check(
+			isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array(), // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读 $_SERVER 展示，无表单消费。
+			$settings
+		);
+
+		// 触发面声明表（路径显式展开——schema 键面即渲染面，I3 注记「schema 键全集」）。
+		$faces = array(
+			'captcha_failed' => array(
+				'title'          => __( 'T1 · 验证码有票核验失败', 'wink-gatekeeper' ),
+				'desc'           => __( '有人提交了伪造或重放的验证票据——「有票才报」：未完成验证的提交（无票）不触发。默认开。', 'wink-gatekeeper' ),
+				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'captcha_failed' ),
+				'threshold_path' => null, // T1 无阈值——直达四道闸.
+				'category_path'  => array( 'iprep', 'report', 'category_captcha_failed' ),
+				'comment_path'   => array( 'iprep', 'report', 'comment_captcha_failed' ),
+				'comment_value'  => (string) ( $report['comment_captcha_failed'] ?? '' ),
+				'category_value' => (int) ( $report['category_captcha_failed'] ?? 0 ),
+			),
+			'review_reject'  => array(
+				'title'          => __( 'T2 · 云端审核拒绝累计', 'wink-gatekeeper' ),
+				'desc'           => __( '同一 IP 被云端审核判「拒绝」24 小时内累计达 N 次（内容垃圾发布者形态）。默认关。', 'wink-gatekeeper' ),
+				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'review_reject' ),
+				'threshold_path' => array( 'iprep', 'report', 'triggers', 'review_reject_threshold' ),
+				'threshold_value' => (int) ( $triggers['review_reject_threshold'] ?? 5 ),
+				'category_path'  => array( 'iprep', 'report', 'category_review_reject' ),
+				'comment_path'   => array( 'iprep', 'report', 'comment_review_reject' ),
+				'comment_value'  => (string) ( $report['comment_review_reject'] ?? '' ),
+				'category_value' => (int) ( $report['category_review_reject'] ?? 0 ),
+			),
+			'login_attempts' => array(
+				'title'          => __( 'T3 · 登录爆破（同 IP 计数饱和）', 'wink-gatekeeper' ),
+				'desc'           => __( '同一 IP 登录失败达到既有阈值（10 次/IP——沿登录闸现成计数，不单设阈值）。默认关。', 'wink-gatekeeper' ),
+				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'login_attempts' ),
+				'threshold_path' => null, // T3 沿用 LoginCounters 10 次/IP 不单设.
+				'category_path'  => array( 'iprep', 'report', 'category_login_attempts' ),
+				'comment_path'   => array( 'iprep', 'report', 'comment_login_attempts' ),
+				'comment_value'  => (string) ( $report['comment_login_attempts'] ?? '' ),
+				'category_value' => (int) ( $report['category_login_attempts'] ?? 0 ),
+			),
+			'local_rules_fail' => array(
+				'title'          => __( 'T4 · 本地规则拦截累计', 'wink-gatekeeper' ),
+				'desc'           => __( '同一 IP 被本地四规则闸（字数/无中文/禁词）拦 24 小时内累计达 N 次（预检与提交两处都计数）。默认关。', 'wink-gatekeeper' ),
+				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'local_rules_fail' ),
+				'threshold_path' => array( 'iprep', 'report', 'triggers', 'local_rules_fail_threshold' ),
+				'threshold_value' => (int) ( $triggers['local_rules_fail_threshold'] ?? 5 ),
+				'category_path'  => array( 'iprep', 'report', 'category_local_rules_fail' ),
+				'comment_path'   => array( 'iprep', 'report', 'comment_local_rules_fail' ),
+				'comment_value'  => (string) ( $report['comment_local_rules_fail'] ?? '' ),
+				'category_value' => (int) ( $report['category_local_rules_fail'] ?? 0 ),
+			),
+		);
+		?>
+		<section class="wk-card" id="wk-iprep-report">
+			<h2 class="wk-sec-title"><?php esc_html_e( '恶意行为上报', 'wink-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( '可选能力：把确凿的恶意行为报告给 AbuseIPDB 社区信誉库，帮全世界的站点一起识别这些 IP。默认全关。', 'wink-gatekeeper' ); ?></p>
+
+			<div class="notice notice-warning inline"><p>
+				<strong><?php esc_html_e( '启用后访客 IP 将提交至境外服务 AbuseIPDB。', 'wink-gatekeeper' ); ?></strong>
+				<?php esc_html_e( '报告详情在 AbuseIPDB 公开可见（不含评论内容）；请自行评估数据出境合规（PIPL）。', 'wink-gatekeeper' ); ?>
+			</p></div>
+
+			<p class="description">
+				<?php if ( $self_ok ) : ?>
+					<span class="wk-dot wk-dot--ok" aria-hidden="true"></span>
+					<?php esc_html_e( '启用门禁：真实 IP 自检通过——上报具备启用条件。', 'wink-gatekeeper' ); ?>
+				<?php else : ?>
+					<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+					<strong><?php esc_html_e( '上报已强制失效：真实 IP 解析异常（NAT/反代共显）。', 'wink-gatekeeper' ); ?></strong>
+					<?php esc_html_e( '当前请求来源为私网/无法判定——向信誉库上报共享出口 IP 会污染库；在分区① 配好受信反代并保存后自动恢复（此门禁无开关，宁可少报）。', 'wink-gatekeeper' ); ?>
+				<?php endif; ?>
+			</p>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( '上报总开关', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'report', 'enabled' ) ) ); ?>" value="0" />
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'report', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $report['enabled'] ) ); ?> />
+							<?php esc_html_e( '启用恶意行为上报（下方任一触发面命中才发送）', 'wink-gatekeeper' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( '独立于上方「IP 信誉查询」开关——只上报不查询；发送失败静默不影响拦截。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<?php foreach ( $faces as $face_key => $face ) : ?>
+					<tr>
+						<th scope="row"><?php echo esc_html( $face['title'] ); ?></th>
+						<td>
+							<input type="hidden" name="<?php echo esc_attr( self::field_name( $face['toggle_path'] ) ); ?>" value="0" />
+							<label>
+								<input type="checkbox" name="<?php echo esc_attr( self::field_name( $face['toggle_path'] ) ); ?>" value="1" <?php checked( ! empty( self::dig( $triggers, array( $face_key ), false ) ) ); ?> />
+								<?php esc_html_e( '启用此触发面', 'wink-gatekeeper' ); ?>
+							</label>
+							<p class="description"><?php echo esc_html( $face['desc'] ); ?></p>
+							<?php if ( null !== $face['threshold_path'] ) : ?>
+								<p>
+									<label for="wk-iprep-threshold-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( '阈值 N（24h 窗累计）', 'wink-gatekeeper' ); ?></label>
+									<input type="number" id="wk-iprep-threshold-<?php echo esc_attr( $face_key ); ?>" min="1" class="small-text"
+										name="<?php echo esc_attr( self::field_name( $face['threshold_path'] ) ); ?>"
+										value="<?php echo esc_attr( (string) ( $face['threshold_value'] ?? 5 ) ); ?>" />
+								</p>
+							<?php endif; ?>
+							<p>
+								<label for="wk-iprep-category-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( '上报类目', 'wink-gatekeeper' ); ?></label>
+								<select id="wk-iprep-category-<?php echo esc_attr( $face_key ); ?>"
+									name="<?php echo esc_attr( self::field_name( $face['category_path'] ) ); ?>">
+									<option value="0" <?php selected( 0, $face['category_value'] ); ?>>
+										<?php
+										printf(
+											/* translators: 1: 默认类目码 2: 默认类目名 */
+											esc_html__( '用默认（%1$d %2$s）', 'wink-gatekeeper' ),
+											(int) AbuseIpdbCategories::default_for( $face_key ),
+											esc_html( AbuseIpdbCategories::label( AbuseIpdbCategories::default_for( $face_key ) ) )
+										);
+										?>
+									</option>
+									<?php foreach ( AbuseIpdbCategories::MAP as $cat_id => $cat_label ) : ?>
+										<option value="<?php echo esc_attr( (string) $cat_id ); ?>" <?php selected( $cat_id, $face['category_value'] ); ?>><?php echo esc_html( $cat_id . ' ' . $cat_label ); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</p>
+							<p>
+								<label class="screen-reader-text" for="wk-iprep-comment-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( '自定义上报备注', 'wink-gatekeeper' ); ?></label>
+								<textarea id="wk-iprep-comment-<?php echo esc_attr( $face_key ); ?>" class="large-text" rows="2"
+									name="<?php echo esc_attr( self::field_name( $face['comment_path'] ) ); ?>"
+									placeholder="<?php esc_attr_e( '可留空用默认；支持占位符 {event_no}/{category}/{gate}', 'wink-gatekeeper' ); ?>"><?php echo esc_textarea( $face['comment_value'] ); ?></textarea>
+							</p>
+							<p class="description"><?php esc_html_e( '备注留空=用系统默认英文短语；请勿填写站点敏感信息与个人数据——AbuseIPDB 报告详情公开可见。发送时自动加前缀 [wink-wp-gatekeeper]（不可去除），超长自动截断。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( '限流参数（只读）', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<p class="description">
+							<?php
+							printf(
+								/* translators: 1: 冷却分钟 2: 每小时次数 3: 每日上限 */
+								esc_html__( '每 IP 冷却 %1$d 分钟 · 全局限速 %2$d 次/小时 · 日顶 %3$d 次/日（上报独立池，不占查询配额）。', 'wink-gatekeeper' ),
+								(int) ( $report['cooldown_minutes'] ?? 60 ),
+								(int) ( $report['hourly_limit'] ?? 60 ),
+								(int) ( $report['daily_cap'] ?? 500 )
+							);
+							?>
+							<?php esc_html_e( '冷却窗内重复触发免重报；10 分钟内触发超 20 次会在总览页提醒（可能有人在伪造票据灌水）。', 'wink-gatekeeper' ); ?>
+						</p>
+					</td>
+				</tr>
+			</table>
+		</section>
+		<?php
+	}
+
+	/**
+	 * 分区④ 说明卡（定稿 §6【O5 回写·P2-4】：三态语义人话各一行+与信用免验联动说明+
+	 * 软顶人话一句——非故障预期管理）。
+	 *
+	 * @return void
+	 */
+	private static function render_iprep_zone_notes(): void {
+		?>
+		<section class="wk-card" id="wk-iprep-notes">
+			<h2 class="wk-sec-title"><?php esc_html_e( '判定的三种结果（人话版）', 'wink-gatekeeper' ); ?></h2>
+			<ul class="description">
+				<li><?php esc_html_e( '跳过（skip）：IP 信誉未启用，或本次恰好查不了（退避/停转/私网）——不参与判定，验证照常走，也不影响「老朋友」免验资格。', 'wink-gatekeeper' ); ?></li>
+				<li><?php esc_html_e( '通过（pass）：信誉良好——照常放行，访客无感。', 'wink-gatekeeper' ); ?></li>
+				<li><?php esc_html_e( '不通过（fail）：恶意/可疑 IP，或配置错、超时、报错、超阈值——一律从严：强制访客先过人机验证再放行。', 'wink-gatekeeper' ); ?></li>
+			</ul>
+			<p class="description"><?php esc_html_e( '与信用免验的联动：IP 信誉判「不通过」时，就算是「老朋友」（信用免验通道）也会被要求先过一次码——新鲜判定压过信任凭证，过码后照常放行。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '当日查询配额用尽后，验证码将临时对所有访客强制——次日自动恢复，非故障。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
@@ -2447,6 +2891,52 @@ final class SettingsPage {
 		}
 
 		wp_send_json_success( array( 'ip' => $ip, 'cards' => $cards ) );
+	}
+
+	/**
+	 * Tab④ 分区②「测试凭据」AJAX 端点（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批；
+	 * 03 §1 契约④：nonce + manage_options 双闸；结果不落库）。
+	 *
+	 * 表单值（password 空串 = 回落已存值——与保存契约同语义，Tab② 先例）→ 本地预检
+	 * （API Key 空=黄态不发远端）→ AbuseIpdbService::probe_credentials 最小 check 查询
+	 * （127.0.0.2 保留地址+maxAgeInDays=1 省配额；零计量零写零事件）→
+	 * CredentialProbe::classify_abuseipdb 三态（绿=HTTP 200 且 JSON 可解析，isPublic:false
+	 * 亦绿——验证的是凭据不是 IP；红=401/402 错钥；灰=429/传输终态/契约不符）。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_iprep(): void {
+		check_ajax_referer( self::AJAX_TEST_IPREP, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+
+		$stored = get_option( self::OPTION_NAME, array() );
+		$stored = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		$stored_key = isset( $stored['iprep']['abuseipdb']['api_key'] ) && is_string( $stored['iprep']['abuseipdb']['api_key'] )
+			? $stored['iprep']['abuseipdb']['api_key'] : '';
+
+		// 表单值覆盖（password 空串保留已存值——Tab② probe_field 同语义）。
+		$api_key = self::probe_field( $post, 'api_key', $stored_key );
+
+		$precheck = CredentialProbe::local_precheck_abuseipdb( $api_key );
+		if ( null !== $precheck ) {
+			wp_send_json_success( $precheck );
+		}
+
+		$settings                     = $stored;
+		$settings['iprep']['abuseipdb']['api_key'] = $api_key;
+
+		$service = new AbuseIpdbService(
+			$settings,
+			new RemoteClient() // WP 边界：默认传输（探测一次——probe_credentials 零计量零写零事件）。
+		);
+		$state = CredentialProbe::classify_abuseipdb( $service->probe_credentials() );
+		wp_send_json_success( $state );
 	}
 
 	/* -------------------------------------------------------------------

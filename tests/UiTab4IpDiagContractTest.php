@@ -54,18 +54,14 @@ final class UiTab4IpDiagContractTest extends TestCase {
 		return '';
 	}
 
-	/* ---------- ① Tab④ 顶卡：诊断面板在占位三卡之前，占位三卡保留 ---------- */
+	/* ---------- ① Tab④ 顶卡：诊断面板嵌入分区①（I4 四分区重写后——I0 时为占位三卡前顶卡） ---------- */
 
-	public function test_diagnostic_panel_renders_before_placeholder_cards(): void {
-		$main = self::functionBody( self::settings_src(), 'render_tab_iprep' );
+	public function test_diagnostic_panel_embedded_in_source_zone(): void {
+		// 【I4 翻转】占位三卡退役，四分区重写（M3-IP 定稿 §6）——诊断面板原样挪入分区①
+		//（行为零改动只挪渲染位置）；契约由 UiTab4ZonesContractTest 承接四分区面。
+		$zone = self::functionBody( self::settings_src(), 'render_iprep_zone_source' );
 
-		$this->assertStringContainsString( 'render_ip_diagnostic_panel(', $main, '顶卡须调用诊断面板渲染' );
-		foreach ( array( '真实 IP 来源', 'IP 信誉查询', '验证失败上报' ) as $marker ) {
-			$this->assertStringContainsString( $marker, $main, "占位三卡保留（{$marker}——全量四分区重写是 I4）" );
-		}
-		$panel_pos  = strpos( $main, 'render_ip_diagnostic_panel(' );
-		$second_pos = strpos( $main, 'IP 信誉查询' );
-		$this->assertGreaterThan( $panel_pos, $second_pos, '诊断面板须在占位卡之前（顶卡）' );
+		$this->assertStringContainsString( 'render_ip_diagnostic_panel(', $zone, '诊断面板嵌入分区①（原顶卡位）' );
 	}
 
 	public function test_diagnostic_panel_two_zones_with_anchors(): void {

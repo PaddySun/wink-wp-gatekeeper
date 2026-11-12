@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.4.7
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.0 =
+
+I4·Tab④ 四分区全量 UI（M3-IP 定稿 §6 + 03 Tab④【v1.7·M3-IP】回写版蓝本，2026-11-12，**M3-IP 收官版**——原占位三卡退役，950/fail_mode/上报占位文案漂移全修）。① **分区①真实 IP 来源**：network 子树全量控件落位（此前零 UI——schema M1 已备）——获取模式下拉（direct/xff/traverse/custom_header 四档+适用拓扑注记三行：直连→direct/CF 托管→custom_header/自建反代多级→traverse+受信网段填反代出口；traverse 不作默认警示保留）、自定义头名输入、预设选择器（Cloudflare 官方段+PRESET_VERIFIED 快照核对日期；EdgeOne 空预设 UI 隐藏——I0 行为保持）、受信网段 textarea+「校验网段格式」前端预检按钮（零新端点纪律——服务端仍以 TrustedProxies::parse_cidr 为准，非法行保存时被解析层跳过并在诊断面板标出）；**I0「IP 检测」诊断面板原样挪入分区①**（行为零改动只挪渲染位置）。② **分区②IP 信誉查询**：enabled 开关+驱动下拉（AbuseIPDB）+api_key（password_field 单点渲染——P0-α 丢键教训，已配置✓ 不回显）+阈值双滑杆（恶意 85/疑似 60，type=range+output 随动）+软顶 3000+日配额 4750+缓存双键（干净 IP cache_minutes 在 abuseipdb 子树 1440/可疑 IP negative_cache_minutes 在 iprep 顶层 60——**实况键名渲染读实况**）+查询超时 1–5s+健康行（IpReputationService::state_label 三态+DriverHealth 停转态人话）+**软顶命中黄条**「当日查询配额已用尽——今日人机验证将临时对所有访客强制，次日自动恢复」【O5 回写·P2-4】+**「测试凭据」按钮**：新 AJAX 端点 `wink_gatekeeper_test_iprep`（nonce+manage_options 双闸，B4 声明式纪律）——AbuseIpdbService 新增 probe_credentials()（GET check?ipAddress=127.0.0.2&maxAgeInDays=1 最小查询省配额；**零计量零缓存零退避零停转零事件**）+CredentialProbe::classify_abuseipdb/local_precheck_abuseipdb（判定法【O5 回写·P2-6】：**绿=HTTP 200 且 JSON 可解析——isPublic:false 亦绿，验证的是凭据不是 IP**；黄=API Key 空本地预检不发远端；红=401/402 密钥被拒；灰=429 限流/传输终态/契约不符给排查方向不误报三态）；admin-brand.js 泛化件同款三态交互+「校验网段格式」前端校验+滑杆 output 随动。③ **分区③上报**：report.enabled 总开关+**出境黄条**（常驻：「启用后访客 IP 将提交至境外服务 AbuseIPDB」PIPL 提示）+**启用门禁状态行**（AbuseIpdbService::real_ip_self_check 消费——未过红字「上报已强制失效：真实 IP 解析异常（NAT/反代共显）」，无开关强制，配好受信反代自动恢复）+**T1–T4 勾选组**（每面独立开关+阈值数字框（仅 T2 review_reject_threshold/T4 local_rules_fail_threshold——T1 无阈值/T3 沿用登录闸 10 次/IP 不单设）+类目下拉（AbuseIpdbCategories::MAP 官方 1–23 全表+每面默认类目标注 T1/T3=18 Brute-Force、T2/T4=10 Web Spam，0=用默认）+**Comment 自定义框**（占位符提示「可留空用默认；支持占位符 {event_no}/{category}/{gate}」+「请勿填写站点敏感信息与个人数据——AbuseIPDB 报告详情公开可见」警示；发送时服务端自动拼接硬前缀 [wink-wp-gatekeeper]）+冷却 60 分钟/全局限速 60 次/小时/日顶 500 只读展示（不占查询配额独立池）。④ **分区④说明卡**：skip/pass/fail 三态语义人话各一行+与信用免验联动说明（iprep fail=「老朋友」通道也会被要求过码——新鲜判定压过信任凭证）+软顶人话句「当日查询配额用尽后，验证码将临时对所有访客强制——次日自动恢复，非故障」。测试 1445→1471 / 断言 9751→9931 全绿（UiTab4ZonesContractTest 新 16 例+CredentialProbeAbuseIpdbTest 新 10 例+UiTab4IpDiagContractTest 契约翻转（占位三卡退役→诊断面板嵌入分区①）+版本钉五测试文件同步 0.5.0）。真机（厦门 wpclean）：部署 0.5.0 后 Tab④ 四分区完整渲染 DOM/截图+测试凭据三态实测+测后复位（IMPL 报告：docs/reports/IMPL-I4-Tab4UI-2026-11-12.md；人工卡：docs/reports/MANUAL-CARD-M3-IP.md——report live 到达核验待公网出口环境）。
 
 = 0.4.7 =
 

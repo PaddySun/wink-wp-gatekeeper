@@ -176,6 +176,9 @@ final class Bootstrap {
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_BAIDU, array( SettingsPage::class, 'ajax_test_credentials_baidu' ) );
 		// Tab④ 诊断面板「手动聚合查询」（M3-IP 定稿 §5.1，I0 批：同双闸；零落库零缓存零统计红线）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_IP_DIAGNOSE, array( SettingsPage::class, 'ajax_ip_diagnose' ) );
+		// Tab④ 分区②「测试凭据」（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批：同双闸；
+		// 绿=HTTP 200 且 JSON 可解析（isPublic:false 亦绿）——零计量零写零事件）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_IPREP, array( SettingsPage::class, 'ajax_test_iprep' ) );
 	}
 
 	/**
