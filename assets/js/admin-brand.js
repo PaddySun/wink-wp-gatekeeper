@@ -534,4 +534,99 @@
 			} );
 		} );
 	}
+
+	/* -----------------------------------------------------------------
+	 * I0 · Tab④ 诊断面板「手动聚合查询」（M3-IP 定稿 §5.1：站长输 IP → 并行四源卡片——
+	 * 威胁组 AbuseIPDB/StopForumSpam/ip.nc.gy + 地理组 ip.sb。结果纯请求态渲染：
+	 * 不落库不缓存不计调用次数；任一源失败仅该卡片失败。
+	 * ----------------------------------------------------------------- */
+
+	var ipDiagButton = document.getElementById( 'wk-ip-diag-query' );
+	if ( ipDiagButton ) {
+		var ipDiagSourceLabels = {
+			abuseipdb: 'AbuseIPDB（威胁组）',
+			stopforumspam: 'StopForumSpam（威胁组）',
+			ipncgy: 'ip.nc.gy（威胁组）',
+			ipsb: 'ip.sb（地理组）'
+		};
+		var ipDiagOrder = [ 'abuseipdb', 'stopforumspam', 'ipncgy', 'ipsb' ];
+
+		function ipDiagRenderCard( sourceId, card ) {
+			var el = document.createElement( 'div' );
+			el.className = 'wk-ip-diag-card' + ( card && card.ok ? '' : ' wk-ip-diag-card--fail' );
+			el.id = 'wk-ip-diag-card-' + sourceId;
+			var html = '<h4>' + ( ipDiagSourceLabels[ sourceId ] || sourceId ) + '</h4>';
+			if ( card && card.ok ) {
+				html += '<dl class="wk-ip-diag-rows">';
+				Object.keys( card.rows || {} ).forEach( function ( key ) {
+					html += '<dt>' + key + '</dt><dd>' + ( card.rows[ key ] || '—' ) + '</dd>';
+				} );
+				html += '</dl>';
+			} else {
+				html += '<p class="wk-ip-diag-error">' + ( ( card && card.error ) || '查询失败。' ) + '</p>';
+			}
+			el.innerHTML = html;
+			return el;
+		}
+
+		ipDiagButton.addEventListener( 'click', function () {
+			var input = document.getElementById( 'wk-ip-diag-ip' );
+			var out = document.getElementById( 'wk-ip-diag-result' );
+			var status = document.getElementById( 'wk-ip-diag-status' );
+			var ip = input ? input.value.trim() : '';
+			if ( ! ip ) {
+				if ( status ) {
+					status.textContent = '请先输入要查询的 IP。';
+				}
+				return;
+			}
+
+			ipDiagButton.disabled = true;
+			if ( status ) {
+				status.textContent = '查询中……（3 秒超时/源，最长约 12 秒）';
+			}
+			if ( out ) {
+				out.textContent = '';
+			}
+
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_ip_diagnose' );
+			body.append( 'nonce', ipDiagButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'ip', ip );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( out ) {
+					out.textContent = '';
+				}
+				if ( ! payload || ! payload.success ) {
+					if ( status ) {
+						status.textContent = ( payload && payload.data && payload.data.message ) ? payload.data.message : '查询失败。';
+					}
+					return;
+				}
+				if ( status ) {
+					status.textContent = '已完成：' + ( payload.data.ip || ip );
+				}
+				var cards = ( payload.data && payload.data.cards ) || {};
+				if ( out ) {
+					ipDiagOrder.forEach( function ( sourceId ) {
+						out.appendChild( ipDiagRenderCard( sourceId, cards[ sourceId ] ) );
+					} );
+				}
+			} ).catch( function () {
+				if ( status ) {
+					status.textContent = '查询失败（网络错误）。';
+				}
+			} ).finally( function () {
+				ipDiagButton.disabled = false;
+			} );
+		} );
+	}
 }() );

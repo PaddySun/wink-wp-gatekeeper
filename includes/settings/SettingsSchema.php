@@ -232,10 +232,10 @@ final class SettingsSchema {
 
 			// 真实 IP 解析（D11/IpResolver，M1 起生效；Tab④ 分区一）。
 			'network'                => array(
-				'ip_source'       => 'direct', // direct | xff | custom_header.
+				'ip_source'       => 'direct', // direct | xff | custom_header | traverse【M3-IP 定稿 §5.2，I0 批：REMOTE_ADDR 须命中受信网段+XFF 链式回溯；不作默认】.
 				'trusted_proxies' => array(
 					'cloudflare' => false,
-					'edgeone'    => false,
+					'edgeone'    => false, // 【定稿 §5.3】空预设 UI 隐藏（常量保留占位——TrustedProxies 注记）.
 					'custom'     => '', // 每行一条 CIDR.
 				),
 				'custom_header'   => '', // 如 CF-Connecting-IP.

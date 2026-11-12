@@ -134,4 +134,37 @@ final class TrustedProxiesTest extends TestCase {
 		$proxies = TrustedProxies::from_settings( array() );
 		$this->assertFalse( $proxies->matches( '10.0.0.1' ) );
 	}
+
+	/* ---------- 预设校准 diff（M3-IP 定稿 §5.3，refresh-presets.php CLI 消费） ---------- */
+
+	public function test_diff_cloudflare_reports_added_and_removed(): void {
+		$diff = TrustedProxies::diff_cloudflare(
+			array( '173.245.48.0/20', '103.21.244.0/22', '192.0.2.0/24' ),   // 远端 v4（末条=常量没有的新段）.
+			array( '2400:cb00::/32' )                                        // 远端 v6 少 6 段.
+		);
+
+		$this->assertSame( array( '192.0.2.0/24' ), $diff['v4_added'], '远端有常量无 → added（人工确认后手改常量）' );
+		$this->assertContains( '103.22.200.0/22', $diff['v4_removed'], '常量有远端无 → removed' );
+		$this->assertContains( '173.245.48.0/20', $diff['v4_kept'], '两侧都有 → kept' );
+		$this->assertNotEmpty( $diff['v6_removed'], 'v6 快照缺失段须全部报 removed' );
+		$this->assertContains( '2400:cb00::/32', $diff['v6_kept'] );
+	}
+
+	public function test_diff_cloudflare_identical_snapshot_is_clean(): void {
+		$diff = TrustedProxies::diff_cloudflare( TrustedProxies::CLOUDFLARE_V4, TrustedProxies::CLOUDFLARE_V6 );
+		$this->assertSame( array(), $diff['v4_added'] );
+		$this->assertSame( array(), $diff['v4_removed'] );
+		$this->assertSame( array(), $diff['v6_added'] );
+		$this->assertSame( array(), $diff['v6_removed'] );
+		$this->assertCount( 15, $diff['v4_kept'] );
+		$this->assertCount( 7, $diff['v6_kept'] );
+	}
+
+	public function test_diff_cloudflare_ignores_whitespace_and_order(): void {
+		$remote_v4 = array_map( 'trim', array_reverse( TrustedProxies::CLOUDFLARE_V4 ) );
+		$remote_v4[] = "  192.0.2.0/24  \n";
+		$diff = TrustedProxies::diff_cloudflare( $remote_v4, TrustedProxies::CLOUDFLARE_V6 );
+		$this->assertSame( array( '192.0.2.0/24' ), $diff['v4_added'], '空白/顺序不影响 diff' );
+		$this->assertSame( array(), $diff['v4_removed'] );
+	}
 }

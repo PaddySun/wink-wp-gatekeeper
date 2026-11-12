@@ -22,6 +22,8 @@ use WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Intercept\Copywork;
+use WinkGatekeeper\Ip\IpDiagnostic;
+use WinkGatekeeper\Ip\IpResolver;
 use WinkGatekeeper\Settings\CaptchaTabSpec;
 use WinkGatekeeper\Settings\CredentialProbe;
 use WinkGatekeeper\Settings\DriverConfigSpec;
@@ -65,6 +67,13 @@ final class SettingsPage {
 	 * 结果不落库；绿态顺带解除 baidu 当日停转——05 §2.4 凭据自检三态/TMS 先例同款）。
 	 */
 	const AJAX_TEST_CREDENTIALS_BAIDU = 'wink_gatekeeper_test_credentials_baidu';
+
+	/**
+	 * Tab④ 诊断面板「手动聚合查询」AJAX action（M3-IP 定稿 §5.1，I0 批）：
+	 * nonce + manage_options 双闸；**设计红线：四源仅此手动区出现——零闸路径/零缓存/零统计/
+	 * 零自动调用（不带 usage_key），任一源失败仅该卡片失败**；结果不落库（纯请求态渲染）。
+	 */
+	const AJAX_IP_DIAGNOSE = 'wink_gatekeeper_ip_diagnose';
 
 	/**
 	 * @var \WinkGatekeeper\Drivers\DriverRegistry|null Bootstrap 装配期注入的驱动注册表。
@@ -2162,9 +2171,13 @@ final class SettingsPage {
 
 	/* -------------------------------------------------------------------
 	 * Tab④ IP 信誉（M0 骨架：分区一 真实 IP 来源 M1 起生效）
+	 * 【M3-IP 定稿 §5.1，I0 批】顶卡=「IP 检测」诊断面板两区（纯函数 IpDiagnostic
+	 * + 本边界渲染）；占位三卡其余部分不动——全量四分区重写是 I4 批的事（定稿 §6）。
 	 * ------------------------------------------------------------------ */
 
 	private static function render_tab_iprep(): void {
+		$settings = self::settings();
+		self::render_ip_diagnostic_panel( $settings );
 		?>
 		<section class="wk-card">
 			<h2><?php esc_html_e( '真实 IP 来源', 'wink-gatekeeper' ); ?></h2>
@@ -2179,6 +2192,241 @@ final class SettingsPage {
 			<p class="wk-muted"><?php esc_html_e( '「有票才报」：仅验证码核验失败（有票）触发；同 IP 冷却 60 分钟、全局速率 60 次/小时。启用门禁需先通过真实 IP 自检。M3 实装（F30）。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
+	}
+
+	/**
+	 * 「IP 检测」诊断面板（Tab④ 顶卡，M3-IP 定稿 §5.1——纯函数行矩阵 + 本 WP 边界渲染）。
+	 *
+	 * 本地解析区：REMOTE_ADDR（标受信命中）/CF-Connecting-IP/X-Real-IP/X-Forwarded-For
+	 * （逗号链逐项标 受信/公网/私网）+ 当前生效行五态 ip_src + 配置一致性红标 +
+	 * 受信网段行（预设名+手填 CIDR+快照校准日期，>180 天黄条；EdgeOne 空预设不入行——定稿 §5.3）。
+	 * 手动聚合查询区：站长输 IP → 四源卡片（出境说明常驻；结果纯请求态渲染不落库）。
+	 *
+	 * @param array<string, mixed> $settings 设置树（merge_defaults 后全树）。
+	 * @return void
+	 */
+	private static function render_ip_diagnostic_panel( array $settings ): void {
+		$panel = IpDiagnostic::analyze( $_SERVER, $settings['network'] ?? array(), time() ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读 $_SERVER 展示，无表单消费。
+
+		$scope_labels = array(
+			'trusted' => __( '受信', 'wink-gatekeeper' ),
+			'public'  => __( '公网', 'wink-gatekeeper' ),
+			'private' => __( '私网', 'wink-gatekeeper' ),
+			'invalid' => __( '非法', 'wink-gatekeeper' ),
+		);
+		$src_labels   = array(
+			IpResolver::SRC_DIRECT            => __( '直连', 'wink-gatekeeper' ),
+			IpResolver::SRC_XFF               => __( 'XFF 链', 'wink-gatekeeper' ),
+			IpResolver::SRC_HEADER            => __( '自定义头', 'wink-gatekeeper' ),
+			IpResolver::SRC_UNRESOLVED        => __( '未解析（回退）', 'wink-gatekeeper' ),
+			IpResolver::SRC_IGNORED_UNTRUSTED => __( '来源不受信·转发头已忽略', 'wink-gatekeeper' ),
+		);
+		$mode_labels  = array(
+			IpResolver::MODE_DIRECT        => __( '直连 direct', 'wink-gatekeeper' ),
+			IpResolver::MODE_XFF           => __( 'XFF 信任链（仅取最右）', 'wink-gatekeeper' ),
+			IpResolver::MODE_CUSTOM_HEADER => __( '自定义头 custom_header', 'wink-gatekeeper' ),
+			IpResolver::MODE_TRAVERSE      => __( 'traverse 链式回溯', 'wink-gatekeeper' ),
+		);
+		?>
+		<section class="wk-card" id="wk-iprep-diag">
+			<h2><?php esc_html_e( 'IP 检测诊断面板', 'wink-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( '本面板展示「当前这次页面请求」的解析实况；下方手动查询会把所输 IP 发往四个服务商（AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb）——结果仅本次展示、不落库不缓存、不计调用次数。', 'wink-gatekeeper' ); ?></p>
+
+			<h3 class="wk-sub-title"><?php esc_html_e( '本地解析区', 'wink-gatekeeper' ); ?></h3>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'REMOTE_ADDR', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<code><?php echo '' !== $panel['remote']['raw'] ? esc_html( $panel['remote']['raw'] ) : esc_html__( '（缺失）', 'wink-gatekeeper' ); ?></code>
+						<span class="wk-muted">
+							<?php
+							printf(
+								/* translators: 1: 作用域标注 2: 受信命中说明 */
+								esc_html__( '%1$s、%2$s', 'wink-gatekeeper' ),
+								esc_html( $scope_labels[ $panel['remote']['scope'] ] ?? (string) $panel['remote']['scope'] ),
+								esc_html( $panel['remote']['trusted'] ? __( '命中受信网段', 'wink-gatekeeper' ) : __( '不在受信网段', 'wink-gatekeeper' ) )
+							);
+							?>
+						</span>
+					</td>
+				</tr>
+				<?php foreach ( $panel['headers'] as $header_row ) : ?>
+					<tr>
+						<th scope="row"><?php echo esc_html( $header_row['name'] ); ?></th>
+						<td>
+							<?php if ( null === $header_row['raw'] ) : ?>
+								<span class="wk-muted"><?php esc_html_e( '（本请求未出现）', 'wink-gatekeeper' ); ?></span>
+							<?php else : ?>
+								<code><?php echo esc_html( (string) $header_row['raw'] ); ?></code>
+								<?php $items = array(); ?>
+								<?php foreach ( $header_row['items'] as $item ) : ?>
+									<?php
+									$items[] = sprintf(
+										'%s（%s）',
+										(null !== $item['ip']) ? $item['ip'] : $item['raw'],
+										$scope_labels[ $item['scope'] ] ?? (string) $item['scope']
+									);
+									?>
+								<?php endforeach; ?>
+								<?php if ( array() !== $items ) : ?>
+									<span class="wk-muted"><?php echo esc_html( implode( ' · ', $items ) ); ?></span>
+								<?php endif; ?>
+							<?php endif; ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( '当前生效', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<strong><code><?php echo esc_html( '' !== $panel['effective']['ip'] ? $panel['effective']['ip'] : '—' ); ?></code></strong>
+						<span class="wk-muted">
+							<?php
+							printf(
+								/* translators: 1: 五态 ip_src 2: 获取模式 */
+								esc_html__( 'ip_src=%1$s · 模式=%2$s', 'wink-gatekeeper' ),
+								esc_html( ( $src_labels[ $panel['effective']['ip_src'] ] ?? (string) $panel['effective']['ip_src'] ) . '（' . $panel['effective']['ip_src'] . '）' ),
+								esc_html( $mode_labels[ $panel['mode'] ] ?? (string) $panel['mode'] )
+							);
+							?>
+						</span>
+					</td>
+				</tr>
+			</table>
+
+			<?php if ( $panel['flag'] ) : ?>
+				<p class="description">
+					<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+					<?php
+					printf(
+						/* translators: %s: 配置的自定义头名 */
+						esc_html__( '配置一致性：已配置自定义头「%s」但本请求没有该头——请核对当前拓扑（Wordfence「Configured but not valid」同款警示）。', 'wink-gatekeeper' ),
+						esc_html( $panel['custom_header'] )
+					);
+					?>
+				</p>
+			<?php endif; ?>
+
+			<p class="description">
+				<span class="wk-muted">
+					<?php
+					$trusted_bits = array();
+					foreach ( $panel['trusted']['rows'] as $row ) {
+						$trusted_bits[] = sprintf( '%s（%d 条）', $row['label'], (int) $row['count'] );
+					}
+					if ( null !== $panel['trusted']['verified'] ) {
+						$trusted_bits[] = sprintf(
+							/* translators: %s: 快照核对日期 */
+							__( '预设快照核对日期：%s', 'wink-gatekeeper' ),
+							(string) $panel['trusted']['verified']
+						);
+					}
+					echo esc_html( array() !== $trusted_bits
+						? __( '受信网段：', 'wink-gatekeeper' ) . implode( ' · ', $trusted_bits )
+						: __( '受信网段：（未启用任何预设或自定义网段——转发头一概不参与解析）', 'wink-gatekeeper' ) );
+					?>
+				</span>
+			</p>
+			<?php if ( $panel['trusted']['stale'] ) : ?>
+				<p class="wk-notice-inline-warn description">
+					<?php
+					printf(
+						/* translators: 1: 快照日期 2: 距今天数 */
+						esc_html__( '受信网段快照已超过 180 天（最后核对 %1$s，距今 %2$d 天）——网段可能过期，请校准（开发期工具 tools/api-smoke/refresh-presets.php 拉官方最新段 diff 后人工手改）。', 'wink-gatekeeper' ),
+						esc_html( (string) $panel['trusted']['verified'] ),
+						(int) ( $panel['trusted']['age_days'] ?? 0 )
+					);
+					?>
+				</p>
+			<?php endif; ?>
+			<?php if ( array() !== $panel['trusted']['invalid'] ) : ?>
+				<p class="description">
+					<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+					<?php
+					printf(
+						/* translators: %s: 非法行列表 */
+						esc_html__( '自定义网段非法行（已跳过）：%s', 'wink-gatekeeper' ),
+						esc_html( implode( '、', $panel['trusted']['invalid'] ) )
+					);
+					?>
+				</p>
+			<?php endif; ?>
+
+			<h3 class="wk-sub-title"><?php esc_html_e( '手动聚合查询区', 'wink-gatekeeper' ); ?></h3>
+			<p>
+				<label class="screen-reader-text" for="wk-ip-diag-ip"><?php esc_html_e( '要查询的 IP 地址', 'wink-gatekeeper' ); ?></label>
+				<input type="text" id="wk-ip-diag-ip" class="regular-text" placeholder="8.8.8.8 或 2001:db8::1" autocomplete="off" />
+				<button type="button" class="button" id="wk-ip-diag-query" data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_IP_DIAGNOSE ) ); ?>"><?php esc_html_e( '查询四源', 'wink-gatekeeper' ); ?></button>
+				<span id="wk-ip-diag-status" class="wk-muted" aria-live="polite"></span>
+			</p>
+			<div id="wk-ip-diag-result" class="wk-ip-diag-grid"></div>
+			<p class="description wk-muted">
+				<?php esc_html_e( '威胁组：AbuseIPDB（评分/用途/ISP/Tor）· StopForumSpam（黑名单出现/频次）· ip.nc.gy（代理/VPN/Tor/机房/CDN/匿名六旗）；地理组：ip.sb（归属地/ISP/ASN）。查询超时 3 秒/源；任一源失败仅该卡片失败，其余照常出数。', 'wink-gatekeeper' ); ?>
+			</p>
+		</section>
+		<?php
+	}
+
+	/**
+	 * Tab④ 诊断面板「手动聚合查询」AJAX（M3-IP 定稿 §5.1，I0 批）。
+	 *
+	 * nonce + manage_options 双闸（03 §1 契约④）；四源 URL 常量集中一处
+	 * （IpDiagnostic::REMOTE_SOURCES，§12-2——https 硬约束由 RemoteClient::check_url 再验一道）；
+	 * RemoteClient standard timeout 3s；**零落库零缓存零统计**（无 transient/option 写、无 usage_key）；
+	 * 任一源失败仅该卡片失败（error 卡片人话由 IpDiagnostic::card_error）。
+	 *
+	 * @return void
+	 */
+	public static function ajax_ip_diagnose(): void {
+		check_ajax_referer( self::AJAX_IP_DIAGNOSE, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post   = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+		$ip_raw = isset( $post['ip'] ) && is_string( $post['ip'] ) ? trim( $post['ip'] ) : '';
+		$ip     = IpResolver::normalize( $ip_raw );
+		if ( null === $ip ) {
+			wp_send_json_error( array( 'message' => __( 'IP 格式无效。', 'wink-gatekeeper' ) ), 400 );
+		}
+
+		$stored  = get_option( self::OPTION_NAME, array() );
+		$stored  = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		$api_key = isset( $stored['iprep']['abuseipdb']['api_key'] ) && is_string( $stored['iprep']['abuseipdb']['api_key'] )
+			? $stored['iprep']['abuseipdb']['api_key'] : '';
+
+		$urls   = IpDiagnostic::source_urls( $ip );
+		$client = new RemoteClient(); // WP 边界默认传输；诊断查询零计量（不传计量键）。
+
+		$cards = array();
+		foreach ( $urls as $id => $url ) {
+			$args = array(
+				'timeout'           => 3,
+			);
+			if ( 'abuseipdb' === $id ) {
+				if ( '' === $api_key ) {
+					$cards[ $id ] = array( 'ok' => false, 'rows' => array(), 'error' => __( '未配置 API Key（Tab④ 分区二）', 'wink-gatekeeper' ) );
+					continue;
+				}
+				$args['headers'] = array(
+					'Key'    => $api_key,
+					'Accept' => 'application/json',
+				);
+			}
+			$result = $client->get( $url, $args );
+			if ( $result->is_ok() && is_array( $result->data() ) ) {
+				$cards[ $id ] = IpDiagnostic::parse_source( $id, $result->data() );
+			} else {
+				$cards[ $id ] = array(
+					'ok'    => false,
+					'rows'  => array(),
+					'error' => IpDiagnostic::card_error( $result->category(), $result->status() ),
+				);
+			}
+		}
+
+		wp_send_json_success( array( 'ip' => $ip, 'cards' => $cards ) );
 	}
 
 	/* -------------------------------------------------------------------

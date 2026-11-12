@@ -500,3 +500,52 @@
 	color: var(--wk-fog);
 	font-size: 0.9rem;
 }
+
+/* -----------------------------------------------------------------
+ * I0 · Tab④ 诊断面板（M3-IP 定稿 §5.1：本地解析区行矩阵 + 手动聚合四源卡片网格）
+ * ----------------------------------------------------------------- */
+
+.wk-ip-diag-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 0.8rem;
+	margin: 0.8rem 0;
+}
+
+.wk-ip-diag-card:empty {
+	display: none;
+}
+
+.wk-ip-diag-card {
+	border: 1px solid var(--wk-line);
+	border-radius: 4px;
+	padding: 0.6rem 0.8rem;
+	margin: 0;
+}
+
+.wk-ip-diag-card h4 {
+	margin: 0 0 0.4rem;
+	font-size: 0.9rem;
+}
+
+.wk-ip-diag-rows {
+	margin: 0;
+}
+
+.wk-ip-diag-rows dt {
+	float: left;
+	clear: left;
+	width: 6.5em;
+	color: var(--wk-fog);
+}
+
+.wk-ip-diag-rows dd {
+	margin: 0 0 0.15rem 7em;
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.wk-ip-diag-error {
+	margin: 0;
+	color: #b32d2e;
+}

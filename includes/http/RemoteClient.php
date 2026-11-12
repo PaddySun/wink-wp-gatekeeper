@@ -61,7 +61,8 @@ final class RemoteClient {
 	private const RETRY_AFTER_CAP_MS = 30000;
 
 	/**
-	 * @var callable fn(string $url, array $wp_args): array|\WP_error 实际传输器。
+	 * @var callable|null fn(string $url, array $wp_args): array|\WP_Error 实际传输器
+	 *                    （null=按方法取默认：post→wp_remote_post / get→wp_remote_get 薄包装）。
 	 */
 	private $transport;
 
@@ -76,21 +77,14 @@ final class RemoteClient {
 	private $sleeper;
 
 	/**
-	 * @param callable|null     $transport 传输器；缺省 = wp_remote_post 薄包装（WP 边界）。
+	 * @param callable|null     $transport 传输器；缺省 = 按方法取 wp_remote_post/get 薄包装（WP 边界）。
 	 * @param callable|null     $usage     计量钩子；缺省不计量（WP 边界由 Bootstrap 接 Usage::bump）。
 	 * @param callable|null     $sleeper   睡眠器；缺省 usleep。
 	 */
 	public function __construct( ?callable $transport = null, ?callable $usage = null, ?callable $sleeper = null ) {
-		$this->transport = $transport
-			?: static function ( string $url, array $args ) {
-				// WP 边界：wp_http_validate_url 双保险（含 DNS 解析后的私网校验，静态推断标注）。
-				if ( false === wp_http_validate_url( $url ) ) {
-					return new \WP_Error( 'http_request_url_failed', 'URL rejected by wp_http_validate_url' );
-				}
-				return wp_remote_post( $url, $args );
-			};
-		$this->usage   = $usage;
-		$this->sleeper = $sleeper ?: static function ( int $ms ): void {
+		$this->transport = $transport;
+		$this->usage     = $usage;
+		$this->sleeper   = $sleeper ?: static function ( int $ms ): void {
 			usleep( $ms * 1000 );
 		};
 	}
@@ -111,6 +105,32 @@ final class RemoteClient {
 	 * @return RemoteResult
 	 */
 	public function post( string $url, array $args = array() ): RemoteResult {
+		return $this->send( $url, $args, false );
+	}
+
+	/**
+	 * 发起远端 GET（I0 批新增动词——M3-IP 定稿 §5.1/§12-2：诊断面板四源查询走
+	 * RemoteClient standard timeout 3s；AbuseIPDB check（§3.1）/StopForumSpam/ip.nc.gy/ip.sb
+	 * 均为 GET 端点。红线与 post 同脊：https 强制/拒私网/redirection=0/sslverify=true/
+	 * 重试纪律同模式；计量按 usage_key 显式传入才计量——诊断面板调用不带 usage_key=零统计）。
+	 *
+	 * @param string $url  目标 URL（https 强制）。
+	 * @param array  $args 同 post()（body 对 GET 无意义）。
+	 * @return RemoteResult
+	 */
+	public function get( string $url, array $args = array() ): RemoteResult {
+		return $this->send( $url, $args, true );
+	}
+
+	/**
+	 * 发送编排（post/get 共脊）：出站红线 → wp_args 组装 → classify → 重试纪律 → 耗时标注。
+	 *
+	 * @param string $url    目标 URL。
+	 * @param array  $args   调用参数（同 post() docblock）。
+	 * @param bool   $is_get true=GET 动词（默认传输取 wp_remote_get）。
+	 * @return RemoteResult
+	 */
+	private function send( string $url, array $args, bool $is_get ): RemoteResult {
 		$mode = ( 'report' === ( $args['mode'] ?? 'standard' ) ) ? 'report' : 'standard';
 
 		// 出站红线：URL 校验失败 = 本地快速失败（semantic：不重试、驱动当日停转口径一致）。
@@ -130,6 +150,21 @@ final class RemoteClient {
 			'decompress'  => true,
 		);
 
+		// 传输器：注入优先；缺省按方法取 WP 薄包装（wp_http_validate_url 双保险同款）。
+		$transport = $this->transport ?? ( $is_get
+			? static function ( string $url, array $args ) {
+				if ( false === wp_http_validate_url( $url ) ) {
+					return new \WP_Error( 'http_request_url_failed', 'URL rejected by wp_http_validate_url' );
+				}
+				return wp_remote_get( $url, $args );
+			}
+			: static function ( string $url, array $args ) {
+				if ( false === wp_http_validate_url( $url ) ) {
+					return new \WP_Error( 'http_request_url_failed', 'URL rejected by wp_http_validate_url' );
+				}
+				return wp_remote_post( $url, $args );
+			} );
+
 		$result      = null;
 		$attempts    = 0;
 		$usage_key   = isset( $args['usage_key'] ) && is_string( $args['usage_key'] ) ? $args['usage_key'] : '';
@@ -143,7 +178,7 @@ final class RemoteClient {
 			}
 
 			$result = RemoteResult::classify(
-				call_user_func( $this->transport, $url, $wp_args ),
+				call_user_func( $transport, $url, $wp_args ),
 				array(
 					'required' => isset( $args['required'] ) && is_array( $args['required'] ) ? $args['required'] : array(),
 					'probe'    => isset( $args['probe'] ) && is_callable( $args['probe'] ) ? $args['probe'] : null,

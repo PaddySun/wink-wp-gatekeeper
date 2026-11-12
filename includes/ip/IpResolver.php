@@ -11,6 +11,9 @@
  *           否则忽略头（信任链不变式：防直连伪造，R11）；
  *   custom_header → REMOTE_ADDR ∈ 信任段才读自定义头（CF-Connecting-IP 类 CDN 权威覆写头，
  *           CDN 站点推荐模式）。
+ *   traverse【M3-IP 定稿 §5.2，I0 批】→ REMOTE_ADDR ∈ 信任段才对 XFF 做链式回溯
+ *           （traverse_xff：从右往左跳过受信代理取第一个非受信 IP，多级反代专用）；
+ *           REMOTE_ADDR 不受信时恒退化=照 xff 档处理（转发头一律忽略）。不作默认。
  *
  * 归一化条款（v1.2）：去端口/方括号、::ffff: 反映射、IPv6 压缩小写；CIDR 匹配数值比较
  * （TrustedProxies 消费本类 normalize()）。任一步失败按非法值跳过：头值非法/缺失回退
@@ -43,6 +46,13 @@ final class IpResolver {
 	public const MODE_DIRECT        = 'direct';
 	public const MODE_XFF           = 'xff';
 	public const MODE_CUSTOM_HEADER = 'custom_header';
+	/**
+	 * traverse 档（M3-IP 定稿 §5.2，I0 批）：REMOTE_ADDR 必须命中受信网段 + XFF 从右往左
+	 * 跳过受信代理取第一个非受信 IP（traverse_xff() 零件纯接线）。不作默认——可直连源站
+	 * 部署下回溯会把伪造链当真（v1.2 安全审核 P0 警示保留）；REMOTE_ADDR 不受信时恒退化
+	 * =照 rightmost 档（xff）处理：转发头一律忽略（信任链不变式 R11 不破）。
+	 */
+	public const MODE_TRAVERSE      = 'traverse';
 
 	/**
 	 * @var string 当前解析模式。
@@ -64,7 +74,7 @@ final class IpResolver {
 	 */
 	public function __construct( array $network_settings = array() ) {
 		$mode         = $network_settings['ip_source'] ?? self::MODE_DIRECT;
-		$this->mode   = in_array( $mode, array( self::MODE_DIRECT, self::MODE_XFF, self::MODE_CUSTOM_HEADER ), true )
+		$this->mode   = in_array( $mode, array( self::MODE_DIRECT, self::MODE_XFF, self::MODE_CUSTOM_HEADER, self::MODE_TRAVERSE ), true )
 			? $mode
 			: self::MODE_DIRECT; // 未知取值回落直连（保守：不读任何转发头）。
 
@@ -89,6 +99,25 @@ final class IpResolver {
 		if ( null === $remote ) {
 			// REMOTE_ADDR 缺失/非法：无任何可信来源。
 			return array( 'ip' => '', 'ip_src' => self::SRC_UNRESOLVED );
+		}
+
+		if ( self::MODE_TRAVERSE === $this->mode ) {
+			// traverse 档（M3-IP 定稿 §5.2）：REMOTE_ADDR 不受信时恒退化=照 rightmost 档处理
+			// （转发头一律忽略，信任链不变式 R11 不破——伪造链任意变化不得生效）。
+			if ( ! $this->trusted->matches( $remote ) ) {
+				return array( 'ip' => $remote, 'ip_src' => self::SRC_IGNORED_UNTRUSTED );
+			}
+			$xff = self::header_value( $server, 'X-Forwarded-For' );
+			if ( null === $xff ) {
+				return array( 'ip' => $remote, 'ip_src' => self::SRC_UNRESOLVED );
+			}
+			// 链式回溯：从右往左跳过受信代理取第一个非受信 IP；全链信任 → null 回退 REMOTE_ADDR。
+			$ip = self::traverse_xff( $xff, $this->trusted );
+			if ( null === $ip ) {
+				return array( 'ip' => $remote, 'ip_src' => self::SRC_UNRESOLVED );
+			}
+			// ip_src 五态枚举不扩：IP 取自 XFF 链 → xff（落事件 meta 口径不变）。
+			return array( 'ip' => $ip, 'ip_src' => self::SRC_XFF );
 		}
 
 		if ( self::MODE_XFF === $this->mode ) {

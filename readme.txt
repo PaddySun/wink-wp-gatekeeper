@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.4.3
+Stable tag: 0.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,6 +38,11 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.4.4 =
+
+I0·IP 解析层三件（M3-IP 定稿 §5，2026-11-12）：① Tab④ 顶卡「IP 检测」诊断面板两区——本地解析区：REMOTE_ADDR（标受信命中）/CF-Connecting-IP/X-Real-IP/X-Forwarded-For（逗号链逐项标 受信/公网/私网，复用 normalize）+ 当前生效行五态 ip_src（direct/xff/header/unresolved/ignored_untrusted——ignored_untrusted 可视化=wink 信任链不变式）+ 配置一致性红标（配 custom_header 但本请求无该头）+ 受信网段行（预设名+手填 CIDR+快照校准日期 PRESET_VERIFIED>180 天黄条「网段可能过期请校准」；EdgeOne 空预设不入行——§5.3 UI 隐藏）；手动聚合查询区：站长输 IP → 并行四源卡片（威胁组 AbuseIPDB verbose 评分/用途/ISP/Tor + StopForumSpam appears/frequency + ip.nc.gy 代理六旗+ASN/组织；地理组 ip.sb 归属地/ISP/ASN——免 Key 源零闸路径零缓存零统计零自动调用；AbuseIPDB 用站长已配 key；RemoteClient standard timeout 3s 纯请求态渲染不落库；任一源失败仅该卡片失败；面板顶部出境说明一行；AJAX wink_gatekeeper_ip_diagnose nonce+manage_options 双闸）。② network.ip_source 新增 traverse 枚举档：REMOTE_ADDR 必须命中受信网段 + XFF 从右往左跳过受信代理取第一个非受信 IP（IpResolver::traverse_xff 零件纯接线）；REMOTE_ADDR 不受信时恒退化=照 rightmost 档处理（转发头一律忽略，信任链不变式 R11 不破）；全链信任回退 REMOTE_ADDR（unresolved）；ip_src 五态不扩（traverse 成功=xff）；不作默认（可直连源站部署下回溯会把伪造链当真）。③ 预设校准 CLI tools/api-smoke/refresh-presets.php：拉 Cloudflare 官方 ips-v4/v6 与 TrustedProxies 常量 diff 输出差异报告（人工确认后手改常量——运行时零外网依赖守 G5；本机实测 15+7 段与官方一致零差异）；EdgeOne 空预设 UI 隐藏决策落 TrustedProxies 注记（官方无静态网段列表，api.edgeone.ai/ips 动态发布 3–6 月轮换——空预设入选=静默无保护）。传输脊：RemoteClient 新增 get() 动词（与 post 同脊：https 强制/拒私网/redirection=0/sslverify=true/重试纪律同模式/按 usage_key 显式传入才计量——诊断四源调用不带 usage_key=零统计）。测试 1262→1322 / 断言 8634→8854 全绿（IpResolverTraverseTest 12 + IpDiagnosticTest 28 + RemoteClientGetTest 8 + TrustedProxiesTest diff 3 + UiTab4IpDiagContractTest 9；版本钉五测试文件同步 0.4.4）。真机（厦门 wpclean）：部署 0.4.4 后 Tab④ 诊断面板两区 DOM 断言+手动查询 8.8.8.8 四卡片实测（IMPL 报告：docs/reports/IMPL-I0-解析层-2026-11-12.md）。
+
 
 = 0.4.3 =
 

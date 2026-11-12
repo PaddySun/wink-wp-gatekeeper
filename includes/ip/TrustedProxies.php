@@ -62,6 +62,11 @@ final class TrustedProxies {
 	/**
 	 * EdgeOne 段快照：官方无静态列表（回源网段轮换，经 API 获取——见类注释），
 	 * M1 以空数组交付（站长自定义 CIDR 过渡），快照自动化留后续版本。
+	 *
+	 * 【M3-IP 定稿 §5.3，I0 批】空预设 UI 隐藏决策：预设选择器与诊断面板受信网段行
+	 * **一律不显示 EdgeOne 空项**——空预设入选=静默无保护，必须消灭。官方无静态网段列表
+	 * （api.edgeone.ai/ips 动态发布、约 3–6 个月轮换——https://cloud.tencent.com/document/product/1552/76086），
+	 * 未来 refresh-presets 校准脚本支持补段（拉取动态接口快照固化）后再放开 UI。
 	 */
 	public const EDGEONE = array();
 
@@ -203,6 +208,64 @@ final class TrustedProxies {
 	 */
 	public function invalid_lines(): array {
 		return $this->invalid;
+	}
+
+	/**
+	 * Cloudflare 官方段校准 diff（M3-IP 定稿 §5.3；tools/api-smoke/refresh-presets.php 消费）。
+	 *
+	 * 输入拉取到的官方 ips-v4/ips-v6 文本行 → 与本类常量 diff：added（远端有常量无——
+	 * 升级候选）/ removed（常量有远端无——过期候选）/ kept（两侧都有）。
+	 * **脚本只输出报告，不自动改常量**——人工确认后手改 CLOUDFLARE_V4/V6 + PRESET_VERIFIED
+	 * （运行时零外网依赖守 G5：本方法纯函数，外呼只发生在开发期 CLI）。
+	 *
+	 * @param string[] $remote_v4 官方 ips-v4 文本行（逐行，容忍空白）。
+	 * @param string[] $remote_v6 官方 ips-v6 文本行。
+	 * @return array{v4_added: string[], v4_removed: string[], v4_kept: string[], v6_added: string[], v6_removed: string[], v6_kept: string[]}
+	 */
+	public static function diff_cloudflare( array $remote_v4, array $remote_v6 ): array {
+		return array(
+			'v4_added'   => self::diff_one_side( self::CLOUDFLARE_V4, $remote_v4, 'removed_from_remote' ),
+			'v4_removed' => self::diff_one_side( self::CLOUDFLARE_V4, $remote_v4, 'missing_from_remote' ),
+			'v4_kept'    => self::diff_one_side( self::CLOUDFLARE_V4, $remote_v4, 'kept' ),
+			'v6_added'   => self::diff_one_side( self::CLOUDFLARE_V6, $remote_v6, 'removed_from_remote' ),
+			'v6_removed' => self::diff_one_side( self::CLOUDFLARE_V6, $remote_v6, 'missing_from_remote' ),
+			'v6_kept'    => self::diff_one_side( self::CLOUDFLARE_V6, $remote_v6, 'kept' ),
+		);
+	}
+
+	/**
+	 * 单族 diff（键归一化：trim；顺序无关）。
+	 *
+	 * @param string[] $const  常量侧。
+	 * @param string[] $remote 远端侧。
+	 * @param string   $which  removed_from_remote（远端有常量无）| missing_from_remote | kept。
+	 * @return string[]
+	 */
+	private static function diff_one_side( array $const, array $remote, string $which ): array {
+		$norm = static function ( array $lines ): array {
+			$out = array();
+			foreach ( $lines as $line ) {
+				if ( ! is_string( $line ) ) {
+					continue;
+				}
+				$line = trim( $line );
+				if ( '' !== $line ) {
+					$out[ $line ] = true;
+				}
+			}
+			return $out;
+		};
+
+		$const_set  = $norm( $const );
+		$remote_set = $norm( $remote );
+
+		switch ( $which ) {
+			case 'removed_from_remote':
+				return array_values( array_keys( array_diff_key( $remote_set, $const_set ) ) );
+			case 'missing_from_remote':
+				return array_values( array_keys( array_diff_key( $const_set, $remote_set ) ) );
+		}
+		return array_values( array_keys( array_intersect_key( $const_set, $remote_set ) ) );
 	}
 
 	/**

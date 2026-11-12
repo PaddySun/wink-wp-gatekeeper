@@ -172,6 +172,8 @@ final class Bootstrap {
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN, array( SettingsPage::class, 'ajax_test_credentials_aliyun_green' ) );
 		// Tab③ 百度「测试凭据」（B6：同双闸；绿态 = 探测 conclusionType=1，顺带解除 baidu 停转——05 §2.4）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_BAIDU, array( SettingsPage::class, 'ajax_test_credentials_baidu' ) );
+		// Tab④ 诊断面板「手动聚合查询」（M3-IP 定稿 §5.1，I0 批：同双闸；零落库零缓存零统计红线）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_IP_DIAGNOSE, array( SettingsPage::class, 'ajax_ip_diagnose' ) );
 	}
 
 	/**
