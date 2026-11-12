@@ -65,3 +65,10 @@
 - **订阅刷新**：订阅为静态快照（2026-11-13 拉取）——刷新=本机重新拉取（testkit-local/mihomo-test/ 内有现成流程与探针脚本）→ scp 覆盖 sub.yaml → `systemctl restart mihomo`。
 - **实测证据（2026-11-13）**：gstatic 204 0.5s / AbuseIPDB 401（无凭据预期）/ 四源 200×4（SFS/ip.nc.gy/ip.sb/ipquery 经 wp_remote_get）/ verbose check 8.8.8.8 → 200 score=0 CDN US（I2 check 全链绿态首证）。
 - **回滚**：`systemctl disable --now mihomo` + wp-config 还原备份 + `ufw delete allow in on br-49174db99c85 to any port 7890 proto tcp`（注意接口名必须全称，截断名静默失效——本批踩坑实录）。
+
+## 出境补验证据（2026-11-13，VERIFY 批——mihomo 上线后 M3-IP pending 补齐实录）
+
+- **绿态（I2 check/测试凭据）**：probe('8.8.8.8') 真外呼 950ms→pass score=0+`wk_ip_abuseipdb_eb47ace5bc52de48` 落位+usage delta=1；同参复探 1ms cached:true delta=0；Tab④「测试凭据」AJAX 真页 nonce 通道 **HTTP 200/1.42s state=green**（I4 灰态 11.1s 清账）；bad nonce 403 反证。
+- **受理（report 429 面）**：report_ip('127.0.0.2') 官方矢量外呼→**HTTP 429 官方语义 body**（"You can only report the same IP address once in 15 minutes"/source.parameter=ip）→静默 false+事件 error meta.raw http=429+冷却/last_report_at/usage 按尝试落账三形态全证=丢报无损；3/3 次全 429（矢量 15min 去重窗被全球测试流量占用，含窗净首发）——200 受理面未现（如实 FAIL 登记，人工卡 M4 备注）；`check(127.0.0.2) totalReports=0`=矢量丢弃语义+零污染自证。
+- **四源 live（I0 浏览器出数）**：`wk_gatekeeper_ip_diagnose` ip=8.8.8.8 → HTTP 200/5.32s **ok:true×4**（AbuseIPDB verbose/StopForumSpam/ip.nc.gy/ip.sb 全字段）+ Edge headless 四卡同框截图（fetch 劫持注入实抓 live JSON+程序化点击——**坑：headless `--screenshot` 场景 `scrollIntoView()` 产出确定性空白帧，用全页大窗替代**；transient 落位证据走 `redis-cli --scan`——wp_options 在 redis drop-in 下恒空）。
+- 详录：`docs/reports/VERIFY-出境补验-2026-11-13.md`（外层 docs）；截图 `i5-credential-green.png`/`panel-live-four-sources.png`。。
