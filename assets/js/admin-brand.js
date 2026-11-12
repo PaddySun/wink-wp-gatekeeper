@@ -693,71 +693,89 @@
 	 * + 阈值双滑杆 output 数值随动（无 JS 时 output 显示服务器渲染值，不阻塞）。
 	 * ----------------------------------------------------------------- */
 
+	/* 行格式校验共享件（I5：受信网段与白名单两处 textarea 复用同一校验——每行一条
+	 * CIDR 或裸 IP，粗检与服务端 TrustedProxies::parse_cidr 同口径，服务端为权威）。 */
+	function wkValidV4( ip ) {
+		var parts = ip.split( '.' );
+		if ( parts.length !== 4 ) {
+			return false;
+		}
+		for ( var i = 0; i < 4; i++ ) {
+			if ( ! /^\d{1,3}$/.test( parts[ i ] ) || parseInt( parts[ i ], 10 ) > 255 ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function wkValidV6( ip ) {
+		// 粗检（服务端 inet_pton 为权威）：冒号在场、十六进制段合法、双冒号至多一个。
+		if ( ! /^[0-9a-fA-F:]+$/.test( ip ) || ip.indexOf( ':' ) === -1 ) {
+			return false;
+		}
+		return ip.split( '::' ).length <= 2;
+	}
+
+	function wkCheckCidrLines( raw ) {
+		var lines = raw.split( /\r\n|\r|\n/ );
+		var bad = [];
+		var good = 0;
+		lines.forEach( function ( line ) {
+			var entry = line.trim();
+			if ( ! entry ) {
+				return;
+			}
+			var slash = entry.indexOf( '/' );
+			var ip = slash === -1 ? entry : entry.slice( 0, slash );
+			var prefix = slash === -1 ? null : entry.slice( slash + 1 );
+			var ok = wkValidV4( ip ) || wkValidV6( ip );
+			if ( ok && prefix !== null ) {
+				if ( ! /^\d+$/.test( prefix ) ) {
+					ok = false;
+				} else if ( ip.indexOf( ':' ) === -1 && parseInt( prefix, 10 ) > 32 ) {
+					ok = false;
+				} else if ( ip.indexOf( ':' ) !== -1 && parseInt( prefix, 10 ) > 128 ) {
+					ok = false;
+				}
+			}
+			if ( ok ) {
+				good++;
+			} else {
+				bad.push( entry );
+			}
+		} );
+		return { good: good, bad: bad };
+	}
+
+	function wkRenderCidrResult( out, checked ) {
+		if ( ! out ) {
+			return;
+		}
+		if ( checked.bad.length === 0 ) {
+			out.textContent = '全部 ' + checked.good + ' 行格式合法。';
+			out.className = 'wk-muted';
+		} else {
+			out.textContent = '有 ' + checked.bad.length + ' 行不是合法 CIDR/IP：' + checked.bad.slice( 0, 3 ).join( '、' ) + ( checked.bad.length > 3 ? ' 等' : '' ) + '。';
+			out.className = 'wk-probe wk-probe--yellow';
+		}
+	}
+
 	var cidrButton = document.getElementById( 'wk-iprep-cidr-check' );
 	if ( cidrButton ) {
 		cidrButton.addEventListener( 'click', function () {
 			var input = document.getElementById( 'wk-iprep-custom-cidr' );
 			var out = document.getElementById( 'wk-iprep-cidr-result' );
-			var raw = input ? input.value : '';
-			var lines = raw.split( /\r\n|\r|\n/ );
-			var bad = [];
-			var good = 0;
+			wkRenderCidrResult( out, wkCheckCidrLines( input ? input.value : '' ) );
+		} );
+	}
 
-			function validV4( ip ) {
-				var parts = ip.split( '.' );
-				if ( parts.length !== 4 ) {
-					return false;
-				}
-				for ( var i = 0; i < 4; i++ ) {
-					if ( ! /^\d{1,3}$/.test( parts[ i ] ) || parseInt( parts[ i ], 10 ) > 255 ) {
-						return false;
-					}
-				}
-				return true;
-			}
-
-			function validV6( ip ) {
-				// 粗检（服务端 inet_pton 为权威）：冒号在场、十六进制段合法、双冒号至多一个。
-				if ( ! /^[0-9a-fA-F:]+$/.test( ip ) || ip.indexOf( ':' ) === -1 ) {
-					return false;
-				}
-				return ip.split( '::' ).length <= 2;
-			}
-
-			lines.forEach( function ( line ) {
-				var entry = line.trim();
-				if ( ! entry ) {
-					return;
-				}
-				var slash = entry.indexOf( '/' );
-				var ip = slash === -1 ? entry : entry.slice( 0, slash );
-				var prefix = slash === -1 ? null : entry.slice( slash + 1 );
-				var ok = validV4( ip ) || validV6( ip );
-				if ( ok && prefix !== null ) {
-					if ( ! /^\d+$/.test( prefix ) ) {
-						ok = false;
-					} else if ( ip.indexOf( ':' ) === -1 && parseInt( prefix, 10 ) > 32 ) {
-						ok = false;
-					} else if ( ip.indexOf( ':' ) !== -1 && parseInt( prefix, 10 ) > 128 ) {
-						ok = false;
-					}
-				}
-				if ( ok ) {
-					good++;
-				} else {
-					bad.push( entry );
-				}
-			} );
-
-			if ( out ) {
-				if ( bad.length === 0 ) {
-					out.textContent = '全部 ' + good + ' 行格式合法。';
-					out.className = 'wk-muted';
-				} else {
-					out.textContent = '有 ' + bad.length + ' 行不是合法 CIDR/IP：' + bad.slice( 0, 3 ).join( '、' ) + ( bad.length > 3 ? ' 等' : '' ) + '。';
-					out.className = 'wk-probe wk-probe--yellow';
-				}
-			}
+	/* I5 · Tab④ 分区① 白名单「校验白名单格式」——同一共享校验件复用。 */
+	var whitelistButton = document.getElementById( 'wk-iprep-whitelist-check' );
+	if ( whitelistButton ) {
+		whitelistButton.addEventListener( 'click', function () {
+			var input = document.getElementById( 'wk-iprep-whitelist' );
+			var out = document.getElementById( 'wk-iprep-whitelist-result' );
+			wkRenderCidrResult( out, wkCheckCidrLines( input ? input.value : '' ) );
 		} );
 	}
 

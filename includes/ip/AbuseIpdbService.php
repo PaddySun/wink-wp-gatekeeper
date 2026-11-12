@@ -260,8 +260,8 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	private $server_ips;
 
 	/**
-	 * @var callable fn(string): bool 站长手动白名单匹配（判定层白名单源 ①——I4 UI 接线；
-	 *                                I2 注入位预留默认空集恒 false）。
+	 * @var callable fn(string): bool 站长手动白名单匹配（判定层白名单源 ①——【I5】默认闭包
+	 *                                消费 iprep.whitelist 存储键；测试可注入覆盖）。
 	 */
 	private $whitelist_match;
 
@@ -302,7 +302,9 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	 * @param callable|null        $hmac          定键 HMAC（null = wp_salt('auth') 派生，WP 边界）。
 	 * @param callable|null        $is_admin_user manage_options 判定（null = current_user_can，WP 边界）。
 	 * @param callable|null        $server_ips    服务器 IP 集（null = $_SERVER['SERVER_ADDR']，WP 边界）。
-	 * @param callable|null        $whitelist_match 站长手动白名单（null = 空集——I4 UI 接线前无白名单存储）。
+	 * @param callable|null        $whitelist_match 站长手动白名单（null = 默认闭包消费
+	 *                                              iprep.whitelist 存储键——【I5】Tab④ UI 落位；
+	 *                                              空=无白名单恒 false，I2 注入位契约不变）。
 	 * @param callable|null        $now           时钟（null = time()）。
 	 * @param callable|null        $usage_mark    上报时刻落账（【I3】null = Usage::mark_report_at_option，WP 边界）。
 	 * @param callable|null        $report_recorder report 面事件记录（【I3】null = WP 边界默认闭包）。
@@ -359,9 +361,13 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 		$this->server_ips      = $server_ips ?? static function (): array {
 			return array( (string) ( $_SERVER['SERVER_ADDR'] ?? '' ) ); // WP 边界。
 		};
-		$this->whitelist_match = $whitelist_match ?? static function ( string $ip ): bool {
-			unset( $ip );
-			return false; // 站长手动白名单存储随 Tab④ UI（I4）落位；I2 注入位默认空集。
+		$this->whitelist_match = $whitelist_match ?? static function ( string $ip ) use ( $settings ): bool {
+			/* 【I5·定稿 §7 判定层】站长手动白名单默认接线：iprep.whitelist（textarea，每行
+			 * 一个 IP 或 CIDR；空=无白名单恒 false）。生产 assemble 传完整设置树即生效，
+			 * 构造器签名零改动（I2 注入位契约保持——测试可注入覆盖）。 */
+			$raw = is_array( $settings ) && isset( $settings['iprep']['whitelist'] ) && is_string( $settings['iprep']['whitelist'] )
+				? $settings['iprep']['whitelist'] : '';
+			return self::whitelist_hits( $ip, self::whitelist_lines_from( $raw ) );
 		};
 		$this->now             = $now ?? static function (): int {
 			return time(); // WP 边界。
@@ -518,6 +524,49 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 
 		/* 步 7：落账（映射/缓存写/失败分类处置）。 */
 		return $this->settle( $result, $normalized );
+	}
+
+	/* -------------------------------------------------------------------
+	 * 白名单判定件（【I5·定稿 §7 判定层】纯逻辑零 WP 依赖——步 0 白名单与 report 前置
+	 * 同源；CIDR 语义复用 TrustedProxies::parse_cidr/matches 既有零件）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 白名单行拆分（iprep.whitelist textarea → 逐行数组；容忍 \r\n/\r/\n 与空白行，trim 每行）。
+	 *
+	 * @param mixed $raw 存量文本（非标量容错返回空集——merge_defaults 前空树）。
+	 * @return string[]
+	 */
+	public static function whitelist_lines_from( $raw ): array {
+		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
+			return array();
+		}
+		$lines = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', $raw ) as $line ) {
+			$line = trim( $line );
+			if ( '' !== $line ) {
+				$lines[] = $line;
+			}
+		}
+		return $lines;
+	}
+
+	/**
+	 * 白名单判定（纯函数：输入 IP+白名单行数组 → bool）。
+	 *
+	 * CIDR 语义复用 TrustedProxies（parse_cidr+matches——v4/v6/裸 IP 主机掩码/::ffff: 归一
+	 * 全同口径）；非法行忽略（不阻断合法行，也不因垃圾行放宽豁免面）；空集/空 IP 恒 false。
+	 *
+	 * @param string   $ip    已归一化 IP（调用方步 0 传规范形；方法内 matches 再归一无害）。
+	 * @param string[] $lines 白名单行（whitelist_lines_from 产物）。
+	 * @return bool
+	 */
+	public static function whitelist_hits( string $ip, array $lines ): bool {
+		if ( '' === $ip || array() === $lines ) {
+			return false;
+		}
+		$set = new TrustedProxies( $lines ); // 非法行入 invalid 不入 entries（既有零件语义）。
+		return $set->matches( $ip );
 	}
 
 	/* -------------------------------------------------------------------

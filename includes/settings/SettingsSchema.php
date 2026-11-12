@@ -258,6 +258,11 @@ final class SettingsSchema {
 				// 键在 iprep 顶层非 abuseipdb 子树——实况键名，O5-P1-2「保实况键名」原则）。
 				// 缓存归一后由 AbuseIpdbService 统一消费（定稿 §2——LoginIpRep 退役缓存职能）。
 				'negative_cache_minutes' => 60,
+				// 【I5·定稿 §7 判定层】站长手动白名单（Tab④ 分区① textarea，每行一个 IP 或
+				// CIDR；空=无白名单——probe 步 0 与 report 前置共用判定源，命中者永不查信誉、
+				// 永不上报）。与 network.trusted_proxies 是两个东西：受信网段管解析信任链、
+				// 白名单管信誉豁免（文案防混淆——03 Tab④ 分区① 注记）。
+				'whitelist' => '',
 				'abuseipdb' => array(
 					'api_key'         => '',
 					'suspect_score'   => 60,

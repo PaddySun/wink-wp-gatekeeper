@@ -2235,6 +2235,11 @@ final class SettingsPage {
 		$network = isset( $settings['network'] ) && is_array( $settings['network'] ) ? $settings['network'] : array();
 		$proxies = isset( $network['trusted_proxies'] ) && is_array( $network['trusted_proxies'] ) ? $network['trusted_proxies'] : array();
 		$mode    = isset( $network['ip_source'] ) && is_string( $network['ip_source'] ) ? $network['ip_source'] : IpResolver::MODE_DIRECT;
+		/* 【I5·定稿 §7】站长手动白名单（iprep.whitelist）——服务端行格式校验反馈：非法行
+		 * 保存时被判定层忽略（TrustedProxies::parse_cidr 既有零件），此处按存量值即时标出。 */
+		$whitelist_raw   = isset( $settings['iprep']['whitelist'] ) && is_string( $settings['iprep']['whitelist'] ) ? $settings['iprep']['whitelist'] : '';
+		$whitelist_lines = AbuseIpdbService::whitelist_lines_from( $whitelist_raw );
+		$whitelist_bad   = ( new TrustedProxies( $whitelist_lines ) )->invalid_lines();
 		$modes   = array(
 			IpResolver::MODE_DIRECT        => __( '直连 direct（默认）', 'wink-gatekeeper' ),
 			IpResolver::MODE_XFF           => __( 'XFF 信任链（仅取最右）', 'wink-gatekeeper' ),
@@ -2294,9 +2299,38 @@ final class SettingsPage {
 						<textarea id="wk-iprep-custom-cidr" class="large-text" rows="4" placeholder="203.0.113.0/24&#10;2001:db8::/32"
 							name="<?php echo esc_attr( self::field_name( array( 'network', 'trusted_proxies', 'custom' ) ) ); ?>"><?php echo esc_textarea( (string) ( $proxies['custom'] ?? '' ) ); ?></textarea>
 						<p class="description"><?php esc_html_e( '每行一条 CIDR（或裸 IP，v4/v6）——通常是反代/负载均衡的出口网段。', 'wink-gatekeeper' ); ?></p>
-					</td>
-				</tr>
-			</table>
+						</td>
+					</tr>
+					<tr>
+						<!-- 【I5·定稿 §7 误伤防护·判定层】站长手动白名单——信誉判定豁免入口
+						 （与受信网段是两个东西：受信网段管解析信任链，白名单管信誉豁免）。 -->
+						<th scope="row"><label for="wk-iprep-whitelist"><?php esc_html_e( '白名单（信誉豁免）', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<textarea id="wk-iprep-whitelist" class="large-text" rows="4" placeholder="8.8.8.8&#10;203.0.113.0/24&#10;2001:db8::/32"
+								name="<?php echo esc_attr( self::field_name( array( 'iprep', 'whitelist' ) ) ); ?>"><?php echo esc_textarea( $whitelist_raw ); ?></textarea>
+							<p class="description"><?php esc_html_e( '每行一个 IP 或 CIDR（v4/v6）——命中者永不查信誉、永不上报（判定与上报双通道同时豁免，零外呼）。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( '与「受信网段」的区别：受信网段管解析信任链（决定信谁报来的转发头），白名单管信誉豁免（决定谁永不查信誉）——两者互不替代。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( '误伤防护：搜索引擎爬虫、办公出口等被信誉库误伤的 IP 加在这里——访客直接放行，不会被强制过码。', 'wink-gatekeeper' ); ?></p>
+							<?php if ( array() !== $whitelist_bad ) : ?>
+								<p class="description">
+									<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+									<?php
+									printf(
+										/* translators: 1: 非法行数 2: 逗号连接的非法行原文 */
+										esc_html__( '白名单存在 %1$d 条非法行（保存时会被忽略，不生效）：%2$s', 'wink-gatekeeper' ),
+										count( $whitelist_bad ),
+										esc_html( implode( '、', $whitelist_bad ) )
+									);
+									?>
+								</p>
+							<?php endif; ?>
+							<p>
+								<button type="button" class="button" id="wk-iprep-whitelist-check"><?php esc_html_e( '校验白名单格式', 'wink-gatekeeper' ); ?></button>
+								<span id="wk-iprep-whitelist-result" class="wk-muted" aria-live="polite"></span>
+							</p>
+						</td>
+					</tr>
+				</table>
 			<p>
 				<button type="button" class="button" id="wk-iprep-cidr-check"><?php esc_html_e( '校验网段格式', 'wink-gatekeeper' ); ?></button>
 				<span id="wk-iprep-cidr-result" class="wk-muted" aria-live="polite"></span>
@@ -2670,7 +2704,12 @@ final class SettingsPage {
 	 * @return void
 	 */
 	private static function render_ip_diagnostic_panel( array $settings ): void {
-		$panel = IpDiagnostic::analyze( $_SERVER, $settings['network'] ?? array(), time() ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读 $_SERVER 展示，无表单消费。
+		$panel = IpDiagnostic::analyze( // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读 $_SERVER 展示，无表单消费。
+			$_SERVER,
+			$settings['network'] ?? array(),
+			time(),
+			AbuseIpdbService::whitelist_lines_from( $settings['iprep']['whitelist'] ?? '' ) // 【I5】豁免徽标判定源。
+		);
 
 		$scope_labels = array(
 			'trusted' => __( '受信', 'wink-gatekeeper' ),
@@ -2743,6 +2782,10 @@ final class SettingsPage {
 					<th scope="row"><?php esc_html_e( '当前生效', 'wink-gatekeeper' ); ?></th>
 					<td>
 						<strong><code><?php echo esc_html( '' !== $panel['effective']['ip'] ? $panel['effective']['ip'] : '—' ); ?></code></strong>
+						<?php if ( ! empty( $panel['effective']['whitelisted'] ) ) : ?>
+							<!-- 【I5】站长白名单命中徽标（AbuseIpdbService 步 0 同一判定函数）。 -->
+							<span class="wk-muted">· <?php esc_html_e( '白名单豁免', 'wink-gatekeeper' ); ?></span>
+						<?php endif; ?>
 						<span class="wk-muted">
 							<?php
 							printf(

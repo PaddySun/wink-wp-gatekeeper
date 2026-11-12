@@ -151,6 +151,8 @@ final class Sanitize {
 			'iprep.driver'                              => 'text',
 			// 【v1.4·R3】负缓存 TTL；【澄清A】超时键（R2/R3 合并裁决=驱动级一键）；fail_mode 作废删除。
 			'iprep.negative_cache_minutes'              => 'absint',
+			// 【I5·定稿 §7 判定层】站长手动白名单（textarea 每行一个 IP/CIDR——Tab④ 分区①）。
+			'iprep.whitelist'                           => 'textarea',
 			'iprep.abuseipdb.api_key'                   => 'password',
 			'iprep.abuseipdb.suspect_score'             => 'absint',
 			'iprep.abuseipdb.malicious_score'           => 'absint',

@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.1 =
+
+I5·站长白名单 UI+判定接线（M3-IP 定稿 §7 误伤防护·判定层 + 【实施注记·I5】，2026-11-13——定稿 §6 清单缺位项补齐：I2 建步 0 白名单判定时站长手填入口缺位，服务注入位默认空集恒 false）。① **schema 新键 `iprep.whitelist`**（iprep 顶层 textarea，每行一个 IP 或 CIDR，空=无白名单；Sanitize textarea 型；merge_defaults 整树补齐——新键零 migrate）。② **判定纯函数**：`AbuseIpdbService::whitelist_hits(ip, lines)` + `whitelist_lines_from(raw)`——CIDR 语义复用 TrustedProxies::parse_cidr/matches 既有零件（v4/v6/裸 IP/::ffff: 归一同口径），非法行忽略不放宽豁免面。③ **步 0 白名单接线**：构造器默认 whitelist_match 闭包改消费 iprep.whitelist——生产 assemble 传设置树即生效、构造器签名零改动（I2 注入位契约保持）；命中者 probe null skip（零外呼零计量零写，cache_only 同豁免且先于防呆）；report_ip 白名单前置同源（永不报不计数，先于突增原始计数）。④ **Tab④ 分区① 白名单区**：白名单 textarea+「校验白名单格式」按钮（admin-brand.js 共享校验件泛化——受信网段与白名单两处复用同一前端预检）+服务端非法行保存值即时标出+文案三行（命中者永不查信誉、永不上报；与「受信网段」的区别=受信网段管解析信任链、白名单管信誉豁免；误伤防护=搜索引擎爬虫/办公出口被误伤时加这里）。⑤ **诊断面板豁免徽标**：IpDiagnostic::analyze 扩 whitelist_lines 入参+当前生效行扩 whitelisted 列——命中标「白名单豁免」。测试 1471→1488 / 断言 9931→9979 全绿（IpWhitelistTest 新 17 例：判定矩阵精确/CIDR/IPv6/非法行+步 0 消费接线零外呼+report 前置同源+analyze 徽标列+schema/Sanitize+UI/JS 契约；版本钉五测试文件同步 0.5.1）。
 
 = 0.5.0 =
 

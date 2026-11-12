@@ -78,17 +78,20 @@ final class IpDiagnostic {
 	 * @param array<string, mixed> $server           $_SERVER（边界层注入）。
 	 * @param array<string, mixed> $network_settings network 设置子树（04 §2）。
 	 * @param int|null             $now              当前时钟（注入以便单测；null=time() 仅 WP 边界用）。
+	 * @param string[]             $whitelist_lines  站长白名单行（【I5】iprep.whitelist 拆分产物——
+	 *                                               当前生效 IP 命中时 effective 行标 whitelisted=true，
+	 *                                               渲染层标「白名单豁免」徽标；空=恒 false）。
 	 * @return array{
 	 *   mode: string,
 	 *   remote: array{raw: string, ip: ?string, trusted: bool, scope: string},
 	 *   headers: array<int, array{name: string, raw: ?string, items: array<int, array{raw: string, ip: ?string, scope: string}>}>,
-	 *   effective: array{ip: string, ip_src: string},
+	 *   effective: array{ip: string, ip_src: string, whitelisted: bool},
 	 *   flag: bool,
 	 *   custom_header: string,
 	 *   trusted: array{rows: array<int, array{label: string, count: int, kind: string}>, verified: ?string, stale: bool, age_days: ?int, invalid: string[]}
 	 * }
 	 */
-	public static function analyze( array $server, array $network_settings, ?int $now = null ): array {
+	public static function analyze( array $server, array $network_settings, ?int $now = null, array $whitelist_lines = array() ): array {
 		if ( null === $now ) {
 			$now = time(); // WP 边界缺省；单测一律显式注入（时钟显式化纪律）。
 		}
@@ -130,9 +133,13 @@ final class IpDiagnostic {
 			$headers[] = array( 'name' => $name, 'raw' => $raw, 'items' => $items );
 		}
 
-		// 当前生效行（五态 ip_src——IpResolver::resolve 单一出口）。
+		// 当前生效行（五态 ip_src——IpResolver::resolve 单一出口）；
+		// 【I5】扩 whitelisted 列：当前生效 IP 命中站长白名单（iprep.whitelist——AbuseIpdbService
+		// 步 0 同一判定函数 whitelist_hits，CIDR 语义 TrustedProxies 既有零件）→ 豁免徽标。
 		$resolver  = new IpResolver( $network_settings );
 		$effective = $resolver->resolve( $server );
+		$effective['whitelisted'] = '' !== (string) ( $effective['ip'] ?? '' )
+			&& AbuseIpdbService::whitelist_hits( (string) ( $effective['ip'] ?? '' ), $whitelist_lines );
 
 		// 配置一致性红标：配 custom_header 但本请求无该头（WF「Configured but not valid」同款）。
 		$header_name = isset( $network_settings['custom_header'] ) && is_string( $network_settings['custom_header'] )
