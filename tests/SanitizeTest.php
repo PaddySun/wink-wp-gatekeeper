@@ -147,6 +147,28 @@ final class SanitizeTest extends TestCase {
 		$this->assertSame( array(), $rejected );
 	}
 
+	/* ---------- v1.7·M3-IP：gates.comment.submit_rate_limit（P0-A 提交限流，absint） ---------- */
+
+	public function test_gates_comment_submit_rate_limit_absint_roundtrip(): void {
+		list( $clean, $rejected ) = Sanitize::clean( array(
+			'gates' => array( 'comment' => array( 'submit_rate_limit' => ' 30 ' ) ),
+		) );
+		$this->assertSame( 30, $clean['gates']['comment']['submit_rate_limit'] );
+		$this->assertSame( array(), $rejected );
+
+		// 0 = 不限流（显式关断）。
+		list( $clean0, ) = Sanitize::clean( array(
+			'gates' => array( 'comment' => array( 'submit_rate_limit' => '0' ) ),
+		) );
+		$this->assertSame( 0, $clean0['gates']['comment']['submit_rate_limit'] );
+
+		// 非标量归类型默认（absint → 0）。
+		list( $cleanN, ) = Sanitize::clean( array(
+			'gates' => array( 'comment' => array( 'submit_rate_limit' => array( 'x' ) ) ),
+		) );
+		$this->assertSame( 0, $cleanN['gates']['comment']['submit_rate_limit'] );
+	}
+
 	/* ---------- C3：gates.login.xmlrpc_login（一键加固开关，反选形态 0/1） ---------- */
 
 	public function test_gates_login_xmlrpc_login_bool_roundtrip(): void {

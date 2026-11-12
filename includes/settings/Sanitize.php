@@ -32,6 +32,8 @@ final class Sanitize {
 			// 闸开关区（02 §2.7：闸子树形态统一 {enabled, render_mode}）。
 			'gates.comment.enabled'                     => 'bool',
 			'gates.comment.render_mode'                 => 'text',
+			// 【v1.7·M3-IP 定稿 §8.1】P0-A 评论提交限流（wk_cm_ 桶阈值 30/h/IP；0=不限流）。
+			'gates.comment.submit_rate_limit'           => 'absint',
 			'gates.login.enabled'                       => 'bool',
 			'gates.login.render_mode'                   => 'text',
 			// C3：XML-RPC 登录一键加固开关（UI 为反选形态 hidden 1 / checkbox 0——勾选=关闭）。

@@ -9,6 +9,10 @@
  *   0. 管理员/后台（DOING_AUTOSAVE、WP_IMPORTING、is_admin）直接放行（上游 is_admin 语义）；
  *   1. 验签名存根（stage=stub）：false → 拦 bad-signature；true → 免验证放行 captcha；
  *      null（展示过）→ 必须 verify；
+ *   1.5 评论提交限流（P0-A，M3-IP 定稿 §8.1）：wk_cm_ per-IP 小时桶（默认 30/h/IP，
+ *      TransientRateLimiter 参数化共享件；未装配=跳过=现行行为）——存根校验后、四闸
+ *      之前，限「提交动作」（被四闸/验证码拒绝的提交同样计数）；超额=统一 captcha_missing
+ *      文案（stage=rate + meta.rate_limited，不留档）；
  *   2. Stage:ip（【v1.4·R2】IpReputationProbe 消费：null=skip；pass=继续；review/reject/error=
  *      强制验证码标志+事件——「出码过码放行」非拦截，02 §2.3 修订表/§2.3b）；
  *   2.5 Stage:review·本地段（【v1.4·R2】LocalRules 四闸前移到 captcha 之前——reject 零验票
@@ -176,6 +180,14 @@ final class CommentGate extends AbstractGate {
 	private $degraded_limiter;
 
 	/**
+	 * @var callable|null 评论提交限流器 fn(string $ip): bool（P0-A，M3-IP 定稿 §8.1——
+	 *                    生产 = Bootstrap 注入 TransientRateLimiter::allow（wk_cm_ per-IP
+	 *                    小时桶，gates.comment.submit_rate_limit 默认 30/h；0=不限流不装配）；
+	 *                    null = 未装配（单测缺省），现行行为零变化）。
+	 */
+	private $submit_limiter;
+
+	/**
 	 * @var bool 本次请求编排产出 review 判定（评论应入待审）——pre_comment_approved
 	 *           filter 消费（C4 真机发现：WP 7.x wp_new_comment 在 preprocess_comment 之后
 	 *           经 wp_allow_comment 重算 comment_approved，直接改 commentdata 会被覆盖；
@@ -229,6 +241,7 @@ final class CommentGate extends AbstractGate {
 	 * @param callable|null               $driver_meta 驱动元数据提供器（【v1.5·F4-3】null = 证据行原样）。
 	 * @param callable|null               $require_gate 豁免过滤器（【v1.5·C1/B5】null = WP 边界默认）。
 	 * @param callable|null               $degraded_limiter pass_limited 降级限流器（null = fail-closed）。
+	 * @param callable|null               $submit_limiter 评论提交限流器（P0-A §8.1；null = 未装配）。
 	 */
 	public function __construct(
 		array $settings,
@@ -248,7 +261,8 @@ final class CommentGate extends AbstractGate {
 		?callable $trust_mac = null,
 		?callable $driver_meta = null,
 		?callable $require_gate = null,
-		?callable $degraded_limiter = null
+		?callable $degraded_limiter = null,
+		?callable $submit_limiter = null
 	) {
 		$this->settings = $settings;
 		$this->captcha  = $captcha;
@@ -311,6 +325,7 @@ final class CommentGate extends AbstractGate {
 					: $required;
 			};
 		$this->degraded_limiter = $degraded_limiter;
+		$this->submit_limiter   = $submit_limiter; // P0-A：null = 未装配（现行行为零变化）。
 	}
 
 	public function render_hooks(): array {
@@ -401,6 +416,33 @@ final class CommentGate extends AbstractGate {
 
 			/* 【v1.4 起本检点移至步骤 3 开头（四闸之后）——强制标志可由步骤 2 ip 阶段置位，
 			 * 且 too_short 等内容判定先出（R2 §2.7 修复性次序）；条款本体见步骤 3 注释。】 */
+		}
+
+		/* 步骤 1.5：评论提交限流（P0-A，M3-IP 定稿 §8.1——AUDIT-CC §2.1 P0-A 修复）：
+		 * wk_cm_ per-IP 小时桶（TransientRateLimiter，gates.comment.submit_rate_limit 默认
+		 * 30 次/h/IP；Bootstrap 对 ≤0 不装配=null 跳过）。挂点=存根校验后、四闸之前——
+		 * 原生 wp-comments-post / admin-ajax 主题 AJAX / REST 三通道经 orchestrate() 统一
+		 * 插入面（本方法即三通道唯一入口）；限的是「提交动作」不是「过码动作」：被四闸/
+		 * 验证码拒绝的提交同样已计数（限的是洪水不是结果）；同请求幂等计 1（编排线性单遍
+		 * 恰一次计数，无第二计数点）。超额响应=统一 captcha_missing 文案不外呼（复用既有
+		 * 三分支协议零新文案）；事件 stage=rate（开放枚举）+ meta.rate_limited 可区分，
+		 * 不留档——stub 同款洪水防膨胀条款（stage 不在留档清单，防垃圾库被限流洪水撑爆）。
+		 * 未装配（null）= 现行行为零变化。 */
+		if ( null !== $this->submit_limiter ) {
+			$submit_ip = is_string( $resolved['ip'] ) ? $resolved['ip'] : '';
+			if ( ! (bool) call_user_func( $this->submit_limiter, $submit_ip ) ) {
+				return $this->reject(
+					'rate',
+					Verdict::reject( '', 'captcha_missing', array( 'captcha_missing' ) ),
+					'captcha_missing',
+					array(),
+					array(
+						'ip_src'       => $resolved['ip_src'],
+						'client_ip'    => $resolved['ip'],
+						'rate_limited' => true,
+					)
+				);
+			}
 		}
 
 		/* 步骤 2：Stage:ip（02 §3.1 步骤 2 + §2.3b 三态语义——【v1.4·R2】IpReputationProbe 消费）。

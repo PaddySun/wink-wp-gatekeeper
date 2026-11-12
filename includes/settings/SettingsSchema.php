@@ -48,14 +48,23 @@ final class SettingsSchema {
 				'comment' => array(
 					'enabled'     => true,
 					'render_mode' => 'always',
+					// 【v1.7·M3-IP 定稿 §8.1】P0-A 评论提交限流器：wk_cm_ per-IP 小时桶，默认
+					// 30 次/h/IP（TransientRateLimiter 参数化共享件；挂 wp-comments-post /
+					// admin-ajax / REST 三通道提交入口——存根校验后、四闸之前；超额=统一
+					// captcha_missing 文案不外呼）。0 = 不限流（Bootstrap 不装配=现行行为）。
+					'submit_rate_limit' => 30,
 				),
 				'login'   => array(
 					'enabled'     => true,
 					'render_mode' => 'adaptive',
 					// C3（03 Tab②「高级」折叠区，02 §3.2 v1.2 安全审核 #3）：XML-RPC 登录一键加固
-					// 开关。true（默认）= 允许 XML-RPC 登录（超阈仍走计数拒绝）；false = xmlrpc_enabled
-					// filter 置 false——登录类 XML-RPC 方法整体 405（system.listMethods 等只读方法不受影响）。
-					'xmlrpc_login' => true,
+					// 开关。false = xmlrpc_enabled filter 置 false——登录类 XML-RPC 方法整体 405
+					// （system.listMethods 等只读方法不受影响）。
+					// 【v1.7·M3-IP 定稿 §8.2·breaking】默认 true→false——新装站点默认禁用 XML-RPC
+					// 登录，使用 XML-RPC 发布工具（博客客户端）的站长需在 Tab② 手动开启；**存量
+					// 设置不迁移**（migrate 不动已存 true——升级前已开启的站点不受影响），
+					// readme/changelog 已注明。
+					'xmlrpc_login' => false,
 				),
 				'register' => array(
 					'enabled'     => true,

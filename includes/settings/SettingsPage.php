@@ -1043,14 +1043,14 @@ final class SettingsPage {
 									<tr>
 										<th scope="row"><?php esc_html_e( '关闭 XML-RPC 登录', 'wink-gatekeeper' ); ?></th>
 										<td>
-											<?php $xmlrpc_login = ! isset( $settings['gates']['login']['xmlrpc_login'] ) || (bool) $settings['gates']['login']['xmlrpc_login']; ?>
-											<!-- 反选形态：hidden 恒 1（默认开），勾选提交 0（后值覆盖前值 = 关闭）。 -->
+											<?php $xmlrpc_login = isset( $settings['gates']['login']['xmlrpc_login'] ) ? (bool) $settings['gates']['login']['xmlrpc_login'] : false; // 缺键回落=false（v1.7 默认翻转——存量不迁移，仅新装/缺键站点按新默认）。 ?>
+											<!-- 反选形态：hidden 恒 1，勾选提交 0（后值覆盖前值 = 关闭）。默认关（v1.7 breaking）——使用 XML-RPC 发布工具的站长在此手动开启（取消勾选并保存）。 -->
 											<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'xmlrpc_login' ) ) ); ?>" value="1" />
 											<label>
 												<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'xmlrpc_login' ) ) ); ?>" value="0" <?php checked( false, $xmlrpc_login ); ?> />
 												<?php esc_html_e( '彻底关闭 XML-RPC 登录（推荐加固）', 'wink-gatekeeper' ); ?>
 											</label>
-											<p class="description"><?php esc_html_e( '勾选后登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；system.listMethods 等只读方法不受影响。超阈计数已会先行逐次拒绝 XML-RPC 认证（验证码无法在 XML-RPC 内呈现），本开关是彻底封死的可选加固。', 'wink-gatekeeper' ); ?></p>
+											<p class="description"><?php esc_html_e( '默认关闭（0.4.5 起）：使用 XML-RPC 发布工具（博客客户端）的站长请取消勾选并保存以开启；升级站点已开启的不受影响。勾选后登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；system.listMethods 等只读方法不受影响。开启状态下超阈计数也会先行逐次拒绝 XML-RPC 认证（验证码无法在 XML-RPC 内呈现）。', 'wink-gatekeeper' ); ?></p>
 										</td>
 									</tr>
 								</table>

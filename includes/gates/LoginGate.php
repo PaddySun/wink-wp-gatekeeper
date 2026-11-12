@@ -33,11 +33,15 @@
  * 关）=完全按计数（现行行为）；fail=渲染期出码+验证期强制验票；pass=按计数。always
  * 模式跳过 iprep 查询（恒出码使判定失去分支意义，省调用）。
  *
- * XML-RPC（v1.4 触发集扩展）：失败照常计数（双信号对 XML-RPC 失败照常可用）；
- * over(ip,username) ∨ (iprep_gate ∧ iprep_fail(ip)) 命中 → authenticate @ PHP_INT_MAX
- * 压轴结构化拒绝 WP_Error('wk_captcha_unavailable')（协议内无法呈现验证码，拒绝是
- * 唯一可执行动作；system.multicall 每尝试一次断一次）；「关闭 XML-RPC 登录」一键
- * 开关保留（gates.login.xmlrpc_login → Bootstrap xmlrpc_enabled filter）。
+ * XML-RPC（v1.4 触发集扩展 + P0-B 一次化）：失败照常计数（双信号对 XML-RPC 失败照常
+ * 可用）；over(ip,username) ∨ (iprep_gate ∧ iprep_fail(ip)) 命中 → authenticate @
+ * PHP_INT_MAX 压轴结构化拒绝 WP_Error('wk_captcha_unavailable')（协议内无法呈现验证码，
+ * 拒绝是唯一可执行动作）；【P0-B·M3-IP 定稿 §8.2】multicall per-request 一次化——请求内
+ * 静态标志下首个被拒尝试落事件+sleep 一次，后续被拒尝试静默 fault（不再 sleep、不再逐
+ * 尝试落事件行），且每请求 auth 尝试上限 20（超限直接 fault 无 sleep 无事件）——封杀
+ * 「multicall 单请求钉死 worker ~100s」的 worker 池灭绝形态（AUDIT-CC §2.5）；
+ * 「关闭 XML-RPC 登录」一键开关保留（gates.login.xmlrpc_login → Bootstrap xmlrpc_enabled
+ * filter；【v1.7·breaking】schema 默认 true→false——存量不迁移）。
  *
  * 事件/统计：gate=login，reject 落事件（stage=stub|captcha）+ StatsCache by_gate.login；
  * meta 增 trigger_source ∈ {user_threshold, ip_threshold, iprep, alarm, stale_form,
@@ -93,6 +97,28 @@ final class LoginGate extends AccountFormGate {
 	 * XML-RPC 拒绝文案（IXR faultString 同文）。
 	 */
 	private const MSG_XMLRPC = '登录失败次数过多，XML-RPC 登录已暂时停用（验证码无法在 XML-RPC 协议内呈现）——请稍后再试，或在网页端完成人机验证。';
+
+	/**
+	 * XML-RPC 每请求 auth 尝试上限（P0-B，M3-IP 定稿 §8.2——system.multicall 单 HTTP 请求
+	 * 可打包上百次登录尝试，超限直接 fault 无 sleep 无事件，防 worker 钉死）。
+	 */
+	public const XMLRPC_AUTH_ATTEMPT_LIMIT = 20;
+
+	/**
+	 * XML-RPC 请求内 auth 尝试计数（P0-B 请求内静态标志——PHP 静态成员=单进程=单请求；
+	 * hook_authenticate 每次 XML-RPC auth 尝试自增，超 XMLRPC_AUTH_ATTEMPT_LIMIT 即 fault）。
+	 *
+	 * @var int
+	 */
+	private static $xmlrpc_attempts = 0;
+
+	/**
+	 * XML-RPC 请求内「已首拒」标志（P0-B——multicall 中首个被拒尝试落事件+sleep 后置位，
+	 * 后续被拒尝试静默 fault：不再 sleep、不再逐尝试落事件行，M3-IP 定稿 §8.2）。
+	 *
+	 * @var bool
+	 */
+	private static $xmlrpc_rejected_once = false;
 
 	/**
 	 * 主信号请求内捕获的规范 user_login（wp_authenticate_user@1 捕获钩子写入；
@@ -375,6 +401,54 @@ final class LoginGate extends AccountFormGate {
 	}
 
 	/**
+	 * XML-RPC 请求内静态状态复位（P0-B 测试桥——生产 PHP 静态成员随请求进程天然复位；
+	 * 单测进程常驻须显式复位防用例间泄漏）。
+	 *
+	 * @return void
+	 */
+	public static function reset_xmlrpc_request_state(): void {
+		self::$xmlrpc_attempts      = 0;
+		self::$xmlrpc_rejected_once = false;
+	}
+
+	/**
+	 * XML-RPC auth 尝试处置计划（P0-B 纯逻辑状态机——M3-IP 定稿 §8.2，hook_authenticate
+	 * 的消费面；AUDIT-CC §2.5「multicall 单 HTTP 请求钉死 worker ~100s」灭绝攻击修复）：
+	 *
+	 *   - 每次 XML-RPC auth 尝试计数（请求内静态）；超 XMLRPC_AUTH_ATTEMPT_LIMIT（20）→
+	 *     直接 fault（无 sleep 无事件——洪水硬顶，合法博客客户端单请求远低于此）；
+	 *   - 未命中拒绝条件（xmlrpc_block_decision=false）→ 透传进正常认证（合法调用零变化）；
+	 *   - 首个被拒尝试 → fault + 落事件 + sleep（原行为保留一次——审计/时序混淆各留痕一次）；
+	 *   - 之后的被拒尝试 → 静默 fault（不再 sleep、不再逐尝试落事件行——「后续尝试静默 fault」）。
+	 *
+	 * @param string               $username          提交用户名。
+	 * @param array<string, mixed> $server            $_SERVER。
+	 * @param bool                 $protection_enabled 豁免 filter 结果。
+	 * @return array{fault: bool, record: bool, sleep: bool} fault=结构化拒绝；record=落事件行；
+	 *                                                     sleep=失败随机 sleep（hook 消费契约）。
+	 */
+	public function xmlrpc_attempt_plan( string $username, array $server, bool $protection_enabled = true ): array {
+		self::$xmlrpc_attempts++;
+
+		if ( self::$xmlrpc_attempts > self::XMLRPC_AUTH_ATTEMPT_LIMIT ) {
+			// 超限：直接 fault——无 sleep 无事件（定稿 §8.2；饱和与否不影响处置）。
+			return array( 'fault' => true, 'record' => false, 'sleep' => false );
+		}
+
+		if ( ! $this->xmlrpc_block_decision( $username, $server, $protection_enabled ) ) {
+			return array( 'fault' => false, 'record' => false, 'sleep' => false );
+		}
+
+		if ( self::$xmlrpc_rejected_once ) {
+			// 首拒之后：静默 fault——不再 sleep、不再逐尝试落事件行（§8.2 一次化）。
+			return array( 'fault' => true, 'record' => false, 'sleep' => false );
+		}
+
+		self::$xmlrpc_rejected_once = true;
+		return array( 'fault' => true, 'record' => true, 'sleep' => true );
+	}
+
+	/**
 	 * 渲染编排（login_form / login_form_middle 的纯逻辑面——v1.4 嵌入式）。
 	 *
 	 * 渲染条件（渲染期未知将提交的用户名）：mode=always ∨ flag(ip) ∨ alarm(site) ∨
@@ -510,13 +584,18 @@ final class LoginGate extends AccountFormGate {
 	}
 
 	/**
-	 * authenticate @ PHP_INT_MAX（链尾聚合点）：XML-RPC 超阈/iprep fail 结构化拒绝。
+	 * authenticate @ PHP_INT_MAX（链尾聚合点）：XML-RPC 超阈/iprep fail 结构化拒绝
+	 * + P0-B per-request 一次化（M3-IP 定稿 §8.2）。
 	 *
 	 * 位置依据（「WP filter 链上最稳位置」）：authenticate 链上默认认证回调
 	 * （wp_authenticate_username_password / _email_password @ 20）不以 WP_Error 短路
 	 * ——早期优先级返回的错误会被后续默认回调的认证结果覆盖；PHP_INT_MAX 压轴返回值即
 	 * 最终值，对「正确口令也无法绕过」「不存在用户名的喷洒」两种形态都成立，且
 	 * system.multicall 每个内嵌登录尝试各自走一遍链（逐尝试断流）。
+	 *
+	 * 【P0-B】multicall 洪水一次化（xmlrpc_attempt_plan 状态机，§8.2）：每请求 auth 尝试
+	 * 上限 20（超限直接 fault 无 sleep 无事件）；首个被拒尝试落事件+sleep 一次，后续被拒
+	 * 尝试静默 fault——单 HTTP 请求的 worker 占用从「尝试数×1s」收敛为「≈1s + 尝试数×微秒」。
 	 *
 	 * @param \WP_User|\WP_Error|null $user      前置链结果。
 	 * @param string                  $username  提交用户名。
@@ -529,23 +608,29 @@ final class LoginGate extends AccountFormGate {
 		if ( ! defined( 'XMLRPC_REQUEST' ) || ! XMLRPC_REQUEST ) {
 			return $user; // 仅 XML-RPC 上下文（wp-login 走 wp_authenticate_user 通道）。
 		}
-		if ( ! $this->xmlrpc_block_decision(
+
+		$plan = $this->xmlrpc_attempt_plan(
 			$username,
 			isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array(),
 			(bool) apply_filters( 'wk_login_protection_enabled', true )
-		) ) {
+		);
+		if ( ! $plan['fault'] ) {
 			return $user;
 		}
 
-		$resolved = $this->resolver->resolve( isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() );
-		call_user_func( $this->recorder, 'captcha', Verdict::reject( '', self::ERROR_CODE_XMLRPC, array( self::ERROR_CODE_XMLRPC ) ), array(
-			'ip_src'         => $resolved['ip_src'],
-			'client_ip'      => is_string( $resolved['ip'] ) ? $resolved['ip'] : '',
-			'xmlrpc'         => true,
-			'trigger_source' => 'xmlrpc', // 02 §3.2 事件可观测性。
-		) );
+		if ( $plan['record'] ) {
+			$resolved = $this->resolver->resolve( isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() );
+			call_user_func( $this->recorder, 'captcha', Verdict::reject( '', self::ERROR_CODE_XMLRPC, array( self::ERROR_CODE_XMLRPC ) ), array(
+				'ip_src'         => $resolved['ip_src'],
+				'client_ip'      => is_string( $resolved['ip'] ) ? $resolved['ip'] : '',
+				'xmlrpc'         => true,
+				'trigger_source' => 'xmlrpc', // 02 §3.2 事件可观测性。
+			) );
+		}
 
-		$this->maybe_fail_sleep(); // 【v1.5·B3】XML-RPC 认证失败同分支（02 §3.2 量级注记）。
+		if ( $plan['sleep'] ) {
+			$this->maybe_fail_sleep(); // 【v1.5·B3】仅首拒 sleep（P0-B 一次化——后续静默 fault）。
+		}
 		return new \WP_Error( self::ERROR_CODE_XMLRPC, self::MSG_XMLRPC );
 	}
 

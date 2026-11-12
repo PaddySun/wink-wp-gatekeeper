@@ -29,10 +29,14 @@ final class SettingsSchemaTest extends TestCase {
 
 			array( array( 'gates', 'comment', 'enabled' ), true ),
 			array( array( 'gates', 'comment', 'render_mode' ), 'always' ),
+			// 【v1.7·M3-IP 定稿 §8.1】P0-A 评论提交限流器（wk_cm_ per-IP 小时桶默认 30/h；0=不限流）。
+			array( array( 'gates', 'comment', 'submit_rate_limit' ), 30 ),
 		array( array( 'gates', 'login', 'enabled' ), true ),
 		array( array( 'gates', 'login', 'render_mode' ), 'adaptive' ),
-		// C3：XML-RPC 登录开关（03 Tab②「高级」折叠区；true=允许 XML-RPC 登录，一键加固存 false）。
-		array( array( 'gates', 'login', 'xmlrpc_login' ), true ),
+		// C3：XML-RPC 登录开关（03 Tab②「高级」折叠区）。
+		// 【v1.7·M3-IP 定稿 §8.2·breaking】默认 true→false——新装站点默认禁用 XML-RPC 登录；
+		// 存量设置不迁移（migrate 不动已存 true），升级站点不受影响。
+		array( array( 'gates', 'login', 'xmlrpc_login' ), false ),
 		// 【v1.4·R3/R4-G】注册/找回密码两闸键（常显）。
 		array( array( 'gates', 'register', 'enabled' ), true ),
 		array( array( 'gates', 'register', 'render_mode' ), 'always' ),
@@ -268,11 +272,13 @@ final class SettingsSchemaTest extends TestCase {
 	/* ---------- C3：gates.login.xmlrpc_login（XML-RPC 登录一键加固开关） ---------- */
 
 	public function test_merge_defaults_backfills_xmlrpc_login_for_old_options(): void {
-		// C2 及此前版本的 option 无此键：升级后 merge_defaults 补默认 true（不改变站点行为）。
+		// C2 及此前版本的 option 无此键：升级后 merge_defaults 补当前默认。
+		// 【v1.7·M3-IP 定稿 §8.2·breaking】默认已翻转为 false——新装/从未保存该键的站点
+		// 默认禁用 XML-RPC 登录（readme/changelog 已注明）。
 		$merged = SettingsSchema::merge_defaults( array(
 			'gates' => array( 'login' => array( 'enabled' => true, 'render_mode' => 'adaptive' ) ),
 		) );
-		$this->assertTrue( $merged['gates']['login']['xmlrpc_login'] );
+		$this->assertFalse( $merged['gates']['login']['xmlrpc_login'] );
 	}
 
 	public function test_merge_defaults_respects_explicit_xmlrpc_login_false(): void {
@@ -281,6 +287,33 @@ final class SettingsSchemaTest extends TestCase {
 			'gates' => array( 'login' => array( 'enabled' => true, 'render_mode' => 'adaptive', 'xmlrpc_login' => false ) ),
 		) );
 		$this->assertFalse( $merged['gates']['login']['xmlrpc_login'] );
+	}
+
+	public function test_migrate_preserves_stored_xmlrpc_login_true(): void {
+		// 【v1.7·M3-IP 定稿 §8.2】存量不迁移：升级前已开启（显式存 true）的站点不受影响
+		// ——migrate/merge_defaults 均不动已存 true（breaking 仅对默认值）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'gates' => array( 'login' => array( 'enabled' => true, 'render_mode' => 'adaptive', 'xmlrpc_login' => true ) ),
+		) );
+		$this->assertTrue( $merged['gates']['login']['xmlrpc_login'] );
+	}
+
+	/* ---------- v1.7·M3-IP：gates.comment.submit_rate_limit（P0-A 提交限流新键） ---------- */
+
+	public function test_merge_defaults_backfills_submit_rate_limit_for_old_options(): void {
+		// 旧站点 option 无此键：升级合并补默认 30（wk_cm_ 桶默认 30 次/h/IP）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'gates' => array( 'comment' => array( 'enabled' => true, 'render_mode' => 'always' ) ),
+		) );
+		$this->assertSame( 30, $merged['gates']['comment']['submit_rate_limit'] );
+	}
+
+	public function test_merge_defaults_respects_explicit_submit_rate_limit(): void {
+		// 站长显式配置不被默认覆盖（含 0=不限流）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'gates' => array( 'comment' => array( 'enabled' => true, 'render_mode' => 'always', 'submit_rate_limit' => 0 ) ),
+		) );
+		$this->assertSame( 0, $merged['gates']['comment']['submit_rate_limit'] );
 	}
 
 	/* ---------- C4：review.cloud.tencent_tms 新键（biz_type / reject_score） ---------- */

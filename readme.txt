@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.4.4
+Stable tag: 0.4.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,6 +18,9 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 * **驱动化可插拔**：验证码（腾讯天御 2.0 首发）、云审核（DeepSeek 首发）、IP 信誉（AbuseIPDB）三类能力驱动注册表接入，换驱动零改代码。
 * **wink 品牌**：眨眼 logo、事件编号（`WK-` 前缀）、台阶文案——被拦的访客也「给台阶、指下一步」。
 * **零 composer 依赖**：G5 形态发行，核心逻辑为纯 PHP。
+* **CC 防线**：评论提交 per-IP 限流（默认 30 次/h/IP，`wk_cm_` 小时桶）、XML-RPC multicall per-request 一次化（首拒后零 sleep 零事件 + 每请求 20 次尝试上限）。
+
+> **breaking 注（0.4.5 起）**：新装站点默认禁用 XML-RPC 登录——使用 XML-RPC 发布工具（博客客户端）的站长需在设置页 Tab②「高级」手动开启；升级站点不受影响（升级前已开启的设置原样保留）。
 
 当前版本为 **M1 评论验证 MVP**（0.1.0）：在 M0 骨架/激活建表/设置框架之上，实装腾讯天御验证码驱动（TC3 签名 + 传输脊重试）、LocalRules 四闸内容过滤、评论闸编排（`preprocess_comment` 最早优先级 + REST 评论封堵）、真实 IP 解析（直连/XFF 仅取最右/自定义头 + 信任链不变式）、事件记录与统计 v1、wp_die 品牌拦截页与文案工坊。登录闸 M2、云审核与 IP 信誉 M3。
 
@@ -29,6 +32,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 
 == Frequently Asked Questions ==
 
+= 升级到 0.4.5 后 XML-RPC 博客客户端发不了文章？=
+
+0.4.5 起**新装站点**默认禁用 XML-RPC 登录（breaking：schema 默认值 true→false）。升级安装的站点不受影响——升级前已开启（已存值 true）的原样保留，migrate 不动存量设置。仅从未落过该键的极早期站点会按新默认关闭；此时请前往「设置 → Wink 门口保安」Tab②「高级」区取消勾选「关闭 XML-RPC 登录」即可。
+
 = 卸载会删除数据吗？=
 
 默认不删。设置页的「卸载时清理」开关（`cleanup_on_uninstall`）打开后，卸载才删除全部 option、事件表、cron 与缓存前缀。
@@ -38,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.4.5 =
+
+I1·CC 防线 P0×2（M3-IP 定稿 §8，2026-11-12，AUDIT-CC 推演 P0-A/P0-B 修复批）。① **P0-A 评论提交限流器**：新增 `wk_cm_` per-IP 小时桶（新键 `gates.comment.submit_rate_limit`，默认 30 次/h/IP，0=不限流）——限流器实现为参数化共享件 TransientRateLimiter（DegradedPassLimiter 同形态泛化新类，桶名/窗口/阈值/前缀全参数可配，后续消费方=IP 信誉 check 面/report 面/P1-C 云审送审帽）；挂点=orchestrate 统一插入面「存根校验后、四闸之前」，覆盖 wp-comments-post.php 原生/admin-ajax.php 主题 AJAX/REST wp/v2/comments 三通道；超额响应=统一 captcha_missing 文案不外呼（复用既有三分支协议零新文案；事件 stage=rate + meta.rate_limited 可区分；不留档——stub 同款洪水防膨胀条款，防垃圾库被限流洪水撑爆）；限流计数语义=被四闸/验证码拒绝的提交也计数（限的是洪水不是结果）、同请求幂等计 1；uninstall.php 清理清单补 `wk_cm_` 前缀。② **P0-B XML-RPC per-request 一次化**：LoginGate XML-RPC 路径加请求内静态标志（xmlrpc_attempt_plan 状态机）——multicall 中首个被拒尝试后不再 sleep、不再逐尝试落事件行（后续尝试静默 fault，单请求 worker 占用从「尝试数×1s」收敛为「≈1s」）；每请求 auth 尝试上限 20，超限直接 fault（无 sleep 无事件）——封杀 AUDIT-CC §2.5「multicall 单请求钉死 worker ~100s」worker 池灭绝形态。③ **breaking**：`gates.login.xmlrpc_login` 默认 true→false——新装站点默认禁用 XML-RPC 登录，使用 XML-RPC 发布工具（博客客户端）的站长需在 Tab② 手动开启；**存量设置不迁移**（migrate 不动已存 true，升级站点不受影响）；readme Description/FAQ 补 breaking 注。测试 1322→1349 / 断言 8854→9191 全绿（TransientRateLimiterTest 9 + CommentGateRateLimitTest 8 + LoginGateXmlrpcOnceTest 6 + SettingsSchemaTest 3 + SanitizeTest 1；版本钉五测试文件同步 0.4.5）。真机（厦门 wpclean）：部署 0.4.5 后 P0-A curl 连发 31 次→第 31 发响应=限流文案+事件 stage=rate/meta.rate_limited（桶恒 30 拒绝不增量；被验证码拒绝的提交同计数实证；不留档实证）；P0-B 25 尝试 system.multicall 错密码→事件行恰 1 条、总耗时 2.13s（冷）/0.44s（热）≈单次 sleep、25 全 fault；存量 xmlrpc_login=true 升级后原样保留（存量不迁移实证）；真机观察注记=WP 7.1.3 wp_xmlrpc_server::login() 自带 auth_failed 短路（首败后成员不再进 wp_authenticate）——本插件 per-request 标志+20 上限为插件侧纵深（覆盖 login() 之外路径与核心版本漂移）（IMPL 报告：docs/reports/IMPL-I1-CC防线-2026-11-12.md）。
 
 = 0.4.4 =
 

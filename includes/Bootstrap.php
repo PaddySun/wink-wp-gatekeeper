@@ -32,6 +32,7 @@ use WinkGatekeeper\Gates\LostPasswordGate;
 use WinkGatekeeper\Gates\Precheck;
 use WinkGatekeeper\Gates\RegisterGate;
 use WinkGatekeeper\Gates\TestMode;
+use WinkGatekeeper\Gates\TransientRateLimiter;
 use WinkGatekeeper\Gates\VerifyCache;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Ip\IpResolver;
@@ -209,6 +210,27 @@ final class Bootstrap {
 		);
 		$degraded_allow = array( $degraded_allow, 'allow' );
 
+		/* 评论提交限流器（P0-A，M3-IP 定稿 §8.1——AUDIT-CC §2.1 P0-A 修复）：wk_cm_ per-IP
+		 * 小时桶（TransientRateLimiter 参数化共享件，后续消费方=check/report 面/P1-C 送审帽）。
+		 * gates.comment.submit_rate_limit 默认 30 次/h/IP；0=不限流（不装配=闸侧 null 跳过=
+		 * 现行行为零变化）。限的是「提交动作」不是「过码动作」——挂点在存根校验后、四闸前。 */
+		$submit_limit = max( 0, (int) ( $settings['gates']['comment']['submit_rate_limit'] ?? TransientRateLimiter::DEFAULT_LIMIT ) );
+		$submit_allow = null;
+		if ( $submit_limit > 0 ) {
+			$submit_limiter = new TransientRateLimiter(
+				$submit_limit,
+				TransientRateLimiter::DEFAULT_WINDOW,
+				'get_transient',
+				static function ( string $key, $value, int $ttl ): void {
+					set_transient( $key, $value, $ttl ); // WP 边界。
+				},
+				static function ( string $data ): string {
+					return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // 与 VerifyCache/事件 ip_hash 同盐同源。
+				}
+			);
+			$submit_allow = array( $submit_limiter, 'allow' );
+		}
+
 		// 驱动注册表（05 §4 六维元数据；新驱动 = 新文件 + 注册一行）。
 		$registry = new DriverRegistry();
 		$registry->register( TencentCaptchaDriver::registry_entry() );
@@ -361,7 +383,10 @@ final class Bootstrap {
 					// 双双静默跳过，真机「无按钮+无票直发」）。装配实参数由 BootstrapAssemblyContractTest 钉死。
 					null,
 					// 【v1.5·C1】pass_limited 降级放行限流器（errorPolicy 默认 block=零消费）。
-					$degraded_allow
+					$degraded_allow,
+					// 【P0-A】评论提交限流器（M3-IP 定稿 §8.1——wk_cm_ 桶；submit_rate_limit=0 时
+					// null=不限流现行行为）。
+					$submit_allow
 				);
 
 			// 验证钩子按闸声明装配（preprocess_comment @ -PHP_INT_MAX——A3：比一切评论插件早）。
