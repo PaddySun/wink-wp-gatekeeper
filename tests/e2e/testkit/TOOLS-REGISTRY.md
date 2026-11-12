@@ -55,3 +55,13 @@
 - SSH：`root@<TEST_HOST>:<SSH_PORT>`，密钥 `<SSH_KEY_PATH>`（陷阱口 48490 绝对不碰）
 - 本机 PHP：`PHP.PHP.8.3_Microsoft.Winget.Source_8wekyb3d8bbwe\php.exe`（`PHP_BIN` 环境变量可覆盖）
 - 测试站：`https://test.paddysun.top`（--resolve <TEST_HOST>）/ `http://<TEST_HOST>:18080`（Host 头）
+
+## 出境代理（mihomo，2026-11-13 落地——后续 agent 必读）
+
+- **能力**：厦门机测试站具备境外出站（此前无国际出口，境外 API 真机只能验 fail-open 链）。mihomo v1.19.34 + 订阅节点（30 节点，vmess-ws，rule 模式 **CN 直连分流**——腾讯 TMS/阿里/百度等境内云审不受影响，仅境外走代理）。
+- **落点**：`/root/mihomo/`（mihomo 二进制+config.yaml+sub.yaml+country.mmdb+geosite.dat；目录 700；**订阅凭据只在机器本地，不入任何文档/仓库**）；systemd 单元 `mihomo.service`（Restart=on-failure，开机自启）。
+- **接入形态**：WP 原生代理——wp-config.php `WP_PROXY_HOST=172.18.0.1` + `WP_PROXY_PORT=7890`（备份 `wp-config.php.bak-20261113`）；一切 `wp_remote_*`（含 RemoteClient/诊断面板四源）自动走代理。mihomo 仅绑 `172.18.0.1:7890`（容器网关位；**host 侧 curl 测试也须 `-x http://172.18.0.1:7890`，127.0.0.1 已不监听**）。
+- **元数据坑**：mihomo 首启卡 GeoIP 下载（GitHub 被墙）——meta 文件已补（country.mmdb/geosite.dat，jsDelivr 通道）；若规则改用 ASN 需另补 asn.mmdb。
+- **订阅刷新**：订阅为静态快照（2026-11-13 拉取）——刷新=本机重新拉取（testkit-local/mihomo-test/ 内有现成流程与探针脚本）→ scp 覆盖 sub.yaml → `systemctl restart mihomo`。
+- **实测证据（2026-11-13）**：gstatic 204 0.5s / AbuseIPDB 401（无凭据预期）/ 四源 200×4（SFS/ip.nc.gy/ip.sb/ipquery 经 wp_remote_get）/ verbose check 8.8.8.8 → 200 score=0 CDN US（I2 check 全链绿态首证）。
+- **回滚**：`systemctl disable --now mihomo` + wp-config 还原备份 + `ufw delete allow in on br-49174db99c85 to any port 7890 proto tcp`（注意接口名必须全称，截断名静默失效——本批踩坑实录）。
