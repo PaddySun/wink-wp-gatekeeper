@@ -338,6 +338,49 @@
 	margin-bottom: 0.35rem;
 }
 
+/* 【M4UX F3-4】占位符定义列表结构化排版（Tab⑤ dl 与 Tab④ 共用说明统一——术语/定义/
+ * 示例三层分线，消扁平混杂）：dt 术语行（code 样式承载）、dd 定义行缩进弱化。 */
+.wk-placeholder-list {
+	margin: 0.4rem 0 0;
+	padding: 0;
+}
+
+.wk-placeholder-list dt {
+	margin-top: 0.7rem;
+	font-weight: 600;
+	color: inherit;
+}
+
+.wk-placeholder-list dt:first-child {
+	margin-top: 0;
+}
+
+.wk-placeholder-list dd {
+	margin: 0.15rem 0 0 1.25rem;
+	color: var(--wk-fog);
+}
+
+.wk-placeholder-list dt code,
+.wk-placeholder-list dd code {
+	background: var(--wk-paper);
+	border: 1px solid var(--wk-line);
+	border-radius: 3px;
+	padding: 0.1rem 0.35rem;
+}
+
+/* 示例块独立样式行（术语 code 与示例排版分离——Tab④ 上报备注说明/Tab⑤ {rule} 映射示例共用）。 */
+.wk-example-line {
+	display: block;
+	margin: 0.35rem 0 0.15rem;
+	padding: 0.35rem 0.6rem;
+	background: var(--wk-paper);
+	border-left: 3px solid var(--wk-red);
+	border-radius: 3px;
+	font-family: var(--wk-mono);
+	font-size: 0.9em;
+	overflow-wrap: anywhere;
+}
+
 /* 测试凭据三态结果（绿/红/黄/灰；结果只缓存在按钮旁，不落库）。 */
 .wk-probe {
 	display: inline-block;

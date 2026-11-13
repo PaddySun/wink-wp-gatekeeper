@@ -1872,20 +1872,24 @@ final class SettingsPage {
 						<?php endif; ?>
 					</td>
 				</tr>
+				<?php
+				/* 【M4UX UI-1-3·定稿 §3】WP 原生讨论两开关只读状态行——查询 option 仅展示
+				 * 不改行为（红线：不进本插件表单字段）；管理入口=设置 → 讨论。
+				 * 【M4UX F3-5】条件展示三态：两开关任一为是（会阻碍插件自动审核）→ 渲染行
+				 * 并以 warning notice 呈现；都为否 → 整行不渲染（零 DOM）。 */
+				$wp_moderation = (bool) get_option( 'comment_moderation', 0 );
+				$wp_whitelist  = (bool) get_option( 'comment_whitelist', 0 );
+				$wp_switch_state = static function ( bool $on ): string {
+					return $on
+						? __( '已开启', 'wink-gatekeeper' )
+						: __( '未开启', 'wink-gatekeeper' );
+				};
+				?>
+				<?php if ( $wp_moderation || $wp_whitelist ) : ?>
 				<tr id="wk-review-wp-switches">
 					<th scope="row"><?php esc_html_e( 'WP 原生两开关（只读展示）', 'wink-gatekeeper' ); ?></th>
 					<td>
-						<?php
-						/* 【M4UX UI-1-3·定稿 §3】WP 原生讨论两开关只读状态行——查询 option 仅展示
-						 * 不改行为（红线：不进本插件表单字段）；管理入口=设置 → 讨论。 */
-						$wp_moderation   = (bool) get_option( 'comment_moderation', 0 );
-						$wp_whitelist    = (bool) get_option( 'comment_whitelist', 0 );
-						$wp_switch_state = function ( bool $on ): string {
-							return $on
-								? __( '已开启', 'wink-gatekeeper' )
-								: __( '未开启', 'wink-gatekeeper' );
-						};
-						?>
+						<div class="notice notice-warning inline">
 						<p class="description">
 							<?php esc_html_e( '「评论必须手动批准」（设置 → 讨论）：', 'wink-gatekeeper' ); ?>
 							<strong><?php echo esc_html( $wp_switch_state( $wp_moderation ) ); ?></strong><?php echo $wp_moderation ? '——' . esc_html__( '已开启：即使插件审核通过，评论仍需你在 WP 侧人工批准后才会显示。', 'wink-gatekeeper' ) : ''; ?>
@@ -1898,8 +1902,10 @@ final class SettingsPage {
 							<?php esc_html_e( '本插件只读展示、不改这两个开关的行为；如需调整请到', 'wink-gatekeeper' ); ?>
 							<a href="<?php echo esc_url( admin_url( 'options-discussion.php' ) ); ?>"><?php esc_html_e( '设置 → 讨论', 'wink-gatekeeper' ); ?></a>
 						</p>
+						</div>
 					</td>
 				</tr>
+				<?php endif; ?>
 			</table>
 		</section>
 		<section class="wk-card" id="wk-review-cloud-card">
@@ -2474,6 +2480,34 @@ final class SettingsPage {
 					</td>
 				</tr>
 				<tr>
+					<th scope="row"><?php esc_html_e( '健康状态', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<p class="description">
+							<?php if ( null !== $halt ) : ?>
+								<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
+							<?php else : ?>
+								<span class="wk-dot wk-dot--ok" aria-hidden="true"></span>
+							<?php endif; ?>
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: 停转态/正常 2: 装配态标签（未启用/已启用（AbuseIPDB）） */
+									__( '%1$s · %2$s', 'wink-gatekeeper' ),
+									$health,
+									IpReputationService::state_label( $settings )
+								)
+							);
+							?>
+						</p>
+					</td>
+				</tr>
+			</table>
+			<!-- 【M4UX F3-3】阈值/软顶/日配额/缓存双键/超时收进「高级设置」折叠（details/wk-guide
+			 * 既有形态）——默认展开仅 启用开关+服务商+凭据；软顶命中黄条在上方不折叠（警示常显）。 -->
+			<details class="wk-guide" id="wk-iprep-advanced">
+				<summary><?php esc_html_e( '高级设置（阈值 / 软顶 / 日配额 / 缓存 / 超时）', 'wink-gatekeeper' ); ?></summary>
+				<table class="form-table" role="presentation">
+				<tr>
 					<th scope="row"><label for="wk-iprep-malicious-score"><?php esc_html_e( '恶意阈值', 'wink-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="range" id="wk-iprep-malicious-score" class="wk-score-slider" min="1" max="100" step="1"
@@ -2538,29 +2572,8 @@ final class SettingsPage {
 						<span class="wk-muted"><?php esc_html_e( '秒（1–5，默认 1）——超时按「不通过」从严处理（出码验证）；登录/评论预检/提交期三处共用此键。', 'wink-gatekeeper' ); ?></span>
 					</td>
 				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( '健康状态', 'wink-gatekeeper' ); ?></th>
-					<td>
-						<p class="description">
-							<?php if ( null !== $halt ) : ?>
-								<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
-							<?php else : ?>
-								<span class="wk-dot wk-dot--ok" aria-hidden="true"></span>
-							<?php endif; ?>
-							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: 1: 停转态/正常 2: 装配态标签（未启用/已启用（AbuseIPDB）） */
-									__( '%1$s · %2$s', 'wink-gatekeeper' ),
-									$health,
-									IpReputationService::state_label( $settings )
-								)
-							);
-							?>
-						</p>
-					</td>
-				</tr>
-			</table>
+				</table>
+			</details>
 			<p>
 				<button type="button" class="button" id="wk-iprep-test-credentials"
 					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_IPREP ) ); ?>">
@@ -2666,11 +2679,17 @@ final class SettingsPage {
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'report', 'enabled' ) ) ); ?>" value="0" />
 						<label>
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'report', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $report['enabled'] ) ); ?> />
-							<?php esc_html_e( '启用恶意行为上报（下方任一触发面命中才发送）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( '启用恶意行为上报（高级设置里任一触发面命中才发送）', 'wink-gatekeeper' ); ?>
 						</label>
 						<p class="description"><?php esc_html_e( '独立于上方「IP 信誉查询」开关——只上报不查询；发送失败静默不影响拦截。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
+			</table>
+			<!-- 【M4UX F3-3】T1–T4 勾选组+备注说明+限流参数默认整组折叠（details/wk-guide 既有形态）——
+			 * 总开关/出境 PIPL 黄条/启用门禁状态行不折叠常显（警示常显红线）。 -->
+			<details class="wk-guide" id="wk-iprep-report-advanced">
+				<summary><?php esc_html_e( '高级设置（触发面 T1–T4 / 备注 / 限流参数）', 'wink-gatekeeper' ); ?></summary>
+				<table class="form-table" role="presentation">
 				<?php foreach ( $faces as $face_key => $face ) : ?>
 					<tr>
 						<th scope="row"><?php echo esc_html( $face['title'] ); ?></th>
@@ -2728,8 +2747,9 @@ final class SettingsPage {
 						</p>
 						<p class="description">
 							<?php esc_html_e( '支持占位符 {event_no}（拦截事件编号）、{category}（本次上报的 AbuseIPDB 类目码）、{gate}（触发面 T1/T2/T3/T4）。使用示例：', 'wink-gatekeeper' ); ?>
-							<code>Forged captcha ticket #{event_no} (category {category}, gate {gate})</code>
 						</p>
+						<!-- 【M4UX F3-4】示例块独立样式行（术语 code 与示例排版分离——消扁平混杂）。 -->
+						<code class="wk-example-line">Forged captcha ticket #{event_no} (category {category}, gate {gate})</code>
 						<p class="description">
 							<?php esc_html_e( '类目下拉的官方全表见', 'wink-gatekeeper' ); ?>
 							<a href="https://www.abuseipdb.com/categories" target="_blank" rel="noopener noreferrer">abuseipdb.com/categories</a>
@@ -2754,7 +2774,8 @@ final class SettingsPage {
 						</p>
 					</td>
 				</tr>
-			</table>
+				</table>
+			</details>
 		</section>
 		<?php
 	}
@@ -3103,8 +3124,8 @@ final class SettingsPage {
 				<dt><code>{rule}</code></dt>
 				<dd>
 					<?php esc_html_e( '命中规则键的人话名（由 Labels 映射表翻译，未收录键原样显示键名；命中的具体关键词仅站长在事件流可见）。映射示例：', 'wink-gatekeeper' ); ?>
-					<code>remote_semantic</code> → <?php esc_html_e( '「服务商拒绝了（查配置或欠费）」', 'wink-gatekeeper' ); ?>、
-					<code>banned_word</code> → <?php esc_html_e( '「命中关键词黑名单」', 'wink-gatekeeper' ); ?>。
+					<!-- 【M4UX F3-4】映射示例独立样式行（术语 code 与示例排版分离）。 -->
+					<code class="wk-example-line"><?php echo esc_html( 'remote_semantic → 「服务商拒绝了（查配置或欠费）」 · banned_word → 「命中关键词黑名单」' ); ?></code>
 				</dd>
 				<dt><code>{time}</code></dt>
 				<dd><?php esc_html_e( '拦截发生时间（站点时区）。', 'wink-gatekeeper' ); ?></dd>

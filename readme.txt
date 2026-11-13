@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.3
+Stable tag: 0.5.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,13 +38,17 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 
 = 卸载会删除数据吗？=
 
-默认不删。设置页的「卸载时清理」开关（`cleanup_on_uninstall`）打开后，卸载才删除全部 option、事件表、cron 与缓存前缀。
+0.5.4 起：**删除插件（Delete）即全清卸载**——清理全部本插件自有数据（4 个 option、事件表、cron、wk_* 缓存前缀、自有 comment meta 键）并清空对象缓存。想保留数据请勿卸载，直接上传新版 zip「升级」（升级不触发卸载清理，数据原样保留且缺失键由 migrate 机制补默认）。
 
 = 会与官方 hCaptcha 插件冲突吗？=
 
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.4 =
+
+F3·M4UX F3 批（人工反馈第 2 轮 F3-1~F3-5 五条 + 用户拍板两点澄清，2026-11-14——TDD 先红后绿）。**F3-1 卸载残留诊断修复**：Delete=全清卸载语义确认——uninstall.php 旧「卸载时清理」开关 gate 退役（原默认 false 且从未有设置页入口=「卸载重装后历史还在」的根因）；保留数据路径=不卸载直接上传 zip 升级；卸载尾部补 wp_cache_flush 对象缓存清库（Redis Object Cache 持久缓存复活防御）；**卸载谨慎性加固**——option 键名全等逐个精确、事件表 DROP 前先 SHOW TABLES 探测+PHP 严格全等比对（防 LIKE 下划线通配误伤相似表名）、transient 逐前缀精确（禁 %wink% 宽匹配）、comment meta 只逐键清 wink_gatekeeper_archive（不清整行评论）、每步独立 try/catch 失败安全（宁可残留不可误删）；升级兼容=预位注记（SCHEMA_VERSION+migrate 承载 schema 内平移，跨大版本策略留后续里程碑）。**F3-2 前台按钮返工**：验证按钮盒模型全套跟随适配主题——字号/行高 inherit+高度/内边距交给主题 .button 类映射+零特异性 :where em 兜底（继承链零写死像素，换主题自适应）；「更换网络后请刷新页面重新完成验证」前台提示删除（天御票据网络绑定知识改入人工卡备注）。**F3-3 Tab④ 折叠**：「IP 信誉查询」阈值/软顶/日配额/缓存双键/超时收进「高级设置」折叠（默认展开仅 启用+服务商+凭据）；「恶意行为上报」T1–T4 勾选组+备注说明+限流参数默认整组折叠；总开关/出境 PIPL 黄条/门禁状态行/软顶黄条不折叠常显。**F3-4 占位符格式**：wk-placeholder-list 术语/定义结构化排版+示例块独立样式行（Tab④ 共用说明与 Tab⑤ {rule} 映射示例共用）。**F3-5 WP 开关行条件展示**：Tab③ WP 原生两开关行——两开关任一为是才渲染（warning notice），都为否整行不渲染（只读红线不变）。测试 1523→1544 / 断言 10154→10256 全绿（UiM4UxF3ContractTest 新 21 例，含行为级卸载谨慎性测试——夹具预埋第三方 option/表/transient/meta 跑 uninstall 断言原样存在；UiM4UxF2ContractTest 切网络提示三断言翻转退役；cleanup_on_uninstall 键 schema/Sanitize/migrate 三面退役；版本钉五测试文件同步 0.5.4）。
 
 = 0.5.3 =
 

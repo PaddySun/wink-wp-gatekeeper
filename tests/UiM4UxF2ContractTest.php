@@ -260,38 +260,39 @@ final class UiM4UxF2ContractTest extends TestCase {
 		$this->assertStringContainsString( 'font-size: inherit', $block, '显式 inherit（通用优先不绑主题）' );
 	}
 
-	/* ---------- 附：过码后切网络提示 ---------- */
+	/* ---------- 附：过码后切网络提示【F3 批·用户明示退役】（天御票据网络绑定知识改入人工卡
+	 * 备注，不做前台提示——「插在这里很丑，删掉」M4UX-MANUAL-FEEDBACK-2 §一④；旧 Contains
+	 * 断言有意翻转为 NotContains，承接注记=F3-2 前台按钮返工批） ---------- */
 
-	public function test_net_changed_hint_l10n_key(): void {
+	public function test_net_changed_hint_retired_from_l10n(): void {
 		$bootstrap = self::source( 'includes/Bootstrap.php' );
 
-		$this->assertStringContainsString( "'net_changed'", $bootstrap, 'front_l10n 增 net_changed 键' );
-		$this->assertStringContainsString( '更换网络后请刷新页面重新完成验证', $bootstrap, '提示文案（天御票据环境绑定——人工反馈补充测试衍生物）' );
+		$this->assertStringNotContainsString( "'net_changed'", $bootstrap, 'front_l10n net_changed 键退役（F3-2 用户明示删除）' );
+		$this->assertStringNotContainsString( '更换网络后请刷新页面重新完成验证', $bootstrap, '提示文案退役' );
 	}
 
-	public function test_net_changed_hint_injected_by_gatekeeper_js(): void {
+	public function test_net_changed_hint_retired_from_gatekeeper_js(): void {
 		$js = self::source( 'assets/js/gatekeeper.js' );
 
-		$this->assertStringContainsString( "'net_changed'", $js, 'gatekeeper.js 消费 wkGateL10n.net_changed' );
-		$this->assertStringContainsString( 'wk-gate-net-hint', $js, '提示注入 .wk-gate-net-hint（验证按钮旁）' );
-		$this->assertStringContainsString( 'createElement', $js, 'DOM API 注入（textContent，不 innerHTML——P0-1 纪律）' );
+		$this->assertStringNotContainsString( 'injectNetHint', $js, '注入函数退役' );
+		$this->assertStringNotContainsString( 'wk-gate-net-hint', $js, '提示注入面退役' );
 	}
 
-	public function test_net_changed_hint_css(): void {
+	public function test_net_changed_hint_retired_from_css(): void {
 		$css = self::source( 'assets/css/front-gate.css' );
 
-		$this->assertStringContainsString( '.wk-gate-net-hint', $css, '提示行样式（灰字一行，不抢按钮注意力）' );
+		$this->assertStringNotContainsString( '.wk-gate-net-hint', $css, '提示行样式退役' );
 	}
 
-	/* ---------- 版本 0.5.3（四处钉 + Changelog） ---------- */
+	/* ---------- 版本 0.5.4（四处钉 + Changelog——F3 批推进同步） ---------- */
 
-	public function test_version_bumped_to_0_5_3_in_four_places(): void {
+	public function test_version_bumped_to_0_5_4_in_four_places(): void {
 		$entry    = self::source( 'wink-wp-gatekeeper.php' );
 		$readme   = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.5\.3$/m', $entry, '插件头 Version 0.5.3' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.3' )", $entry, '版本常量 0.5.3' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.5\.3$/m', $readme, 'readme Stable tag 0.5.3' );
-		$this->assertStringContainsString( '= 0.5.3 =', $readme, 'Changelog 0.5.3 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.5\.4$/m', $entry, '插件头 Version 0.5.4' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.4' )", $entry, '版本常量 0.5.4' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.5\.4$/m', $readme, 'readme Stable tag 0.5.4' );
+		$this->assertStringContainsString( '= 0.5.4 =', $readme, 'Changelog 0.5.4 条目' );
 	}
 }

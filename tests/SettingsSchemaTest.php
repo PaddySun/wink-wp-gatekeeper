@@ -128,7 +128,6 @@ final class SettingsSchemaTest extends TestCase {
 			array( array( 'brand', 'contact_email' ), '' ),
 			array( array( 'coexist', 'hcaptcha_yield_comment' ), true ),
 			array( array( 'coexist', 'hcaptcha_yield_login' ), true ),
-			array( array( 'cleanup_on_uninstall' ), false ),
 		);
 
 		foreach ( $checks as $case ) {
@@ -166,7 +165,6 @@ final class SettingsSchemaTest extends TestCase {
 				'stats',
 				'brand',
 				'coexist',
-				'cleanup_on_uninstall',
 			),
 			array_keys( SettingsSchema::defaults() )
 		);

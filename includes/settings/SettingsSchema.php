@@ -338,13 +338,17 @@ final class SettingsSchema {
 				'hcaptcha_yield_comment' => true,
 				'hcaptcha_yield_login'   => true,
 			),
-
-			'cleanup_on_uninstall'   => false,
 		);
 	}
 
 	/**
 	 * v1.4 迁移（04 §2 v1.4 迁移段；仿 hcaptcha_versions 的 migrate_* 命名约定）。
+	 *
+	 * 【升级兼容预位·F3-1·0.5.4】升级路径（不卸载直接上传新版 zip——WP 升级不触发
+	 * uninstall.php）的数据兼容检测与处理 = **预位**：当前由 SCHEMA_VERSION（常量锚点）+
+	 * migrate/merge_defaults 机制承载 schema 内平移（缺失键补默认、废弃键幂等清除、
+	 * 特征值平移），跨大版本兼容策略留后续里程碑（不建空架子——F33「不用的代码路径=
+	 * 不工作的代码路径」纪律；新增大版本迁移步骤时在 migrate_* 命名约定下扩展）。
 	 *
 	 * 迁移步骤（幂等——对已迁移树再跑一次无变化）：
 	 *   ① captcha.login_adaptive.threshold 值平移至 user_threshold（老站自定义阈值不丢）；
@@ -385,6 +389,11 @@ final class SettingsSchema {
 	 * @return array<string, mixed>
 	 */
 	private static function migrate_fields( array $existing ): array {
+		// 【F3-1·0.5.4】cleanup_on_uninstall 废弃清除：Delete=全清卸载语义下开关无意义
+		// （uninstall.php gate 退役；保留数据路径=不卸载直接上传 zip 升级）——存量树残留
+		// 键幂等清除（fail_mode/ip_reject 先例）。
+		unset( $existing['cleanup_on_uninstall'] );
+
 		// ① threshold → user_threshold 平移（目标键缺且源键在时）。
 		$adaptive = $existing['captcha']['login_adaptive'] ?? null;
 		if ( is_array( $adaptive ) ) {

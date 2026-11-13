@@ -202,7 +202,6 @@ final class Sanitize {
 			'brand.contact_email'                       => 'email',
 			'coexist.hcaptcha_yield_comment'            => 'bool',
 			'coexist.hcaptcha_yield_login'              => 'bool',
-			'cleanup_on_uninstall'                      => 'bool',
 		);
 
 		// 文案键白名单：从 Copywork::keys() 单一来源派生（03 Tab⑤）。
