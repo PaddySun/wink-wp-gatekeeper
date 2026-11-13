@@ -189,6 +189,39 @@ final class StatsCache {
 	 * ------------------------------------------------------------------ */
 
 	/**
+	 * 请求内设置树缓存（【P0-5·F1 批】R-AK §D P0-4——record/record_attempts 每调用
+	 * get_option + merge_defaults 全树重建 ~120 键，单条被拒评论路径可触发 2-3 次=纯 CPU
+	 * 浪费。同请求内设置树恒定（TestMode::enforce 在 assemble_gates 一次性写回，
+	 * Bootstrap.php 消费先于任何 record），merge 结果缓存一次复用；每请求独立静态
+	 * （PHP 进程模型），无并发语义影响。计数行为零变化。
+	 *
+	 * @var array<string, mixed>|null
+	 */
+	private static $request_settings_cache = null;
+
+	/**
+	 * 复位请求内设置树缓存（单测隔离桥；生产请求生命周期内无需显式调用）。
+	 *
+	 * @return void
+	 */
+	public static function reset_request_cache(): void {
+		self::$request_settings_cache = null;
+	}
+
+	/**
+	 * 统计开关判定用设置树（merge 结果请求内缓存——见 $request_settings_cache 注）。
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function cached_settings(): array {
+		if ( null === self::$request_settings_cache ) {
+			$stored                       = get_option( 'wink_gatekeeper_settings', array() );
+			self::$request_settings_cache = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		}
+		return self::$request_settings_cache;
+	}
+
+	/**
 	 * 记一笔（闸内调用；stats.enabled 显式 false 时跳过——统计面板总开关）。
 	 *
 	 * FIX-δ 2026-11-10（DEFECT-ROOTCAUSE P1-δ）：
@@ -196,6 +229,7 @@ final class StatsCache {
 	 *     option 时按默认 enabled=true 计数（杜绝「事件 10 条 vs 计数 5 条」的静默跳过）；
 	 *   - update_option 返回 false 时记 error_log 一次（04 §4 v1.3 统计 best-effort，
 	 *     失败不抛异常不影响判定，但须留痕——面板读数与事件表口径分裂至少可诊断）。
+	 *   - 【P0-5·F1】设置树读取+merge 走请求内缓存（同请求多次 record 只 merge 一次）。
 	 *
 	 * @param string $gate    闸 id。
 	 * @param string $driver  驱动 id。
@@ -203,8 +237,7 @@ final class StatsCache {
 	 * @return void
 	 */
 	public static function record( string $gate, string $driver, string $verdict ): void {
-		$settings = get_option( 'wink_gatekeeper_settings', array() );
-		$settings = SettingsSchema::merge_defaults( is_array( $settings ) ? $settings : array() );
+		$settings = self::cached_settings();
 		if ( empty( $settings['stats']['enabled'] ) ) {
 			return; // 统计开关显式关：不计数（事件表落库口径不受影响——写入矩阵独立）。
 		}
@@ -221,16 +254,15 @@ final class StatsCache {
 	/**
 	 * attempts 维记一笔（【v1.5·F4-6】WP 边界——LoginGate::hook_wp_login_failed 消费）。
 	 *
-	 * 与 record() 同款防御：开关读取经 merge_defaults 兜底；update_option 失败记
-	 * error_log 一次（04 §4 统计 best-effort）。attempts 直记不经事件表（失败尝试
-	 * 非判定事件、04 §3 写入矩阵无对应行）。
+	 * 与 record() 同款防御：开关读取经 merge_defaults 兜底（【P0-5·F1】走请求内缓存）；
+	 * update_option 失败记 error_log 一次（04 §4 统计 best-effort）。attempts 直记不经
+	 * 事件表（失败尝试非判定事件、04 §3 写入矩阵无对应行）。
 	 *
 	 * @param string $gate 闸 id（生产=login）。
 	 * @return void
 	 */
 	public static function record_attempts( string $gate ): void {
-		$settings = get_option( 'wink_gatekeeper_settings', array() );
-		$settings = SettingsSchema::merge_defaults( is_array( $settings ) ? $settings : array() );
+		$settings = self::cached_settings();
 		if ( empty( $settings['stats']['enabled'] ) ) {
 			return; // 统计开关显式关：不计数（与 record() 同口径）。
 		}

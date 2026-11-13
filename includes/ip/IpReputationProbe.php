@@ -6,7 +6,7 @@
  *   null  = skip（未启用）——iprep.enabled=false / 登录侧 iprep_gate=false / M2.5 未装配
  *           （Null 服务恒 null）。「未启用=跳过判定项」，不影响免验资格与登录计数。
  *   pass  = 启用且驱动已配置且查询正常且 score < suspect（默认 60）。
- *   fail  = ①启用但驱动未配置/密钥不全（防呆）；②查询超时（iprep.abuseipdb.timeout 默认 1s
+ *   fail  = ①启用但驱动未配置/密钥不全（防呆）；②查询超时（iprep.abuseipdb.timeout 默认 3s【P0-9·F1】
  *           无重试档）；③报错（四类终态/当日停转）；④score ≥ suspect——Verdict
  *           review/reject/error 形态。处置=强制验证码（评论闸过码放行/登录闸出码——定死无开关）。
  *

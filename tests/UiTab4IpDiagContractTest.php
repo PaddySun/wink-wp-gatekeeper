@@ -139,6 +139,19 @@ final class UiTab4IpDiagContractTest extends TestCase {
 		$this->assertStringContainsString( 'wk-ip-diag-result', $js, '结果容器渲染' );
 	}
 
+	/* ---------- 【P0-1·F1 批】诊断卡片渲染净化（admin-brand.js innerHTML 拼接收口） ---------- */
+
+	public function test_admin_brand_js_diag_card_renders_without_innerhtml(): void {
+		// M4UX 定稿 §2 P0-1：ipDiagRenderCard 把远端 API 任意串（ISP/ASN/地区/错误文案）
+		// 经 innerHTML 拼接注入管理员 DOM——收口为 DOM API + textContent（渲染为文本）。
+		$js   = self::source( 'assets/js/admin-brand.js' );
+		$body = self::functionBody( $js, 'ipDiagRenderCard' );
+
+		$this->assertStringNotContainsString( 'innerHTML', $body, '远端串渲染禁 innerHTML 拼接（管理态反射面）' );
+		$this->assertStringContainsString( 'createElement', $body, 'DOM API 组装卡片结构' );
+		$this->assertStringContainsString( 'textContent', $body, '动态串一律 textContent 注入（XSS 载荷渲染为文本）' );
+	}
+
 	/* ---------- ④ EdgeOne 空预设注记（定稿 §5.3） ---------- */
 
 	public function test_trusted_proxies_edgeone_note_documents_ui_hidden_decision(): void {

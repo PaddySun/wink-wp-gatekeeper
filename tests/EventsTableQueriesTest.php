@@ -144,4 +144,44 @@ final class EventsTableQueriesTest extends TestCase {
 		$this->assertSame( 10, EventsTable::limit_clamped( 10 ) );
 		$this->assertSame( 50, EventsTable::limit_clamped( 51 ), '上限 50（与 recent_comment_rejects 同界）' );
 	}
+
+	/* ---------- 【P0-4·F1 批】写入路径 COUNT(*) 冗余移除（R-AK §D P0-3） ---------- */
+
+	/**
+	 * 提取具名方法体（花括号配平）——写入路径契约按作用域收窄断言。
+	 */
+	private static function methodBody( string $src, string $name ): string {
+		$start = strpos( $src, 'function ' . $name );
+		self::assertNotFalse( $start, "方法 {$name} 必须存在" );
+		$open  = strpos( $src, '{', $start );
+		$depth = 0;
+		$len   = strlen( $src );
+		for ( $i = $open; $i < $len; $i++ ) {
+			if ( '{' === $src[ $i ] ) {
+				$depth++;
+			} elseif ( '}' === $src[ $i ] ) {
+				$depth--;
+				if ( 0 === $depth ) {
+					return substr( $src, $open, $i - $open + 1 );
+				}
+			}
+		}
+		self::fail( "方法 {$name} 花括号不配平" );
+		return '';
+	}
+
+	public function test_insert_path_does_not_call_trim_overflow(): void {
+		// M4UX 定稿 §2 P0-4：每行事件 insert 曾尾随 trim_overflow（万行表 COUNT(*)）——
+		// 洪水期（恰是最不该加压的时刻）每行多付一查。容量兜底职责归 daily_maintenance
+		// （既有独立调用）；写入路径从 3 查询（SELECT MAX + INSERT + COUNT）降 2 查询。
+		$src = (string) file_get_contents( __DIR__ . '/../includes/stats/EventsTable.php' );
+
+		$this->assertStringNotContainsString( 'trim_overflow', self::methodBody( $src, 'insert' ), '写入路径禁容量检查调用（COUNT(*) 冗余移除）' );
+
+		$daily = self::methodBody( $src, 'daily_maintenance' );
+		$this->assertStringContainsString( 'trim_overflow', $daily, '容量兜底保留在 daily cron（滚动语义仍在）' );
+
+		$trim = self::methodBody( $src, 'trim_overflow' );
+		$this->assertStringContainsString( 'SELECT COUNT(*)', $trim, 'trim 本体仍是 COUNT 口径（cron 兜底同一实现）' );
+	}
 }

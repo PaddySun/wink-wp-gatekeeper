@@ -285,7 +285,7 @@ final class RemoteClientTest extends TestCase {
 		$result = $client->post( 'https://api.example.com/report', array( 'mode' => 'report' ) );
 
 		$this->assertSame( RemoteResult::TRANSPORT, $result->category() );
-		$this->assertSame( array( 2 ), $captured ); // 短超时 2s，仅一次尝试.
+		$this->assertSame( array( 3 ), $captured ); // 【P0-9/P0-10·F1】report 超时 2s→3s（幽灵到达实证 2s 窗外仍有受理）；fire-and-forget 零重试语义不变.
 	}
 
 	public function test_post_classifies_with_required_and_probe_context(): void {

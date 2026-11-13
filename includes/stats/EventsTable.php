@@ -356,7 +356,11 @@ DDL;
 			);
 
 			if ( false !== $inserted ) {
-				self::trim_overflow();
+				// 【P0-4·F1 批】写入路径不再做容量检查（R-AK §D P0-3）：旧实现每行尾随
+				// 溢出清理调用（万行表 COUNT(*)）——拒绝洪水期每事件多付一查（恰是最不该
+				// 加压的时刻）。容量兜底职责归 daily_maintenance（既有独立调用），写入路径
+				// 从 3 查询（SELECT MAX + INSERT + COUNT）降 2；两次 cron 间瞬时行数上限
+				// 放宽的可接受取舍（Akismet 同款「清理靠 daily」语义）。
 				return $event_no;
 			}
 		}
@@ -743,7 +747,7 @@ DDL;
 	}
 
 	/**
-	 * 容量检查 + 溢出滚动删除（写入路径与每日维护共用；按 id 最旧优先）。
+	 * 容量检查 + 溢出滚动删除（【P0-4·F1】调用方=每日维护 cron 兜底——写入路径不再调用；按 id 最旧优先）。
 	 *
 	 * @return void
 	 */

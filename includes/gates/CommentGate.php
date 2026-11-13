@@ -61,6 +61,7 @@ use WinkGatekeeper\Gates\CaptchaTriInterpreter;
 use WinkGatekeeper\Gates\ResponseDispatcher;
 use WinkGatekeeper\Gates\TestMode;
 use WinkGatekeeper\Gates\TrustStub;
+use WinkGatekeeper\Settings\SettingsPage;
 use WinkGatekeeper\Stats\EventsTable;
 use WinkGatekeeper\Stats\StatsCache;
 use WinkGatekeeper\Verdict;
@@ -878,8 +879,14 @@ final class CommentGate extends AbstractGate {
 	 *
 	 * 【v1.4·R1 G1/F45】hold_moderation 消费时落**待审收口事件**（meta.source 标注来源）：
 	 * 'cloud'（云端 review 判定，verdict=review）/ 'cloud_all_failed'（云端全故障 fail-review
-	 * 兜底，verdict=error）——「WP 核心首评待审」不产生插件事件，三种待审可区分（04 §3 矩阵
-	 * review 行）。收口事件不进统计计数（by_driver 已按驱动 verdict 逐条计过——防双计）。
+	 * 兜底，verdict=error）。收口事件不进统计计数（by_driver 已按驱动 verdict 逐条计过——防双计）。
+	 *
+	 * 【P0-3·F1 批】收口事件落库条件收窄（R-AK §D P0-2——与 04 §3 写入矩阵对齐）：
+	 * record_hold_event() 移入 `1 === (int) $approved` 降级分支内——只有 wink 自己执行
+	 * 降级（1 → '0'）才记收口；核心首评待审（原生 0）/他方 spam·trash 处置不再被误归因为
+	 * wink 云端 review（「三种待审可区分」矩阵口径兑现）。WP 7.x 双回调「首算 0 → 重算
+	 * whitelist 命中回 1」极角：事件落在重算那次（此刻真正执行降级者=wink，归属正确），
+	 * 闩锁仍保证只落一行；hold 降级语义本身零变化。
 	 *
 	 * @param int|string $approved    核心判定的审批状态（1|0|'spam'|'trash'）。
 	 * @param array      $commentdata 评论数据。
@@ -887,15 +894,15 @@ final class CommentGate extends AbstractGate {
 	 */
 	public function filter_pre_comment_approved( $approved, array $commentdata ) {
 		if ( $this->hold_moderation ) {
-			// 待审收口留痕（02 §3.1 v1.4——幂等，单请求单评论一行）。
-			$this->record_hold_event();
-
 			/* 【真机补注 2026-11-10（IMPL-B1）】WP 7.x wp_new_comment 对本 filter 两度回调：
 			 * wp_allow_comment（首算）→ wp_check_comment_data（wp_filter_comment 后重算——
 			 * comment_whitelist 命中时重算回 1）。hold 标志须持续压低至插入完成，不能首次
 			 * 消费即自清——否则第二次重算把降级覆盖（真机实测 comment_approved=1 漏待审）。
 			 * 标志与留痕素材保持到下一次 orchestrate 重置（单请求单评论语义）。 */
 			if ( 1 === (int) $approved ) {
+				// 【P0-3·F1】待审收口留痕（02 §3.1 v1.4——幂等，单请求单评论一行）：
+				// 只对 wink 自己降级的评论记收口事件（核心/他方处置不归因 wink）。
+				$this->record_hold_event();
 				return '0';
 			}
 		}
@@ -1571,7 +1578,8 @@ final class CommentGate extends AbstractGate {
 	 * @return void
 	 */
 	private function intercept_result( array $result ): void {
-		$settings = get_option( 'wink_gatekeeper_settings', array() );
+		// 【P0-7·F1】option 名走规范源常量（魔法串清零——防未来改 option 名字面量位必漏）。
+		$settings = get_option( SettingsPage::OPTION_NAME, array() );
 		$copy     = isset( $settings['copy'] ) && is_array( $settings['copy'] ) ? $settings['copy'] : array();
 		$titles   = isset( $copy['titles'] ) && is_array( $copy['titles'] ) ? $copy['titles'] : array();
 

@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.1
+Stable tag: 0.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.2 =
+
+F1·M4UX P0 bugFIX 批（M4UX 定稿 §2 十条 + R-AK §D/R-UI §E 锚点，2026-11-13——TDD 先红后绿，行为面只修不裁）。① **安全：诊断面板远端串 XSS 收口**【P0-1】——admin-brand.js ipDiagRenderCard 改 DOM API/textContent 组装（innerHTML 拼接退役）；PHP 侧 IpDiagnostic::scalar_str 字符串 htmlspecialchars 预转义（双层独立收口）；契约测试以 `<img src=x onerror=alert(1)>`/`<script>` 远端载荷夹具钉死渲染为文本。② **卸载卫生：补删 `wink_gatekeeper_health`**【P0-2】——卸载完整性承诺兑现（重装首日不再读到旧停转态）；OptionHygieneTest 钉 uninstall delete_option 键集 === 全插件 OPTION_NAME 常量集。③ **待审收口事件归属修正**【P0-3】——record_hold_event 移入 `1 === approved` 降级分支：核心首评待审/他方插件处置不再误记为 wink 云端 review 收口（04 §3「三种待审可区分」矩阵兑现；闩锁与 hold 降级语义零变化）。④ **事件写入路径 COUNT(*) 冗余移除**【P0-4】——insert 每行 3 查询降 2（容量兜底归 daily cron）。⑤ **StatsCache record 请求内 merge 缓存**【P0-5】——同请求多次 record 只 merge 设置树一次（行为零变化）。⑥ **预检端点复用装配树**【P0-6】——ajax_precheck 免每请求重读+重 merge 全树。⑦ **option 名魔法串清零**【P0-7】——CommentGate/DiePage 换 SettingsPage::OPTION_NAME。⑧ **MSG_XMLRPC 走 `__()` 包装**【P0-8】——空转直出行为零变化（i18n-ready 铺路）。⑨ **IP 信誉 check 超时默认 1s→3s**【P0-9】——存量特征值 1 migrate 平移（出厂值非站长显式选择；B 机实测 P95 1.99s 数据支撑；**多跳链路（CDN/反代）建议在 Tab④ 手动调 5s**；范围 1–5s 不变）。⑩ **report 超时 2s→3s**【P0-10】——幽灵到达实证 2s 窗外仍有受理；fire-and-forget 零重试语义不变。测试 1488→1503 / 断言 9979→10042 全绿（OptionHygieneTest 新文件+IpDiagnostic/UiTab4IpDiag/EventsTableQueries/StatsCacheRecordBridge/BootstrapAssemblyContract/LoginGateXmlrpcOnce/SettingsSchema/AbuseIpdbService/AbuseIpdbReport/RemoteClient/CommentGateHoldTrace 扩例与口径翻转；版本钉五测试文件同步 0.5.2）。
 
 = 0.5.1 =
 

@@ -91,7 +91,7 @@ final class AbuseIpdbReportTest extends TestCase {
 		$this->assertCount( 1, $env['calls'], 'report 模式一次即走' );
 		$call = $env['calls'][0];
 		$this->assertSame( 'https://api.abuseipdb.com/api/v2/report', $call['url'] );
-		$this->assertSame( 2, $call['args']['timeout'], 'report 模式 2s 短超时' );
+		$this->assertSame( 3, $call['args']['timeout'], 'report 模式 3s 短超时（P0-10·F1 上调——幽灵到达实证）' );
 		$this->assertSame( 'test-key-123', $call['args']['headers']['Key'] );
 		$this->assertSame( 'application/json', $call['args']['headers']['Accept'] );
 
@@ -545,7 +545,7 @@ final class AbuseIpdbReportTest extends TestCase {
 				'cache_minutes'   => 1440,
 				'soft_quota'      => 3000,
 				'daily_quota'     => 4750,
-				'timeout'         => 1,
+				'timeout'         => 3,
 			),
 			'report'                 => $report,
 		), $iprep_overrides );

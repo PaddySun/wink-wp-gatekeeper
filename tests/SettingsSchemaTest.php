@@ -94,7 +94,7 @@ final class SettingsSchemaTest extends TestCase {
 			array( array( 'iprep', 'abuseipdb', 'cache_minutes' ), 1440 ),
 			array( array( 'iprep', 'abuseipdb', 'soft_quota' ), 3000 ),
 			array( array( 'iprep', 'abuseipdb', 'daily_quota' ), 4750 ),
-			array( array( 'iprep', 'abuseipdb', 'timeout' ), 1 ),
+			array( array( 'iprep', 'abuseipdb', 'timeout' ), 3 ), // 【P0-9·F1】默认 1→3（M4UX 定稿 §2——P95 1.99s 数据支撑；多跳链路建议 5s 注记 Changelog）。
 			// 【I3·定稿 §4.3】总开关默认 true→**false**（拍板 0.4：涉数据出境与隐私，默认从关开始
 			// ——T1 触发面默认开但子系统关=完全静默；存量不迁移 P0-B 先例——存储值原样保留）。
 			array( array( 'iprep', 'report', 'enabled' ), false ),
@@ -364,6 +364,25 @@ final class SettingsSchemaTest extends TestCase {
 		) );
 		$this->assertSame( 30, $merged['iprep']['negative_cache_minutes'], '自定义负缓存 30 不被平移' );
 		$this->assertSame( 720, $merged['iprep']['abuseipdb']['cache_minutes'], '自定义 pass 缓存 720 不被平移' );
+	}
+
+	/* ---------- 【P0-9·F1 批】check 超时默认 1s→3s + 存量特征值平移（M4UX 定稿 §2） ---------- */
+
+	public function test_migrate_shifts_default_timeout_1_to_3(): void {
+		// 1s 是出厂默认非站长显式选择（M3-IP cache_minutes 平移同法）——存储特征值 1
+		// → 平移新默认 3s（B 机实测 P95 1.99s：1s 窗外幽灵到达；多跳链路建议 5s 注记 Changelog）。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'enabled' => true, 'abuseipdb' => array( 'timeout' => 1 ) ),
+		) );
+		$this->assertSame( 3, $merged['iprep']['abuseipdb']['timeout'] );
+	}
+
+	public function test_migrate_preserves_custom_timeout_values(): void {
+		// 站长自定义值（1-5s 防呆范围）原样保留——只平移未动过的旧默认特征值 1。
+		$merged = SettingsSchema::merge_defaults( array(
+			'iprep' => array( 'enabled' => true, 'abuseipdb' => array( 'timeout' => 5 ) ),
+		) );
+		$this->assertSame( 5, $merged['iprep']['abuseipdb']['timeout'], '自定义 5s 不被平移' );
 	}
 
 	public function test_merge_defaults_backfills_soft_quota_for_old_options(): void {

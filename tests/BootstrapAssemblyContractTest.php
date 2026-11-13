@@ -107,4 +107,51 @@ final class BootstrapAssemblyContractTest extends TestCase {
 			'CommentGate 装配段缺 require_gate null 占位注释——B2 错位事故的防回归锚点被删除。'
 		);
 	}
+
+	/* ---------- 【P0-6·F1 批】预检端点复用已 merge 树（R-AK §D P0-5） ---------- */
+
+	/**
+	 * 提取具名方法体（花括号配平）——契约断言按作用域收窄，防全局误命中。
+	 */
+	private static function methodBody( string $src, string $name ): string {
+		$start = strpos( $src, 'function ' . $name );
+		self::assertNotFalse( $start, "方法 {$name} 必须存在" );
+		$open  = strpos( $src, '{', $start );
+		$depth = 0;
+		$len   = strlen( $src );
+		for ( $i = $open; $i < $len; $i++ ) {
+			if ( '{' === $src[ $i ] ) {
+				++$depth;
+			} elseif ( '}' === $src[ $i ] ) {
+				--$depth;
+				if ( 0 === $depth ) {
+					return substr( $src, $open, $i - $open + 1 );
+				}
+			}
+		}
+		self::fail( "方法 {$name} 花括号不配平" );
+		return '';
+	}
+
+	public function test_precheck_reuses_assembled_settings_tree(): void {
+		// M4UX 定稿 §2 P0-6：ajax_precheck 是访客高频面（每次表单点击触发）——旧实现
+		// precheck_settings_network() 每请求重读 option + 重 merge 全树（assemble_gates
+		// 在 init@5 已 merge 过同源同值树）。新契约：assemble_gates 把 merge 结果存实例
+		// 属性，预检读取复用——纯读复用不改变预检与提交期设置一致性。
+		$src = self::bootstrap_src();
+
+		$this->assertMatchesRegularExpression(
+			'/private (?:\?array )?\$assembled_settings/',
+			$src,
+			'实例属性 assembled_settings 必须声明'
+		);
+
+		$assemble = self::methodBody( $src, 'assemble_gates' );
+		$this->assertStringContainsString( '$this->assembled_settings = $settings;', $assemble, '装配期缓存 merge 后整树' );
+
+		$precheck = self::methodBody( $src, 'precheck_settings_network' );
+		$this->assertStringContainsString( '$this->assembled_settings', $precheck, '预检 network 子树读装配缓存（复用）' );
+		$this->assertStringNotContainsString( 'get_option', $precheck, '预检禁重读 option' );
+		$this->assertStringNotContainsString( 'merge_defaults', $precheck, '预检禁重 merge 全树' );
+	}
 }

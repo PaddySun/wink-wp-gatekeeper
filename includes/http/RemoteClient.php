@@ -47,8 +47,10 @@ final class RemoteClient {
 
 	/**
 	 * report 模式短超时（秒）——上报 fire-and-forget，永不阻塞闸流程（02 §2.3a）。
+	 * 【P0-10·F1 批】2→**3**（M4UX 定稿 §2——B 机实测幽灵到达：2s 窗外仍有受理；
+	 * 超时上调不改变 fire-and-forget 零重试语义）。
 	 */
-	public const REPORT_TIMEOUT = 2;
+	public const REPORT_TIMEOUT = 3;
 
 	/**
 	 * 标准模式默认超时（秒）。
@@ -96,7 +98,7 @@ final class RemoteClient {
 	 * @param array  $args {
 	 *     @var array|string $body       请求体。
 	 *     @var array        $headers    请求头。
-	 *     @var int          $timeout    超时秒数（默认 8；report 模式恒 2）。
+	 *     @var int          $timeout    超时秒数（默认 8；report 模式恒 3【P0-10·F1】）。
 	 *     @var string       $mode       standard（默认）| report（无重试短超时档）。
 	 *     @var string       $usage_key  计量键（驱动 id；空则不计量的调用也不该存在，但容错）。
 	 *     @var string[]     $required   传给 classify 的必填字段点分路径。

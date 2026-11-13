@@ -551,21 +551,37 @@
 		};
 		var ipDiagOrder = [ 'abuseipdb', 'stopforumspam', 'ipncgy', 'ipsb' ];
 
+		/* 【P0-1·F1 批·安全修复】远端 API 返回的任意串（ISP/ASN/地区/错误文案）一律经
+		 * textContent 注入——innerHTML 拼接是管理态反射面（响应被劫持/被黑即管理员浏览器
+		 * 执行脚本）。主收口=本函数 DOM API 组装；PHP 侧 IpDiagnostic::scalar_str 预转义
+		 * 为纵深防御（双层独立收口）。渲染结果与旧实现同形（结构/类名零变化）。 */
 		function ipDiagRenderCard( sourceId, card ) {
 			var el = document.createElement( 'div' );
 			el.className = 'wk-ip-diag-card' + ( card && card.ok ? '' : ' wk-ip-diag-card--fail' );
 			el.id = 'wk-ip-diag-card-' + sourceId;
-			var html = '<h4>' + ( ipDiagSourceLabels[ sourceId ] || sourceId ) + '</h4>';
+
+			var heading = document.createElement( 'h4' );
+			heading.textContent = ipDiagSourceLabels[ sourceId ] || sourceId;
+			el.appendChild( heading );
+
 			if ( card && card.ok ) {
-				html += '<dl class="wk-ip-diag-rows">';
+				var list = document.createElement( 'dl' );
+				list.className = 'wk-ip-diag-rows';
 				Object.keys( card.rows || {} ).forEach( function ( key ) {
-					html += '<dt>' + key + '</dt><dd>' + ( card.rows[ key ] || '—' ) + '</dd>';
+					var term = document.createElement( 'dt' );
+					term.textContent = key;
+					var detail = document.createElement( 'dd' );
+					detail.textContent = card.rows[ key ] || '—';
+					list.appendChild( term );
+					list.appendChild( detail );
 				} );
-				html += '</dl>';
+				el.appendChild( list );
 			} else {
-				html += '<p class="wk-ip-diag-error">' + ( ( card && card.error ) || '查询失败。' ) + '</p>';
+				var errorLine = document.createElement( 'p' );
+				errorLine.className = 'wk-ip-diag-error';
+				errorLine.textContent = ( card && card.error ) || '查询失败。';
+				el.appendChild( errorLine );
 			}
-			el.innerHTML = html;
 			return el;
 		}
 

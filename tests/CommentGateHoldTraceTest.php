@@ -141,9 +141,12 @@ final class CommentGateHoldTraceTest extends TestCase {
 		$this->assertNotEmpty( $log, 'error 事件照记（fail-open 不等于无痕）' );
 	}
 
-	public function test_hold_event_recorded_once_even_when_core_already_holds(): void {
-		// 核心原生待审（approved=0）：filter 只降不升 → 不降级，但 hold_moderation 置位即消费，
-		// 收口事件照落一行（云端 review 判定确实发生，来源可查——R1 G1「置位时落事件」字面语义）。
+	public function test_core_native_hold_records_no_hold_event(): void {
+		// 【P0-3·F1 批翻转注记】旧口径（R1 G1 字面语义）：hold_moderation 置位即落收口事件——
+		// 把核心首评待审/他方插件处置误归因为 wink 云端 review（R-AK §D P0-2：与 04 §3
+		// 写入矩阵「核心首评待审不产生插件事件」自相矛盾）。新口径：收口事件只落在 wink
+		// 自己降级的分支（approved=1 → '0'）；核心原生待审（approved=0）保持「只降不升」
+		// 透传且零事件——三种待审可区分的矩阵口径自此兑现。闩锁机制本身不动。
 		$log  = array();
 		$gate = $this->gate( self::settings(), array( 'tencent_tms' => $this->fake_cloud( Verdict::review( 'tencent_tms', 'Ad,60' ) ) ), $log );
 
@@ -153,14 +156,33 @@ final class CommentGateHoldTraceTest extends TestCase {
 		$sourced = array_filter( $log, static function ( array $row ): bool {
 			return isset( $row['meta']['source'] );
 		} );
-		$this->assertCount( 1, $sourced, 'hold 消费一次即记一行（单请求单评论语义）' );
+		$this->assertSame( array(), $sourced, '核心首评待审不产生 wink 收口事件（04 §3 矩阵口径——P0-3）' );
 
-		// 再消费一次（异常双触发场景）：hold 标志已自清 → 原样透传核心判定，不重复落事件。
+		// 再消费一次：仍零事件零降级（hold 标志持续压低机制不变）。
 		$this->assertSame( '0', $gate->filter_pre_comment_approved( '0', self::commentdata() ) );
 		$sourced = array_filter( $log, static function ( array $row ): bool {
 			return isset( $row['meta']['source'] );
 		} );
-		$this->assertCount( 1, $sourced, 'hold 标志消费后自清，不重复落事件' );
+		$this->assertSame( array(), $sourced, '核心原生待审路径恒零收口事件' );
+	}
+
+	public function test_core_hold_then_whitelist_recompute_records_single_event(): void {
+		// WP 7.x 双回调极角（R-AK §D P0-2 注记）：首算 approved=0（核心首评待审）→ 零事件；
+		// 重算 wp_check_comment_data（comment_whitelist 命中回 1）→ wink 此刻真正执行降级
+		// （1 → '0'）——收口事件在此落一行，归属正确（降级者=wink）。
+		$log  = array();
+		$gate = $this->gate( self::settings(), array( 'tencent_tms' => $this->fake_cloud( Verdict::review( 'tencent_tms', 'Ad,60' ) ) ), $log );
+
+		$gate->orchestrate( self::commentdata(), self::request(), self::server() );
+
+		$this->assertSame( '0', $gate->filter_pre_comment_approved( '0', self::commentdata() ), '首算（wp_allow_comment）：核心待审透传零事件' );
+		$this->assertSame( '0', $gate->filter_pre_comment_approved( 1, self::commentdata() ), '重算回 1：wink 降级入待审' );
+
+		$sourced = array_values( array_filter( $log, static function ( array $row ): bool {
+			return isset( $row['meta']['source'] );
+		} ) );
+		$this->assertCount( 1, $sourced, '仅 wink 自己降级的那次落收口事件（闩锁防重）' );
+		$this->assertSame( 'cloud', $sourced[0]['meta']['source'] );
 	}
 
 	public function test_wp7_double_filter_invocation_keeps_downgrade_and_single_event(): void {

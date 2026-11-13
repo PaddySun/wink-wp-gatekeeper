@@ -18,7 +18,7 @@
  *                 （保守态：宁可从严不可静默放行——从严例外之一，meta 标 soft_quota）
  *   步 5 缓存     wk_ip_<HMAC16(ip)> 命中 → 返回缓存 verdict（meta 标 cached:true），零外呼
  *   步 6 外呼+映射 GET https://api.abuseipdb.com/api/v2/check?ipAddress=<URL编码 ip>&maxAgeInDays=90
- *                 头 Key + Accept: application/json（RemoteClient standard，timeout 默认 1s；
+ *                 头 Key + Accept: application/json（RemoteClient standard，timeout 默认 3s【P0-9·F1】；
  *                 usage_key='abuseipdb'——RemoteClient 计量钩子→Usage::bump_option 外呼尝试即计）；
  *                 abuseConfidenceScore ≥ malicious_score(85)→reject / ≥ suspect_score(60)→review /
  *                 其余→pass；isPublic=false→skip（null，不缓存）
@@ -982,7 +982,7 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 					'Key'    => $this->api_key(),
 					'Accept' => 'application/json', // 官方要求（probe 同款——否则 429 可能回 HTML）。
 				),
-				'timeout' => 3, // 手动一次性探测（诊断四源同款 3s——probe() 的 1s 是闸内预算非探测预算）。
+				'timeout' => 3, // 手动一次性探测（诊断四源同款 3s——probe() 的 3s 是闸内预算【P0-9·F1】非探测预算）。
 				'mode'    => 'standard',
 			)
 		);
@@ -1306,10 +1306,11 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	}
 
 	/**
-	 * @return int 外呼超时秒（iprep.abuseipdb.timeout 默认 1——无重试短超时档由脊承载）。
+	 * @return int 外呼超时秒（iprep.abuseipdb.timeout 默认 3【P0-9·F1 批】——无重试短超时档
+	 *              由脊承载；缺键兜底同新默认，B 机实测 P95 1.99s 数据支撑）。
 	 */
 	private function timeout(): int {
-		$timeout = (int) ( $this->abuse_settings()['timeout'] ?? 1 );
-		return $timeout > 0 ? $timeout : 1;
+		$timeout = (int) ( $this->abuse_settings()['timeout'] ?? 3 );
+		return $timeout > 0 ? $timeout : 3;
 	}
 }

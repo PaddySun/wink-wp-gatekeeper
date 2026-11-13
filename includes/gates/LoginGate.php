@@ -94,7 +94,7 @@ final class LoginGate extends AccountFormGate {
 	public const FAIL_SLEEP_MAX_MS = 2000;
 
 	/**
-	 * XML-RPC 拒绝文案（IXR faultString 同文）。
+	 * XML-RPC 拒绝文案（IXR faultString 同文；【P0-8·F1】消费位走 __() 包装——i18n-ready）。
 	 */
 	private const MSG_XMLRPC = '登录失败次数过多，XML-RPC 登录已暂时停用（验证码无法在 XML-RPC 协议内呈现）——请稍后再试，或在网页端完成人机验证。';
 
@@ -654,7 +654,9 @@ final class LoginGate extends AccountFormGate {
 		if ( $plan['sleep'] ) {
 			$this->maybe_fail_sleep(); // 【v1.5·B3】仅首拒 sleep（P0-B 一次化——后续静默 fault）。
 		}
-		return new \WP_Error( self::ERROR_CODE_XMLRPC, self::MSG_XMLRPC );
+		// 【P0-8·F1】访客侧文案走 __() 包装（全库唯一绕过 __()/Copywork 双通道的访客串
+		// ——R-UI §E P0-5；不引 languages/ 目录：__() 空转直出=行为零变化，i18n-ready 铺路）。
+		return new \WP_Error( self::ERROR_CODE_XMLRPC, __( self::MSG_XMLRPC, 'wink-gatekeeper' ) );
 	}
 
 	/**

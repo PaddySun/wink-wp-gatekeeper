@@ -21,7 +21,7 @@ namespace WinkGatekeeper\Stats {
 	/** 桩 option 存储。 */
 	$GLOBALS['wk_stats_option_store'] = array();
 	/** 桩调用记录。 */
-	$GLOBALS['wk_stats_calls'] = array( 'update' => array(), 'error_log' => array() );
+	$GLOBALS['wk_stats_calls'] = array( 'update' => array(), 'error_log' => array(), 'get' => array() );
 	/** update_option 返回值开关（默认 true）。 */
 	$GLOBALS['wk_stats_update_result'] = true;
 
@@ -34,6 +34,7 @@ namespace WinkGatekeeper\Stats {
 		 * @return mixed
 		 */
 		function get_option( string $name, $default = false ) {
+			$GLOBALS['wk_stats_calls']['get'][] = $name; // 【P0-5】读次数计量（merge-once 断言面）。
 			return array_key_exists( $name, $GLOBALS['wk_stats_option_store'] )
 				? $GLOBALS['wk_stats_option_store'][ $name ]
 				: $default;
@@ -93,8 +94,9 @@ namespace WinkGatekeeper\Tests {
 
 		protected function setUp(): void {
 			$GLOBALS['wk_stats_option_store'] = array();
-			$GLOBALS['wk_stats_calls']        = array( 'update' => array(), 'error_log' => array() );
+			$GLOBALS['wk_stats_calls']        = array( 'update' => array(), 'error_log' => array(), 'get' => array() );
 			$GLOBALS['wk_stats_update_result'] = true;
+			StatsCache::reset_request_cache(); // 【P0-5】请求内静态缓存复位（单测进程共享——每用例隔离）。
 		}
 
 		public function test_record_counts_when_settings_option_lacks_stats_key(): void {
@@ -208,6 +210,65 @@ namespace WinkGatekeeper\Tests {
 			self::assertIsString( $src, 'CommentGate.php 必须可读' );
 			$this->assertStringContainsString( "StatsCache::record( 'comment', \$driver_id, 'disaster_pass' )", $src, '默认 recorder 须 bump disaster_pass 独立键（O3 卡 2 计数源）' );
 			$this->assertStringContainsString( "! empty( \$meta['disaster_pass'] )", $src, '计数语境判定 = meta.disaster_pass' );
+		}
+
+		/* ---------- 【P0-5·F1 批】设置树 merge 结果请求内静态缓存（R-AK §D P0-4） ---------- */
+
+		public function test_record_same_request_merges_settings_once(): void {
+			// 单条被拒评论路径 record 可触发 2-3 次（ip 事件+云审事件+hold 收口）——旧实现
+			// 每次调用都 get_option + merge_defaults 全树重建（~120 键，纯 CPU 浪费）。新实现：
+			// 同请求只读+merge 一次（行为零变化——stats.enabled 判定每请求恒定，TestMode::
+			// enforce 在 assemble_gates 一次性写回）。
+			$GLOBALS['wk_stats_option_store']['wink_gatekeeper_settings'] = array(
+				'schema_version' => 1,
+				'gates'          => array( 'comment' => array( 'enabled' => true, 'render_mode' => 'always' ) ),
+			);
+
+			StatsCache::record( 'comment', 'driver_a', 'reject' );
+			StatsCache::record( 'comment', 'driver_b', 'reject' );
+			StatsCache::record_attempts( 'login' );
+
+			$settings_reads = array_values( array_filter(
+				$GLOBALS['wk_stats_calls']['get'],
+				static function ( string $name ): bool {
+					return 'wink_gatekeeper_settings' === $name;
+				}
+			) );
+			$this->assertCount( 1, $settings_reads, '同请求 3 次写入路径只读+merge 设置树一次（P0-5）' );
+
+			// 计数行为不受缓存影响（三笔全落）。
+			$cache = $GLOBALS['wk_stats_option_store'][ StatsCache::OPTION_NAME ];
+			$this->assertSame( 1, $cache['by_driver']['driver_a']['reject'] );
+			$this->assertSame( 1, $cache['by_driver']['driver_b']['reject'] );
+			$this->assertSame( 1, $cache['by_gate']['login']['attempts'] );
+		}
+
+		public function test_reset_request_cache_reenables_settings_read(): void {
+			// 复位件契约：清缓存后下一次 record 重新读设置树（单测隔离 + 未来请求边界复用）。
+			$GLOBALS['wk_stats_option_store']['wink_gatekeeper_settings'] = array(
+				'stats' => array( 'enabled' => true ),
+			);
+			StatsCache::record( 'comment', 'tencent', 'reject' );
+			StatsCache::reset_request_cache();
+			StatsCache::record( 'comment', 'tencent', 'reject' );
+
+			$settings_reads = array_values( array_filter(
+				$GLOBALS['wk_stats_calls']['get'],
+				static function ( string $name ): bool {
+					return 'wink_gatekeeper_settings' === $name;
+				}
+			) );
+			$this->assertCount( 2, $settings_reads, '复位后重新读设置树' );
+			$this->assertSame( 2, $GLOBALS['wk_stats_option_store'][ StatsCache::OPTION_NAME ]['by_driver']['tencent']['reject'], '计数连续' );
+		}
+
+		public function test_stats_disabled_after_cache_reset_still_skips(): void {
+			// 缓存不改变「显式关闭不计数」语义（FIX-δ 回归面在新缓存路径下仍成立）。
+			$GLOBALS['wk_stats_option_store']['wink_gatekeeper_settings'] = array(
+				'stats' => array( 'enabled' => false ),
+			);
+			StatsCache::record( 'comment', 'tencent', 'reject' );
+			$this->assertCount( 0, $GLOBALS['wk_stats_calls']['update'], '显式关闭：仍跳过计数' );
 		}
 	}
 }

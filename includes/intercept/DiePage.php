@@ -181,7 +181,8 @@ final class DiePage {
 	 * @return void
 	 */
 	public static function show( string $copy_key, array $vars = array(), array $evidence = array() ): void {
-		$settings = get_option( 'wink_gatekeeper_settings', array() );
+		// 【P0-7·F1】option 名走规范源常量（魔法串清零——防未来改 option 名字面量位必漏）。
+		$settings = get_option( \WinkGatekeeper\Settings\SettingsPage::OPTION_NAME, array() );
 		$copy     = is_array( $settings['copy'] ?? null ) ? $settings['copy'] : array();
 
 		$contact = isset( $settings['brand']['contact_email'] ) && is_string( $settings['brand']['contact_email'] )

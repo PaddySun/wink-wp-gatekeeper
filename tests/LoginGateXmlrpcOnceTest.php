@@ -216,6 +216,21 @@ final class LoginGateXmlrpcOnceTest extends TestCase {
 		$this->assertSame( 20, LoginGate::XMLRPC_AUTH_ATTEMPT_LIMIT, '每请求 auth 尝试上限 20（定稿 §8.2）' );
 	}
 
+	/* ---------- 【P0-8·F1 批】访客侧文案 __() 包装（M4UX 定稿 §2） ---------- */
+
+	public function test_xmlrpc_fault_message_wrapped_with_translation_call(): void {
+		// MSG_XMLRPC 是全库唯一绕过 __()/Copywork 双通道的访客侧明文串（R-UI §E P0-5）。
+		// 最小修：包 __()（不引 languages/ 目录——空转直出=行为零变化，i18n-ready 铺路）。
+		$src = file_get_contents( __DIR__ . '/../includes/gates/LoginGate.php' );
+		self::assertIsString( $src, 'LoginGate.php 必须可读' );
+
+		$this->assertStringContainsString(
+			"new \\WP_Error( self::ERROR_CODE_XMLRPC, __( self::MSG_XMLRPC, 'wink-gatekeeper' ) )",
+			$src,
+			'XML-RPC fault 文案须走 __() 包装（i18n 纪律一致性）'
+		);
+	}
+
 	/* ---------- reset 复位（单请求=单进程语义的测试桥） ---------- */
 
 	public function test_reset_restores_fresh_request_state(): void {

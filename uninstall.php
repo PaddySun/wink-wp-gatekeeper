@@ -3,11 +3,16 @@
  * 卸载清理（04 §7）。
  *
  * 仅当设置中 cleanup_on_uninstall = true 时执行：
- *   1. 删 3 个 option：settings / stats / usage；
+ *   1. 删 4 个 option：settings / stats / usage / health；
  *   2. DROP events 表；
  *   3. 清 daily_maintenance cron；
  *   4. 删 transient 前缀 wk_lf_ / wk_ip_ / wk_rp_（以 option 表存的键索引清理）。
  * 默认 false（沿上游「停用不清设置」习惯）——什么都不做。
+ *
+ * 【P0-2·F1 批】补删 wink_gatekeeper_health（DriverHealth::OPTION_NAME——云审停转状态
+ * 树，含日期与 per-driver 停转态）：漏删则卸载重装后首日读到旧停转态（R-AK §D P0-1——
+ * 头注自己写「删 3 个 option」是清单过时非有意保留）。键集一致性由 OptionHygieneTest 钉
+ * （uninstall delete_option 键集 === 全插件 OPTION_NAME 常量集）。
  *
  * @package WinkGatekeeper
  */
@@ -22,10 +27,11 @@ if ( ! is_array( $wink_settings ) || empty( $wink_settings['cleanup_on_uninstall
 	return; // 清理开关关闭：保留全部数据。
 }
 
-/* 1. 删 3 个 option。 */
+/* 1. 删 4 个 option（【P0-2·F1】补删 health——卸载完整性承诺全量兑现）。 */
 delete_option( 'wink_gatekeeper_settings' );
 delete_option( 'wink_gatekeeper_stats' );
 delete_option( 'wink_gatekeeper_usage' );
+delete_option( 'wink_gatekeeper_health' );
 
 /* 2. DROP events 表（表名 = 受控前缀 + 常量后缀，无用户输入拼接面）。 */
 global $wpdb;

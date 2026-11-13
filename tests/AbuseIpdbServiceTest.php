@@ -56,7 +56,7 @@ final class AbuseIpdbServiceTest extends TestCase {
 					'cache_minutes'   => 1440,
 					'soft_quota'      => 3000,
 					'daily_quota'     => 4750,
-					'timeout'         => 1,
+					'timeout'         => 3,
 				), $abuse_overrides ),
 			), $top_overrides ),
 			'stats' => array( 'raw_capture' => true, 'raw_max_bytes' => 512 ),
@@ -276,7 +276,7 @@ final class AbuseIpdbServiceTest extends TestCase {
 		$this->assertSame( 'https://api.abuseipdb.com/api/v2/check?ipAddress=' . self::IP . '&maxAgeInDays=90', $call['url'], '定稿 §3.1 步 6 契约（maxAgeInDays=90）' );
 		$this->assertSame( 'test-key-123', $call['args']['headers']['Key'], '头 Key: {api_key}' );
 		$this->assertSame( 'application/json', $call['args']['headers']['Accept'], '头 Accept: application/json（官方要求——否则 429 可能回 HTML）' );
-		$this->assertSame( 1, $call['args']['timeout'], 'timeout=iprep.abuseipdb.timeout 默认 1s' );
+		$this->assertSame( 3, $call['args']['timeout'], 'timeout=iprep.abuseipdb.timeout 默认 3s（P0-9 上调——B 机实测 P95 1.99s）' );
 		// usage_key/required 由 RemoteClient 消费不入 wp_args——计量经钩子计数实证（本行），
 		// required 判据由 test_contract_mismatch_sets_backoff_and_sentinel_hits 行为实证。
 		$this->assertSame( 1, $env['usage'], '外呼尝试即计（计量键=abuseipdb 经 RemoteClient 钩子→Usage::bump_option，§9/04 §6）' );

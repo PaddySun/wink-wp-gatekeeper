@@ -275,7 +275,7 @@ final class SettingsSchema {
 					// < daily_quota 硬停转 4750，两道额度闸；AbuseIpdbService 统一消费。
 					'soft_quota'      => 3000,
 					'daily_quota'     => 4750, // 账户实配 5000/天（贡献者+认证站长档，2026-11-09 确认）留 5% 缓冲。
-					'timeout'         => 1,    // 【v1.4·澄清A】查询超时秒（无重试短超时档；防呆 1-5；R2/R3 超时键合并裁决=驱动级一键，登录/评论预检/提交期三处消费）。【v1.4 作废】fail_mode 键删除（三态语义定死强制验证码，02 §2.3b）。
+					'timeout'         => 3,    // 【P0-9·F1 批】查询超时秒默认 1→**3**（M4UX 定稿 §2——B 机实测 P95 1.99s 数据支撑：多跳链路（CDN/反代）1s 窗外幽灵到达；存量特征值 1 由 migrate_fields 平移，站长显式值原样保留；范围 1-5 防呆不变，多跳链路建议 5s——readme Changelog 注记）。【v1.4·澄清A】无重试短超时档；R2/R3 超时键合并裁决=驱动级一键，登录/评论预检/提交期三处消费。【v1.4 作废】fail_mode 键删除（三态语义定死强制验证码，02 §2.3b）。
 				),
 				'report'    => array( // 验证失败上报（D12），独立于 iprep.enabled.
 					// 【I3·定稿 §4.3 拍板 0.4】总开关默认 true→**false**（涉数据出境与隐私，默认从关
@@ -358,6 +358,8 @@ final class SettingsSchema {
 	 *     （P0-B xmlrpc_login 先例——新装站点默认关；存量站点保留存储值，breaking 注明；
 	 *     新键 triggers.login_attempts/local_rules_fail+两 _threshold 子键+daily_cap+
 	 *     category_/comment_ 每面覆盖键由 merge_defaults 整树补齐）；
+	 *   ③e【P0-9·F1】iprep.abuseipdb.timeout 旧默认特征值 1 平移新默认 3（出厂值非站长
+	 *     显式选择——cache_minutes 平移同法；多跳链路建议 5s 注记 readme Changelog）；
 	 *   ④ review.cloud.chain == ['deepseek']（v1.3 前的默认值、站长从未动过）→ []；
 	 *     其它已存值（如 ['tencent_tms']）原样保留（merge_defaults 不覆盖已存值）；
 	 *   ⑤ 新键（gates.register/lostpassword、captcha.trust 六键、iprep.negative_cache_minutes、
@@ -413,6 +415,17 @@ final class SettingsSchema {
 			&& array_key_exists( 'negative_cache_minutes', $existing['iprep'] )
 			&& 10 === (int) $existing['iprep']['negative_cache_minutes'] ) {
 			unset( $existing['iprep']['negative_cache_minutes'] );
+		}
+
+		// 【P0-9·F1 批】iprep.abuseipdb.timeout 旧默认特征值 1 → 平移新默认 3（M4UX 定稿
+		// §2——1s 是出厂默认非站长显式选择，M3-IP cache_minutes 平移同法：特征值 1 移除键
+		// 由随后 merge_defaults 补新默认 3；站长显式值（1-5 中非 1 的自定义）原样保留。
+		// 数据支撑=B 机实测 P95 1.99s（M4M6 §T4）：多跳链路下 1s 窗外幽灵到达，3s 为 check
+		// 预算出厂值——readme Changelog 注记「多跳链路（CDN/反代）建议 5s」）。
+		if ( isset( $existing['iprep']['abuseipdb'] ) && is_array( $existing['iprep']['abuseipdb'] )
+			&& array_key_exists( 'timeout', $existing['iprep']['abuseipdb'] )
+			&& 1 === (int) $existing['iprep']['abuseipdb']['timeout'] ) {
+			unset( $existing['iprep']['abuseipdb']['timeout'] );
 		}
 
 		// 【I3·定稿 §4.2/O5-P1-3】⑤ iprep.report.triggers.ip_reject 废弃清除（check 判 reject

@@ -405,12 +405,18 @@ final class IpDiagnostic {
 	/**
 	 * 标量 → 展示串（数组/ null 一律空串，防止结构漂移把原始结构打进 DOM）。
 	 *
+	 * 【P0-1·F1 批·安全修复】字符串一律 htmlspecialchars 转义（M4UX 定稿 §2——本面消费
+	 * AbuseIPDB/ip.sb 等远端 API 任意串，响应被劫持/被黑时是管理态反射面；主收口在
+	 * admin-brand.js 渲染层改 DOM API/textContent 组装，此处 PHP 侧预转义为纵深防御——
+	 * 双层独立收口，任一层单独存在即阻断执行）。显示语义零变化：正常串不含 <>&" 转义
+	 * 前后同形，仅载荷串由「可执行」变「可见」。
+	 *
 	 * @param mixed $value
 	 * @return string
 	 */
 	private static function scalar_str( $value ): string {
 		if ( is_scalar( $value ) ) {
-			return (string) $value;
+			return htmlspecialchars( (string) $value, ENT_QUOTES, 'UTF-8' );
 		}
 		return '';
 	}

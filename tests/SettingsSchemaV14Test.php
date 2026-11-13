@@ -58,8 +58,9 @@ final class SettingsSchemaV14Test extends TestCase {
 
 		// iprep：负缓存 + 驱动级超时（R2/R3 超时键合并裁决——一键三消费）；fail_mode 不再出现。
 		// 【v1.7·M3-IP 定稿 §3.3】负缓存默认 10→60 平移（v1.4 原默认 10 的键位保留）。
+		// 【P0-9·F1 批注记】超时默认 1→3（M4UX 定稿 §2——出厂值平移；本测试钉的键位不变）。
 		$this->assertSame( 60, $defaults['iprep']['negative_cache_minutes'] );
-		$this->assertSame( 1, $defaults['iprep']['abuseipdb']['timeout'] );
+		$this->assertSame( 3, $defaults['iprep']['abuseipdb']['timeout'] );
 		$this->assertArrayNotHasKey( 'fail_mode', $defaults['iprep']['abuseipdb'] );
 
 		// stats.raw_*（R4 §D.4 日志级别开关）。

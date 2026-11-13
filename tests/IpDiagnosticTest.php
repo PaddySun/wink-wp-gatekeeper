@@ -352,4 +352,44 @@ final class IpDiagnosticTest extends TestCase {
 		$this->assertStringContainsString( '结构', IpDiagnostic::card_error( 'contract', 200 ) );
 		$this->assertStringContainsString( 'JSON', IpDiagnostic::card_error( 'parse', 200 ) );
 	}
+
+	/* ---------- 【P0-1·F1 批】远端串 XSS 净化（M4UX 定稿 §2——管理态反射面收口） ---------- */
+
+	public function test_parse_source_escapes_remote_strings_as_text(): void {
+		// 远端 API 返回的任意串（响应被劫持/被黑的形态）→ 必须渲染为文本而非执行。
+		// 夹具载荷：事件属性 + script 标签两类（管理员浏览器注入通路——静态成立即应修）。
+		$card = IpDiagnostic::parse_source( 'abuseipdb', array(
+			'data' => array(
+				'abuseConfidenceScore' => 0,
+				'usageType'            => '<script>alert(1)</script>',
+				'isp'                  => '<img src=x onerror=alert(1)>',
+			),
+		) );
+
+		$this->assertTrue( $card['ok'] );
+		$this->assertSame( '&lt;img src=x onerror=alert(1)&gt;', $card['rows']['ISP'], 'ISP 远端串 HTML 转义（渲染为文本）' );
+		$this->assertSame( '&lt;script&gt;alert(1)&lt;/script&gt;', $card['rows']['用途'], '用途远端串 HTML 转义（渲染为文本）' );
+	}
+
+	public function test_parse_source_escapes_all_ipsb_remote_rows(): void {
+		// ipsb 四行全走 scalar_str——逐行断言零存活标签/事件属性。
+		$card = IpDiagnostic::parse_source( 'ipsb', array(
+			'ip'           => '203.0.113.9',
+			'country'      => 'CN',
+			'region'       => '" onclick=alert(1) x="',
+			'city'         => '<svg onload=alert(2)>',
+			'isp'          => 'China<script>x</script>',
+			'asn'          => 4134,
+			'organization' => '<b>ASN Org</b>',
+		) );
+
+		$this->assertTrue( $card['ok'] );
+		foreach ( $card['rows'] as $label => $row ) {
+			$this->assertStringNotContainsString( '<script', $row, "{$label} 行禁存活 script" );
+			$this->assertStringNotContainsString( 'onerror=', $row, "{$label} 行禁存活事件属性" );
+			$this->assertStringNotContainsString( '<svg', $row, "{$label} 行禁存活 svg" );
+			$this->assertStringNotContainsString( '<b>', $row, "{$label} 行禁存活标签" );
+		}
+		$this->assertSame( '4134', strstr( $card['rows']['ASN'], ' ', true ), '数值行不受转义影响' );
+	}
 }

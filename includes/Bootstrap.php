@@ -119,6 +119,16 @@ final class Bootstrap {
 	 */
 	private $precheck_config;
 
+	/**
+	 * 装配期缓存：merge 后整树（【P0-6·F1 批】R-AK §D P0-5——ajax_precheck 是访客高频
+	 * 面，旧实现 precheck_settings_network() 每请求重读 option + 重 merge 全树；assemble_
+	 * gates 在 init@5 已 merge 过同源同值树，预检改读本属性复用（纯读复用——预检与提交期
+	 * 设置一致性本来就该一致）。每请求独立实例，无跨请求语义。
+	 *
+	 * @var array<string, mixed>|null
+	 */
+	private $assembled_settings = null;
+
 	private function __construct( string $base_dir, string $base_url ) {
 		$this->base_dir = $base_dir;
 		$this->base_url = $base_url;
@@ -197,6 +207,10 @@ final class Bootstrap {
 		 * 开关 on 且超 24h → 清键 + 落 test_mode_expired 事件 + 写回 option；返回修正树供
 		 * 全部闸/预检/提醒位消费（单消费点收口，闸内读时判定只作双保险）。 */
 		$settings = TestMode::enforce( $settings );
+
+		// 【P0-6·F1】装配期缓存 merge 后整树（ajax_precheck / precheck_settings_network
+		// 复用——访客高频面免每请求重读 option + 重 merge 全树；R-AK §D P0-5）。
+		$this->assembled_settings = $settings;
 
 		/* 【v1.5·C1】pass_limited 降级放行限流器（02 §2.1 DegradedPassLimiter 共享件——
 		 * 默认 5 次/IP/h；天御 disaster 与 captcha errorPolicy pass_limited 两个消费方共用
@@ -714,14 +728,14 @@ final class Bootstrap {
 	}
 
 	/**
-	 * 预检处理器用的 network 设置（与 assemble_gates 同源读取）。
+	 * 预检处理器用的 network 设置（与 assemble_gates 同源同值——【P0-6·F1】改读装配期
+	 * 缓存树复用：免每请求重读 option + 重 merge 全树；调用前提=assemble_gates 已跑
+	 * （ajax_precheck 对 precheck=null 提前返回，而 precheck 仅在 assemble_gates 装配）。
 	 *
 	 * @return array<string, mixed>
 	 */
 	private function precheck_settings_network(): array {
-		$stored = get_option( SettingsPage::OPTION_NAME, array() );
-		$stored = is_array( $stored ) ? $stored : array();
-		$merged = SettingsSchema::merge_defaults( $stored );
+		$merged = is_array( $this->assembled_settings ) ? $this->assembled_settings : array();
 		return is_array( $merged['network'] ?? null ) ? $merged['network'] : array();
 	}
 
