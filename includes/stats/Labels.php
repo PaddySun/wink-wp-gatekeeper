@@ -146,7 +146,8 @@ final class Labels {
 	 * rule_hit 键 → 人话（对照表 13-17 + 评论规则族；未收录键原样返回）。
 	 *
 	 * 覆盖四族：远端故障族（remote_*）、契约/停转族（contract_mismatch/driver_halted:*）、
-	 * 评论规则族（too_short/too_long/no_chinese/banned_word/hold_moderation）、
+	 * 评论规则族（too_short/too_long/no_chinese/banned_word/hold_moderation/duplicate_comment/
+	 * comment_flood——后两键为 WP 核心重复/洪泛拒绝，UI-3-3 补录人话名，不再裸奔直出键名）、
 	 * 验证码族（captcha_missing/bad-signature/CaptchaCode=N）。
 	 *
 	 * @param string $rule_hit 命中规则键（可能逗号拼接——未收录原样）。
@@ -169,6 +170,8 @@ final class Labels {
 			'hold_moderation'   => '收进待审区等站长复核',
 			'captcha_missing'   => '没带验证码票据',
 			'bad-signature'     => '票据签名不对',
+			'duplicate_comment' => '与已有评论重复',
+			'comment_flood'     => '发得太快（洪泛保护）',
 			'trust_pass'        => '信用免验通过',
 			'verify_cache_hit'  => '窗口内免重复验票',
 		);

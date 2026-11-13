@@ -200,6 +200,17 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	);
 
 	/**
+	 * 触发面默认 Comment 读取（【M4UX UI-2-2】Tab④ 分区③ Comment 输入框 placeholder
+	 * 回显默认短语——服务端单点渲染默认短语常量；未收录触发面返回空串不撒谎）。
+	 *
+	 * @param string $trigger 触发面键（captcha_failed|review_reject|login_attempts|local_rules_fail）。
+	 * @return string
+	 */
+	public static function default_comment( string $trigger ): string {
+		return self::DEFAULT_COMMENTS[ $trigger ] ?? '';
+	}
+
+	/**
 	 * @var array<string, mixed> 完整设置树（iprep/stats 子树消费）。
 	 */
 	private $settings;

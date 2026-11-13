@@ -214,7 +214,7 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringContainsString( 'Labels::test_mode_word', $body, '演练模式态走映射表词' );
 		$this->assertStringContainsString( 'EventsTable::row_count', $body, '事件表容量读数（N11——C 建议替代无指标项「事件记录正常」）' );
 		$this->assertStringContainsString( 'MAX_ROWS', $body, '容量上限读数' );
-		$this->assertStringContainsString( '三步配好', $body, '首次使用引导挂底账行尾（docs 03 原承诺）' );
+		$this->assertStringNotContainsString( '三步配好', $body, '页脚旧引导退役（【M4UX UI-1-1】引导升位页顶通栏 render_overview_onboarding——docs 03 原承诺由通栏承接）' );
 		$this->assertStringNotContainsString( '事件记录正常', $body, '无指标项退役（agent C B-6 建议）' );
 	}
 
@@ -259,14 +259,14 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringNotContainsString( '本地规则无外部故障面', $bodies, '恒正常黑话退役（对照表 B-7）' );
 	}
 
-	/* ---------- 版本 0.5.2（随批次推进同步——F1·M4UX P0 批 定稿 §2 十条 bugFIX） ---------- */
+	/* ---------- 版本 0.5.3（随批次推进同步——F2·M4UX UI 收官批 定稿 §3） ---------- */
 
 	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.5\.2$/m', $entry, '插件头 Version 0.5.2' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.2' )", $entry, '版本常量 0.5.2' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.5\.2$/m', $readme, 'readme Stable tag 0.5.2' );
-		$this->assertStringContainsString( '= 0.5.2 =', $readme, 'Changelog 0.5.2 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.5\.3$/m', $entry, '插件头 Version 0.5.3' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.3' )", $entry, '版本常量 0.5.3' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.5\.3$/m', $readme, 'readme Stable tag 0.5.3' );
+		$this->assertStringContainsString( '= 0.5.3 =', $readme, 'Changelog 0.5.3 条目' );
 	}
 }

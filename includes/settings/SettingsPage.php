@@ -407,11 +407,39 @@ final class SettingsPage {
 	 * ------------------------------------------------------------------ */
 
 	private static function render_tab_overview(): void {
+		self::render_overview_onboarding();
 		self::render_overview_alerts();
 		self::render_overview_report();
 		self::render_overview_roster();
 		self::render_overview_incidents();
 		self::render_overview_footer();
+	}
+
+	/**
+	 * 页顶三步引导通栏（【M4UX UI-1-1·定稿 §3】初次安装引导从页脚一行升为页顶通栏
+	 * ——Akismet 激活旅程先例（R-UI G2）：notice-warning inline 形态，显隐判定复用
+	 * overview_configured_count()===0（验证码与云审两域合并计数），配好任意一家即
+	 * 自动消失；页脚旧「首次使用？三步配好 →」行随之退役（V1 收口）。
+	 *
+	 * @return void
+	 */
+	private static function render_overview_onboarding(): void {
+		$settings = self::settings();
+		if ( 0 !== self::overview_configured_count( $settings ) ) {
+			return; // 已配置任意一家服务商：引导自动消失（配好即退场）。
+		}
+		?>
+		<section id="wk-overview-onboarding">
+			<div class="notice notice-warning inline"><p>
+				<strong><?php esc_html_e( '三步开始防护', 'wink-gatekeeper' ); ?></strong>
+				——① <?php esc_html_e( '选验证码（Tab② 验证码）', 'wink-gatekeeper' ); ?>
+				→ ② <?php esc_html_e( '配云审 / IP 信誉（Tab③ 内容审核 / Tab④ IP 信誉）', 'wink-gatekeeper' ); ?>
+				→ ③ <?php esc_html_e( '在各配置卡点「测试凭据」实测连通。', 'wink-gatekeeper' ); ?>
+				<?php esc_html_e( '配好任意一家后本提示自动消失。', 'wink-gatekeeper' ); ?>
+				<a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '从第一步开始 →', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+		</section>
+		<?php
 	}
 
 	/**
@@ -858,17 +886,17 @@ final class SettingsPage {
 	 * 块 E·站点底账（一行灰字带——「不出错没人看、出错才重要」的全局开关态收纳）。
 	 *
 	 * 内容：统计计数开/关 · 演练模式开/关（开时与块 A 通栏呼应）· 事件表容量读数
-	 * （N11——agent C B-6 裁决替代无指标的「事件记录正常」）· 首次使用引导（未配置
-	 * 任何服务商时显示，配好自动消失——docs 03 原承诺）。
+	 * （N11——agent C B-6 裁决替代无指标的「事件记录正常」）。
+	 * 【M4UX UI-1-1】旧「首次使用？三步配好 →」页脚引导退役——引导升位为页顶
+	 * 通栏（render_overview_onboarding，判定复用 overview_configured_count）。
 	 *
 	 * @return void
 	 */
 	private static function render_overview_footer(): void {
-		$settings  = self::settings();
-		$stats_on  = ! empty( $settings['stats']['enabled'] );
-		$rows      = \WinkGatekeeper\Stats\EventsTable::row_count();
-		$max_rows  = \WinkGatekeeper\Stats\EventsTable::MAX_ROWS;
-		$first_use = self::overview_configured_count( $settings ) === 0;
+		$settings = self::settings();
+		$stats_on = ! empty( $settings['stats']['enabled'] );
+		$rows     = \WinkGatekeeper\Stats\EventsTable::row_count();
+		$max_rows = \WinkGatekeeper\Stats\EventsTable::MAX_ROWS;
 		?>
 		<section id="wk-overview-footer" class="wk-overview-footer">
 			<?php echo esc_html( sprintf(
@@ -880,9 +908,6 @@ final class SettingsPage {
 				$rows,
 				$max_rows
 			) ); ?>
-			<?php if ( $first_use ) : ?>
-				· <a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '首次使用？三步配好 →', 'wink-gatekeeper' ); ?></a>
-			<?php endif; ?>
 		</section>
 		<?php
 	}
@@ -1761,6 +1786,19 @@ final class SettingsPage {
 		// 当前选中驱动（下拉=chain[0] 可视面；未配置=''）。
 		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : ( $baidu_in_chain ? 'baidu' : '' ) );
 
+		// 【M4UX UI-1-2·定稿 §3】页顶「云端审核未配置未开启」notice（判定法与 Tab① 引导
+		// 同源：enabled 关 + chain 空=未配置未开启；配好即消失。enabled 开但无可用驱动的
+		// 形态已由 Tab① 通栏④兜底，不在此重复）。
+		if ( empty( $cloud['enabled'] ) && array() === $chain ) {
+			?>
+			<div class="notice notice-warning inline" id="wk-review-onboarding-notice"><p>
+				<strong><?php esc_html_e( '云端审核还没配置，也没开启', 'wink-gatekeeper' ); ?></strong>
+				——<?php esc_html_e( '评论目前只走本地规则闸（字数/中文/禁词）；想加云端送审，请在下方「云端审核」卡开启并选择一家服务商。', 'wink-gatekeeper' ); ?>
+				<a href="#wk-review-cloud-card"><?php esc_html_e( '去配置', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
+		}
+
 		// 服务端黄条（双层校验第二层——DriverConfigSpec 文案参数化版）。
 		$cloud_notice = null;
 		if ( '' !== $cloud_selected && isset( $cloud_registered[ $cloud_selected ] ) ) {
@@ -1834,9 +1872,37 @@ final class SettingsPage {
 						<?php endif; ?>
 					</td>
 				</tr>
+				<tr id="wk-review-wp-switches">
+					<th scope="row"><?php esc_html_e( 'WP 原生两开关（只读展示）', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<?php
+						/* 【M4UX UI-1-3·定稿 §3】WP 原生讨论两开关只读状态行——查询 option 仅展示
+						 * 不改行为（红线：不进本插件表单字段）；管理入口=设置 → 讨论。 */
+						$wp_moderation   = (bool) get_option( 'comment_moderation', 0 );
+						$wp_whitelist    = (bool) get_option( 'comment_whitelist', 0 );
+						$wp_switch_state = function ( bool $on ): string {
+							return $on
+								? __( '已开启', 'wink-gatekeeper' )
+								: __( '未开启', 'wink-gatekeeper' );
+						};
+						?>
+						<p class="description">
+							<?php esc_html_e( '「评论必须手动批准」（设置 → 讨论）：', 'wink-gatekeeper' ); ?>
+							<strong><?php echo esc_html( $wp_switch_state( $wp_moderation ) ); ?></strong><?php echo $wp_moderation ? '——' . esc_html__( '已开启：即使插件审核通过，评论仍需你在 WP 侧人工批准后才会显示。', 'wink-gatekeeper' ) : ''; ?>
+						</p>
+						<p class="description">
+							<?php esc_html_e( '「作者须有先前已批准的评论」：', 'wink-gatekeeper' ); ?>
+							<strong><?php echo esc_html( $wp_switch_state( $wp_whitelist ) ); ?></strong><?php echo $wp_whitelist ? '——' . esc_html__( '已开启：即使插件审核通过，没有批准记录的老作者评论仍需人工批准。', 'wink-gatekeeper' ) : ''; ?>
+						</p>
+						<p class="description">
+							<?php esc_html_e( '本插件只读展示、不改这两个开关的行为；如需调整请到', 'wink-gatekeeper' ); ?>
+							<a href="<?php echo esc_url( admin_url( 'options-discussion.php' ) ); ?>"><?php esc_html_e( '设置 → 讨论', 'wink-gatekeeper' ); ?></a>
+						</p>
+					</td>
+				</tr>
 			</table>
 		</section>
-		<section class="wk-card">
+		<section class="wk-card" id="wk-review-cloud-card">
 			<h2><?php esc_html_e( '云端审核', 'wink-gatekeeper' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<tr>
@@ -2255,7 +2321,7 @@ final class SettingsPage {
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-iprep-mode"><?php esc_html_e( '获取模式', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-mode"><?php esc_html_e( '真实 IP 获取方式', 'wink-gatekeeper' ); ?></label></th>
 					<td>
 						<select id="wk-iprep-mode" name="<?php echo esc_attr( self::field_name( array( 'network', 'ip_source' ) ) ); ?>">
 							<?php foreach ( $modes as $mode_key => $mode_label ) : ?>
@@ -2269,13 +2335,14 @@ final class SettingsPage {
 						</p>
 					</td>
 				</tr>
-				<tr>
+				<tr id="wk-iprep-custom-header-row"<?php echo IpResolver::MODE_CUSTOM_HEADER !== $mode ? ' hidden' : ''; ?>>
+					<!-- 【M4UX UI-2-5】仅 ip_source=custom_header 时显示（PHP 初始态 + admin-brand.js 联动，bindVendorSwitcher 同款显隐模式）。 -->
 					<th scope="row"><label for="wk-iprep-custom-header"><?php esc_html_e( '自定义头名', 'wink-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-iprep-custom-header" class="regular-text" placeholder="CF-Connecting-IP"
 							name="<?php echo esc_attr( self::field_name( array( 'network', 'custom_header' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $network['custom_header'] ?? '' ) ); ?>" />
-						<p class="description"><?php esc_html_e( '获取模式=自定义头时生效（单值 IP 头——Cloudflare 官方头 CF-Connecting-IP 是权威覆写头，伪造面最小）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( '真实 IP 获取方式=自定义头时生效（单值 IP 头——Cloudflare 官方头 CF-Connecting-IP 是权威覆写头，伪造面最小）。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
@@ -2510,8 +2577,10 @@ final class SettingsPage {
 	 * 分区③ 上报（M3-IP 定稿 §4——触发集 T1–T4，拍板 0.4：每面独立开关+独立阈值，
 	 * 涉出境与隐私默认从关开始 T1 除外）：总开关+出境黄条（PIPL）+T1–T4 勾选组
 	 * （每面开关+阈值数字框（T2/T4）+类目下拉（AbuseIpdbCategories 1–23，默认类目标注）+
-	 * Comment 自定义框（空=默认短语，占位符提示+公开可见警示））+ 冷却/限速/日顶只读展示 +
-	 * 启用门禁状态行（real_ip_self_check 消费——未过=上报强制失效无开关，定稿 §4.3 闸④）。
+	 * Comment 自定义框（placeholder 回显默认短语——UI-2-2；说明收敛为 foreach 外共享
+	 * 一条——UI-2-1：前缀不可去+255 截断+出境警示+官方类目外链+占位符统一说明示例））+
+	 * 冷却/限速/日顶只读展示 + 启用门禁状态行（real_ip_self_check 消费——未过=上报强制
+	 * 失效无开关，定稿 §4.3 闸④）。
 	 *
 	 * @param array<string, mixed> $settings 设置树。
 	 * @return void
@@ -2643,12 +2712,31 @@ final class SettingsPage {
 								<label class="screen-reader-text" for="wk-iprep-comment-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( '自定义上报备注', 'wink-gatekeeper' ); ?></label>
 								<textarea id="wk-iprep-comment-<?php echo esc_attr( $face_key ); ?>" class="large-text" rows="2"
 									name="<?php echo esc_attr( self::field_name( $face['comment_path'] ) ); ?>"
-									placeholder="<?php esc_attr_e( '可留空用默认；支持占位符 {event_no}/{category}/{gate}', 'wink-gatekeeper' ); ?>"><?php echo esc_textarea( $face['comment_value'] ); ?></textarea>
+									placeholder="<?php echo esc_attr( AbuseIpdbService::default_comment( $face_key ) ); ?>"><?php echo esc_textarea( $face['comment_value'] ); ?></textarea>
 							</p>
-							<p class="description"><?php esc_html_e( '备注留空=用系统默认英文短语；请勿填写站点敏感信息与个人数据——AbuseIPDB 报告详情公开可见。发送时自动加前缀 [wink-wp-gatekeeper]（不可去除），超长自动截断。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				<?php endforeach; ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( '上报备注说明（T1–T4 共用）', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<!-- 【M4UX UI-2-1】Comment 说明收敛：foreach 外共享一条（此前逐面重复 ×4——V3 收口）；
+						 placeholder 说明只留 description（UI-2-2——输入框空值即回显默认短语）。 -->
+						<p class="description">
+							<?php esc_html_e( '备注留空=发送该触发面的默认英文短语（已回显在各输入框 placeholder）。发送时自动加前缀 [wink-wp-gatekeeper]（不可去除），超长自动截断（255 字符）。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( '请勿填写站点敏感信息与个人数据——AbuseIPDB 报告详情公开可见（访客 IP 提交至境外服务，数据出境请自行评估 PIPL 合规）。', 'wink-gatekeeper' ); ?>
+						</p>
+						<p class="description">
+							<?php esc_html_e( '支持占位符 {event_no}（拦截事件编号）、{category}（本次上报的 AbuseIPDB 类目码）、{gate}（触发面 T1/T2/T3/T4）。使用示例：', 'wink-gatekeeper' ); ?>
+							<code>Forged captcha ticket #{event_no} (category {category}, gate {gate})</code>
+						</p>
+						<p class="description">
+							<?php esc_html_e( '类目下拉的官方全表见', 'wink-gatekeeper' ); ?>
+							<a href="https://www.abuseipdb.com/categories" target="_blank" rel="noopener noreferrer">abuseipdb.com/categories</a>
+							<?php esc_html_e( '（AbuseIPDB 官方类目 1–23，下拉内已内置同表）。', 'wink-gatekeeper' ); ?>
+						</p>
+					</td>
+				</tr>
 				<tr>
 					<th scope="row"><?php esc_html_e( '限流参数（只读）', 'wink-gatekeeper' ); ?></th>
 					<td>
@@ -3005,9 +3093,24 @@ final class SettingsPage {
 				// 语气三原则常驻小抄（03 Tab⑤）。
 				esc_html_e( '语气三原则：只调侃行为 / 留台阶 / 带下一步。', 'wink-gatekeeper' );
 				?>
-				<br />
-				<?php esc_html_e( '占位符：{min_length} {max_length} {event_no} {rule} {time} {contact_email}——{rule} 前台只显示规则键名（命中的具体关键词仅站长在事件流可见）。', 'wink-gatekeeper' ); ?>
 			</p>
+			<dl class="wk-placeholder-list">
+				<!-- 【M4UX UI-3-1·定稿 §3】占位符逐个定义（原一行罗列退役）；{rule} 附 Labels 映射示例。 -->
+				<dt><code>{min_length}</code> / <code>{max_length}</code></dt>
+				<dd><?php esc_html_e( '本地字数闸的实际判定值（Tab③「字数下限 / 字数上限」当前配置）。', 'wink-gatekeeper' ); ?></dd>
+				<dt><code>{event_no}</code></dt>
+				<dd><?php esc_html_e( '本次拦截的事件编号——可拿它去 Tab⑥ 事件流对号查详情。', 'wink-gatekeeper' ); ?></dd>
+				<dt><code>{rule}</code></dt>
+				<dd>
+					<?php esc_html_e( '命中规则键的人话名（由 Labels 映射表翻译，未收录键原样显示键名；命中的具体关键词仅站长在事件流可见）。映射示例：', 'wink-gatekeeper' ); ?>
+					<code>remote_semantic</code> → <?php esc_html_e( '「服务商拒绝了（查配置或欠费）」', 'wink-gatekeeper' ); ?>、
+					<code>banned_word</code> → <?php esc_html_e( '「命中关键词黑名单」', 'wink-gatekeeper' ); ?>。
+				</dd>
+				<dt><code>{time}</code></dt>
+				<dd><?php esc_html_e( '拦截发生时间（站点时区）。', 'wink-gatekeeper' ); ?></dd>
+				<dt><code>{contact_email}</code></dt>
+				<dd><?php esc_html_e( '上方「联系邮箱」的值（未填写则该占位符整句省略）。', 'wink-gatekeeper' ); ?></dd>
+			</dl>
 			<button type="button" class="button" id="wk-copy-restore-defaults" data-confirm="<?php echo esc_attr__( '确认恢复全部文案为默认？未保存的修改将丢失。', 'wink-gatekeeper' ); ?>">
 				<?php esc_html_e( '恢复默认文案', 'wink-gatekeeper' ); ?>
 			</button>
@@ -3062,15 +3165,19 @@ final class SettingsPage {
 			</table>
 		</section>
 
-		<section class="wk-card">
-			<h2><?php esc_html_e( '云端标签映射（只读预览）', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted">
-				<?php
-				// 【v1.5·F4-3】映射表只读预览（落点=Copywork 键值表，映射键名不可改）；
-				// 文案可经 wink_gatekeeper_error_messages filter 覆盖，未收录标签原样显示。
-				esc_html_e( '拦截页「命中规则」证据行对云端驱动的原始 Label,Score 做人类可读映射（驱动人类名前缀 + 标签中文 + 置信）。未收录标签原样显示。', 'wink-gatekeeper' );
-				?>
-			</p>
+			<section class="wk-card">
+				<h2><?php esc_html_e( '云端标签映射（只读预览）', 'wink-gatekeeper' ); ?></h2>
+				<p class="wk-muted">
+					<?php
+					// 【v1.5·F4-3】映射表只读预览（落点=Copywork 键值表，映射键名不可改）；
+					// 文案可经 wink_gatekeeper_error_messages filter 覆盖，未收录标签原样显示。
+					esc_html_e( '拦截页「命中规则」证据行对云端驱动的原始 Label,Score 做人类可读映射（驱动人类名前缀 + 标签中文 + 置信）。未收录标签原样显示。', 'wink-gatekeeper' );
+					?>
+				</p>
+				<p class="description">
+					<!-- 【M4UX UI-3-2·定稿 §3】统一表说明行（用户提问「云端标签映射是否跨驱动」——是）。 -->
+					<?php esc_html_e( '此表为全部云端驱动共用的一张映射表：各驱动返回的 reason 已统一为 Label,Score 形态，故一张表同时服务腾讯 TMS / 阿里 Green / 百度全部云端驱动，无需按驱动分表。', 'wink-gatekeeper' ); ?>
+				</p>
 			<table class="form-table" role="presentation">
 				<?php foreach ( Copywork::cloud_labels() as $label_key => $zh ) : ?>
 					<tr>

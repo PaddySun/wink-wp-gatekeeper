@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.2
+Stable tag: 0.5.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.3 =
+
+F2·M4UX UI 收官批（M4UX 定稿 §3 UI 13 行 + 人工卡 MANUAL-CARD-M4UX，2026-11-14——用户人工反馈 12 条全采纳落位，TDD 先红后绿，行为面只收 UX 不改判定）。**引导与提示**：① Tab① 页顶三步引导通栏【UI-1-1】——「选验证码 → 配云审/IP 信誉 → 测试凭据」notice-warning inline 形态，显隐复用 overview_configured_count（配好任意一家即自动消失）；页脚旧「首次使用？三步配好」行退役（Akismet 激活旅程先例，引导置顶）。② Tab③ 页顶「云端审核还没配置，也没开启」notice【UI-1-2】——enabled 关 + chain 空判定，锚链接直达云端审核卡。③ Tab③ WP 原生两开关只读状态行【UI-1-3】——展示 comment_moderation / comment_whitelist 两开关态（只读不改行为），开启时提示「即使插件审核通过，仍需人工批准」。**Tab④ 收敛**：④ 分区③ Comment 说明 foreach 外共享一条【UI-2-1】——逐面重复 ×4 收口，含官方类目外链 abuseipdb.com/categories、占位符 {event_no}/{category}/{gate} 统一说明与使用示例。⑤ Comment 输入框 placeholder 回显默认短语【UI-2-2】——AbuseIpdbService::default_comment 公开读取件。⑥ 诊断四源卡片固定 2×2 grid【UI-2-3】——auto-fit 参差退役，≤782px 降 1 列。⑦ label「获取模式」→「真实 IP 获取方式」【UI-2-4】。⑧ 仅 ip_source=custom_header 时显示自定义头字段【UI-2-5】——admin-brand.js 联动显隐。**Tab⑤ 与 Labels**：⑨ 占位符定义列表【UI-3-1】——{min_length}/{max_length}/{event_no}/{rule}/{time}/{contact_email} 逐个说明，{rule} 附 Labels 映射示例。⑩ cloud_labels 统一表说明行【UI-3-2】——「全部云端驱动共用一张映射表」。⑪ Labels::rule_hit_word 补 duplicate_comment（与已有评论重复）/ comment_flood（发得太快（洪泛保护））人话名【UI-3-3】——键名不再裸奔直出。**前台**：⑫ 验证按钮字号 16px 硬编码 → inherit【UI-4】——与主题 Post Comment 同框对齐（通用优先不绑主题）。⑬ 前台「更换网络后请刷新页面重新完成验证」提示【附】——wkGateL10n.net_changed + gatekeeper.js 注入 .wk-gate-net-hint（天御票据环境绑定，切网络后需刷新重验）。测试 1503→1523 / 断言 10042→10154 全绿（UiM4UxF2ContractTest 新 20 例；UiTab1OverviewContractTest 页脚引导断言按 UI-1-1 翻转；版本钉五测试文件同步 0.5.3）。
 
 = 0.5.2 =
 

@@ -44,7 +44,10 @@
 
 .wk-captcha-btn,
 .wk-verify-btn {
-	/* 与品牌「返回上一页」按钮同族：Wink Red 实底胶囊；高度向主题提交按钮看齐。 */
+	/* 与品牌「返回上一页」按钮同族：Wink Red 实底胶囊；高度向主题提交按钮看齐。
+	 * 【M4UX UI-4】字号去 16px 硬编码改 inherit——验证按钮与主题 Post Comment 同用
+	 * .button 基类（TencentCaptchaDriver/AliyunCaptchaDriver 渲染），字号体系随主题
+	 * （通用优先不绑主题；此前 16px 压过主题 .button 字号致两钮不同大）。 */
 	display: inline-block;
 	min-height: var(--wk-gate-btn-h);
 	padding: 8px 18px;
@@ -52,10 +55,17 @@
 	color: #ffffff;
 	border: 0;
 	border-radius: 999px;
-	font-size: 16px;
+	font-size: inherit;
 	line-height: 1.5;
 	cursor: pointer;
 	transition: background-color 120ms ease;
+}
+
+/* 【M4UX UI-附】过码后切网络提示（验证按钮旁灰字一行——天御票据与过码时网络环境绑定）。 */
+.wk-gate-net-hint {
+	margin: 0.3rem 0 0;
+	font-size: 0.85em;
+	color: #646970;
 }
 
 /* 主题通用 .button 类已提供基础形态时只做最小微调（不覆盖主题字号体系）。 */

@@ -437,6 +437,22 @@
 
 	/* ---------- 容器装配 ---------- */
 
+	/* 【M4UX UI-附】过码后切网络提示：验证按钮下一行灰字（wkGateL10n.net_changed——
+	 * 天御票据与过码时网络环境绑定，切网络后需刷新重验；DOM API + textContent 注入）。 */
+	function injectNetHint( container ) {
+		if ( ! container || container.querySelector( '.wk-gate-net-hint' ) ) {
+			return; // 幂等：单容器只注入一次。
+		}
+		var button = container.querySelector( '.wk-captcha-btn' );
+		if ( ! button ) {
+			return;
+		}
+		var hint = document.createElement( 'p' );
+		hint.className = 'wk-gate-net-hint';
+		hint.textContent = l10n( 'net_changed', '更换网络后请刷新页面重新完成验证' );
+		button.parentNode.insertBefore( hint, button.nextSibling );
+	}
+
 	function bootContainer( container ) {
 		if ( container.getAttribute( 'data-wk-ready' ) === '1' ) {
 			return; // 幂等：单容器只初始化一次。
@@ -460,6 +476,8 @@
 
 		container.setAttribute( 'data-wk-ready', '1' );
 		container.removeAttribute( 'data-wk-pending' );
+
+		injectNetHint( container ); // 【M4UX UI-附】切网络提示一行（与驱动初始化成败无关，静态信息位）。
 
 		// 生命周期事件监听先挂（防适配器 init 同步派发 token 的竞态）。
 		container.addEventListener( 'wk-gate-token', function () {

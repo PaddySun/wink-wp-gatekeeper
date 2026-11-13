@@ -239,6 +239,21 @@
 	// hidden=chain[0]；此处接管切换显隐（病株修复：此前 Tab③ 无 JS 联动、无区可切）。
 	driverGroups.push( bindVendorSwitcher( document.getElementById( 'wk-cloud-driver' ), 'wk-review-unconfigured-note' ) );
 
+	// 【M4UX UI-2-5】Tab④ 真实 IP 获取方式：仅 custom_header 显示自定义头名行
+	// （PHP 初始态已按存量值 hidden；此处接管切换显隐——bindVendorSwitcher 同款模式）。
+	( function () {
+		var modeSelect = document.getElementById( 'wk-iprep-mode' );
+		var headerRow  = document.getElementById( 'wk-iprep-custom-header-row' );
+		if ( ! modeSelect || ! headerRow ) {
+			return;
+		}
+		var syncHeaderRow = function () {
+			headerRow.hidden = modeSelect.value !== 'custom_header';
+		};
+		modeSelect.addEventListener( 'change', syncHeaderRow );
+		syncHeaderRow();
+	} )();
+
 	// 字段有输入即摘除标红 + 重置「阻止一次」标志（全部驱动组共用一个监听）。
 	document.addEventListener( 'input', function ( event ) {
 		var target = event.target;

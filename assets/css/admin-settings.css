@@ -507,9 +507,17 @@
 
 .wk-ip-diag-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	/* 【M4UX UI-2-3】固定 2×2——旧自适应 minmax 在 64rem 面板内可排 3~4 列、四源卡片参差（V8 收口）。 */
+	grid-template-columns: repeat(2, 1fr);
 	gap: 0.8rem;
 	margin: 0.8rem 0;
+}
+
+/* wp-admin 窄屏断点：诊断格降 1 列（R-UI B2.5）。 */
+@media (max-width: 782px) {
+	.wk-ip-diag-grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 .wk-ip-diag-card:empty {

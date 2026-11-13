@@ -223,9 +223,11 @@ final class UiTab4ZonesContractTest extends TestCase {
 		// 类目下拉数据源=AbuseIpdbCategories 全表 + 默认类目标注。
 		$this->assertStringContainsString( 'AbuseIpdbCategories::MAP', $body, '类目下拉 1–23 全表' );
 		$this->assertStringContainsString( 'AbuseIpdbCategories::default_for', $body, '每面默认类目标注' );
-		// Comment 框提示：可留空用默认 + 占位符白名单 + 公开可见警示（定稿 §4.5）。
-		$this->assertStringContainsString( '可留空用默认', $body, 'Comment 占位提示' );
-		$this->assertStringContainsString( '{event_no}', $body, '占位符白名单提示' );
+		// Comment 框提示（【M4UX UI-2-1/2-2 翻转】逐面占位提示退役——placeholder 改回显默认短语，
+		// 占位符说明与公开可见警示收敛为 foreach 外共享一条 description）。
+		$this->assertStringNotContainsString( '可留空用默认', $body, '旧逐面占位提示文案退役（UI-2-1 收敛）' );
+		$this->assertStringContainsString( 'default_comment', $body, 'placeholder 回显默认短语（UI-2-2）' );
+		$this->assertStringContainsString( '{event_no}', $body, '占位符白名单提示（共享说明承接）' );
 		$this->assertStringContainsString( 'AbuseIPDB 报告详情公开可见', $body, '公开可见警示' );
 	}
 
