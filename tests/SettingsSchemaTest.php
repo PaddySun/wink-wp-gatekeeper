@@ -161,6 +161,7 @@ final class SettingsSchemaTest extends TestCase {
 				'intercept', // v1.3（04 §2 用户建议4）：拦截留档开关子树（C2/F37）。
 				'comments', // 【M5·U1】「网站」字段两独立开关（Tab⑧；M5 定稿 §1/§0.1）。
 				'avatar',   // 【M5·U2】头像国内镜像（Tab⑧ 卡二；M5 定稿 §2）。
+				'url_audit', // 【M5·U5】网址核查（Tab③ 分区；M5 定稿 §5——增强层默认关）。
 				'network',
 				'iprep',
 				'copy',

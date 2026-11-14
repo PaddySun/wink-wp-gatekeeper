@@ -13,7 +13,7 @@
  *   - DROP 仅 wink 自建事件表（{prefix}wink_gatekeeper_events——先 SHOW TABLES 探测后
  *     PHP 侧严格全等比对，防 LIKE 下划线通配的相似表名误伤）；
  *   - 清 wink 自有 transient 前缀（wk_lf_ / wk_ip_ / wk_rp_ / wk_cv_ / wk_pk_ / wk_tc_ /
- *     wk_cm_ / wk_irb_——逐前缀精确，禁止 LIKE %wink% 类宽匹配）；
+ *     wk_cm_ / wk_irb_ / wk_ua_——逐前缀精确，禁止 LIKE %wink% 类宽匹配）；
  *   - 清 wink 自有 comment meta 键 wink_gatekeeper_archive（逐键 delete_metadata，不清整行评论）；
  *   - 绝不碰 WP 核心表 / 其他插件数据 / wp_comments 评论行 / wp_options 非本插件键。
  *
@@ -93,7 +93,7 @@ $wink_guarded( static function (): void {
  * 每前缀匹配两种键：主键 _transient_<prefix>_* 与过期时间键 _transient_timeout_<prefix>_*。
  * 【F3-1 谨慎性】逐前缀精确匹配（wink 自有前缀），禁止 %wink% 类宽匹配误伤同前缀他人数据。 */
 $wink_guarded( static function () use ( $wpdb ): void {
-	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_irb_' ) as $wink_transient_prefix ) {
+	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_irb_', 'wk_ua_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.
 		$wink_transient_keys = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options}

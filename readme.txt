@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.6.1
+Stable tag: 0.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.6.2 =
+
+U5·M5 网址审核批（网址核查，2026-11-14——TDD 先红后绿，M5 收官）。Tab③ 新增「网址核查」分区（增强层，默认关=零行为变化）：评论者填的网站地址，后台 worker 异步打开看一眼再交 AI 判定（赌博/诈骗/钓鱼等 9 类）；**同步提交链零接触**（异步-first 铁律）；抓取带 15 秒总预算墙+逐跳安全校验+诚实爬虫身份；打不开的网址一律「未核实」绝不冤枉（fetch 失败≠网站违规）。三档处置：保守（默认·只标记不处置）/均衡（证据确凿即置信 ≥0.95 自动进垃圾箱，可一键撤销）/激进（≥0.8，洪水期应急）；**URL 判 pass 不替评论放行**（只放大严）。按网址去重缓存（判违规缓存 90 天/未核实仅 24 小时）；抓取失败时可选博查搜索做交叉线索（默认关，独立计量）。统计页新增网址核查统计行+按网站归堆报告表。测试 1689→1727 / 断言 11079→11232 全绿（M5U5UrlAuditTest+UiM5Tab3UrlAuditContractTest 新 38 例）。
 
 = 0.6.1 =
 

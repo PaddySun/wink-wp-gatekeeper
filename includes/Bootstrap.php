@@ -45,6 +45,7 @@ use WinkGatekeeper\Audit\ExistingAuditWorker;
 use WinkGatekeeper\Settings\SettingsPage;
 use WinkGatekeeper\Settings\SettingsSchema;
 use WinkGatekeeper\Site\SiteEnhance;
+use WinkGatekeeper\UrlAudit\UrlAuditWorker;
 use WinkGatekeeper\Stats\DashboardDigest;
 use WinkGatekeeper\Stats\DriverHealth;
 use WinkGatekeeper\Stats\EventsTable;
@@ -233,6 +234,40 @@ final class Bootstrap {
 		if ( defined( 'WP_CLI' ) && \WP_CLI ) {
 			ExistingAuditCli::register();
 		}
+
+		/* ---------- M5 U5 网址核查（nw 三原则①：异步-first 同步链零接触） ---------- */
+		// 增量入队（comment_post 边界——瞬时返回零外呼；功能关/URL 空/重复幂等在 worker 内）。
+		add_action(
+			'comment_post',
+			static function ( int $comment_id ): void {
+				$worker = self::url_audit_worker();
+				$worker->enqueue_url_audit_job( $comment_id );
+			},
+			20,
+			1
+		);
+		// 双车道 cron tick（每 5 分钟——与存量审核同 interval 档）。
+		add_action( UrlAuditWorker::HOOK_TICK, static function (): void {
+			self::url_audit_worker()->run_round();
+		} );
+		// 清缓存 admin action（Tab③ 高级折叠——manage_options+nonce 双闸在 handler）。
+		add_action( 'admin_post_' . UrlAuditWorker::ACTION_PURGE, array( SettingsPage::class, 'handle_url_audit_purge' ) );
+		// host 级清缓存（Tab⑥ 报告卡「重新核查此站」——nw §4.3 站长举报误判入口）。
+		add_action( 'admin_post_wink_gatekeeper_url_host_purge', array( SettingsPage::class, 'handle_url_audit_host_purge' ) );
+		// 双车道 tick 排期（常驻——功能关时 worker 首查 enabled 直接空转零外呼；免 start/resume 排期面）。
+		if ( ! wp_next_scheduled( UrlAuditWorker::HOOK_TICK ) ) {
+			wp_schedule_event( time() + 120, ExistingAuditTask::CRON_INTERVAL, UrlAuditWorker::HOOK_TICK );
+		}
+	}
+
+	/**
+	 * 网址核查 Worker（生产装配——全默认 WP 通道；设置树 merge 单源）。
+	 *
+	 * @return UrlAuditWorker
+	 */
+	private static function url_audit_worker(): UrlAuditWorker {
+		$stored = get_option( SettingsPage::OPTION_NAME, array() );
+		return new UrlAuditWorker( SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() ) );
 	}
 
 	/**

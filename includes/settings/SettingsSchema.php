@@ -268,6 +268,24 @@ final class SettingsSchema {
 				'custom_base' => '',
 			),
 
+			// 【M5·U5 定稿 §5/nw 采纳裁决表】网址核查（增强层非依赖层——功能关闭=零行为
+			// 变化）：enabled 默认 **false**（涉出站抓取与 LLM 消耗，默认从关开始）；profile
+			// 三档 conservative（默认·只标记）/balanced（增量推荐·reject≥0.95 自动标垃圾可
+			// 撤销）/aggressive（≥0.8 洪水期应急）——「0.95 自动定罪门」系统掌握不露旋钮（D8）；
+			// bocha 交叉信号源默认关（独立计量键 bocha_search=K3）；双车道日预算（批量先停
+			// 增量继续——nw §2.5-5 降级秩序）；robots 遵守默认关（nw §1.5）。
+			'url_audit'              => array(
+				'enabled'      => false,
+				'profile'      => 'conservative',
+				'bocha'        => array(
+					'enabled' => false,
+					'api_key' => '',
+				),
+				'batch_quota'  => 50,
+				'incr_quota'   => 100,
+				'robots_comply' => false,
+			),
+
 			// 真实 IP 解析（D11/IpResolver，M1 起生效；Tab④ 分区一）。
 			'network'                => array(
 				'ip_source'       => 'direct', // direct | xff | custom_header | traverse【M3-IP 定稿 §5.2，I0 批：REMOTE_ADDR 须命中受信网段+XFF 链式回溯；不作默认】.

@@ -203,6 +203,15 @@ final class Sanitize {
 			'avatar.source'                             => 'avatar_source',
 			'avatar.custom_base'                        => 'url',
 
+			// 【M5·U5】网址核查（Tab③ 分区；M5 定稿 §5——profile 三档白名单非法归保守）。
+			'url_audit.enabled'                         => 'bool',
+			'url_audit.profile'                         => 'url_audit_profile',
+			'url_audit.bocha.enabled'                   => 'bool',
+			'url_audit.bocha.api_key'                   => 'password',
+			'url_audit.batch_quota'                     => 'absint',
+			'url_audit.incr_quota'                      => 'absint',
+			'url_audit.robots_comply'                   => 'bool',
+
 			// 统计 / 品牌 / 共存 / 卸载。
 			'stats.enabled'                             => 'bool',
 			'stats.pass_sampling'                       => 'bool',
@@ -294,6 +303,10 @@ final class Sanitize {
 				// 【M5·U2】头像源五枚举（M5 定稿 §2）：official/cravatar/weavatar/sepcc/custom，
 				// 非法值归 official（fail-safe——改写面全关=WP 官方源现行行为零变化）。
 				return \WinkGatekeeper\Site\AvatarSources::normalize( $value );
+			case 'url_audit_profile':
+				// 【M5·U5】处置档位三枚举（M5 定稿 §5）：conservative/balanced/aggressive，
+				// 非法值归 conservative（fail-safe——只放大严）。
+				return ( is_scalar( $value ) && in_array( (string) $value, array( 'conservative', 'balanced', 'aggressive' ), true ) ) ? (string) $value : 'conservative';
 			case 'raw_bytes':
 				// 【v1.4·R4】raw 截断字节（stats.raw_max_bytes）：absint 后钳 128-2048（04 §3 截断/体量行）。
 				return max( 128, min( 2048, is_scalar( $value ) ? abs( (int) $value ) : 512 ) );

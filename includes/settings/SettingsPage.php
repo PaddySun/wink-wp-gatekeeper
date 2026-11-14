@@ -2421,6 +2421,8 @@ final class SettingsPage {
 			<p class="description"><?php esc_html_e( '模型列表探活（零 token 成本）：绿 = 凭据可用且判定模型在列表中；红 = 密钥被拒或账户欠费；黄 = API Key 未填。结果不落库。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
+		<?php self::render_url_audit_card( $settings ); ?>
+
 		<!-- 【FIX-3】未配置空态说明行（对齐 Tab② unconfiguredNote 形态；JS 切换联动显隐）。 -->
 		<p id="wk-review-unconfigured-note" class="description<?php echo '' !== $cloud_selected ? ' hidden' : ''; ?>">
 			<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
@@ -3454,6 +3456,96 @@ final class SettingsPage {
 	}
 
 	/**
+	 * Tab③「网址核查」配置区（【M5·U5】UI 设计块 2-B——增强层：关闭=零行为变化）。
+	 *
+	 * 三档 profile（radio+dl 逐档人话）；「0.95 自动定罪门」系统掌握不露旋钮（D8——
+	 * 只放大严）；博查交叉信号默认关（独立计量 K3）；高级折叠（双车道日额度/robots
+	 * 开关/清缓存按钮）；inert notice 条件显隐（site_field 收集关闭=增量面失效）。
+	 *
+	 * @param array<string, mixed> $settings 设置树。
+	 * @return void
+	 */
+	private static function render_url_audit_card( array $settings ): void {
+		$ua       = isset( $settings['url_audit'] ) && is_array( $settings['url_audit'] ) ? $settings['url_audit'] : array();
+		$enabled  = ! empty( $ua['enabled'] );
+		$profile  = (string) ( $ua['profile'] ?? 'conservative' );
+		$site_off = empty( $settings['comments']['site_field']['enabled'] ); // 收集关闭=增量面无对象.
+		?>
+		<section class="wk-card" id="wk-review-url-audit-card">
+			<h2><?php esc_html_e( '网址核查（增强层——关闭时评论防护照常，零行为变化）', 'wink-gatekeeper' ); ?></h2>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( '启用网址核查', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'enabled' ) ) ); ?>" value="1" <?php checked( $enabled ); ?>>
+							<?php esc_html_e( '评论者填的网站地址，先试着打开看一眼，再交给 AI 判定该网站是否有问题（赌博/诈骗/钓鱼等）', 'wink-gatekeeper' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( '只放大严：网址没问题也不会替评论放行。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><span id="wk-url-audit-profile-group"><?php esc_html_e( '处置档位', 'wink-gatekeeper' ); ?></span></th>
+					<td>
+						<dl>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="conservative" <?php checked( $profile, 'conservative' ); ?>> <?php esc_html_e( '保守（默认）——只出报告和标记，一切处置你亲手来', 'wink-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="balanced" <?php checked( $profile, 'balanced' ); ?>> <?php esc_html_e( '均衡（推荐）——「证据确凿」的自动进垃圾箱（可一键撤销），其余附上证据等你复核', 'wink-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="aggressive" <?php checked( $profile, 'aggressive' ); ?>> <?php esc_html_e( '激进——拿不太准的也自动进垃圾箱；垃圾评论洪水期应急用，用完建议切回来', 'wink-gatekeeper' ); ?></label></dt>
+						</dl>
+						<p class="description"><?php esc_html_e( '「证据确凿」的门槛由系统掌握，界面不提供旋钮——只放大严。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr id="wk-url-audit-bocha-row">
+					<th scope="row"><?php esc_html_e( '核查前先搜一搜', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['bocha']['enabled'] ) ); ?>>
+							<?php esc_html_e( '博查网页搜索交叉信号（默认关）——打不开网页时，搜索结果也能当判定线索，减少「没看清」的次数', 'wink-gatekeeper' ); ?>
+						</label>
+						<?php self::password_field( array( 'url_audit', 'bocha', 'api_key' ), '' !== (string) ( $ua['bocha']['api_key'] ?? '' ), '博查 API Key' ); ?>
+						<p class="description"><?php esc_html_e( '搜索按次计费、独立计量。需在博查开放平台（bocha.cn）申请 API Key。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+			</table>
+
+			<details class="wk-guide" id="wk-url-audit-advanced">
+				<summary><?php esc_html_e( '高级（默认收起）', 'wink-gatekeeper' ); ?></summary>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( '日额度', 'wink-gatekeeper' ); ?></th>
+						<td>
+							<label><?php esc_html_e( '批量车道', 'wink-gatekeeper' ); ?> <input type="number" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'batch_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $ua['batch_quota'] ?? 50 ) ); ?>" class="small-text" min="0"> <?php esc_html_e( '次', 'wink-gatekeeper' ); ?></label>
+							<label><?php esc_html_e( '新评论车道', 'wink-gatekeeper' ); ?> <input type="number" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'incr_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $ua['incr_quota'] ?? 100 ) ); ?>" class="small-text" min="0"> <?php esc_html_e( '次（0=不限量）', 'wink-gatekeeper' ); ?></label>
+							<p class="description"><?php esc_html_e( '额度用完：批量车道先停、新评论照常防护，次日自动恢复。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'robots 禁爬声明', 'wink-gatekeeper' ); ?></th>
+						<td>
+							<label><input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['robots_comply'] ) ); ?>> <?php esc_html_e( '遵守网站的 robots 禁爬声明（默认关——开了会多「没看清」）', 'wink-gatekeeper' ); ?></label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( '核查记录缓存', 'wink-gatekeeper' ); ?></th>
+						<td>
+							<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_PURGE ), \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_PURGE ) ); ?>"
+								onclick="return confirm('<?php echo esc_js( __( '清空全部网址核查记录？下次遇到同一网址会重新核查（消耗额度）。', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '清空网址核查记录缓存', 'wink-gatekeeper' ); ?></a>
+						</td>
+					</tr>
+				</table>
+			</details>
+
+			<?php if ( $site_off ) : ?>
+			<div class="notice notice-warning inline" id="wk-url-audit-inert-notice"><p>
+				<?php esc_html_e( '网站字段收集已关闭——新评论没有网址可核查，本功能对新评论自动失效；存量网址仍可在统计页存量审核报告中处理。', 'wink-gatekeeper' ); ?>
+			</p></div>
+			<?php endif; ?>
+		</section>
+		<?php
+	}
+
+	/**
 	 * cron tick 重排（start/resume 侧；幂等先清后排）。
 	 *
 	 * @return void
@@ -3473,6 +3565,49 @@ final class SettingsPage {
 		if ( $ts ) {
 			wp_unschedule_event( $ts, \WinkGatekeeper\Audit\ExistingAuditTask::HOOK_TICK );
 		}
+	}
+
+	/* -------------------------------------------------------------------
+	 * Tab③ 网址核查（【M5·U5】UI 设计块 2-B——配置面；清缓存动作）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 网址核查清缓存处理器（admin_post_wink_gatekeeper_url_audit_purge——Tab③ 高级折叠）：
+	 * manage_options+nonce 双闸；清空后重定向回 Tab③（URL 审核语义=下次遇到同一网址重新核查）。
+	 *
+	 * @return void
+	 */
+	public static function handle_url_audit_purge(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_PURGE );
+
+		\WinkGatekeeper\UrlAudit\UrlAuditCache::purge_all();
+		wp_safe_redirect( self::tab_url( 'review' ) );
+		exit;
+	}
+
+	/**
+	 * host 级清缓存处理器（Tab⑥ 报告卡「重新核查此站」——站长举报误判入口，nw §4.3）：
+	 * manage_options+nonce 双闸；PHP 端 host 比对（防宽匹配误伤他站缓存）。
+	 *
+	 * @return void
+	 */
+	public static function handle_url_audit_host_purge(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( 'wink_gatekeeper_url_host_purge' );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- check_admin_referer 已验。
+		$host = isset( $_GET['host'] ) && is_scalar( $_GET['host'] ) ? (string) $_GET['host'] : '';
+		$host = sanitize_text_field( $host );
+		if ( '' !== $host ) {
+			\WinkGatekeeper\UrlAudit\UrlAuditCache::purge_host( $host );
+		}
+		wp_safe_redirect( self::tab_url( 'stats' ) );
+		exit;
 	}
 
 	/* -------------------------------------------------------------------
@@ -3701,6 +3836,28 @@ final class SettingsPage {
 			if ( array_sum( $verdicts ) > 0 ) :
 			?>
 				<div id="wk-existing-content-block">
+					<?php
+					$url_worker = new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $settings ?? array() );
+					$host_rows  = $url_worker->host_aggregates();
+					if ( array() !== $host_rows ) :
+						?>
+					<h3 class="wk-sub-title"><?php esc_html_e( '按网站归堆（网址核查判违规）', 'wink-gatekeeper' ); ?></h3>
+					<table id="wk-existing-host-table" class="widefat striped" style="max-width:640px;">
+						<thead><tr><th><?php esc_html_e( '网站', 'wink-gatekeeper' ); ?></th><th><?php esc_html_e( '命中评论', 'wink-gatekeeper' ); ?></th><th><?php esc_html_e( '判违规', 'wink-gatekeeper' ); ?></th><th><?php esc_html_e( '建议', 'wink-gatekeeper' ); ?></th></tr></thead>
+						<tbody>
+						<?php foreach ( $host_rows as $host_row ) : ?>
+							<tr>
+								<td><?php echo esc_html( mb_substr( (string) $host_row['host'], 0, 60 ) ); ?></td>
+								<td><?php echo (int) $host_row['hits']; ?></td>
+								<td><?php echo (int) $host_row['rejects']; ?></td>
+								<td>
+									<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wink_gatekeeper_url_host_purge&host=' . rawurlencode( (string) $host_row['host'] ) ), 'wink_gatekeeper_url_host_purge' ) ); ?>" onclick="return confirm('<?php echo esc_js( __( '清空此站的网址核查缓存并重新核查？', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '重新核查此站', 'wink-gatekeeper' ); ?></a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+					<?php endif; ?>
 					<h3 class="wk-sub-title"><?php esc_html_e( '内容体检命中（判违规——按原因归堆）', 'wink-gatekeeper' ); ?></h3>
 					<?php if ( array() !== $report['reasons'] ) : ?>
 						<p><?php
@@ -3836,6 +3993,22 @@ final class SettingsPage {
 				?>
 			</p>
 			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: %d: IP 风控强制验证码次数 */ __( 'IP 信誉强制验证码 %d 次（单列口径——不计入上方转人工复核数字）。', 'wink-gatekeeper' ), $ip_captcha ) ); ?></p>
+
+			<?php
+			/* 【M5·U5】网址核查统计行（UI 块 3.3——与 IP 风控单列行同位形态；K8/K9/K10 口径）：
+			 * 核查=评论者网址被打开看过（缓存命中不算）；自动标垃圾可撤销；待复核=URL 相关待审。 */
+			$url_stats = ( new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $settings ?? array() ) )->stats_line();
+			if ( $url_stats['today_checked'] > 0 || $url_stats['auto_rejected'] > 0 || $url_stats['pending_review'] > 0 ) :
+				?>
+			<p id="wk-stats-url-line" class="wk-muted"><?php
+				printf(
+					esc_html__( '网址核查：今日核查 %1$d 条 · 自动标垃圾 %2$d 条 · 待你复核 %3$d 条（核查=网址被打开看过；自动标垃圾可撤销）', 'wink-gatekeeper' ),
+					(int) $url_stats['today_checked'],
+					(int) $url_stats['auto_rejected'],
+					(int) $url_stats['pending_review']
+				);
+				?></p>
+			<?php endif; ?>
 
 			<h3 class="wk-sub-title"><?php esc_html_e( '谁拦的（按拦截链顺序）', 'wink-gatekeeper' ); ?></h3>
 			<div class="wk-driver-card">

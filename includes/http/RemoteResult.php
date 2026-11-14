@@ -127,7 +127,23 @@ final class RemoteResult {
 
 		$status = (int) $raw['response']['code'];
 		$body   = is_string( $raw['body'] ?? null ) ? $raw['body'] : '';
-		$headers = is_array( $raw['headers'] ?? null ) ? $raw['headers'] : array();
+		/* 【M5·U5·B 机实测抓出】headers 形态二象性收口：wp_remote 返回的 headers 是
+		 * WpOrg\Requests\Utility\CaseInsensitiveDictionary 对象——is_array 判定落空导致
+		 * headers 恒空（URL fetcher Content-Type 分类失效形态）。getAll() 归一为
+		 * name=>value 平表——仅元数据存储增强，分类逻辑零改动。 */
+		$raw_headers = $raw['headers'] ?? array();
+		if ( is_object( $raw_headers ) && method_exists( $raw_headers, 'getAll' ) ) {
+			$normalized = array();
+			foreach ( (array) $raw_headers->getAll() as $hkey => $hval ) {
+				if ( is_int( $hkey ) && is_array( $hval ) && isset( $hval['name'], $hval['value'] ) ) {
+					$normalized[ strtolower( (string) $hval['name'] ) ] = (string) $hval['value']; // name/value 条目形态.
+				} elseif ( is_string( $hkey ) ) {
+					$normalized[ strtolower( $hkey ) ] = is_scalar( $hval ) ? (string) $hval : ''; // 平表形态（WP 7.1 实测）.
+				}
+			}
+			$raw_headers = $normalized;
+		}
+		$headers = is_array( $raw_headers ) ? $raw_headers : array();
 
 		// 错误路径同样保留解码 body（raw_snapshot 的 code/request_id 启发式提取依赖 $data——
 		// 厂商错误码恰在 4xx/5xx 响应体内；data() 消费方以 is_ok() 门控，不受影响）。
