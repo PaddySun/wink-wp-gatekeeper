@@ -243,16 +243,16 @@ final class UiM4UxGContractTest extends TestCase {
 	}
 
 	/* ===================================================================
-	 * 版本 0.5.5（四处钉 + Changelog）
+	 * 版本 0.5.6（四处钉 + Changelog）
 	 * =================================================================== */
 
 	public function test_version_bumped_to_0_5_5_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.5\.5$/m', $entry, '插件头 Version 0.5.5' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.5' )", $entry, '版本常量 0.5.5' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.5\.5$/m', $readme, 'readme Stable tag 0.5.5' );
-		$this->assertStringContainsString( '= 0.5.5 =', $readme, 'Changelog 0.5.5 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.5\.6$/m', $entry, '插件头 Version 0.5.6' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.6' )", $entry, '版本常量 0.5.6' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.5\.6$/m', $readme, 'readme Stable tag 0.5.6' );
+		$this->assertStringContainsString( '= 0.5.6 =', $readme, 'Changelog 0.5.6 条目' );
 	}
 }

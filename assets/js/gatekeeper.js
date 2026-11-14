@@ -264,6 +264,7 @@
 		form.addEventListener( 'input', function ( event ) {
 			var target = event.target;
 			if ( target && ( 'TEXTAREA' === target.tagName || 'INPUT' === target.tagName ) ) {
+				clearNativeGateHint( form ); // 【G2 清除①】内容变了原生气泡即解禁（先于防抖——气泡即时消失）。
 				scheduleMsgClear( container );
 			}
 		} );
@@ -293,6 +294,45 @@
 			}
 			runPrecheck( container, form, button );
 		}, true );
+	}
+
+	/* 【M4UX·G2】本地内容四闸预检失败 → 评论框原生气泡（用户需求：「评论全英文点完成
+	 * 人机验证后浏览器原生提示框弹出『这条评论看起来像模板群发的第 4,000 份…』——
+	 * 不写死，用同样的后台自定义文案」）。
+	 * 失败源过滤：仅本地内容四闸 rule_hit 值域（LocalRulesDriver Verdict::reject reason——
+	 * Precheck four_gate_fail 面唯一来源）；captcha_missing/IP 信誉等其余失败维持现形态
+	 * （按钮态/wk-gate-msg/适配器），不挂原生（hold 类裁决不属于预检失败面勿扩）。
+	 * 文案动态：message=预检响应 message（工坊文案经 Copywork/Labels 渲染值），零写死。
+	 * fallback：评论框元素/setCustomValidity/reportValidity 缺失（老环境）→ 既有
+	 * wk-gate-msg 通道（渐进增强，同 G1 守卫哲学；wk-gate-msg 保留不删）。
+	 * 清除时机三处（做漏=字段 invalid 让浏览器阻止提交并弹内容错误气泡挡住正常评论）：
+	 *   ① 评论框 input 事件（用户改内容即解禁，先于 msg 条防抖——气泡即时消失）；
+	 *   ② 预检成功/信用免验签发路径（releaseToAdapter / onTrustPass）；
+	 *   ③ 验证通过态设置处（markToken present=true——适配器 wk-gate-token 统一入口）。 */
+	var LOCAL_CONTENT_RULES = { too_short: 1, too_long: 1, no_chinese: 1, banned_word: 1 };
+
+	function commentField( form ) {
+		if ( ! form || ! form.querySelector ) {
+			return null;
+		}
+		return form.querySelector( '#comment' ) || form.querySelector( 'textarea[name="comment"]' );
+	}
+
+	function showNativeGateHint( form, message ) {
+		var field = commentField( form );
+		if ( ! field || typeof field.setCustomValidity !== 'function' || typeof field.reportValidity !== 'function' ) {
+			return false; // fallback：老环境走 wk-gate-msg 通道（渐进增强）。
+		}
+		field.setCustomValidity( message ); // 原生气泡文案=后台自定义文案（预检响应 message）。
+		field.reportValidity();
+		return true;
+	}
+
+	function clearNativeGateHint( form ) {
+		var field = commentField( form );
+		if ( field && typeof field.setCustomValidity === 'function' ) {
+			field.setCustomValidity( '' ); // 清除=合法态恢复（残留 invalid 会挡住正常提交）。
+		}
 	}
 
 	/* 【M4UX·G1】原生校验分层守卫（03 §2.1 信用免验预检门前置增量）：
@@ -344,7 +384,9 @@
 		function releaseToAdapter() {
 			// 放行本次点击给适配器 bubble 处理器：bypass 标记 + 程序化补点（捕获层见标记即放行）。
 			// 【v1.5·F4-2①】captcha_needed 成功转验证码链：旧错误条已不成立，同拍清除。
+			// 【G2 清除②a】预检放行成功链路：残留原生气泡会让浏览器挡住后续提交——同拍清。
 			finish();
+			clearNativeGateHint( form );
 			hideMsgBar( container );
 			setGateButton( container, 'unverified', l10n( 'idle', '完成人机验证' ) );
 			form.setAttribute( 'data-wk-precheck-bypass', '1' );
@@ -371,7 +413,15 @@
 			if ( data && 'four_gate_fail' === data.result ) {
 				finish();
 				setGateButton( container, 'unverified', l10n( 'idle', '完成人机验证' ) );
-				showMsgBar( container, data.message || data.rule || '' );
+				if ( data.rule && LOCAL_CONTENT_RULES[ data.rule ] ) {
+					// 【G2】本地内容四闸失败 → 评论框原生气泡弹后台自定义文案（动态不写死，
+					// wk-gate-msg 不出现）；老环境 fallback → 既有 wk-gate-msg 通道（渐进增强）。
+					if ( ! showNativeGateHint( form, data.message || '' ) ) {
+						showMsgBar( container, data.message || data.rule || '' );
+					}
+					return;
+				}
+				showMsgBar( container, data.message || data.rule || '' ); // 值域外防御：维持既有通道。
 				return;
 			}
 			releaseToAdapter(); // captcha_needed（IP fail/信用不足）。
@@ -381,6 +431,7 @@
 	}
 
 	function onTrustPass( container, trustValue ) {
+		clearNativeGateHint( ownedForm( container ) ); // 【G2 清除②b】信用免验签发成功链路：残留原生气泡会让浏览器挡住提交。
 		hideMsgBar( container ); // 【v1.5·F4-2①】trust_pass 成功分支：旧错误条已不成立。
 		var field = container.querySelector( 'input[name="wk_trust"]' );
 		if ( ! field ) {
@@ -414,6 +465,7 @@
 		var form = ownedForm( container );
 		if ( present ) {
 			container.setAttribute( 'data-wk-token', '1' );
+			clearNativeGateHint( form ); // 【G2 清除③】验证通过态（适配器 wk-gate-token 统一入口）：残留 invalid 会挡住正常提交。
 		} else {
 			container.removeAttribute( 'data-wk-token' );
 		}

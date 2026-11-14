@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.5
+Stable tag: 0.5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.6 =
+
+G2·M4UX G2 批（本地内容四闸预检失败 → 浏览器原生气泡，2026-11-14——TDD 先红后绿）。用户需求：「评论全英文点完成人机验证后浏览器原生提示框弹出『这条评论看起来像模板群发的第 4,000 份…』——不写死，用同样的后台自定义文案」。**失败源过滤**：预检 four_gate_fail 的 rule 命中本地内容四闸值域（too_short/too_long/no_chinese/banned_word=LocalRulesDriver 判定键）时，评论框 setCustomValidity(message)+reportValidity() → 浏览器原生气泡弹出（箭头指评论框），message=预检响应 message=工坊文案经 Copywork/Labels 渲染值（动态不写死）；captcha_missing/IP 信誉等其余失败维持现形态（按钮态/wk-gate-msg），不挂原生。**fallback**：评论框元素/setCustomValidity/reportValidity 缺失（老环境）→ 既有 wk-gate-msg 通道（渐进增强，wk-gate-msg 保留不删）。**清除时机三处**（做漏=字段 invalid 让浏览器阻止提交挡住正常评论）：①评论框 input 事件即清（用户改内容即解禁，气泡即时消失）②预检成功/信用免验签发路径同拍清③验证通过态设置处清。无票禁用提交/G1 reportValidity 守卫/互斥态判定零改动。测试 1558→1569 / 断言 10383→10449 全绿（UiM4UxG2ContractTest 新 11 例；版本钉八测试文件同步 0.5.6）。
 
 = 0.5.5 =
 
