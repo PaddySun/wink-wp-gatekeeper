@@ -40,6 +40,7 @@ use WinkGatekeeper\Ip\IpResolver;
 use WinkGatekeeper\Ip\IpReputationService;
 use WinkGatekeeper\Settings\SettingsPage;
 use WinkGatekeeper\Settings\SettingsSchema;
+use WinkGatekeeper\Site\SiteEnhance;
 use WinkGatekeeper\Stats\DashboardDigest;
 use WinkGatekeeper\Stats\DriverHealth;
 use WinkGatekeeper\Stats\EventsTable;
@@ -194,6 +195,7 @@ final class Bootstrap {
 		// Tab④ 分区②「测试凭据」（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批：同双闸；
 		// 绿=HTTP 200 且 JSON 可解析（isPublic:false 亦绿）——零计量零写零事件）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_IPREP, array( SettingsPage::class, 'ajax_test_iprep' ) );
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_AVATAR, array( SettingsPage::class, 'ajax_test_avatar_source' ) ); // 【M5·U2】Tab⑧ 头像源测试（nonce+manage_options 双闸在 handler 内）。
 	}
 
 	/**
@@ -623,6 +625,16 @@ final class Bootstrap {
 				return empty( $settings['gates']['login']['xmlrpc_login'] ) ? false : $enabled;
 			}
 		);
+
+		/* ---------- M5 U1+U2 站点增强（Tab⑧；**无条件装配**——站点内容设置面与闸启停
+		 * 无关，闸关不剥夺；两开关自带 false 默认=关闭收集/前台去链接，行为面见
+		 * includes/site/SiteEnhance.php docblock：U1-A 表单隐藏+提交面双保险丢弃 /
+		 * U1-B 前台去链接（后台照常）/ U2 头像镜像（镜像不可解析=零改写 fail-safe）。） ---------- */
+		$site_enhance = new SiteEnhance( $settings );
+		add_filter( 'comment_form_defaults', array( $site_enhance, 'filter_comment_form_defaults' ) );
+		add_filter( 'preprocess_comment', array( $site_enhance, 'filter_preprocess_comment' ) ); // 与 CommentGate @-PHP_INT_MAX 并存（strip 只删 url 键不碰判定面）。
+		add_filter( 'get_comment_author_link', array( $site_enhance, 'filter_comment_author_link' ), 10, 3 );
+		add_filter( 'pre_get_avatar_data', array( $site_enhance, 'filter_pre_get_avatar_data' ), 10, 2 );
 	}
 
 	/**

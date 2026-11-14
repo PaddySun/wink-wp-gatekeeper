@@ -159,6 +159,8 @@ final class SettingsSchemaTest extends TestCase {
 				'captcha',
 				'review',
 				'intercept', // v1.3（04 §2 用户建议4）：拦截留档开关子树（C2/F37）。
+				'comments', // 【M5·U1】「网站」字段两独立开关（Tab⑧；M5 定稿 §1/§0.1）。
+				'avatar',   // 【M5·U2】头像国内镜像（Tab⑧ 卡二；M5 定稿 §2）。
 				'network',
 				'iprep',
 				'copy',

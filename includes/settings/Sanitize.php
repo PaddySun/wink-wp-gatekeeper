@@ -190,6 +190,16 @@ final class Sanitize {
 			// 拦截留档（F37/D15，04 §2 v1.3）。
 			'intercept.archive_spam'                    => 'bool',
 
+			// 【M5·U1】「网站」字段两独立开关（Tab⑧ 卡一；定稿 §1/§0.1——完全独立语义）。
+			'comments.site_field.enabled'               => 'bool',
+			'comments.site_link.enabled'                => 'bool',
+
+			// 【M5·U2】头像国内镜像（Tab⑧ 卡二；定稿 §2）——source 白名单枚举（非法归
+			// official=fail-safe 零改写）；custom_base url 型（https 前缀+/avatar/ 尾在
+			// AvatarSources::custom_base_valid 消费侧校验，非法=不镜像）。
+			'avatar.source'                             => 'avatar_source',
+			'avatar.custom_base'                        => 'url',
+
 			// 统计 / 品牌 / 共存 / 卸载。
 			'stats.enabled'                             => 'bool',
 			'stats.pass_sampling'                       => 'bool',
@@ -277,6 +287,10 @@ final class Sanitize {
 				// 【v1.5·C1】error 态处置枚举（04 §2 captcha.error_policy）：block|pass_limited，
 				// 非法值回落 block（fail-closed）。
 				return ( is_scalar( $value ) && 'pass_limited' === (string) $value ) ? 'pass_limited' : 'block';
+			case 'avatar_source':
+				// 【M5·U2】头像源五枚举（M5 定稿 §2）：official/cravatar/weavatar/sepcc/custom，
+				// 非法值归 official（fail-safe——改写面全关=WP 官方源现行行为零变化）。
+				return \WinkGatekeeper\Site\AvatarSources::normalize( $value );
 			case 'raw_bytes':
 				// 【v1.4·R4】raw 截断字节（stats.raw_max_bytes）：absint 后钳 128-2048（04 §3 截断/体量行）。
 				return max( 128, min( 2048, is_scalar( $value ) ? abs( (int) $value ) : 512 ) );

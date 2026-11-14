@@ -239,6 +239,29 @@ final class SettingsSchema {
 				'archive_spam' => true,
 			),
 
+			// 【M5·U1 定稿 §1/§0.1】「网站」字段两独立开关（Tab⑧ 站点增强）——完全独立、
+			// 互不关联（0.1 语义唯一权威，任何「联动」表述作废）：
+			//   site_field.enabled=true=收集新评论网站字段；默认 **false=关闭收集**（防 spam
+			//   采集面——表单隐藏字段+preprocess 层丢弃入参双保险；存量 comment_author_url
+			//   永不删除）。
+			//   site_link.enabled=true=前台评论者名字保留可点链接；默认 **false=前台去链接**
+			//   （get_comment_author_link 改写纯文本；后台评论区照常显示链接——站长识别
+			//   邻居；数据库不动）。
+			'comments'               => array(
+				'site_field' => array( 'enabled' => false ),
+				'site_link'  => array( 'enabled' => false ),
+			),
+
+			// 【M5·U2 定稿 §2】头像国内镜像（Tab⑧ 卡二；pre_get_avatar_data 改写 host，
+			// 零侵入核心）——枚举 official/cravatar/weavatar/sepcc/custom；默认 cravatar
+			// （定稿 §2 建议「兼容性最强」，L0 实测脚本 tools/api-smoke/avatar-sources.php
+			// 为唯一允许的改判通道）；custom_base 仅 source=custom 时消费（https:// 前缀+
+			// /avatar/ 尾校验，非法=不镜像 fail-safe）。
+			'avatar'                 => array(
+				'source'      => 'cravatar',
+				'custom_base' => '',
+			),
+
 			// 真实 IP 解析（D11/IpResolver，M1 起生效；Tab④ 分区一）。
 			'network'                => array(
 				'ip_source'       => 'direct', // direct | xff | custom_header | traverse【M3-IP 定稿 §5.2，I0 批：REMOTE_ADDR 须命中受信网段+XFF 链式回溯；不作默认】.

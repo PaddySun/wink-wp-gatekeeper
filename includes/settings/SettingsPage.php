@@ -97,6 +97,21 @@ final class SettingsPage {
 	const ACTION_DIE_PREVIEW = 'wink_gatekeeper_die_preview';
 
 	/**
+	 * Tab⑧ 卡二「测试当前头像来源」AJAX action（【M5·U2】UI 设计块 1 卡二三态按钮）：
+	 * nonce + manage_options 双闸；对当前表单所选头像源发一次固定 email hash 探测
+	 * （每源 1 请求——UI 设计块 1.3），三态=绿（200+图片）/黄（>3s 能用但慢）/
+	 * 红（连不上或非图片）；**测的是镜像通不通非密钥**（与凭据测试不同语境）；结果
+	 * 不落库零计量零事件（RemoteClient 传输脊，不带 usage_key——诊断查询同口径）。
+	 */
+	const AJAX_TEST_AVATAR = 'wink_gatekeeper_test_avatar_source';
+
+	/**
+	 * 头像源探测固定 email hash（md5('wink-gatekeeper-avatar-probe@example.com')——
+	 * 每源 1 请求口径；探测的是源可达性非真实头像）。
+	 */
+	const AVATAR_PROBE_HASH = 'f36f1fe24ea129522b9eb822fef2aa59';
+
+	/**
 	 * @var \WinkGatekeeper\Drivers\DriverRegistry|null Bootstrap 装配期注入的驱动注册表。
 	 */
 	private static $driver_registry = null;
@@ -114,6 +129,11 @@ final class SettingsPage {
 		'copy'     => array( '⑤', '文案工坊' ),
 		'stats'    => array( '⑥', '统计' ),
 		'tools'    => array( '⑦', '工具' ),
+		// 【M5·UI-A】⑧「站点增强」顺延追加（UI 设计 D1 裁决——零重编号迁移；语义=
+		// 影响站点前台行为的长期设置：网站字段/头像源。⑦=工具（一次性操作）、
+		// ⑧=站点增强（长期设置）——hover/文档统一话术「⑧ 改的是站点长什么样，
+		// ⑦ 做的是你想干的某件事」）。
+		'enhance'  => array( '⑧', '站点增强' ),
 	);
 
 	/**
@@ -393,6 +413,9 @@ final class SettingsPage {
 				break;
 			case 'tools':
 				self::render_tab_tools();
+				break;
+			case 'enhance':
+				self::render_tab_enhance();
 				break;
 			case 'overview':
 			default:
@@ -4081,5 +4104,171 @@ final class SettingsPage {
 			<p class="wk-muted"><?php esc_html_e( 'PHP/WP 版本要求检查卡片（沿上游 baby_wp_check_requirements 交互）。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
+	}
+
+	/* -------------------------------------------------------------------
+	 * Tab⑧ 站点增强（【M5·UI-A】UI 设计块 1——U1「网站」字段两独立开关 +
+	 * U2 头像国内镜像；两开关完全独立互不关联（定稿 §0.1 唯一权威）。
+	 * 文案红线：A 行说明只讲收集不提 B、B 行只讲显示不提 A；「后台始终可见+
+	 * 存量不删」背景常显说明只写卡内顶部一处（段级一次）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Tab⑧ 渲染。两卡：卡一评论「网站」字段 / 卡二头像来源。
+	 *
+	 * @return void
+	 */
+	private static function render_tab_enhance(): void {
+		$settings         = self::settings();
+		$collect_enabled  = ! empty( $settings['comments']['site_field']['enabled'] );
+		$link_enabled     = ! empty( $settings['comments']['site_link']['enabled'] );
+		$avatar_source    = \WinkGatekeeper\Site\AvatarSources::normalize( $settings['avatar']['source'] ?? null );
+		$avatar_custom    = (string) ( $settings['avatar']['custom_base'] ?? '' );
+		/* A 关闭提示（条件显隐）：收集已关闭 **且** 网址核查特性已在场（url_audit 子树——
+		 * U5 批落位后自动生效；特性不在场时「提示审核了一个不存在的功能」违反 F33 纪律
+		 * （不用的代码路径=不工作的代码路径），本批零渲染）。UI 设计块 1.3 的「A=true
+		 * 时显示」按定稿 §1 权威语义实施=**收集关闭时**（键语义 enabled=true=收集）。 */
+		$url_audit_exists = array_key_exists( 'url_audit', $settings );
+		?>
+		<section class="wk-card" id="wk-site-fields-card">
+			<h2><?php esc_html_e( '评论「网站」字段', 'wink-gatekeeper' ); ?></h2>
+			<p id="wk-site-fields-constant-note" class="wk-muted"><?php esc_html_e( '评论者可以填一个自己的网站。无论下面开关怎么设，后台评论区始终显示这个网址供你识别来访者；已存的网址不会删除。', 'wink-gatekeeper' ); ?></p>
+
+			<table class="form-table">
+				<tr id="wk-site-field-collect-row">
+					<th scope="row"><?php esc_html_e( '收集新评论的网站字段', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="wink_gatekeeper_settings[comments][site_field][enabled]" value="1" <?php checked( $collect_enabled ); ?>>
+							<?php esc_html_e( '评论表单出现「网站」一栏，新评论保存网址', 'wink-gatekeeper' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( '不勾选（默认）时，评论表单不出现该栏、提交的网址一律丢弃——防止垃圾提交程序试探采集。已发表评论不受影响。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<?php if ( ! $collect_enabled && $url_audit_exists ) : ?>
+				<tr>
+					<td colspan="2" id="wk-site-field-a-notice">
+						<div class="notice notice-warning inline"><p><?php esc_html_e( '网站字段收集已关闭——网址核查对新评论自动失效，存量网址仍可在统计页的存量审核报告中处理。', 'wink-gatekeeper' ); ?></p></div>
+					</td>
+				</tr>
+				<?php endif; ?>
+				<tr id="wk-site-field-delink-row">
+					<th scope="row"><?php esc_html_e( '前台评论者名字保留可点链接', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="wink_gatekeeper_settings[comments][site_link][enabled]" value="1" <?php checked( $link_enabled ); ?>>
+							<?php esc_html_e( '前台评论区的评论者名字显示为可点开的链接', 'wink-gatekeeper' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( '不勾选（默认）时只显示名字本身。你自己在后台看评论时始终是可点链接。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+			</table>
+		</section>
+
+		<section class="wk-card" id="wk-avatar-card">
+			<h2><?php esc_html_e( '评论者头像来源', 'wink-gatekeeper' ); ?></h2>
+			<table class="form-table">
+				<tr>
+					<th scope="row"><label for="wk-avatar-source-select"><?php esc_html_e( '头像来源', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<select id="wk-avatar-source-select" name="wink_gatekeeper_settings[avatar][source]">
+							<option value="official" <?php selected( $avatar_source, 'official' ); ?>><?php esc_html_e( '未配置（用 WordPress 官方源）', 'wink-gatekeeper' ); ?></option>
+							<option value="cravatar" <?php selected( $avatar_source, 'cravatar' ); ?>><?php esc_html_e( 'Cravatar（国内镜像，官方兼容）', 'wink-gatekeeper' ); ?></option>
+							<option value="weavatar" <?php selected( $avatar_source, 'weavatar' ); ?>><?php esc_html_e( 'WeAvatar（国内镜像，多级匹配）', 'wink-gatekeeper' ); ?></option>
+							<option value="sepcc" <?php selected( $avatar_source, 'sepcc' ); ?>><?php esc_html_e( 'sep.cc（国内镜像）', 'wink-gatekeeper' ); ?></option>
+							<option value="custom" <?php selected( $avatar_source, 'custom' ); ?>><?php esc_html_e( '自定义地址', 'wink-gatekeeper' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( '国内访客加载官方源可能很慢或失败；选用国内镜像可提速。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr id="wk-avatar-custom-base-row"<?php echo 'custom' === $avatar_source ? '' : ' hidden'; ?>>
+					<th scope="row"><label for="wk-avatar-custom-base"><?php esc_html_e( '自定义地址', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="url" id="wk-avatar-custom-base" name="wink_gatekeeper_settings[avatar][custom_base]" class="regular-text code" value="<?php echo esc_attr( $avatar_custom ); ?>" placeholder="https://example.com/avatar/">
+						<p class="description"><?php esc_html_e( '须以 https:// 开头、以 /avatar/ 结尾——按镜像站说明填写；地址不合法时不改写头像来源（用官方源）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+			</table>
+			<p id="wk-avatar-switch-note" class="wk-muted"><?php esc_html_e( '切换头像来源后，已缓存的旧头像可能过一段时间才更新，不是故障。', 'wink-gatekeeper' ); ?></p>
+			<p>
+				<button type="button" class="button" id="wk-avatar-test-btn"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_AVATAR ) ); ?>"><?php esc_html_e( '测试当前头像来源', 'wink-gatekeeper' ); ?></button>
+				<span id="wk-avatar-test-result" class="wk-probe"></span>
+			</p>
+		</section>
+		<?php
+	}
+
+	/**
+	 * Tab⑧ 卡二「测试当前头像来源」AJAX 处理器（【M5·U2】）。
+	 *
+	 * 语义：测的是**这个镜像通不通**（非密钥）；以表单当前所选 source/custom_base 为准
+	 * （未保存也可测——与「配置与实测同域」D7 裁决一致）；custom 地址非法=红态提示不合法。
+	 * 传输脊 RemoteClient（D13 纪律——全库唯一 HTTP 出口），不带 usage_key=零计量零写
+	 * 零事件（诊断查询同口径）；固定 email hash、每源 1 请求（UI 设计块 1.3）。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_avatar_source(): void {
+		check_ajax_referer( self::AJAX_TEST_AVATAR, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post   = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+		$source = \WinkGatekeeper\Site\AvatarSources::normalize( isset( $post['source'] ) && is_scalar( $post['source'] ) ? (string) $post['source'] : '' );
+		$custom = isset( $post['custom_base'] ) && is_scalar( $post['custom_base'] ) ? trim( (string) $post['custom_base'] ) : '';
+
+		$base = \WinkGatekeeper\Site\AvatarSources::base_for( $source, $custom );
+		if ( null === $base ) {
+			if ( 'custom' === $source ) {
+				// custom 但地址非法：给「缺参数」黄态（逐字段指出，同凭据测试黄态语义）。
+				wp_send_json_success( array(
+					'state'   => 'yellow',
+					'message' => __( '自定义地址不合法：须以 https:// 开头、以 /avatar/ 结尾。', 'wink-gatekeeper' ),
+				) );
+			}
+			// official：探测官方源（对照形态——官方源慢时正好引导切镜像）。
+			$base = 'https://secure.gravatar.com/avatar/';
+		}
+
+		$url = $base . self::AVATAR_PROBE_HASH . '?s=80&d=mm';
+		$client = new RemoteClient(); // WP 边界默认传输（探测一次零计量）。
+		$result = $client->get( $url, array( 'timeout' => 5 ) );
+
+		$status  = $result->status();
+		$headers = $result->headers();
+		$ctype   = '';
+		foreach ( array( 'content-type', 'Content-Type' ) as $key ) {
+			if ( isset( $headers[ $key ] ) && is_string( $headers[ $key ] ) ) {
+				$ctype = $headers[ $key ];
+				break;
+			}
+		}
+		$latency = $result->latency_ms();
+		$seconds = null !== $latency ? ( $latency / 1000 ) : 0.0;
+		$state   = \WinkGatekeeper\Site\AvatarSources::judge( $status, $ctype, $seconds );
+
+		$messages = array(
+			'ok'   => sprintf(
+				/* translators: %s: 响应耗时秒。 */
+				__( '正常（%.1f 秒）', 'wink-gatekeeper' ),
+				$seconds
+			),
+			'slow' => sprintf(
+				/* translators: %s: 响应耗时秒。 */
+				__( '能用但慢（%.1f 秒）', 'wink-gatekeeper' ),
+				$seconds
+			),
+			'fail' => __( '连不上该镜像（或返回的不是图片）。', 'wink-gatekeeper' ),
+		);
+
+		wp_send_json_success( array(
+			'state'   => $state,
+			'message' => $messages[ $state ] ?? (string) __( '测试失败。', 'wink-gatekeeper' ),
+			'source'  => $source,
+		) );
 	}
 }

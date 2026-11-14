@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.6
+Stable tag: 0.5.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.7 =
+
+U1U2·M5 站点增强批（Tab⑧ 新页签「站点增强」，2026-11-14——TDD 先红后绿）。**U1「网站」字段两独立开关**（完全独立互不关联）：A 收集开关（默认关=评论表单不出现「网站」栏、提交网址一律丢弃——表单隐藏+提交面双保险，curl 伪造面收口；存量网址永不删除，后台评论区始终显示供站长识别来访者）/ B 前台链接开关（默认关=前台评论者名字纯文本不带链接，后台照常可点链接）。**U2 头像国内镜像**：头像来源五选（官方/Cravatar/WeAvatar/sep.cc/自定义地址），默认 Cravatar（B 机四源 L0 横评复核可达；官方源境内加载慢/失败时镜像可提速）；镜像不可达或自定义地址不合法时自动回落官方源（fail-safe 零变化）；卡内「测试当前头像来源」按钮三态（正常/能用但慢/连不上）。隐私正向：头像请求国内化=Gravatar 出境面收回。注意：A/B 两开关默认均为关（=关闭收集+前台去链接），升级后如需恢复原行为请在「设置 → wink 门口保安 → ⑧站点增强」勾选对应开关。测试 1569→1613 / 断言 10449→10602 全绿（M5U1SiteFieldTest+M5U2AvatarTest+UiM5Tab8ContractTest 新 44 例）。
 
 = 0.5.6 =
 

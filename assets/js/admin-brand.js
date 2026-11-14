@@ -254,6 +254,71 @@
 		syncHeaderRow();
 	} )();
 
+	// 【M5·U2】Tab⑧ 卡二头像源：仅 custom 显示自定义地址行（custom_header 联动范式同款
+	// ——PHP 初始态已按存量值 hidden，此处接管切换显隐）。
+	( function () {
+		var avatarSelect = document.getElementById( 'wk-avatar-source-select' );
+		var customRow    = document.getElementById( 'wk-avatar-custom-base-row' );
+		if ( ! avatarSelect || ! customRow ) {
+			return;
+		}
+		var syncCustomRow = function () {
+			customRow.hidden = avatarSelect.value !== 'custom';
+		};
+		avatarSelect.addEventListener( 'change', syncCustomRow );
+		syncCustomRow();
+	} )();
+
+	// 【M5·U2】Tab⑧ 卡二「测试当前头像来源」（三态：绿=正常/黄=能用但慢/红=连不上——
+	// 测的是镜像通不通非密钥；服务端 RemoteClient 探测零计量零事件）。
+	var avatarProbeButton = document.getElementById( 'wk-avatar-test-btn' );
+	if ( avatarProbeButton ) {
+		avatarProbeButton.addEventListener( 'click', function () {
+			var result = document.getElementById( 'wk-avatar-test-result' );
+			avatarProbeButton.disabled = true;
+			if ( result ) {
+				result.textContent = '测试中……';
+				result.className = '';
+			}
+			var sourceSelect = document.getElementById( 'wk-avatar-source-select' );
+			var customInput  = document.getElementById( 'wk-avatar-custom-base' );
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_test_avatar_source' );
+			body.append( 'nonce', avatarProbeButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'source', sourceSelect ? sourceSelect.value : 'official' );
+			body.append( 'custom_base', customInput ? customInput.value.trim() : '' );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( ! result ) {
+					return;
+				}
+				var data = payload && payload.data ? payload.data : null;
+				if ( payload && payload.success && data ) {
+					result.textContent = data.message || '';
+					var stateClass = { ok: 'wk-probe--green', slow: 'wk-probe--yellow', fail: 'wk-probe--red', yellow: 'wk-probe--yellow' };
+					result.className = 'wk-probe ' + ( stateClass[ data.state ] || 'wk-probe--gray' );
+				} else {
+					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).catch( function () {
+				if ( result ) {
+					result.textContent = '测试失败（网络错误）。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).finally( function () {
+				avatarProbeButton.disabled = false;
+			} );
+		} );
+	}
+
 	// 字段有输入即摘除标红 + 重置「阻止一次」标志（全部驱动组共用一个监听）。
 	document.addEventListener( 'input', function ( event ) {
 		var target = event.target;
