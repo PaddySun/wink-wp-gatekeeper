@@ -18,11 +18,14 @@ declare( strict_types=1 );
 namespace WinkGatekeeper\Tests;
 
 use PHPUnit\Framework\TestCase;
+use WinkGatekeeper\Audit\ExistingAuditTask;
 use WinkGatekeeper\Gates\TestMode;
 use WinkGatekeeper\Settings\SettingsPage;
 use WinkGatekeeper\Stats\DriverHealth;
+use WinkGatekeeper\Stats\LlmUsage;
 use WinkGatekeeper\Stats\StatsCache;
 use WinkGatekeeper\Stats\Usage;
+use WinkGatekeeper\UrlAudit\UrlAuditWorker;
 
 final class OptionHygieneTest extends TestCase {
 
@@ -42,24 +45,52 @@ final class OptionHygieneTest extends TestCase {
 		sort( $deleted );
 
 		// 全插件 OPTION_NAME 常量集（新增 option 挂进本清单自动受钉——防漏删再漂移）。
+		// 【v1.9·M5 回写·审计 C2】M5 三 option 扩钉：LlmUsage / UrlAuditWorker 增量队列 /
+		// ExistingAuditTask 进度。
 		$expected = array_values( array_unique( array(
 			SettingsPage::OPTION_NAME,
 			TestMode::OPTION_NAME, // 与 SettingsPage 同值——同键去重后仍须在删除清单。
 			StatsCache::OPTION_NAME,
 			Usage::OPTION_NAME,
 			DriverHealth::OPTION_NAME,
+			LlmUsage::OPTION_NAME,
+			UrlAuditWorker::OPTION_INCR_QUEUE,
+			ExistingAuditTask::OPTION_PROGRESS,
 		) ) );
 		sort( $expected );
 
 		$this->assertSame( $expected, $deleted, 'uninstall delete_option 键集 === 全插件 OPTION_NAME 常量集（漏删=卸载残留）' );
 		$this->assertContains( DriverHealth::OPTION_NAME, $deleted, 'wink_gatekeeper_health（云审停转状态树）必须在卸载清单' );
+		$this->assertContains( LlmUsage::OPTION_NAME, $deleted, 'wink_gatekeeper_llm_usage（M5 LLM 消耗统计）必须在卸载清单' );
+		$this->assertContains( UrlAuditWorker::OPTION_INCR_QUEUE, $deleted, 'wink_gatekeeper_url_audit_incr_queue（M5 网址核查增量队列）必须在卸载清单' );
+		$this->assertContains( ExistingAuditTask::OPTION_PROGRESS, $deleted, 'wink_gatekeeper_audit_existing_progress（M5 存量审核进度）必须在卸载清单' );
 	}
 
-	public function test_uninstall_header_documents_four_options(): void {
+	public function test_uninstall_header_documents_all_options(): void {
 		$src = self::uninstall_src();
 
-		$this->assertStringContainsString( '4 个 option', $src, '头注清单与实际删除数同步（3→4）' );
+		$this->assertStringContainsString( '7 个 option', $src, '头注清单与实际删除数同步（4→7·M5 三 option 补录）' );
 		$this->assertStringContainsString( DriverHealth::OPTION_NAME, $src, '头注点名 health 键（R-AK §D P0-1：头注自己写的清单就是承诺）' );
+		$this->assertStringContainsString( LlmUsage::OPTION_NAME, $src, '头注点名 llm_usage 键（M5·审计 C2）' );
+		$this->assertStringContainsString( UrlAuditWorker::OPTION_INCR_QUEUE, $src, '头注点名 url_audit_incr_queue 键（M5·审计 C2）' );
+		$this->assertStringContainsString( ExistingAuditTask::OPTION_PROGRESS, $src, '头注点名 audit_existing_progress 键（M5·审计 C2）' );
+	}
+
+	/* ---------- 【v1.9·M5 回写·审计 C2】comment meta 键集钉 ---------- */
+
+	public function test_uninstall_cleans_m5_comment_meta_keys(): void {
+		$src = self::uninstall_src();
+
+		// M5 两 meta 键与既有 wink_gatekeeper_archive 同款 delete_metadata 逐键纪律。
+		foreach ( array( 'wink_gatekeeper_archive', ExistingAuditTask::META_KEY, UrlAuditWorker::META_KEY ) as $meta_key ) {
+			$this->assertMatchesRegularExpression(
+				"/delete_metadata\(\s*'comment'\s*,\s*0\s*,\s*'" . preg_quote( $meta_key, '/' ) . "'\s*,\s*''\s*,\s*true\s*\)/",
+				$src,
+				"comment meta {$meta_key} 必须逐键 delete_metadata（M5 审计 C2：存量审核/网址核查标记不清则重装后「已处理」假象）"
+			);
+		}
+		$this->assertStringContainsString( ExistingAuditTask::META_KEY, $src, '头注/步骤注释须点名 wink_audit_existing' );
+		$this->assertStringContainsString( UrlAuditWorker::META_KEY, $src, '头注/步骤注释须点名 url_audit meta 键' );
 	}
 
 	/* ---------- P0-7：option 名魔法串清零 ---------- */

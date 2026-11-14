@@ -150,6 +150,10 @@ final class UiM4UxF3ContractTest extends TestCase {
 			'wink_gatekeeper_stats'    => array(),
 			'wink_gatekeeper_usage'    => array(),
 			'wink_gatekeeper_health'   => array(),
+			// 【v1.9·M5 回写·审计 C2】M5 三 option 入夹具（须随卸载全清）。
+			'wink_gatekeeper_llm_usage'               => array(),
+			'wink_gatekeeper_url_audit_incr_queue'    => array(),
+			'wink_gatekeeper_audit_existing_progress' => array(),
 			'seo_plugin_options'       => array( 'rating' => 5 ),           // 第三方 option.
 			'wink_gatekeeper_settings_backup' => array( 'x' => 1 ),         // 相似前缀但非卸载清单键——必须原样。
 		);
@@ -173,6 +177,10 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$this->assertArrayNotHasKey( 'wink_gatekeeper_stats', UninstallFixture::$options, 'stats 已删' );
 		$this->assertArrayNotHasKey( 'wink_gatekeeper_usage', UninstallFixture::$options, 'usage 已删' );
 		$this->assertArrayNotHasKey( 'wink_gatekeeper_health', UninstallFixture::$options, 'health 已删' );
+		// 【v1.9·M5 回写·审计 C2】M5 三 option 全清。
+		$this->assertArrayNotHasKey( 'wink_gatekeeper_llm_usage', UninstallFixture::$options, 'llm_usage 已删（M5·审计 C2）' );
+		$this->assertArrayNotHasKey( 'wink_gatekeeper_url_audit_incr_queue', UninstallFixture::$options, 'url_audit_incr_queue 已删（M5·审计 C2）' );
+		$this->assertArrayNotHasKey( 'wink_gatekeeper_audit_existing_progress', UninstallFixture::$options, 'audit_existing_progress 已删（M5·审计 C2）' );
 		$this->assertArrayNotHasKey( 'wp_wink_gatekeeper_events', UninstallFakeWpdb::$tables, 'events 表已 DROP' );
 		$this->assertArrayHasKey( 'wp_wink_gatekeeper_events_v2', UninstallFakeWpdb::$tables, '相似表名不得误伤（严格全等比对）' );
 		$this->assertArrayNotHasKey( '_transient_wk_ip_1.2.3.4', UninstallFixture::$options, 'wk_ 前缀 transient 已清' );
@@ -186,7 +194,12 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$this->assertArrayHasKey( 'wp_posts', UninstallFakeWpdb::$tables, 'WP 核心表原样' );
 		$this->assertArrayHasKey( 'wp_seo_plugin_log', UninstallFakeWpdb::$tables, '第三方表原样' );
 		$this->assertSame(
-			array( array( 'comment', 0, 'wink_gatekeeper_archive', '', true ) ),
+			array(
+				array( 'comment', 0, 'wink_gatekeeper_archive', '', true ),
+				// 【v1.9·M5 回写·审计 C2】M5 两 meta 键同款逐键纪律。
+				array( 'comment', 0, 'wink_audit_existing', '', true ),
+				array( 'comment', 0, 'url_audit', '', true ),
+			),
 			UninstallFixture::$meta_deletes,
 			'comment meta 只逐键清 wink 自有键（第三方 meta 键零触碰、不清整行）'
 		);

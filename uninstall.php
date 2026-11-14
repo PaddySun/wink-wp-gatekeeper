@@ -9,12 +9,19 @@
  *   - **保留数据路径 = 不卸载、直接上传新版 zip「升级」**——WP 升级不触发本文件，语义天然成立。
  *
  * 数据红线（只碰 wink 自有数据，绝不删坏）：
- *   - 删 4 个 option：wink_gatekeeper_settings / stats / usage / health（键名全等，逐个精确）；
+ *   - 删 7 个 option：wink_gatekeeper_settings / stats / usage / health
+ *     【v1.9·M5 回写·审计 C2】+ wink_gatekeeper_llm_usage（LLM 消耗统计，
+ *     LlmUsage::OPTION_NAME）+ wink_gatekeeper_url_audit_incr_queue（网址核查增量
+ *     队列，UrlAuditWorker::OPTION_INCR_QUEUE）+ wink_gatekeeper_audit_existing_progress
+ *     （存量审核进度，ExistingAuditTask::OPTION_PROGRESS）（键名全等，逐个精确）；
  *   - DROP 仅 wink 自建事件表（{prefix}wink_gatekeeper_events——先 SHOW TABLES 探测后
  *     PHP 侧严格全等比对，防 LIKE 下划线通配的相似表名误伤）；
  *   - 清 wink 自有 transient 前缀（wk_lf_ / wk_ip_ / wk_rp_ / wk_cv_ / wk_pk_ / wk_tc_ /
  *     wk_cm_ / wk_irb_ / wk_ua_——逐前缀精确，禁止 LIKE %wink% 类宽匹配）；
- *   - 清 wink 自有 comment meta 键 wink_gatekeeper_archive（逐键 delete_metadata，不清整行评论）；
+ *   - 清 wink 自有 comment meta 键 wink_gatekeeper_archive（逐键 delete_metadata，不清整行评论）
+ *     【v1.9·M5 回写·审计 C2】+ wink_audit_existing（存量审核判定标记，
+ *     ExistingAuditTask::META_KEY）+ url_audit（网址核查判定 meta，UrlAuditWorker::META_KEY）
+ *     ——两 M5 meta 键同款逐键纪律；
  *   - 绝不碰 WP 核心表 / 其他插件数据 / wp_comments 评论行 / wp_options 非本插件键。
  *
  * 失败安全：每个清理步骤独立 try/catch（Throwable）——单步异常不中断整个卸载，
@@ -52,7 +59,9 @@ $wink_guarded = static function ( callable $wink_step ): void {
 	}
 };
 
-/* 1. 删 4 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留）。 */
+/* 1. 删 7 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留；
+ * 【v1.9·M5 回写·审计 C2】M5 三 option 补录：LlmUsage::OPTION_NAME /
+ * UrlAuditWorker::OPTION_INCR_QUEUE / ExistingAuditTask::OPTION_PROGRESS）。 */
 $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_settings' );
 } );
@@ -64,6 +73,15 @@ $wink_guarded( static function (): void {
 } );
 $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_health' );
+} );
+$wink_guarded( static function (): void {
+	delete_option( 'wink_gatekeeper_llm_usage' );
+} );
+$wink_guarded( static function (): void {
+	delete_option( 'wink_gatekeeper_url_audit_incr_queue' );
+} );
+$wink_guarded( static function (): void {
+	delete_option( 'wink_gatekeeper_audit_existing_progress' );
 } );
 
 /* 2. DROP events 表（仅 wink 自建表——SHOW TABLES 探测 + PHP 严格全等比对：
@@ -110,9 +128,18 @@ $wink_guarded( static function () use ( $wpdb ): void {
 } );
 
 /* 5. 清 wink 自有 comment meta 键（Bootstrap::record_archive 落的 wink_gatekeeper_archive——
- * 逐键 delete_metadata，绝不清整行评论；第三方 comment meta 零触碰）。 */
+ * 逐键 delete_metadata，绝不清整行评论；第三方 comment meta 零触碰）。
+ * 【v1.9·M5 回写·审计 C2】M5 两 meta 键同款补录：wink_audit_existing（存量审核判定
+ * 标记·ExistingAuditTask::META_KEY——不清则重装后旧标记致存量审核「已处理」假象）+
+ * url_audit（网址核查判定·UrlAuditWorker::META_KEY）。 */
 $wink_guarded( static function (): void {
 	delete_metadata( 'comment', 0, 'wink_gatekeeper_archive', '', true );
+} );
+$wink_guarded( static function (): void {
+	delete_metadata( 'comment', 0, 'wink_audit_existing', '', true );
+} );
+$wink_guarded( static function (): void {
+	delete_metadata( 'comment', 0, 'url_audit', '', true );
 } );
 
 /* 6. 对象缓存清库（Redis 复活防御——F3-1 头号嫌疑根因）：持久化对象缓存（Redis）里
