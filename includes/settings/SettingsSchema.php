@@ -162,13 +162,19 @@ final class SettingsSchema {
 					'custom_banned_words' => '',
 					'use_wp_keywords'    => 1,
 				),
-				'cloud' => array(
-					'enabled'       => false,
-					// 【v1.4·R4】默认空数组（原 ['deepseek'] 作废——未实装驱动不入默认链，避免
-					// 下拉默认选中未实装驱动；老站已存值不被 merge_defaults 覆盖）。
-					// UI=单选下拉即 chain[0] 可视面（03 Tab③），有序数组 schema 保留兼容未来 failover。
-					'chain'         => array(),
-					'deepseek'      => array(
+			'cloud' => array(
+				'enabled'       => false,
+				// 【v1.4·R4】默认空数组（原 ['deepseek'] 作废——未实装驱动不入默认链，避免
+				// 下拉默认选中未实装驱动；老站已存值不被 merge_defaults 覆盖）。
+				// UI=单选下拉即 chain[0] 可视面（03 Tab③），有序数组 schema 保留兼容未来 failover。
+				'chain'         => array(),
+				// 【M5·U4 定稿 §4】两段式升级（newswright 五件套⑤）：低置信（<min_confidence）
+				// 自动换更强模型再判恰一次；two_stage 默认 **true**、upgrade_model 默认
+				// deepseek-reasoner（DeepSeek 原生两档零额外供应商）。键落 review.cloud 顶层
+				// （两段式是协议族基类行为非 DeepSeek 独有——openai_custom/M4 备选共用）。
+				'two_stage'     => true,
+				'upgrade_model' => 'deepseek-reasoner',
+				'deepseek'      => array(
 						'api_key'        => '',
 						'base_url'       => 'https://api.deepseek.com',
 						// 04 §2 v1.2(L0) 注：deepseek-chat 已是旧别名（服务端映射 flash），默认 flash。

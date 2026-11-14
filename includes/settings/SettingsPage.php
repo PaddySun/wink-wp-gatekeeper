@@ -74,6 +74,12 @@ final class SettingsPage {
 	const AJAX_TEST_CREDENTIALS_BAIDU = 'wink_gatekeeper_test_credentials_baidu';
 
 	/**
+	 * Tab③ DeepSeek「测试凭据」AJAX action（【M5·U4】D5 裁决：GET /models 探活——
+	 * 零 token 成本证 Bearer 鉴权通；nonce + manage_options 双闸；结果不落库零计量）。
+	 */
+	const AJAX_TEST_CREDENTIALS_DEEPSEEK = 'wink_gatekeeper_test_credentials_deepseek';
+
+	/**
 	 * Tab④ 诊断面板「手动聚合查询」AJAX action（M3-IP 定稿 §5.1，I0 批）：
 	 * nonce + manage_options 双闸；**设计红线：四源仅此手动区出现——零闸路径/零缓存/零统计/
 	 * 零自动调用（不带 usage_key），任一源失败仅该卡片失败**；结果不落库（纯请求态渲染）。
@@ -1809,10 +1815,12 @@ final class SettingsPage {
 		$tms      = is_array( $cloud['tencent_tms'] ?? null ) ? $cloud['tencent_tms'] : array();
 		$green    = is_array( $cloud['aliyun_green'] ?? null ) ? $cloud['aliyun_green'] : array();
 		$baidu    = is_array( $cloud['baidu'] ?? null ) ? $cloud['baidu'] : array(); // 【v1.5·B6】百度文本审核子树。
+		$deepseek = is_array( $cloud['deepseek'] ?? null ) ? $cloud['deepseek'] : array(); // 【M5·U4】DeepSeek 子树。
 		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
 		$tms_in_chain   = in_array( 'tencent_tms', $chain, true );
 		$green_in_chain = in_array( 'aliyun_green', $chain, true );
 		$baidu_in_chain = in_array( 'baidu', $chain, true );
+		$deepseek_in_chain = in_array( 'deepseek', $chain, true ); // 【M5·U4】.
 
 		// 【v1.4·R4】DriverConfigSpec 通用件消费：registry 已实装 review 驱动（local_rules 剔除）
 		// + 运行时停转映射（下拉「配置错误」点）+ 链路汇总行素材。
@@ -1822,11 +1830,12 @@ final class SettingsPage {
 			unset( $cloud_registered['local_rules'] );
 		}
 		if ( array() === $cloud_registered ) {
-			// registry 未注入的降级读取（单测/早载场景）——已实装三驱动硬编码兜底。
+			// registry 未注入的降级读取（单测/早载场景）——已实装四驱动硬编码兜底。
 			$cloud_registered = array(
 				TencentTmsDriver::DRIVER_ID        => TencentTmsDriver::registry_entry(),
 				AliyunGreenPlusDriver::DRIVER_ID   => AliyunGreenPlusDriver::registry_entry(),
 				BaiduTextModerationDriver::DRIVER_ID => BaiduTextModerationDriver::registry_entry(),
+				\WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DRIVER_ID => \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::registry_entry(), // 【M5·U4】.
 			);
 		}
 		$cloud_halted = array();
@@ -1842,10 +1851,11 @@ final class SettingsPage {
 			'tencent_tms'  => $tms,
 			'aliyun_green' => $green,
 			'baidu'        => $baidu,
+			'deepseek'     => $deepseek, // 【M5·U4】.
 		);
 
 		// 当前选中驱动（下拉=chain[0] 可视面；未配置=''）。
-		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : ( $baidu_in_chain ? 'baidu' : '' ) );
+		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : ( $baidu_in_chain ? 'baidu' : ( $deepseek_in_chain ? 'deepseek' : '' ) ) );
 
 		// 【M4UX UI-1-2·定稿 §3】页顶「云端审核未配置未开启」notice（判定法与 Tab① 引导
 		// 同源：enabled 关 + chain 空=未配置未开启；配好即消失。enabled 开但无可用驱动的
@@ -2308,6 +2318,107 @@ final class SettingsPage {
 				<span id="wk-baidu-test-result" aria-live="polite"></span>
 			</p>
 			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+		</section>
+
+		<section class="wk-card" id="wk-review-deepseek-card" data-wk-vendor="deepseek"<?php echo ( 'deepseek' === $cloud_selected ) ? '' : ' hidden'; ?>>
+			<h2><?php esc_html_e( 'DeepSeek（AI 判定） · 配置', 'wink-gatekeeper' ); ?></h2>
+
+			<?php
+			$deepseek_meta    = isset( $cloud_registered['deepseek'] ) ? $cloud_registered['deepseek'] : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::registry_entry();
+			$deepseek_privacy = DriverConfigSpec::privacy_notice( $deepseek_meta, 'DeepSeek' );
+			if ( null !== $deepseek_privacy ) :
+				?>
+				<div class="notice <?php echo 'warn' === $deepseek_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+					<p><?php echo esc_html( $deepseek_privacy['text'] ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<details class="wk-guide">
+				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<ol>
+					<li><?php esc_html_e( 'DeepSeek 开放平台（platform.deepseek.com）创建 API Key 并充值（按量计费，判定一次约几百 token）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '粘贴 API Key 至下方 → 点「测试凭据」（模型列表探活，零 token 成本）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '「低置信自动升级」默认开——说明见下方开关行（段级一次）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '判定映射（站长不可调）：置信 ≥0.8 高置信直取、<0.8 一律入待审；AI 判 pass 不替评论放行（只放大严）。', 'wink-gatekeeper' ); ?></li>
+				</ol>
+				<p><a href="https://api-docs.deepseek.com/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'DeepSeek API 文档', 'wink-gatekeeper' ); ?></a></p>
+			</details>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-deepseek-api-key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'deepseek', 'api_key' ), '' !== (string) ( $deepseek['api_key'] ?? '' ), 'API Key' ); ?>
+						<p class="description"><?php esc_html_e( '仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-deepseek-base-url"><?php esc_html_e( '接入地址', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="url" id="wk-deepseek-base-url" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'base_url' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $deepseek['base_url'] ?? 'https://api.deepseek.com' ) ); ?>" class="regular-text code">
+						<p class="description"><?php esc_html_e( '预填官方地址，一般不用改。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-deepseek-model"><?php esc_html_e( '判定模型', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<select id="wk-deepseek-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'model' ) ) ); ?>">
+							<option value="deepseek-flash" <?php selected( (string) ( $deepseek['model'] ?? 'deepseek-flash' ), 'deepseek-flash' ); ?>><?php esc_html_e( '标准（deepseek-flash，便宜快）', 'wink-gatekeeper' ); ?></option>
+							<option value="deepseek-reasoner" <?php selected( (string) ( $deepseek['model'] ?? '' ), 'deepseek-reasoner' ); ?>><?php esc_html_e( '深思（deepseek-reasoner，更强慢）', 'wink-gatekeeper' ); ?></option>
+						</select>
+					</td>
+				</tr>
+				<tr id="wk-deepseek-two-stage-row">
+					<th scope="row"><?php esc_html_e( '低置信自动升级', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['two_stage'] ?? true ) ); ?>>
+							<?php esc_html_e( 'AI 拿不准的评论，自动换更擅长的「深思」模型再判一次，每条评论最多判两次', 'wink-gatekeeper' ); ?>
+						</label>
+					</td>
+				</tr>
+				<tr id="wk-deepseek-upgrade-model-row"<?php echo ! empty( $cloud['two_stage'] ?? true ) ? '' : ' hidden'; ?>>
+					<th scope="row"><label for="wk-deepseek-upgrade-model"><?php esc_html_e( '升级用模型', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<select id="wk-deepseek-upgrade-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'upgrade_model' ) ) ); ?>">
+							<option value="deepseek-reasoner" <?php selected( (string) ( $cloud['upgrade_model'] ?? 'deepseek-reasoner' ), 'deepseek-reasoner' ); ?>><?php esc_html_e( '深思（deepseek-reasoner）', 'wink-gatekeeper' ); ?></option>
+							<option value="deepseek-flash" <?php selected( (string) ( $cloud['upgrade_model'] ?? '' ), 'deepseek-flash' ); ?>><?php esc_html_e( '标准（deepseek-flash）', 'wink-gatekeeper' ); ?></option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '降级方式', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<select name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'fail_mode' ) ) ); ?>">
+							<option value="review" <?php selected( (string) ( $deepseek['fail_mode'] ?? 'review' ), 'review' ); ?>><?php esc_html_e( '出岔子时评论进待审区（推荐）', 'wink-gatekeeper' ); ?></option>
+							<option value="open" <?php selected( (string) ( $deepseek['fail_mode'] ?? '' ), 'open' ); ?>><?php esc_html_e( '出岔子时照常放行（不推荐）', 'wink-gatekeeper' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( '超时 8 秒（防呆范围）；AI 判定只放大严：判 pass 也不会替评论放行。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr id="wk-deepseek-quota-line">
+					<th scope="row"><?php esc_html_e( '今日判定额度', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<?php
+						$ds_usage  = \WinkGatekeeper\Stats\Usage::get();
+						$ds_used   = \WinkGatekeeper\Stats\Usage::daily_total_for( $ds_usage, 'deepseek' );
+						$ds_quota  = max( 0, (int) ( $deepseek['daily_quota'] ?? 200 ) );
+						?>
+						<input type="number" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'daily_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) $ds_quota ); ?>" class="small-text" min="0">
+						<?php esc_html_e( '次（0=不限量）', 'wink-gatekeeper' ); ?>
+						<p class="description"><?php printf( esc_html__( '今日已判定 %1$d 次 · 额度剩 %2$s 次。', 'wink-gatekeeper' ), (int) $ds_used, 0 === $ds_quota ? '∞' : (string) max( 0, $ds_quota - $ds_used ) ); ?></p>
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				<button type="button" class="button" id="wk-deepseek-test-btn"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_DEEPSEEK ) ); ?>">
+					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+				</button>
+				<span id="wk-deepseek-test-result" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '模型列表探活（零 token 成本）：绿 = 凭据可用且判定模型在列表中；红 = 密钥被拒或账户欠费；黄 = API Key 未填。结果不落库。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<!-- 【FIX-3】未配置空态说明行（对齐 Tab② unconfiguredNote 形态；JS 切换联动显隐）。 -->
@@ -3240,6 +3351,50 @@ final class SettingsPage {
 	/* -------------------------------------------------------------------
 	 * Tab⑦ 存量审核操作面（【M5·U3】admin_post 四件；D6 分工——Tab⑦ 发起/Tab⑥ 报告）
 	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Tab③ DeepSeek「测试凭据」AJAX 处理器（【M5·U4】——models 探活三态，D5 裁决）。
+	 *
+	 * 绿=HTTP 200 且模型列表含判定模型；红=401/402/403 密钥被拒/欠费；黄=API Key 未填；
+	 * 灰=传输/契约异常。表单值覆盖（password 空串保留已存值语义）；不计 usage 不落库。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_credentials_deepseek(): void {
+		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_DEEPSEEK, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+
+		$stored  = get_option( self::OPTION_NAME, array() );
+		$stored  = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		$current = isset( $stored['review']['cloud']['deepseek'] ) && is_array( $stored['review']['cloud']['deepseek'] )
+			? $stored['review']['cloud']['deepseek'] : array();
+
+		$api_key  = self::probe_field( $post, 'deepseek_api_key', (string) ( $current['api_key'] ?? '' ) );
+		$base_url = isset( $post['deepseek_base_url'] ) && is_scalar( $post['deepseek_base_url'] )
+			? trim( (string) $post['deepseek_base_url'] ) : (string) ( $current['base_url'] ?? 'https://api.deepseek.com' );
+		$model    = isset( $post['deepseek_model'] ) && is_scalar( $post['deepseek_model'] )
+			? (string) $post['deepseek_model'] : (string) ( $current['model'] ?? 'deepseek-flash' );
+
+		$precheck = CredentialProbe::local_precheck_deepseek( $api_key );
+		if ( null !== $precheck ) {
+			wp_send_json_success( $precheck );
+		}
+
+		$config = array(
+			'api_key'  => $api_key,
+			'base_url' => '' !== $base_url ? $base_url : 'https://api.deepseek.com',
+			'model'    => $model,
+		);
+		$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver( $config, new RemoteClient() ); // 探测一次不计 usage。
+		$state  = CredentialProbe::classify_deepseek( $driver->probe_models(), $model );
+		wp_send_json_success( $state );
+	}
 
 	/**
 	 * 存量审核 Worker（生产装配——全默认 WP 通道；设置树 merge 单源同 CommentGate）。
@@ -4265,10 +4420,10 @@ final class SettingsPage {
 	 */
 	private static function future_review_drivers(): array {
 		return array(
-			'deepseek'      => array( 'label' => 'DeepSeek', 'milestone' => 'M3', 'required' => array( 'api_key' ) ),
 			'openai_custom' => array( 'label' => '自定义 OpenAI 兼容端点', 'milestone' => 'M3', 'required' => array( 'api_key', 'base_url', 'model' ) ),
 			'moli'          => array( 'label' => '模力 System One', 'milestone' => 'M4', 'required' => array( 'api_key' ) ),
-			// aliyun_green 已于 M3' 批次 3（B5）实装——登记入 registry，脱离 future 段（下拉已实装驱动）。
+			// deepseek 已于 M5 U4 批实装——登记入 registry，脱离 future 段（下拉已实装驱动）。
+			// aliyun_green 已于 M3' 批次 3（B5）实装——同上。
 			// baidu 已于 M3' 轻量批（B6）实装——同上。
 		);
 	}

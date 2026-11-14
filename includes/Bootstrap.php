@@ -21,6 +21,7 @@ use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
 use WinkGatekeeper\Drivers\DriverRegistry;
 use WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver;
 use WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver;
+use WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver;
 use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Gates\CommentGate;
@@ -193,6 +194,7 @@ final class Bootstrap {
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN, array( SettingsPage::class, 'ajax_test_credentials_aliyun_green' ) );
 		// Tab③ 百度「测试凭据」（B6：同双闸；绿态 = 探测 conclusionType=1，顺带解除 baidu 停转——05 §2.4）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_BAIDU, array( SettingsPage::class, 'ajax_test_credentials_baidu' ) );
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_DEEPSEEK, array( SettingsPage::class, 'ajax_test_credentials_deepseek' ) ); // 【M5·U4】models 探活（D5 零 token 成本）。
 		// Tab④ 诊断面板「手动聚合查询」（M3-IP 定稿 §5.1，I0 批：同双闸；零落库零缓存零统计红线）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_IP_DIAGNOSE, array( SettingsPage::class, 'ajax_ip_diagnose' ) );
 		// Tab④ 分区②「测试凭据」（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批：同双闸；
@@ -299,6 +301,7 @@ final class Bootstrap {
 		$registry->register( TencentTmsDriver::registry_entry() ); // C4：腾讯 TMS 文本审核。
 		$registry->register( AliyunGreenPlusDriver::registry_entry() ); // B5：阿里文本审核增强版 PLUS（05 §2.5）。
 		$registry->register( BaiduTextModerationDriver::registry_entry() ); // B6：百度文本审核（05 §2.4——token 30 天缓存复用）。
+		$registry->register( DeepSeekReviewDriver::registry_entry() ); // 【M5·U4】DeepSeek LLM（05 §2.2 协议族+M5 定稿 §4 五件套）。
 		/* 【v1.7·M3-IP·定稿 §2 I2】abuseipdb 注册（type='ip'/billing='free_quota'/frontend=[]/
 		 * supports_report=true——O5-P3-3 三字段占位）：by_type('ip') 非空后 Tab① 点名册卡/
 		 * Tab⑥ IP 单列行/review_split 折减/Labels「信誉查询」自动生效（渲染侧既有逻辑零改动）。 */
@@ -334,6 +337,17 @@ final class Bootstrap {
 					$baidu_driver = new BaiduTextModerationDriver( $settings, $client );
 					if ( $baidu_driver->is_configured() ) {
 						$cloud_chain['baidu'] = $baidu_driver;
+					}
+				} elseif ( 'deepseek' === $chain_id ) {
+					// 【M5·U4】DeepSeek LLM 驱动（05 §2.2 协议族+M5 定稿 §4 五件套）——
+					// 配置派生 from_settings（含 review.cloud 顶层 two_stage/upgrade_model）；
+					// K2 LlmUsage 回写走默认 WP option 通道（驱动内）。
+					$deepseek_driver = new DeepSeekReviewDriver(
+						DeepSeekReviewDriver::config_from_settings( $settings ),
+						$client
+					);
+					if ( $deepseek_driver->is_configured() ) {
+						$cloud_chain['deepseek'] = $deepseek_driver;
 					}
 				}
 			}

@@ -254,6 +254,73 @@
 		syncHeaderRow();
 	} )();
 
+	// 【M5·U4】Tab③ DeepSeek：仅 two_stage 开显示升级用模型行（custom_header 联动范式同款
+	// ——PHP 初始态已按存量值 hidden，此处接管 checkbox change 显隐）。
+	( function () {
+		var twoStage = document.getElementById( 'wk-deepseek-two-stage' );
+		var upgradeRow = document.getElementById( 'wk-deepseek-upgrade-model-row' );
+		if ( ! twoStage || ! upgradeRow ) {
+			return;
+		}
+		var syncUpgradeRow = function () {
+			upgradeRow.hidden = ! twoStage.checked;
+		};
+		twoStage.addEventListener( 'change', syncUpgradeRow );
+		syncUpgradeRow();
+	} )();
+
+	// 【M5·U4】Tab③ DeepSeek「测试凭据」（GET /models 探活三态——D5 零 token 成本）。
+	var deepseekProbeButton = document.getElementById( 'wk-deepseek-test-btn' );
+	if ( deepseekProbeButton ) {
+		deepseekProbeButton.addEventListener( 'click', function () {
+			var result = document.getElementById( 'wk-deepseek-test-result' );
+			deepseekProbeButton.disabled = true;
+			if ( result ) {
+				result.textContent = '测试中……';
+				result.className = '';
+			}
+			function dsFieldOrEmpty( id ) {
+				var el = document.getElementById( id );
+				return el ? el.value.trim() : '';
+			}
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_test_credentials_deepseek' );
+			body.append( 'nonce', deepseekProbeButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'deepseek_api_key', dsFieldOrEmpty( 'wk-field-review-cloud-deepseek-api_key' ) );
+			body.append( 'deepseek_base_url', dsFieldOrEmpty( 'wk-deepseek-base-url' ) );
+			body.append( 'deepseek_model', dsFieldOrEmpty( 'wk-deepseek-model' ) );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( ! result ) {
+					return;
+				}
+				var data = payload && payload.data ? payload.data : null;
+				if ( payload && payload.success && data ) {
+					result.textContent = data.message || '';
+					var dsStateClass = { green: 'wk-probe--green', yellow: 'wk-probe--yellow', red: 'wk-probe--red' };
+					result.className = 'wk-probe ' + ( dsStateClass[ data.state ] || 'wk-probe--gray' );
+				} else {
+					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).catch( function () {
+				if ( result ) {
+					result.textContent = '测试失败（网络错误）。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).finally( function () {
+				deepseekProbeButton.disabled = false;
+			} );
+		} );
+	}
+
 	// 【M5·U2】Tab⑧ 卡二头像源：仅 custom 显示自定义地址行（custom_header 联动范式同款
 	// ——PHP 初始态已按存量值 hidden，此处接管切换显隐）。
 	( function () {

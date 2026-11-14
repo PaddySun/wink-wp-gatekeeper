@@ -614,6 +614,78 @@ final class CredentialProbe {
 		if ( ! preg_match_all( '/`([^`]+)`/', $message, $matches ) ) {
 			return array();
 		}
-		return array_values( array_unique( $matches[1] ) );
+		return array_values( array_unique( $matches[1] ) );	}
+
+	/**
+	 * DeepSeek /models 探活三态判定（【M5·U4】D5 裁决：GET /models 零 token 成本证
+	 * Bearer 鉴权通——绿=HTTP 200 且返回列表含判定模型；黄=本地预检缺参（另法）；红=
+	 * 401/402 密钥被拒或账户欠费；灰=传输/其它 HTTP 异常）。
+	 *
+	 * @param RemoteResult $result GET {base_url}/models 结果。
+	 * @param string       $model  判定模型名（绿态含此模型校验）。
+	 * @return array{state: string, message: string, missing: array<string>, code: string}
+	 */
+	public static function classify_deepseek( RemoteResult $result, string $model = '' ): array {
+		$payload = array( 'state' => 'gray', 'message' => '', 'missing' => array(), 'code' => '' );
+
+		// 语义类（RemoteClient classify：4xx=semantic；401/402 明列设计档）。
+		if ( ! $result->is_ok() ) {
+			$status          = $result->status();
+			$payload['code'] = 'http=' . $status;
+			if ( 401 === $status || 402 === $status || 403 === $status ) {
+				$payload['state']   = 'red';
+				$payload['message'] = 402 === $status
+					? '密钥被拒（402 账户欠费）：请到 DeepSeek 开放平台充值后重试。'
+					: '密钥被拒（HTTP ' . $status . '）：API Key 无效——请到 DeepSeek 开放平台核对后重试。';
+				return $payload;
+			}
+			$payload['message'] = '探活未成功（HTTP ' . $status . '，' . $result->category() . '）——稍后重试；持续失败请核对接入地址。';
+			return $payload;
+		}
+
+		// 2xx：绿态=JSON 可解析且模型列表含判定模型。
+		$decoded = self::decoded( $result );
+		$ids     = array();
+		if ( is_array( $decoded ) && isset( $decoded['data'] ) && is_array( $decoded['data'] ) ) {
+			foreach ( $decoded['data'] as $item ) {
+				if ( is_array( $item ) && isset( $item['id'] ) && is_string( $item['id'] ) ) {
+					$ids[] = $item['id'];
+				}
+			}
+		}
+		if ( array() === $ids ) {
+			$payload['state']   = 'gray';
+			$payload['code']    = 'contract';
+			$payload['message'] = '响应不含模型列表（契约不符）——端点可能不是 DeepSeek 官方形态，请核对接入地址。';
+			return $payload;
+		}
+		if ( '' !== $model && ! in_array( $model, $ids, true ) ) {
+			$payload['state']   = 'yellow';
+			$payload['code']    = 'model_missing';
+			$payload['message'] = '凭据可用，但判定模型「' . $model . '」不在可用列表（' . implode( ' / ', array_slice( $ids, 0, 6 ) ) . '）——请到「判定模型」下拉换选。';
+			return $payload;
+		}
+		$payload['state']   = 'green';
+		$payload['code']    = 'models_ok';
+		$payload['message'] = '凭据可用（模型列表探活通过，零 token 消耗）。';
+		return $payload;
+	}
+
+	/**
+	 * DeepSeek 本地预检（黄态：API Key 空——零外呼）。
+	 *
+	 * @param string $api_key API Key。
+	 * @return array{state: string, message: string, missing: array<string>, code: string}|null null=预检通过。
+	 */
+	public static function local_precheck_deepseek( string $api_key ): ?array {
+		if ( '' === trim( $api_key ) ) {
+			return array(
+				'state'   => 'yellow',
+				'message' => '缺参数：API Key 未填——填好后重试。',
+				'missing' => array( 'api_key' ),
+				'code'    => '',
+			);
+		}
+		return null;
 	}
 }

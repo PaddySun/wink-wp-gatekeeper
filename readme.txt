@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.6.0
+Stable tag: 0.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.6.1 =
+
+U4·M5 LLM 驱动批（DeepSeek 首发，2026-11-14——TDD 先红后绿）。Tab③ 云端审核驱动下拉新增 **DeepSeek**（AI 判定）：OpenAI 兼容协议族基类（判定任务 temperature 0、JSON 结构化输出、宽容解析器防围栏/杂文、解析失败自动纠错重试一次、截断判废不重试）+ **两段式升级**（AI 拿不准的评论自动换「深思」模型再判一次，每条评论最多判两次——默认开）。判定纪律：置信 <0.8 一律入待审（AI 判 pass 不替评论放行——只放大严）；模型列表探活测试凭据（零 token 成本）。隐私：评论昵称/邮箱/正文送审（境内服务商，IP 不送）；解析失败不计消耗口径。测试 1650→1689 / 断言 10952→11079 全绿（M5U4LlmDriverTest+UiM5Tab3DeepseekContractTest 新 39 例）。
 
 = 0.6.0 =
 

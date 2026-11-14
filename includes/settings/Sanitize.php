@@ -96,6 +96,9 @@ final class Sanitize {
 			// 云审核。
 			'review.cloud.enabled'                      => 'bool',
 			'review.cloud.chain'                        => 'text_list',
+			// 【M5·U4】两段式升级键（review.cloud 顶层——协议族基类行为；M5 定稿 §4）。
+			'review.cloud.two_stage'                    => 'bool',
+			'review.cloud.upgrade_model'                => 'text',
 			'review.cloud.deepseek.api_key'             => 'password',
 			'review.cloud.deepseek.base_url'            => 'url',
 			'review.cloud.deepseek.model'               => 'text',

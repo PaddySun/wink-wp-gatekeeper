@@ -124,6 +124,8 @@ final class B6SettingsTest extends TestCase {
 		$method->setAccessible( true );
 		$future = $method->invoke( null );
 		$this->assertArrayNotHasKey( 'baidu', $future, 'B6 已实装——脱离 future 下拉段' );
-		$this->assertArrayHasKey( 'deepseek', $future, '其余 M3/M4 驱动保留 future 段' );
+		// 【M5·U4 契约翻转】deepseek 已实装——脱离 future 下拉段（openai_custom/moli 保留）。
+		$this->assertArrayNotHasKey( 'deepseek', $future );
+		$this->assertArrayHasKey( 'openai_custom', $future, '其余 M3/M4 驱动保留 future 段' );
 	}
 }
