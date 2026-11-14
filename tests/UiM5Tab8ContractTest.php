@@ -8,8 +8,8 @@
  *      A 关闭提示条件显隐（url_audit 特性在场才渲染）/A·B 行说明互斥（0.1 独立语义红线）；
  *   ③ 卡二「头像来源」——五枚举下拉/custom 行条件显隐（PHP 初始 hidden+JS change 绑定）/
  *      常显切换延迟注/测试按钮+三态结果行（AJAX 走 RemoteClient 传输脊）；
- *   ④ Bootstrap 装配——SiteEnhance 四 filter 注册（comment_form_defaults/preprocess_comment/
- *      get_comment_author_link/pre_get_avatar_data）。
+ *   ④ Bootstrap 装配——SiteEnhance 五 filter 注册（comment_form_defaults/preprocess_comment/
+ *      get_comment_author_link/pre_get_avatar_data；【M5FIX1】补 get_comment_author_url 区块主题收口）。
  *
  * @package WinkGatekeeper\Tests
  */
@@ -168,7 +168,7 @@ final class UiM5Tab8ContractTest extends TestCase {
 	}
 
 	/* ===================================================================
-	 * ④ Bootstrap 装配（SiteEnhance 四 filter）
+	 * ④ Bootstrap 装配（SiteEnhance 五 filter——【M5FIX1】补 get_comment_author_url）
 	 * =================================================================== */
 
 	public function test_bootstrap_registers_site_enhance_filters(): void {
@@ -176,6 +176,9 @@ final class UiM5Tab8ContractTest extends TestCase {
 		self::assertStringContainsString( 'SiteEnhance', $src, 'Bootstrap 装配 SiteEnhance' );
 		self::assertStringContainsString( 'comment_form_defaults', $src, 'U1-A：表单字段开关挂点' );
 		self::assertStringContainsString( 'get_comment_author_link', $src, 'U1-B：前台作者名去链接挂点' );
+		// 【M5FIX1】区块主题收口：core 区块 wp-block-comment-author-name 绕过
+		// get_comment_author_link 直接消费 get_comment_author_url 拼锚点——同挂。
+		self::assertStringContainsString( 'get_comment_author_url', $src, 'U1-B：区块主题 URL 收口挂点' );
 		self::assertStringContainsString( 'pre_get_avatar_data', $src, 'U2：头像源改写挂点' );
 		// preprocess_comment 第二挂点（双保险丢弃 url 入参）——SiteEnhance 的注册行单独可辨。
 		self::assertMatchesRegularExpression( '/SiteEnhance[\s\S]{0,400}preprocess_comment|preprocess_comment[\s\S]{0,400}SiteEnhance/', $src, 'U1-A 双保险：preprocess 层丢弃入参' );

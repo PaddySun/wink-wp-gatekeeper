@@ -1,6 +1,6 @@
 <?php
 /**
- * U1+U2 站点增强·WP 边界层（M5 定稿 §1/§2——四 filter 装配于 Bootstrap::assemble_gates）。
+ * U1+U2 站点增强·WP 边界层（M5 定稿 §1/§2——五 filter 装配于 Bootstrap::assemble_gates）。
  *
  * 装配条件：**无条件**（与闸启停无关——Tab⑧ 是站点内容设置面，闸关不剥夺；
  * 各开关自带 false 默认=关闭收集/前台去链接，未装配语义等价于官方零变化）。
@@ -9,8 +9,19 @@
  * preprocess_comment 丢弃 comment_author_url 入参（提交面——curl 可伪造面收口）；
  * 存量 comment_author_url 零接触。
  *
- * U1-B（定稿 §1/§0.1）：get_comment_author_link 改写——前台返回纯文本名字；
- * 后台（is_admin）照常链接（站长识别邻居核心语义）。
+ * U1-B（定稿 §1/§0.1）：get_comment_author_link + get_comment_author_url 双挂点
+ * ——前台返回纯文本名字；后台（is_admin）照常链接（站长识别邻居核心语义）。
+ * 【M5FIX1】get_comment_author_url 补挂：WP core 区块 wp-block-comment-author-name
+ * （core/blocks 源码）直接用 get_comment_author_url() 拼锚点，绕过
+ * get_comment_author_link filter——区块主题（twentytwentyfive 等）下存量带网址
+ * 评论的作者名仍是链接（实站 4/11 条复现）。去链接激活时前台返回空串：区块在
+ * url 为空时渲染纯文本名字；经典主题消费 comment_author_url 的场景同样收口。
+ *
+ * comment_form 回填影响面（取舍注记）：前台表单 url 字段 value 来自
+ * wp_get_current_commenter() 的 cookie（comment_author_url_* cookie），不走
+ * get_comment_author_url filter——表单回填不受本 filter 影响；用户重新提交的
+ * url 是否收集由 A 开关（site_field.enabled）决定，A 开启时表单字段照常显示
+ * （A/B 完全独立语义不变）。
  *
  * U2（定稿 §2）：pre_get_avatar_data 短路改写 args['url']（WP 契约：filter 返回的
  * url 非空则核心跳过官方 URL 生成）——镜像不可解析时原样返回（官方源现行行为）。
@@ -106,6 +117,31 @@ final class SiteEnhance {
 		}
 		$name = get_comment_author( $comment_id > 0 ? $comment_id : ( $comment ?? null ) );
 		return is_string( $name ) && '' !== $name ? $name : $link;
+	}
+
+	/**
+	 * 【M5FIX1】U1-B 区块主题收口：get_comment_author_url 清空（前台去链接激活时）。
+	 *
+	 * WP core 区块 wp-block-comment-author-name 直接消费本 filter 的返回值拼锚点
+	 * （绕过 get_comment_author_link）——去链接激活且前台（!is_admin）时返回空串：
+	 * 区块在 url 空时渲染纯文本名字，经典主题消费 comment_author_url 的场景同样
+	 * 收口。语义与 filter_comment_author_link 同构：B 开启原样返回 / 后台原样
+	 * （后台评论区照常可点——0.1 语义核心）。
+	 *
+	 * comment_form 回填影响面见类 docblock（url 字段 value 走 cookie 不走本 filter，
+	 * A/B 独立语义不变）。
+	 *
+	 * @param mixed $url 当前作者 URL（get_comment_author_url 单参形态）。
+	 * @return mixed
+	 */
+	public function filter_comment_author_url( $url ) {
+		if ( $this->front_link ) {
+			return $url; // B 开启：前台保留链接，零行为变化。
+		}
+		if ( function_exists( 'is_admin' ) && is_admin() ) {
+			return $url; // 后台照常（站长识别邻居——与 filter_comment_author_link 同构）。
+		}
+		return ''; // 前台去链接：区块拼锚点拿空 url → 渲染纯文本名字。
 	}
 
 	/**

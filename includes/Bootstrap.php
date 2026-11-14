@@ -718,6 +718,11 @@ final class Bootstrap {
 		add_filter( 'comment_form_defaults', array( $site_enhance, 'filter_comment_form_defaults' ) );
 		add_filter( 'preprocess_comment', array( $site_enhance, 'filter_preprocess_comment' ) ); // 与 CommentGate @-PHP_INT_MAX 并存（strip 只删 url 键不碰判定面）。
 		add_filter( 'get_comment_author_link', array( $site_enhance, 'filter_comment_author_link' ), 10, 3 );
+		// 【M5FIX1】区块主题收口：core 区块 wp-block-comment-author-name 直接用
+		// get_comment_author_url() 拼锚点（绕过上方 get_comment_author_link）——
+		// 前台去链接激活时 URL 一并清空（区块 url 空=渲染纯文本名字；影响面取舍
+		// 注记见 includes/site/SiteEnhance.php 类 docblock）。
+		add_filter( 'get_comment_author_url', array( $site_enhance, 'filter_comment_author_url' ) );
 		add_filter( 'pre_get_avatar_data', array( $site_enhance, 'filter_pre_get_avatar_data' ), 10, 2 );
 	}
 
@@ -1238,7 +1243,12 @@ final class Bootstrap {
 			'wink-gatekeeper-admin-brand',
 			$this->base_url . 'assets/js/admin-brand.js',
 			array(),
-			WINK_GATEKEEPER_VERSION,
+			// 【M5FIX】CDN 击穿语义：EdgeOne 按 URL 缓存 admin 资源——版本键只随
+			// WINK_GATEKEEPER_VERSION 走时，版本号不变批次内的 JS 内容变化击不穿
+			// 缓存（实站回传：admin-brand.js 旧文件持续命中）。纪律：本文件内容
+			// 变化必须伴随本行版本参数变化（后缀递进 -m5fix1 → -m5fix2 …）。
+			// 仅 admin-brand 一行加缀——front 资产本批零内容变化（全量加缀=无谓击穿）。
+			WINK_GATEKEEPER_VERSION . '-m5fix1',
 			true
 		);
 	}
