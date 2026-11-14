@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.7
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.6.0 =
+
+U3·M5 存量审核基础段批（「历史评论体检」，2026-11-14——TDD 先红后绿）。把站里已有的评论整体交云审服务商再查一遍：Tab⑦ 工具页新「历史评论体检」操作卡（发起/暂停/继续/重新体检，二次确认）+ 统计页新「存量审核报告」卡（进度/命中按原因归堆/未核实分列——两账分离，未核实零批量操作）+ wp-cli 双入口（wp wink-gatekeeper audit-existing start|run|status|pause|resume|reset）。分批执行：每轮 ≤25 条或 ≤4 分钟墙钟（先到为准）、批间随机抖动、配额达限自动暂停+次日恢复、断点续跑幂等（按评论标记跳过）。**仅标记为唯一默认**：结果只写评论标记不动评论状态（零自动标垃圾/零自动删除——误判可在报告里逐条人工处理）。送审内容=「昵称+正文」两行（邮箱与网址不进送审串——邮箱剔除纪律）。测试 1613→1650 / 断言 10602→10952 全绿（M5U3ExistingAuditTest+M5U3WorkerTest+UiM5Tab7AuditContractTest 新 37 例）。
 
 = 0.5.7 =
 

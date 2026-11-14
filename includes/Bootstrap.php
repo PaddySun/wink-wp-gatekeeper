@@ -38,6 +38,9 @@ use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Ip\AbuseIpdbService;
 use WinkGatekeeper\Ip\IpResolver;
 use WinkGatekeeper\Ip\IpReputationService;
+use WinkGatekeeper\Audit\ExistingAuditCli;
+use WinkGatekeeper\Audit\ExistingAuditTask;
+use WinkGatekeeper\Audit\ExistingAuditWorker;
 use WinkGatekeeper\Settings\SettingsPage;
 use WinkGatekeeper\Settings\SettingsSchema;
 use WinkGatekeeper\Site\SiteEnhance;
@@ -196,6 +199,38 @@ final class Bootstrap {
 		// 绿=HTTP 200 且 JSON 可解析（isPublic:false 亦绿）——零计量零写零事件）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_IPREP, array( SettingsPage::class, 'ajax_test_iprep' ) );
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_AVATAR, array( SettingsPage::class, 'ajax_test_avatar_source' ) ); // 【M5·U2】Tab⑧ 头像源测试（nonce+manage_options 双闸在 handler 内）。
+
+		// 【M5·U3】存量审核四操作（Tab⑦ 发起/暂停/继续/重新体检——D6 分工）。
+		add_action( 'admin_post_' . SettingsPage::ACTION_AUDIT_START, array( SettingsPage::class, 'handle_audit_action' ) );
+		add_action( 'admin_post_' . SettingsPage::ACTION_AUDIT_PAUSE, array( SettingsPage::class, 'handle_audit_action' ) );
+		add_action( 'admin_post_' . SettingsPage::ACTION_AUDIT_RESUME, array( SettingsPage::class, 'handle_audit_action' ) );
+		add_action( 'admin_post_' . SettingsPage::ACTION_AUDIT_RESET, array( SettingsPage::class, 'handle_audit_action' ) );
+
+		// 【M5·U3】存量审核 cron 面：自定义 interval + tick worker（发起/继续时由
+		// SettingsPage::audit_schedule_tick 排期；CLI 通道为主、cron 为站长侧补充）。
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) {
+				$schedules[ ExistingAuditTask::CRON_INTERVAL ] = array(
+					'interval' => 300,
+					'display'  => '每 5 分钟（wink 存量审核 worker）',
+				);
+				return $schedules;
+			}
+		);
+		add_action( ExistingAuditTask::HOOK_TICK, static function (): void {
+			$stored = get_option( SettingsPage::OPTION_NAME, array() );
+			$worker = new ExistingAuditWorker(
+				SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() )
+			);
+			$worker->run_batch();
+		} );
+
+		// 【M5·U3】wp-cli 双入口之二：wp wink-gatekeeper audit-existing（CLI 通道不依赖
+		// WP-Cron 可靠性——B 机 cron 形态未定论，CLI 是真机验收主通道）。
+		if ( defined( 'WP_CLI' ) && \WP_CLI ) {
+			ExistingAuditCli::register();
+		}
 	}
 
 	/**

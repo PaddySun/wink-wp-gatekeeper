@@ -106,6 +106,17 @@ final class SettingsPage {
 	const AJAX_TEST_AVATAR = 'wink_gatekeeper_test_avatar_source';
 
 	/**
+	 * Tab⑦「历史评论体检」操作面 admin action 四件（【M5·U3】UI 设计块 5.1——D6 裁决：
+	 * Tab⑦ 发起/Tab⑥ 报告分工）——nonce + manage_options 双闸在 handle_audit_action；
+	 * start/resume 侧重排 cron tick、pause/reset 侧清；结果重定向回 Tab⑦（零落库副作用
+	 * 除进度 option/meta）。
+	 */
+	const ACTION_AUDIT_START  = 'wink_gatekeeper_audit_start';
+	const ACTION_AUDIT_PAUSE  = 'wink_gatekeeper_audit_pause';
+	const ACTION_AUDIT_RESUME = 'wink_gatekeeper_audit_resume';
+	const ACTION_AUDIT_RESET  = 'wink_gatekeeper_audit_reset';
+
+	/**
 	 * 头像源探测固定 email hash（md5('wink-gatekeeper-avatar-probe@example.com')——
 	 * 每源 1 请求口径；探测的是源可达性非真实头像）。
 	 */
@@ -488,6 +499,25 @@ final class SettingsPage {
 		?>
 		<section id="wk-overview-alerts">
 		<?php
+		// ⓪【M5·U3】存量审核运行中黄条（A-U3——UI 设计块 4.2；有话才出现，任务完成/暂停即隐）。
+		$audit_prog = self::audit_worker()->status();
+		$audit_st   = $audit_prog['status'] ?? 'idle';
+		if ( 'running' === $audit_st || 'quota_paused' === $audit_st ) {
+			?>
+			<div class="notice notice-warning inline" id="wk-overview-existing-bar"><p>
+				<?php
+				printf(
+					/* translators: 1: processed 2: total */
+					esc_html__( '历史评论体检进行中（已处理 %1$d / 共 %2$d）', 'wink-gatekeeper' ),
+					(int) ( $audit_prog['processed'] ?? 0 ),
+					(int) ( $audit_prog['total'] ?? 0 )
+				);
+				?>
+				——<a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '暂停', 'wink-gatekeeper' ); ?></a>
+				· <a href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '看报告 →', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
+		}
 		// ① 演练模式（wp_active 含 24h 懒过期判定——过期不显示）。
 		if ( \WinkGatekeeper\Gates\TestMode::wp_active() ) {
 			$tm_since = isset( $settings['captcha']['test_mode_since'] ) && is_numeric( $settings['captcha']['test_mode_since'] ) ? (int) $settings['captcha']['test_mode_since'] : 0;
@@ -3208,6 +3238,89 @@ final class SettingsPage {
 	}
 
 	/* -------------------------------------------------------------------
+	 * Tab⑦ 存量审核操作面（【M5·U3】admin_post 四件；D6 分工——Tab⑦ 发起/Tab⑥ 报告）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 存量审核 Worker（生产装配——全默认 WP 通道；设置树 merge 单源同 CommentGate）。
+	 *
+	 * @return \WinkGatekeeper\Audit\ExistingAuditWorker
+	 */
+	private static function audit_worker(): \WinkGatekeeper\Audit\ExistingAuditWorker {
+		$stored = get_option( self::OPTION_NAME, array() );
+		return new \WinkGatekeeper\Audit\ExistingAuditWorker(
+			SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() )
+		);
+	}
+
+	/**
+	 * 存量审核四操作统一处理器（admin_post_wink_gatekeeper_audit_{start|pause|resume|reset}）：
+	 * manage_options + check_admin_referer 双闸；start/resume 重排 cron tick、pause/reset
+	 * 清 tick（CLI run 通道自跑，cron 是站长侧补充面）；完成后重定向回 Tab⑦。
+	 *
+	 * @return void
+	 */
+	public static function handle_audit_action(): void {
+		$action = current_action();
+		$op     = is_string( $action ) ? str_replace( 'admin_post_', '', $action ) : '';
+		$op     = str_replace( 'wink_gatekeeper_audit_', '', $op );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( 'wink_gatekeeper_audit_' . $op );
+
+		$worker = self::audit_worker();
+		try {
+			switch ( $op ) {
+				case 'start':
+					$worker->start( \WinkGatekeeper\Audit\ExistingAuditWorker::count_unaudited() );
+					self::audit_schedule_tick();
+					break;
+				case 'pause':
+					$worker->pause_task();
+					self::audit_unschedule_tick();
+					break;
+				case 'resume':
+					$worker->resume_task();
+					self::audit_schedule_tick();
+					break;
+				case 'reset':
+					$worker->reset_task( \WinkGatekeeper\Audit\ExistingAuditWorker::universe_ids() );
+					self::audit_unschedule_tick();
+					break;
+			}
+		} catch ( \RuntimeException $e ) {
+			// 已在运行等竞态：静默回 Tab⑦（状态行会显示现态）。
+		}
+
+		wp_safe_redirect( self::tab_url( 'tools' ) );
+		exit;
+	}
+
+	/**
+	 * cron tick 重排（start/resume 侧；幂等先清后排）。
+	 *
+	 * @return void
+	 */
+	private static function audit_schedule_tick(): void {
+		self::audit_unschedule_tick();
+		wp_schedule_event( time() + 60, \WinkGatekeeper\Audit\ExistingAuditTask::CRON_INTERVAL, \WinkGatekeeper\Audit\ExistingAuditTask::HOOK_TICK );
+	}
+
+	/**
+	 * cron tick 清除（pause/reset 侧）。
+	 *
+	 * @return void
+	 */
+	private static function audit_unschedule_tick(): void {
+		$ts = wp_next_scheduled( \WinkGatekeeper\Audit\ExistingAuditTask::HOOK_TICK );
+		if ( $ts ) {
+			wp_unschedule_event( $ts, \WinkGatekeeper\Audit\ExistingAuditTask::HOOK_TICK );
+		}
+	}
+
+	/* -------------------------------------------------------------------
 	 * Tab⑤ 文案工坊（03 Tab⑤：16 输入 + 占位符帮助 + 恢复默认）
 	 * ------------------------------------------------------------------ */
 
@@ -3383,10 +3496,81 @@ final class SettingsPage {
 
 		self::render_stats_overview_strip( $cache, $settings, $split_today, $since_date );
 		self::render_stats_comment_section( $cache, $split_today, $since_date );
+		self::render_stats_existing_audit_card();
 		self::render_stats_login_section( $cache, $settings );
 		self::render_stats_fault_section();
 		self::render_stats_records_card();
 		self::render_stats_settings_card( $settings );
+	}
+
+	/**
+	 * 存量审核报告卡（【M5·U3】UI 设计块 3.2 内容体检节——D6 分工：本卡**无发起钮**，
+	 * 空态深链 Tab⑦ 发起；判违规（内容体检命中，按原因归堆）与未核实两账分离。
+	 * URL host 聚合节 U5 批补位（实施注记）。渲染红线：原因/证据列 esc_html+截断（XSS）。
+	 *
+	 * @return void
+	 */
+	private static function render_stats_existing_audit_card(): void {
+		$worker = self::audit_worker();
+		$prog   = $worker->status();
+		$st     = $prog['status'] ?? 'idle';
+		?>
+		<section id="wk-stats-existing-audit" class="wk-card">
+			<h2><?php esc_html_e( '存量审核报告（历史评论体检）', 'wink-gatekeeper' ); ?></h2>
+			<?php if ( 'idle' === $st ) : ?>
+				<div id="wk-existing-empty-notice" class="notice notice-info inline"><p>
+					<?php esc_html_e( '还没体检过历史评论。', 'wink-gatekeeper' ); ?>
+					<a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '去工具页发起 →', 'wink-gatekeeper' ); ?></a>
+				</p></div>
+			<?php else : ?>
+				<p id="wk-existing-progress-line" class="wk-muted"><?php
+					$st_word = array(
+						'running'      => __( '进行中', 'wink-gatekeeper' ),
+						'paused'       => __( '已暂停', 'wink-gatekeeper' ),
+						'quota_paused' => __( '今日额度用完已暂停（次日自动恢复）', 'wink-gatekeeper' ),
+						'completed'    => __( '已完成', 'wink-gatekeeper' ),
+					);
+					printf(
+						/* translators: 1: processed 2: total 3: status word 4: driver */
+						esc_html__( '已体检 %1$d / %2$d 条 · %3$s · 服务商：%4$s', 'wink-gatekeeper' ),
+						(int) ( $prog['processed'] ?? 0 ),
+						(int) ( $prog['total'] ?? 0 ),
+						esc_html( $st_word[ $st ] ?? $st ),
+						esc_html( (string) ( $prog['driver'] ?? '-' ) )
+					);
+				?></p>
+			<?php endif; ?>
+			<?php
+			$report = $worker->report_data();
+			$verdicts = $report['counts'];
+			if ( array_sum( $verdicts ) > 0 ) :
+			?>
+				<div id="wk-existing-content-block">
+					<h3 class="wk-sub-title"><?php esc_html_e( '内容体检命中（判违规——按原因归堆）', 'wink-gatekeeper' ); ?></h3>
+					<?php if ( array() !== $report['reasons'] ) : ?>
+						<p><?php
+							$parts = array();
+							foreach ( $report['reasons'] as $row ) {
+								$parts[] = sprintf( '「%s」%d 条', esc_html( mb_substr( (string) $row['reason'], 0, 40 ) ), (int) $row['n'] );
+							}
+							echo esc_html( implode( ' · ', $parts ) ); // XSS 红线：原因=攻击者可控（AI 原文/驱动透传）——转义+截断。
+						?></p>
+					<?php else : ?>
+						<p class="wk-muted"><?php esc_html_e( '暂无命中', 'wink-gatekeeper' ); ?></p>
+					<?php endif; ?>
+					<h3 class="wk-sub-title"><?php esc_html_e( '未核实（没看清，不下结论）——不会自动处置任何评论', 'wink-gatekeeper' ); ?></h3>
+					<p class="wk-muted"><?php
+						printf(
+							/* translators: 1: review count 2: gone count */
+							esc_html__( '模型拿不准 %1$d 条 · 评论已删除 %2$d 条', 'wink-gatekeeper' ),
+							(int) ( $verdicts['review'] ?? 0 ),
+							(int) ( $verdicts['gone'] ?? 0 )
+						);
+					?></p>
+				</div>
+			<?php endif; ?>
+		</section>
+		<?php
 	}
 
 	/**
@@ -4091,6 +4275,69 @@ final class SettingsPage {
 
 	private static function render_tab_tools(): void {
 		?>
+		<section class="wk-card" id="wk-tools-existing-audit-card">
+			<h2><?php esc_html_e( '历史评论体检', 'wink-gatekeeper' ); ?></h2>
+			<p class="wk-muted"><?php esc_html_e( '把站里已有的评论整体交服务商再查一遍。默认只标记不自动处置：查出来的都先列进统计页报告，你亲手处理。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( '红线注：体检只按「昵称+正文」送审，邮箱与网址不进入送审内容（邮箱剔除纪律；网址核查是另一条线）。', 'wink-gatekeeper' ); ?></p>
+			<?php
+			$worker  = self::audit_worker();
+			$prog    = $worker->status();
+			$st      = $prog['status'] ?? 'idle';
+			$line    = '';
+			$actions = array();
+			if ( 'running' === $st || 'quota_paused' === $st ) {
+				$line = sprintf(
+					/* translators: 1: processed 2: total 3: driver id */
+					__( '进行中（%1$d / %2$d）· 当前服务商：%3$s', 'wink-gatekeeper' ),
+					(int) ( $prog['processed'] ?? 0 ),
+					(int) ( $prog['total'] ?? 0 ),
+					esc_html( (string) ( $prog['driver'] ?? '-' ) )
+				);
+				$actions['pause'] = __( '暂停', 'wink-gatekeeper' );
+				if ( 'quota_paused' === $st ) {
+					$line .= ' ' . __( '——今日额度已用完，次日自动恢复。', 'wink-gatekeeper' );
+				}
+			} elseif ( 'paused' === $st ) {
+				$line = sprintf(
+					/* translators: 1: processed 2: total */
+					__( '已暂停（%1$d / %2$d）', 'wink-gatekeeper' ),
+					(int) ( $prog['processed'] ?? 0 ),
+					(int) ( $prog['total'] ?? 0 )
+				);
+				$actions['resume'] = __( '继续', 'wink-gatekeeper' );
+			} elseif ( 'completed' === $st ) {
+				$line = sprintf(
+					/* translators: 1: finished time */
+					__( '上次完成于 %1$s', 'wink-gatekeeper' ),
+					esc_html( date_i18n( 'Y-m-d H:i', (int) ( $prog['finished_at'] ?? 0 ) ) )
+				);
+				$actions['reset'] = __( '重新体检', 'wink-gatekeeper' );
+			} else {
+				$line              = __( '还没体检过', 'wink-gatekeeper' );
+				$actions['start']  = __( '开始体检', 'wink-gatekeeper' );
+			}
+			?>
+			<p id="wk-tools-audit-state-line" class="wk-muted"><?php echo esc_html( $line ); ?></p>
+			<p>
+			<?php foreach ( $actions as $op => $label ) : ?>
+				<?php
+				$confirm = '';
+				if ( 'start' === $op ) {
+					$confirm = __( '按当前启用的服务商送审，消耗按次额度——确定开始？', 'wink-gatekeeper' );
+				} elseif ( 'reset' === $op ) {
+					$confirm = __( '重新体检=清掉上次标记重来，已处理结果作废——确定？', 'wink-gatekeeper' );
+				}
+				?>
+				<a class="button" <?php echo 'start' === $op ? 'id="wk-tools-audit-start-btn" ' : ''; ?>href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . constant( __CLASS__ . '::ACTION_AUDIT_' . strtoupper( $op ) ) ), constant( __CLASS__ . '::ACTION_AUDIT_' . strtoupper( $op ) ) ) ); ?>"
+					<?php echo '' !== $confirm ? 'onclick="return confirm(\'' . esc_js( $confirm ) . '\');"' : ''; ?>><?php echo esc_html( $label ); ?></a>
+			<?php endforeach; ?>
+			<?php if ( 'paused' === $st ) : ?>
+				<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_AUDIT_RESET ), self::ACTION_AUDIT_RESET ) ); ?>"
+					onclick="return confirm('<?php echo esc_js( __( '重新体检=清掉上次标记重来，已处理结果作废——确定？', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '重新体检', 'wink-gatekeeper' ); ?></a>
+			<?php endif; ?>
+			</p>
+			<p><a id="wk-tools-audit-report-link" href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '查看体检报告 → 统计页', 'wink-gatekeeper' ); ?></a></p>
+		</section>
 		<section class="wk-card">
 			<h2><?php esc_html_e( '导入/导出设置', 'wink-gatekeeper' ); ?></h2>
 			<p class="wk-muted"><?php esc_html_e( 'JSON 导出（默认不含密钥）/ 导入校验（schema 版本校验）。M4 实装（F27）。', 'wink-gatekeeper' ); ?></p>
