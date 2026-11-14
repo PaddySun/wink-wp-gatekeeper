@@ -336,6 +336,22 @@
 		syncCustomRow();
 	} )();
 
+	// 【M5 修复批·D4】Tab③ 网址核查判定凭证：仅独立凭证（custom）显示三行独立配置
+	// （api_key/base_url/model——custom_header 联动范式同款；PHP 初始态已按存量值
+	// hidden，此处接管切换显隐。回落 inherit 时三行整组隐藏）。
+	( function () {
+		var providerMode = document.getElementById( 'wk-url-audit-provider-mode' );
+		var providerRows = document.getElementById( 'wk-url-audit-provider-rows' );
+		if ( ! providerMode || ! providerRows ) {
+			return;
+		}
+		var syncProviderRows = function () {
+			providerRows.hidden = providerMode.value !== 'custom';
+		};
+		providerMode.addEventListener( 'change', syncProviderRows );
+		syncProviderRows();
+	} )();
+
 	// 【M5·U2】Tab⑧ 卡二「测试当前头像来源」（三态：绿=正常/黄=能用但慢/红=连不上——
 	// 测的是镜像通不通非密钥；服务端 RemoteClient 探测零计量零事件）。
 	var avatarProbeButton = document.getElementById( 'wk-avatar-test-btn' );

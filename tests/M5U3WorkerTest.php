@@ -72,6 +72,11 @@ final class M5U3WorkerTest extends TestCase {
 		$factory = ( $opts['driver_null'] ?? false )
 			? static fn(): ?array => null
 			: static fn(): array => array( 'driver' => $recorder, 'id' => 'fake' );
+		// 【M5 修复批·C6】default_factory=true → 不注入工厂（构造器默认 null）——
+		// 走 default_driver_factory 真路径（C1 start 守卫 / C2 deepseek 分支的测试面）。
+		if ( ! empty( $opts['default_factory'] ) ) {
+			$factory = null;
+		}
 
 		$worker = new ExistingAuditWorker(
 			array(),
@@ -307,5 +312,90 @@ final class M5U3WorkerTest extends TestCase {
 		$w->start( 0 );
 		$r = $w->run_batch();
 		self::assertSame( 'completed', $r['progress']['status'] );
+	}
+
+	/* ===================================================================
+	 * 【M5 修复批·C6】start 无驱动守卫 + default_driver_factory deepseek 补口
+	 * =================================================================== */
+
+	public function test_start_without_driver_throws_and_does_not_persist(): void {
+		// ① 默认工厂路径（生产装配）无已配置云审驱动 → start 抛 RuntimeException
+		// 且进度不落盘（C1 守卫置于 new_progress 之前——防假「进行中」半残态）。
+		list( $w, $s ) = self::makeWorker( array(
+			'count'           => 3,
+			'default_factory' => true,
+			// settings 全默认：云审未配置。
+		) );
+		try {
+			$w->start( 3 );
+			self::fail( '无驱动 start 必须抛 RuntimeException' );
+		} catch ( \RuntimeException $e ) {
+			self::assertSame( 'no configured cloud review driver', $e->getMessage() );
+		}
+		self::assertFalse( $s['progress'], '任务不落盘（storage 未写）' );
+	}
+
+	public function test_default_factory_resolves_deepseek_when_only_deepseek_configured(): void {
+		// ② 仅 deepseek 配置（api_key 填值 + chain=['deepseek'] + enabled）→
+		// default_driver_factory 解析出 deepseek（C2 补口——此前 chain=['deepseek'] 恒 null）。
+		$settings = \WinkGatekeeper\Settings\SettingsSchema::defaults();
+		$settings['review']['cloud']['enabled']           = true;
+		$settings['review']['cloud']['chain']             = array( 'deepseek' );
+		$settings['review']['cloud']['deepseek']['api_key'] = 'sk-guard-probe-sample';
+
+		$s = new \ArrayObject( array( 'progress' => false, 'metas' => array(), 'comments' => array() ) );
+		$worker = new ExistingAuditWorker(
+			$settings,
+			static function () use ( &$s ) {
+				return $s['progress'];
+			},
+			static function ( array $p ) use ( &$s ): void {
+				$s['progress'] = $p;
+			}
+		);
+
+		$resolved = $worker->default_driver_factory();
+		self::assertNotNull( $resolved, 'deepseek 配置齐 → 工厂必须解析出驱动' );
+		self::assertSame( 'deepseek', $resolved['id'] );
+		self::assertInstanceOf(
+			\WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::class,
+			$resolved['driver']
+		);
+
+		// start 全链路：解析成功 → 任务可建立（driver 快照='deepseek'）。
+		$p = $worker->start( 0 );
+		self::assertSame( 'deepseek', $p['driver'] );
+	}
+
+	public function test_default_factory_skips_unconfigured_deepseek(): void {
+		// chain=['deepseek'] 但无 key：deepseek 分支不通过 is_configured → 工厂仍 null
+		// （start 守卫随后抛——is_configured 判定是链内漏斗非摆设）。
+		$settings = \WinkGatekeeper\Settings\SettingsSchema::defaults();
+		$settings['review']['cloud']['enabled'] = true;
+		$settings['review']['cloud']['chain']   = array( 'deepseek' );
+
+		$s = new \ArrayObject( array( 'progress' => false, 'metas' => array(), 'comments' => array() ) );
+		$worker = new ExistingAuditWorker(
+			$settings,
+			static function () use ( $s ) {
+				return $s['progress'];
+			},
+			static function ( array $p ) use ( $s ): void {
+				$s['progress'] = $p;
+			}
+		);
+
+		self::assertNull( $worker->default_driver_factory() );
+	}
+
+	public function test_has_driver_helper_mirrors_factory(): void {
+		// ③ C4 收口判定 helper：与 default_driver_factory 同一判定源。
+		$settings = \WinkGatekeeper\Settings\SettingsSchema::defaults();
+		self::assertFalse( ExistingAuditWorker::has_driver( $settings ), '全默认（云审未配置）→ 无驱动' );
+
+		$settings['review']['cloud']['enabled']           = true;
+		$settings['review']['cloud']['chain']             = array( 'deepseek' );
+		$settings['review']['cloud']['deepseek']['api_key'] = 'sk-guard-probe-sample';
+		self::assertTrue( ExistingAuditWorker::has_driver( $settings ), '仅 deepseek 配齐 → 有驱动' );
 	}
 }

@@ -124,6 +124,14 @@ final class ExistingAuditWorker {
 
 		$factory = $this->driver_factory ?? array( $this, 'default_driver_factory' );
 		$driver  = $factory();
+		// 【M5 修复批·C1】无已配置云审驱动 → 任务不落盘直接抛（置于 new_progress 之前）。
+		// 病株：默认工厂解析 null 时照样落盘 running 任务——站长看到假「进行中」，下一轮
+		// tick 才走 no_driver 暂停（半残态）。守卫收口：默认工厂路径（生产装配）start 即抛；
+		// 注入工厂（单测桩/自定义装配）不受此守卫约束——桩返回 null 仍走 run_batch 的
+		// no_driver 暂停路径（M5U3WorkerTest::test_missing_driver_pauses_task 语义不变）。
+		if ( ! is_array( $driver ) && null === $this->driver_factory ) {
+			throw new \RuntimeException( 'no configured cloud review driver' );
+		}
 		$driver_id = is_array( $driver ) ? (string) $driver['id'] : '';
 
 		$progress = ExistingAuditTask::new_progress( $total, $driver_id, ExistingAuditTask::BATCH_MAX_ITEMS, (int) ( $this->clock )() );
@@ -321,6 +329,20 @@ final class ExistingAuditWorker {
 	 * ------------------------------------------------------------------ */
 
 	/**
+	 * 【M5 修复批·C4】驱动可用性收口判定（复用 default_driver_factory 工厂逻辑）。
+	 *
+	 * Tab⑦ idle 态「开始体检」钮渲染前置闸：无已配置云审驱动时不渲染发起钮
+	 * （替换为黄条引导去 Tab③ 配置）——防发起即抛/发起即瘫（与 C1 start 守卫同一
+	 * 判定源，两处不各写一套口径）。
+	 *
+	 * @param array<string, mixed> $settings merge 后整树。
+	 * @return bool 是否解析得出已配置云审驱动。
+	 */
+	public static function has_driver( array $settings ): bool {
+		return null !== ( new self( $settings ) )->default_driver_factory();
+	}
+
+	/**
 	 * 驱动解析（注入工厂优先；缺省走 default_driver_factory）。
 	 *
 	 * @return array{driver: ReviewDriverInterface, id: string}|null
@@ -342,15 +364,24 @@ final class ExistingAuditWorker {
 		}
 		$chain = is_array( $this->settings['review']['cloud']['chain'] ?? null ) ? $this->settings['review']['cloud']['chain'] : array();
 		$client = null;
-		foreach ( $chain as $chain_id ) {
-			$driver = null;
-			if ( 'tencent_tms' === $chain_id ) {
-				$driver = new \WinkGatekeeper\Drivers\Review\TencentTmsDriver( $this->settings, $this->default_client() );
-			} elseif ( 'aliyun_green' === $chain_id ) {
-				$driver = new \WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver( $this->settings, $this->default_client() );
-			} elseif ( 'baidu' === $chain_id ) {
-				$driver = new \WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver( $this->settings, $this->default_client() );
-			}
+			foreach ( $chain as $chain_id ) {
+				$driver = null;
+				if ( 'tencent_tms' === $chain_id ) {
+					$driver = new \WinkGatekeeper\Drivers\Review\TencentTmsDriver( $this->settings, $this->default_client() );
+				} elseif ( 'aliyun_green' === $chain_id ) {
+					$driver = new \WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver( $this->settings, $this->default_client() );
+				} elseif ( 'baidu' === $chain_id ) {
+					$driver = new \WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver( $this->settings, $this->default_client() );
+				} elseif ( 'deepseek' === $chain_id ) {
+					// 【M5 修复批·C2】DeepSeek LLM 驱动补口（M5·U4 实装后 U3 工厂漏登记——
+					// chain=['deepseek'] 时恒解析 null，start/run 全瘫）。形态对照
+					// Bootstrap.php 同名分支：config_from_settings 派生（含 review.cloud
+					// 顶层 two_stage/upgrade_model）+ default_client 传输脊。
+					$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver(
+						\WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::config_from_settings( $this->settings ),
+						$this->default_client()
+					);
+				}
 			if ( null !== $driver && $driver->is_configured() ) {
 				return array( 'driver' => $driver, 'id' => (string) $chain_id );
 			}

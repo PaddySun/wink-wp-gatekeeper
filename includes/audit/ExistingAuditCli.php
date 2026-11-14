@@ -55,6 +55,11 @@ final class ExistingAuditCli {
 					self::schedule_tick();
 					\WP_CLI::success( "任务已建立：共 {$p['total']} 条，服务商 {$p['driver']}，单轮 ≤{$p['batch_size']} 条。运行 `wp wink-gatekeeper audit-existing run` 或等待 cron tick。" );
 				} catch ( \RuntimeException $e ) {
+					// 【M5 修复批·C5】无已配置云审驱动（C1 start 守卫）→ 显式人话报错，
+					// 区别于「任务已在运行」竞态——两者处置路径不同（先配置 vs 先 pause）。
+					if ( 'no configured cloud review driver' === $e->getMessage() ) {
+						\WP_CLI::error( '无已配置云审驱动——先在 Tab③ 配置并启用服务商。' );
+					}
 					\WP_CLI::error( '任务已在运行（' . $e->getMessage() . '）——先 status 查看，或 pause/reset 后再发起。' );
 				}
 				break;
@@ -126,11 +131,16 @@ final class ExistingAuditCli {
 	private static function report_status( array $p ): void {
 		\WP_CLI::log( 'status=' . ( $p['status'] ?? 'idle' ) );
 		if ( 'idle' !== ( $p['status'] ?? 'idle' ) ) {
+			// 【M5 修复批·C5】driver 空串（半残任务）→ 人话「未配置」，不裸出 '-' 占位。
+			$driver = (string) ( $p['driver'] ?? '' );
+			if ( '' === $driver ) {
+				$driver = '未配置';
+			}
 			\WP_CLI::log( sprintf(
 				'进度 %d/%d · 服务商 %s · pass=%d reject=%d review=%d gone=%d',
 				$p['processed'] ?? 0,
 				$p['total'] ?? 0,
-				$p['driver'] ?? '-',
+				$driver,
 				$p['verdicts']['pass'] ?? 0,
 				$p['verdicts']['reject'] ?? 0,
 				$p['verdicts']['review'] ?? 0,

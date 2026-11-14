@@ -2026,7 +2026,7 @@ final class SettingsPage {
 								</option>
 							<?php endforeach; ?>
 						</select>
-						<p class="description"><?php esc_html_e( '选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek / 模力为后续里程碑驱动（选前不可用）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( '选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek 已实装；模力为后续里程碑驱动。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -2372,6 +2372,7 @@ final class SettingsPage {
 					<th scope="row"><?php esc_html_e( '低置信自动升级', 'wink-gatekeeper' ); ?></th>
 					<td>
 						<label>
+							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['two_stage'] ?? true ) ); ?>>
 							<?php esc_html_e( 'AI 拿不准的评论，自动换更擅长的「深思」模型再判一次，每条评论最多判两次', 'wink-gatekeeper' ); ?>
 						</label>
@@ -3431,7 +3432,15 @@ final class SettingsPage {
 		try {
 			switch ( $op ) {
 				case 'start':
-					$worker->start( \WinkGatekeeper\Audit\ExistingAuditWorker::count_unaudited() );
+					try {
+						$worker->start( \WinkGatekeeper\Audit\ExistingAuditWorker::count_unaudited() );
+					} catch ( \RuntimeException $e ) {
+						// 【M5 修复批·C3】start 专属显式错误回跳（wk-audit-error=1）——
+						// 无已配置云审驱动时区别于下方竞态静默回跳：任务未落盘（C1 守卫
+						// 抛出前置），Tab⑦ 状态行仍 idle，站长需看到「为什么没发起」。
+						wp_safe_redirect( add_query_arg( array( 'wk-audit-error' => '1' ), self::tab_url( 'tools' ) ) );
+						exit;
+					}
 					self::audit_schedule_tick();
 					break;
 				case 'pause':
@@ -3479,6 +3488,7 @@ final class SettingsPage {
 					<th scope="row"><?php esc_html_e( '启用网址核查', 'wink-gatekeeper' ); ?></th>
 					<td>
 						<label>
+							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'enabled' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'enabled' ) ) ); ?>" value="1" <?php checked( $enabled ); ?>>
 							<?php esc_html_e( '评论者填的网站地址，先试着打开看一眼，再交给 AI 判定该网站是否有问题（赌博/诈骗/钓鱼等）', 'wink-gatekeeper' ); ?>
 						</label>
@@ -3500,6 +3510,7 @@ final class SettingsPage {
 					<th scope="row"><?php esc_html_e( '核查前先搜一搜', 'wink-gatekeeper' ); ?></th>
 					<td>
 						<label>
+							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['bocha']['enabled'] ) ); ?>>
 							<?php esc_html_e( '博查网页搜索交叉信号（默认关）——打不开网页时，搜索结果也能当判定线索，减少「没看清」的次数', 'wink-gatekeeper' ); ?>
 						</label>
@@ -3512,6 +3523,60 @@ final class SettingsPage {
 			<details class="wk-guide" id="wk-url-audit-advanced">
 				<summary><?php esc_html_e( '高级（默认收起）', 'wink-gatekeeper' ); ?></summary>
 				<table class="form-table" role="presentation">
+					<?php
+					/* 【M5 修复批·D4】网址核查判定凭证（独立/回落云审二态）：无 checkbox
+					 * 故 hidden 0 伴随域不适用；mode 显式枚举使「清空独立 key 回落」在 UI
+					 * 上可逆（D1 注）。条件显隐=custom_header 联动范式（PHP 初始 hidden +
+					 * admin-brand.js change 绑定；DOM 锚 wk-url-audit-provider-mode /
+					 * wk-url-audit-provider-rows）。独立凭证只用于网址核查（与评论云审
+					 * 配额/健康态互不影响）。 */
+					$ua_provider       = is_array( $ua['provider'] ?? null ) ? $ua['provider'] : array();
+					$ua_provider_mode  = (string) ( $ua_provider['mode'] ?? 'inherit' );
+					$ua_provider_model = (string) ( $ua_provider['model'] ?? '' );
+					if ( '' === $ua_provider_model ) {
+						$ua_provider_model = 'deepseek-flash'; // 空串=标准档（provider_config 回落同源——UI 选中态如实反映）。
+					}
+					?>
+					<tr>
+						<th scope="row"><label for="wk-url-audit-provider-mode"><?php esc_html_e( 'AI 判定凭证', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<select id="wk-url-audit-provider-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'mode' ) ) ); ?>">
+								<option value="inherit" <?php selected( $ua_provider_mode, 'inherit' ); ?>><?php esc_html_e( '回落云端审核 DeepSeek 凭证（默认——零新增配置）', 'wink-gatekeeper' ); ?></option>
+								<option value="custom" <?php selected( $ua_provider_mode, 'custom' ); ?>><?php esc_html_e( '独立凭证（网址核查专用）', 'wink-gatekeeper' ); ?></option>
+							</select>
+							<p class="description"><?php esc_html_e( '独立凭证只用于网址核查的 AI 判定——评论云端审核仍走 Tab③ 的 DeepSeek 配置，两边互不影响；想用不同的 DeepSeek 账号/额度时才需要选独立。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+				</table>
+				<table class="form-table" role="presentation" id="wk-url-audit-provider-rows"<?php echo 'custom' === $ua_provider_mode ? '' : ' hidden'; ?>>
+					<tr>
+						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( '独立凭证 API Key', 'wink-gatekeeper' ); ?></span></th>
+						<td>
+							<?php self::password_field( array( 'url_audit', 'provider', 'api_key' ), '' !== (string) ( $ua_provider['api_key'] ?? '' ), '网址核查 API Key' ); ?>
+							<p class="description"><?php esc_html_e( 'DeepSeek 开放平台的 API Key（与 Tab③ 云端审核可不同账号）。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="wk-url-audit-provider-base-url"><?php esc_html_e( '独立凭证接入地址', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<input type="url" id="wk-url-audit-provider-base-url" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'base_url' ) ) ); ?>"
+								value="<?php echo esc_attr( (string) ( $ua_provider['base_url'] ?? '' ) ); ?>" class="regular-text code"
+								placeholder="https://api.deepseek.com" />
+							<p class="description"><?php esc_html_e( '留空用官方地址（一般不用改）。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="wk-url-audit-provider-model"><?php esc_html_e( '独立凭证判定模型', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<select id="wk-url-audit-provider-model" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'model' ) ) ); ?>">
+								<option value="deepseek-flash" <?php selected( $ua_provider_model, 'deepseek-flash' ); ?>><?php esc_html_e( '标准（deepseek-flash，便宜快）', 'wink-gatekeeper' ); ?></option>
+								<option value="deepseek-reasoner" <?php selected( $ua_provider_model, 'deepseek-reasoner' ); ?>><?php esc_html_e( '深思（deepseek-reasoner，更强慢）', 'wink-gatekeeper' ); ?></option>
+							</select>
+							<p class="description"><?php esc_html_e( '留空用标准档。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+				</table>
+				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><?php esc_html_e( '日额度', 'wink-gatekeeper' ); ?></th>
 						<td>
@@ -3523,7 +3588,7 @@ final class SettingsPage {
 					<tr>
 						<th scope="row"><?php esc_html_e( 'robots 禁爬声明', 'wink-gatekeeper' ); ?></th>
 						<td>
-							<label><input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['robots_comply'] ) ); ?>> <?php esc_html_e( '遵守网站的 robots 禁爬声明（默认关——开了会多「没看清」）', 'wink-gatekeeper' ); ?></label>
+							<label><input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="0" /><input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['robots_comply'] ) ); ?>> <?php esc_html_e( '遵守网站的 robots 禁爬声明（默认关——开了会多「没看清」）', 'wink-gatekeeper' ); ?></label>
 						</td>
 					</tr>
 					<tr>
@@ -4613,13 +4678,22 @@ final class SettingsPage {
 			$st      = $prog['status'] ?? 'idle';
 			$line    = '';
 			$actions = array();
+			// 【M5 修复批·C4】idle 态发起钮前置闸：复用 has_driver（与 C1 start 守卫同一
+			// 判定源）——无已配置云审驱动时不渲染「开始体检」，替换为黄条引导去 Tab③。
+			$has_driver = \WinkGatekeeper\Audit\ExistingAuditWorker::has_driver( self::settings() );
 			if ( 'running' === $st || 'quota_paused' === $st ) {
+				// 【M5 修复批·C4】driver 空串（历史半残任务/驱动解析失败）→ 人话显示，
+				// 不再出现「当前服务商：-」裸占位。
+				$driver_id = (string) ( $prog['driver'] ?? '' );
+				if ( '' === $driver_id ) {
+					$driver_id = __( '未配置（服务商未配置——发起后无法送审）', 'wink-gatekeeper' );
+				}
 				$line = sprintf(
 					/* translators: 1: processed 2: total 3: driver id */
 					__( '进行中（%1$d / %2$d）· 当前服务商：%3$s', 'wink-gatekeeper' ),
 					(int) ( $prog['processed'] ?? 0 ),
 					(int) ( $prog['total'] ?? 0 ),
-					esc_html( (string) ( $prog['driver'] ?? '-' ) )
+					esc_html( $driver_id )
 				);
 				$actions['pause'] = __( '暂停', 'wink-gatekeeper' );
 				if ( 'quota_paused' === $st ) {
@@ -4641,11 +4715,18 @@ final class SettingsPage {
 				);
 				$actions['reset'] = __( '重新体检', 'wink-gatekeeper' );
 			} else {
-				$line              = __( '还没体检过', 'wink-gatekeeper' );
-				$actions['start']  = __( '开始体检', 'wink-gatekeeper' );
+				$line = __( '还没体检过', 'wink-gatekeeper' );
+				if ( $has_driver ) {
+					$actions['start'] = __( '开始体检', 'wink-gatekeeper' );
+				}
 			}
 			?>
 			<p id="wk-tools-audit-state-line" class="wk-muted"><?php echo esc_html( $line ); ?></p>
+			<?php if ( 'idle' === $st && ! $has_driver ) : ?>
+			<div class="notice notice-warning inline" id="wk-tools-audit-no-driver-notice"><p>
+				<?php esc_html_e( '云端审核还没配置——先到 Tab③ 配置并启用服务商，再发起体检。', 'wink-gatekeeper' ); ?>
+			</p></div>
+			<?php endif; ?>
 			<p>
 			<?php foreach ( $actions as $op => $label ) : ?>
 				<?php
@@ -4714,6 +4795,7 @@ final class SettingsPage {
 					<th scope="row"><?php esc_html_e( '收集新评论的网站字段', 'wink-gatekeeper' ); ?></th>
 					<td>
 						<label>
+							<input type="hidden" name="wink_gatekeeper_settings[comments][site_field][enabled]" value="0" />
 							<input type="checkbox" name="wink_gatekeeper_settings[comments][site_field][enabled]" value="1" <?php checked( $collect_enabled ); ?>>
 							<?php esc_html_e( '评论表单出现「网站」一栏，新评论保存网址', 'wink-gatekeeper' ); ?>
 						</label>
@@ -4731,6 +4813,7 @@ final class SettingsPage {
 					<th scope="row"><?php esc_html_e( '前台评论者名字保留可点链接', 'wink-gatekeeper' ); ?></th>
 					<td>
 						<label>
+							<input type="hidden" name="wink_gatekeeper_settings[comments][site_link][enabled]" value="0" />
 							<input type="checkbox" name="wink_gatekeeper_settings[comments][site_link][enabled]" value="1" <?php checked( $link_enabled ); ?>>
 							<?php esc_html_e( '前台评论区的评论者名字显示为可点开的链接', 'wink-gatekeeper' ); ?>
 						</label>

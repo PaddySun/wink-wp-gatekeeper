@@ -281,6 +281,18 @@ final class SettingsSchema {
 					'enabled' => false,
 					'api_key' => '',
 				),
+				// 【M5 修复批·D1】判定凭证来源（缺陷3 配套——云审 DeepSeek 与网址核查
+				// 解耦）：inherit=回落云审 review.cloud.deepseek 凭证（默认，零新增配置）；
+				// custom=独立凭证（provider.api_key/base_url/model 三键，只用于网址核查）。
+				// mode 显式枚举（UI 下拉）而非「独立 key 空=回落」隐式推断——password 型
+				// 空串保留语义（03 §1 v1.3 敏感字段契约：清空即回落）会使「清空回落」在
+				// UI 上不可逆（想切独立凭证必须重填），显式 mode 让回落/独立两态都可逆。
+				'provider'     => array(
+					'mode'    => 'inherit',
+					'api_key' => '',
+					'base_url' => '',
+					'model'   => '',
+				),
 				'batch_quota'  => 50,
 				'incr_quota'   => 100,
 				'robots_comply' => false,
@@ -497,9 +509,14 @@ final class SettingsSchema {
 		// 手动关闭）。
 
 		// ④ v1.3 前默认链 ['deepseek']（站长从未动过云审核的特征值）→ []；其余已存值保留。
+		// 【M5·U4 修复】撞车守卫：v1.3 前默认特征值 ['deepseek'] 与 U4 实装后站长的
+		// 显式选择 chain=['deepseek'] 特征值相同——单看 chain 无法区分「从未动过」与
+		// 「主动配置了 DeepSeek」。追加 api_key 空判据：配好 key 的站（主动配置的铁证）
+		// chain 保留不清；真存量（从未动过→必然无 key）维持原清空语义。
 		if ( isset( $existing['review']['cloud']['chain'] )
 			&& is_array( $existing['review']['cloud']['chain'] )
-			&& array( 'deepseek' ) === array_values( $existing['review']['cloud']['chain'] ) ) {
+			&& array( 'deepseek' ) === array_values( $existing['review']['cloud']['chain'] )
+			&& '' === trim( (string) ( $existing['review']['cloud']['deepseek']['api_key'] ?? '' ) ) ) {
 			$existing['review']['cloud']['chain'] = array();
 		}
 

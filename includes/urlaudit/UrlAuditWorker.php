@@ -550,23 +550,62 @@ final class UrlAuditWorker {
 	/**
 	 * 判定工厂（DeepSeek via 协议族配置+URL 审核 prompt；博查信号源可选装配）。
 	 *
+	 * 凭证来源走 provider_config（【M5 修复批·D3】url_audit.provider 子树——inherit
+	 * 回落云审 DeepSeek / custom 独立凭证）。
+	 *
 	 * @return array{judge: UrlJudgeEngine, model: string, bocha: BochaSearch|null}
 	 */
 	public function default_judge_factory(): array {
-		$deepseek = is_array( $this->settings['review']['cloud']['deepseek'] ?? null ) ? $this->settings['review']['cloud']['deepseek'] : array();
-		$config   = \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::config_from_settings( $this->settings );
-		$client   = $this->default_client();
-		$bocha    = null;
+		$config = self::provider_config( $this->settings );
+		$client = $this->default_client();
+		$bocha  = null;
 		if ( ! empty( $this->settings['url_audit']['bocha']['enabled'] ) && '' !== (string) ( $this->settings['url_audit']['bocha']['api_key'] ?? '' ) ) {
 			$bocha = new BochaSearch( (string) $this->settings['url_audit']['bocha']['api_key'], $client );
 		}
+		$model  = (string) ( $config['model'] ?? 'deepseek-flash' );
 		$engine = new UrlJudgeEngine(
 			$config,
 			$client,
-			(string) ( $deepseek['model'] ?? 'deepseek-flash' ),
+			$model,
 			$bocha
 		);
-		return array( 'judge' => $engine, 'model' => (string) ( $deepseek['model'] ?? 'deepseek-flash' ), 'bocha' => $bocha );
+		return array( 'judge' => $engine, 'model' => $model, 'bocha' => $bocha );
+	}
+
+	/**
+	 * 【M5 修复批·D3】网址核查判定凭证来源（纯函数，单测面——default_judge_factory
+	 * 与本函数同一判定源）。
+	 *
+	 * - provider.mode=custom 且 api_key 非空 → 独立凭证构造 config：base_url 空回落
+	 *   DeepSeek DEFAULT_BASE_URL、model 空回落 deepseek-flash、timeout 固定 8、
+	 *   min_confidence 固定 0.8、two_stage 不继承（独立凭证=独立语境，两段式升级不
+	 *   跟随云审配置）；其余键（daily_quota/fail_mode/system_prompt）沿用云审 deepseek
+	 *   子树派生值（独立凭证只换鉴权与端点，不改配额/降级/提示词口径）。
+	 * - 否则（inherit，或 custom 但 key 空的 fail-safe 回落）→ 现行 config_from_settings
+	 *   回落路径（云审 review.cloud.deepseek 凭证）。
+	 *
+	 * @param array<string, mixed> $settings merge 后整树。
+	 * @return array<string, mixed> 协议族配置（DeepSeekReviewDriver::config_from_settings 同形）。
+	 */
+	public static function provider_config( array $settings ): array {
+		$provider = is_array( $settings['url_audit']['provider'] ?? null ) ? $settings['url_audit']['provider'] : array();
+		$mode     = (string) ( $provider['mode'] ?? 'inherit' );
+		$own_key  = trim( (string) ( $provider['api_key'] ?? '' ) );
+
+		if ( 'custom' !== $mode || '' === $own_key ) {
+			return \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::config_from_settings( $settings );
+		}
+
+		$config                 = \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::config_from_settings( $settings );
+		$config['api_key']      = $own_key;
+		$own_base               = trim( (string) ( $provider['base_url'] ?? '' ) );
+		$config['base_url']     = '' !== $own_base ? $own_base : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DEFAULT_BASE_URL;
+		$own_model              = trim( (string) ( $provider['model'] ?? '' ) );
+		$config['model']        = '' !== $own_model ? $own_model : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DEFAULT_MODEL;
+		$config['timeout']      = 8;
+		$config['min_confidence'] = 0.8;
+		$config['two_stage']    = false; // 独立凭证不继承两段式（升级模型不消费）。
+		return $config;
 	}
 
 	/**

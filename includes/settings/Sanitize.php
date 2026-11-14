@@ -211,6 +211,12 @@ final class Sanitize {
 			'url_audit.batch_quota'                     => 'absint',
 			'url_audit.incr_quota'                      => 'absint',
 			'url_audit.robots_comply'                   => 'bool',
+			// 【M5 修复批·D2】判定凭证来源四键（schema url_audit.provider 子树同批——
+			// schema↔rules 双向一致性由 SanitizeTest 封口，加键必须同时加规则）。
+			'url_audit.provider.mode'                   => 'url_audit_provider_mode',
+			'url_audit.provider.api_key'                => 'password',
+			'url_audit.provider.base_url'               => 'url',
+			'url_audit.provider.model'                  => 'text',
 
 			// 统计 / 品牌 / 共存 / 卸载。
 			'stats.enabled'                             => 'bool',
@@ -307,6 +313,11 @@ final class Sanitize {
 				// 【M5·U5】处置档位三枚举（M5 定稿 §5）：conservative/balanced/aggressive，
 				// 非法值归 conservative（fail-safe——只放大严）。
 				return ( is_scalar( $value ) && in_array( (string) $value, array( 'conservative', 'balanced', 'aggressive' ), true ) ) ? (string) $value : 'conservative';
+			case 'url_audit_provider_mode':
+				// 【M5 修复批·D2】网址核查判定凭证来源二枚举：inherit（回落云审 DeepSeek
+				// 凭证，默认）| custom（独立凭证），非法值归 inherit（fail-safe——回落是
+				// 零新增配置的出厂语义，独立凭证须站长显式选择才生效）。
+				return ( is_scalar( $value ) && 'custom' === (string) $value ) ? 'custom' : 'inherit';
 			case 'raw_bytes':
 				// 【v1.4·R4】raw 截断字节（stats.raw_max_bytes）：absint 后钳 128-2048（04 §3 截断/体量行）。
 				return max( 128, min( 2048, is_scalar( $value ) ? abs( (int) $value ) : 512 ) );
