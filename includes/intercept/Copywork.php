@@ -31,6 +31,14 @@ final class Copywork {
 	public const PLACEHOLDER_CONTACT_EMAIL = 'contact_email';
 
 	/**
+	 * 拦截页预览样例值（【M4UX·G3】Tab⑤「查看效果」按钮——常量防硬编码）：
+	 * {event_no}=WK-00000000、{rule}=示例规则；{time}=预览时刻（动态，不设常量）、
+	 * {contact_email}=站长当前配置值。
+	 */
+	public const PREVIEW_EVENT_NO     = 'WK-00000000';
+	public const PREVIEW_RULE_SAMPLE  = '示例规则';
+
+	/**
 	 * 云端 Label 映射键前缀（03 §3【v1.5·F4-3】：映射表落点=Copywork 键值表，键 wk-label-<Label>）。
 	 */
 	public const LABEL_KEY_PREFIX = 'wk-label-';

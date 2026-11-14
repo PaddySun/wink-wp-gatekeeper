@@ -287,8 +287,26 @@
 			}
 			event.preventDefault();
 			event.stopPropagation();
+			if ( ! nativeValidityGuard( form ) ) {
+				// 【G1】有未填必填字段：浏览器已弹原生提示框——预检请求不发（四闸管内容，原生管完整性）。
+				return;
+			}
 			runPrecheck( container, form, button );
 		}, true );
+	}
+
+	/* 【M4UX·G1】原生校验分层守卫（03 §2.1 信用免验预检门前置增量）：
+	 * 浏览器原生 constraint validation 管「表单没填」（required 必填项），wink 四闸预检
+	 * 管「填了但不合规」——两层先后分工，不替换。点「完成人机验证」先调
+	 * form.reportValidity()：返回 false = 有未填必填字段 → 浏览器自动弹原生提示框
+	 * （invalid 字段聚焦+提示），预检请求不发（wk-gate-msg 不出现——它仍只报内容不合规）；
+	 * 返回 true → 走既有四闸预检。表单元素缺失/不支持 reportValidity：守卫放行
+	 * （等价无原生校验环境，防御形态）。 */
+	function nativeValidityGuard( form ) {
+		if ( ! form || typeof form.reportValidity !== 'function' ) {
+			return true; // 守卫防御：元素缺失/旧浏览器不阻断既有预检链。
+		}
+		return form.reportValidity();
 	}
 
 	function runPrecheck( container, form, button ) {

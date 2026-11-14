@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.5.4
+Stable tag: 0.5.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.5.5 =
+
+G·M4UX G 批（人工反馈第 3 轮三条 UI 建议，2026-11-14——TDD 先红后绿，行为面只收 UX 不改判定）。**G1 原生校验分层**：浏览器原生 constraint validation 管「表单没填」（必填项 required 由 WP 核心 comment_form 自带——author/email 随 require_name_email、评论框核心恒带；无 novalidate 冲突，表单侧零改动），wink 四闸预检管「填了但不合规」——两层先后分工不替换；点「完成人机验证」先 form.reportValidity() 守卫：有未填必填字段时浏览器自动弹原生提示框（invalid 字段聚焦+提示）且预检请求不发，填全后走既有四闸预检；无票禁用提交逻辑零改动；wk-gate-msg 语义不变（仍只报内容不合规）。**G2 Tab④ 分区① 折叠**：模式选择/自定义头/预设选择器/受信网段/白名单/CIDR 校验收进「高级设置」折叠（F3-3 同款 details/wk-guide 形态）；默认展开仅诊断面板「当前生效」行+「手动聚合查询工具」卡；折叠区旁常显提示「请核对当前 IP 是否与您的真实出口一致，不一致请展开配置」；诊断面板红标/黄条警示不折叠常显。**G3 Tab⑤ 折叠+拦截页预览**：「拦截文案与页面标题」组默认整组折叠（占位符说明区随组折叠，语气三原则小抄常显）；「拦截页自定义」卡新增「查看效果」按钮——新标签页打开拦截页实渲染预览（admin action wink_gatekeeper_die_preview，manage_options+nonce 双闸；当前自定义文案+占位符示例值填充——{event_no}=WK-00000000、{rule}=示例规则入 Copywork 常量防硬编码、{time}=当前时间；DiePage::build 同一构造器实渲染；零落库零事件零统计）。测试 1544→1558 / 断言 10285→10383 全绿（UiM4UxGContractTest 新 14 例，含预览载荷纯函数行为级测试；版本钉七测试文件同步 0.5.5）。
 
 = 0.5.4 =
 

@@ -89,6 +89,14 @@ final class SettingsPage {
 	const AJAX_TEST_IPREP = 'wink_gatekeeper_test_iprep';
 
 	/**
+	 * Tab⑤ 拦截页「查看效果」预览 admin action（【M4UX·G3】人工反馈第 3 轮，0.5.5）：
+	 * manage_options + nonce 双闸（03 §1 契约④）→ DiePage 样例实渲染（当前自定义文案+
+	 * 占位符示例值填充）→ echo 完整品牌页 → exit；**零落库零事件零统计**（只读 option，
+	 * 不写任何状态）。
+	 */
+	const ACTION_DIE_PREVIEW = 'wink_gatekeeper_die_preview';
+
+	/**
 	 * @var \WinkGatekeeper\Drivers\DriverRegistry|null Bootstrap 装配期注入的驱动注册表。
 	 */
 	private static $driver_registry = null;
@@ -2325,6 +2333,14 @@ final class SettingsPage {
 
 			<?php self::render_ip_diagnostic_panel( $settings ); // 【I4】I0 件原样挪入分区①——行为零改动只挪渲染位置。 ?>
 
+			<!-- 【M4UX G2】折叠区旁常显提示一行（用户原话整理）——引导核验后按需展开。 -->
+			<p class="description wk-muted"><?php esc_html_e( '请核对当前 IP 是否与您的真实出口一致，不一致请展开配置。', 'wink-gatekeeper' ); ?></p>
+
+			<!-- 【M4UX G2】模式选择/自定义头/预设选择器/受信网段/白名单/CIDR 校验收进「高级设置」
+			 * 折叠（details/wk-guide F3-3 同款形态）——默认展开仅诊断面板（「当前生效」行+
+			 * 「手动聚合查询工具」卡）。诊断面板的红标/黄条警示不折叠常显。 -->
+			<details class="wk-guide" id="wk-iprep-source-advanced">
+				<summary><?php esc_html_e( '高级设置（真实 IP 获取方式 / 自定义头 / 受信网段 / 白名单）', 'wink-gatekeeper' ); ?></summary>
 			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row"><label for="wk-iprep-mode"><?php esc_html_e( '真实 IP 获取方式', 'wink-gatekeeper' ); ?></label></th>
@@ -2409,6 +2425,7 @@ final class SettingsPage {
 				<span id="wk-iprep-cidr-result" class="wk-muted" aria-live="polite"></span>
 			</p>
 			<p class="description"><?php esc_html_e( '校验为前端格式预检；非法行保存时由解析层跳过，并在上方诊断面板「自定义网段非法行」标出（校准工具：tools/api-smoke/refresh-presets.php）。', 'wink-gatekeeper' ); ?></p>
+			</details>
 		</section>
 		<?php
 	}
@@ -3092,6 +3109,82 @@ final class SettingsPage {
 	}
 
 	/* -------------------------------------------------------------------
+	 * Tab⑤ 拦截页预览（【M4UX·G3】「查看效果」——新标签页实渲染 DiePage 样例）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 拦截页预览载荷（纯函数，单测覆盖；【M4UX·G3】）。
+	 *
+	 * 用当前设置树的 copy 子树（场景默认文案打底 + 站长自定义 die_page_title/die_page_message
+	 * 覆盖——DiePage::resolve_page_text 同一归一口径）按占位符示例值填充：
+	 * {event_no}=Copywork::PREVIEW_EVENT_NO（WK-00000000）、{rule}=Copywork::PREVIEW_RULE_SAMPLE
+	 * （示例规则）、{time}=预览时刻（调用方传站点时区当前时间）、{contact_email}=brand 子树值。
+	 * 证据行同 CommentGate::die_payload 三键形态（事件编号/命中规则/时间）——预览即实渲染形态。
+	 *
+	 * @param array<string, mixed> $settings 设置树（brand/copy 子树）。
+	 * @param string               $time     预览时刻字符串（站点时区）。
+	 * @return array{title: string, message: string, evidence: array<string, string>}
+	 */
+	public static function die_preview_payload( array $settings, string $time ): array {
+		$copy    = is_array( $settings['copy'] ?? null ) ? $settings['copy'] : array();
+		$contact = isset( $settings['brand']['contact_email'] ) && is_string( $settings['brand']['contact_email'] )
+			? $settings['brand']['contact_email'] : '';
+
+		$vars = array(
+			'event_no' => Copywork::PREVIEW_EVENT_NO,
+			'rule'     => Copywork::PREVIEW_RULE_SAMPLE,
+			'time'     => $time,
+		);
+		if ( '' !== $contact ) {
+			$vars['contact_email'] = $contact;
+		}
+
+		$page = \WinkGatekeeper\Intercept\DiePage::resolve_page_text( 'banned_word', $copy, $vars );
+
+		return array(
+			'title'    => $page['title'],
+			'message'  => $page['message'],
+			'evidence' => array(
+				'事件编号' => Copywork::PREVIEW_EVENT_NO,
+				'命中规则' => Copywork::PREVIEW_RULE_SAMPLE,
+				'时间'     => $time,
+			),
+		);
+	}
+
+	/**
+	 * Tab⑤「查看效果」预览处理器（admin_action_wink_gatekeeper_die_preview；【M4UX·G3】）。
+	 *
+	 * manage_options + nonce 双闸（03 §1 契约④）→ die_preview_payload 纯函数载荷
+	 * → DiePage::build 完整品牌页 echo → exit。**零落库零事件零统计**（只读 option，
+	 * 不写任何状态——预览即实渲染形态，与真拦截页同一构造器）。
+	 *
+	 * @return void
+	 */
+	public static function handle_die_preview(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( self::ACTION_DIE_PREVIEW );
+
+		$settings = self::settings();
+		$payload  = self::die_preview_payload( $settings, date_i18n( 'Y-m-d H:i:s' ) );
+		$contact  = isset( $settings['brand']['contact_email'] ) && is_string( $settings['brand']['contact_email'] )
+			? $settings['brand']['contact_email'] : '';
+
+		// phpcs:ignore WordPress.Security.EscapeOutput -- DiePage::build 内部逐值 htmlspecialchars。
+		echo \WinkGatekeeper\Intercept\DiePage::build(
+			$payload['title'],
+			$payload['message'],
+			$payload['evidence'],
+			$contact,
+			WINK_GATEKEEPER_URL . 'assets/brand/logo-wink.svg',
+			get_locale()
+		);
+		exit;
+	}
+
+	/* -------------------------------------------------------------------
 	 * Tab⑤ 文案工坊（03 Tab⑤：16 输入 + 占位符帮助 + 恢复默认）
 	 * ------------------------------------------------------------------ */
 
@@ -3111,10 +3204,14 @@ final class SettingsPage {
 			<h2><?php esc_html_e( '拦截文案与页面标题', 'wink-gatekeeper' ); ?></h2>
 			<p class="wk-muted">
 				<?php
-				// 语气三原则常驻小抄（03 Tab⑤）。
+				// 语气三原则常驻小抄（03 Tab⑤）——不折叠常显。
 				esc_html_e( '语气三原则：只调侃行为 / 留台阶 / 带下一步。', 'wink-gatekeeper' );
 				?>
 			</p>
+			<!-- 【M4UX G3】拦截文案组默认整组折叠（details/wk-guide 既有形态）——
+			 * 占位符说明区随组折叠；语气三原则小抄不折叠常显。 -->
+			<details class="wk-guide" id="wk-copy-advanced">
+				<summary><?php esc_html_e( '高级设置（拦截文案 / 页面标题 / 占位符说明）', 'wink-gatekeeper' ); ?></summary>
 			<dl class="wk-placeholder-list">
 				<!-- 【M4UX UI-3-1·定稿 §3】占位符逐个定义（原一行罗列退役）；{rule} 附 Labels 映射示例。 -->
 				<dt><code>{min_length}</code> / <code>{max_length}</code></dt>
@@ -3157,6 +3254,7 @@ final class SettingsPage {
 					</tr>
 				<?php endforeach; ?>
 			</table>
+			</details>
 		</section>
 
 		<section class="wk-card">
@@ -3166,6 +3264,14 @@ final class SettingsPage {
 				// 【v1.5·B1】站长自定义拦截页覆盖位（Wordfence blockCustomText 先例）。
 				esc_html_e( '作用于品牌整页拦截页的标题与正文（全部场景共用）。留空 = 使用各场景默认文案。占位符：{event_no} {rule} {time} {contact_email}——{rule} 只显示规则键名。', 'wink-gatekeeper' );
 				?>
+			</p>
+			<p>
+				<!-- 【M4UX G3】「查看效果」——新标签页打开拦截页实渲染预览（admin action
+				 * wink_gatekeeper_die_preview：manage_options+nonce 双闸，零落库零事件零统计）。 -->
+				<a class="button button-secondary" id="wk-die-preview" target="_blank" rel="noopener"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_DIE_PREVIEW ), self::ACTION_DIE_PREVIEW ) ); ?>">
+					<?php esc_html_e( '查看效果', 'wink-gatekeeper' ); ?>
+				</a>
 			</p>
 			<table class="form-table" role="presentation">
 				<tr>

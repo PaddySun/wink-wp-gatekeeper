@@ -284,15 +284,15 @@ final class UiM4UxF2ContractTest extends TestCase {
 		$this->assertStringNotContainsString( '.wk-gate-net-hint', $css, '提示行样式退役' );
 	}
 
-	/* ---------- 版本 0.5.4（四处钉 + Changelog——F3 批推进同步） ---------- */
+	/* ---------- 版本 0.5.5（四处钉 + Changelog——F3 批推进同步） ---------- */
 
 	public function test_version_bumped_to_0_5_4_in_four_places(): void {
 		$entry    = self::source( 'wink-wp-gatekeeper.php' );
 		$readme   = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.5\.4$/m', $entry, '插件头 Version 0.5.4' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.4' )", $entry, '版本常量 0.5.4' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.5\.4$/m', $readme, 'readme Stable tag 0.5.4' );
-		$this->assertStringContainsString( '= 0.5.4 =', $readme, 'Changelog 0.5.4 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.5.5$/m', $entry, '插件头 Version 0.5.5' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.5.5' )", $entry, '版本常量 0.5.5' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.5.5$/m', $readme, 'readme Stable tag 0.5.5' );
+		$this->assertStringContainsString( '= 0.5.5 =', $readme, 'Changelog 0.5.5 条目' );
 	}
 }

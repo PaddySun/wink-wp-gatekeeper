@@ -165,6 +165,11 @@ final class Bootstrap {
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
 		// cron 丢失时健康卡「重新激活」通道（nonce + manage_options 双闸，重排后回仪表盘）。
 		add_action( 'admin_action_wink_gatekeeper_reactivate_cron', array( $this, 'handle_reactivate_cron' ) );
+		// Tab⑤ 拦截页「查看效果」预览（【M4UX·G3】：manage_options+nonce 双闸 → DiePage
+		// 样例实渲染 → exit；零落库零事件零统计）。链接=admin-post.php?action=… 形态，
+		// admin-post.php 对登录态派发 admin_post_{$action}（admin_action_ 钩子属 admin.php
+		// 语境——reactivate_cron 先例），未注册 nopriv 钩子=未登录直接 400。
+		add_action( 'admin_post_' . SettingsPage::ACTION_DIE_PREVIEW, array( SettingsPage::class, 'handle_die_preview' ) );
 
 		// 【v1.5·C1】test_mode 管理员提醒双位之二：admin-bar 黄条（02 §2.8 安全门 #3——
 		// 仅 manage_options 用户可见，前台+后台常显防遗忘；Tab① 红点行在 SettingsPage）。
