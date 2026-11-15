@@ -252,6 +252,9 @@ final class Bootstrap {
 		} );
 		// 清缓存 admin action（Tab③ 高级折叠——manage_options+nonce 双闸在 handler）。
 		add_action( 'admin_post_' . UrlAuditWorker::ACTION_PURGE, array( SettingsPage::class, 'handle_url_audit_purge' ) );
+		// 【M6·P1-3】批量回捞显式动作（Tab⑦ 操作卡「开始存量网址核查」——D6 分工：
+		// 操作卡 Tab⑦/报告卡 Tab⑥；manage_options+nonce 双闸在 handler）。
+		add_action( 'admin_post_' . UrlAuditWorker::ACTION_BACKLOG, array( SettingsPage::class, 'handle_url_audit_backlog' ) );
 		// host 级清缓存（Tab⑥ 报告卡「重新核查此站」——nw §4.3 站长举报误判入口）。
 		add_action( 'admin_post_wink_gatekeeper_url_host_purge', array( SettingsPage::class, 'handle_url_audit_host_purge' ) );
 		// 双车道 tick 排期（常驻——功能关时 worker 首查 enabled 直接空转零外呼；免 start/resume 排期面）。

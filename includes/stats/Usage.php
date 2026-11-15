@@ -22,6 +22,21 @@ final class Usage {
 	public const OPTION_NAME = 'wink_gatekeeper_usage';
 
 	/**
+	 * 【M6·P1-3】url_audit 双车道 K1 计量键（批 A 起消费——引擎按车道上报，
+	 * 预算闸 UrlAuditWorker::quota_reached 所查键即此二者；闸读侧零改动）。
+	 */
+	public const KEY_URL_AUDIT_INCR  = 'url_audit_incr';
+	public const KEY_URL_AUDIT_BATCH = 'url_audit_batch';
+
+	/**
+	 * 【M6·批 A 预备】后续批消费的键位常量（本批只立不接线——消费落点：
+	 * url_audit_fetch=网页抓取成功次/日配额（批 C）；deepseek_search=DeepSeek
+	 * 搜索源成功次（批 B）。键位先定防后续批字面漂移）。
+	 */
+	public const KEY_URL_AUDIT_FETCH  = 'url_audit_fetch';
+	public const KEY_DEEPSEEK_SEARCH  = 'deepseek_search';
+
+	/**
 	 * 种子结构。
 	 *
 	 * @return array<string, mixed>

@@ -100,12 +100,25 @@ final class SiteEnhance {
 	/**
 	 * U1-B：前台作者名去链接（B 关闭时；后台 is_admin 照常链接）。
 	 *
-	 * @param mixed                    $link       当前作者链接 HTML。
-	 * @param int                      $comment_id 评论 ID（get_comment_author_link 三参形态）。
-	 * @param \WP_Comment|\stdClass|null $comment   评论对象（三参形态第三参）。
+	 * 【M6·P1-1】签名与 core 实签名对齐：WP core 7.1.4 `get_comment_author_link`
+	 * filter 三参**实签名** =（$link, 作者名字符串, 数字串 comment_ID）
+	 * （comment-template.php:292 容器实源）——旧实现 `int $comment_id` 提示下
+	 * strict_types 参数绑定即 TypeError（仪表盘 Activity critical error+wink 三卡
+	 * widget 零渲染+经典主题前台评论/RSS 同炸；审计 P1-1 实锤）。**第 2 参不得带
+	 * 类型提示**；方法体按实参形态鲁棒分派（resolve_comment_target 四形态）。
+	 *
+	 * 【M6·S1-F1】无链接分支收口：返回作者名经 esc_html（本 filter 消费语境=HTML
+	 * 输出面，core get_comment_author_link 返回值被主题直接 echo 是主流形态——
+	 * 不转义时 kses 白名单内标记可随作者名注入）。主题若自行二次转义（对返回值
+	 * 再 esc_html），可挂 `wink_gatekeeper_site_enhance_author_raw` 过滤器返回
+	 * 真值豁免（原文返回不转义）。
+	 *
+	 * @param mixed                     $link         当前作者链接 HTML。
+	 * @param mixed                     $author_or_id 作者名字符串（core 实形态第 2 参）/数字 id（防御形态）。
+	 * @param \WP_Comment|\stdClass|int|string|null $comment 评论对象或数字串 id（core 实形态第 3 参）。
 	 * @return mixed
 	 */
-	public function filter_comment_author_link( $link, int $comment_id = 0, $comment = null ) {
+	public function filter_comment_author_link( $link, $author_or_id = 0, $comment = null ) {
 		if ( $this->front_link ) {
 			return $link;
 		}
@@ -115,8 +128,47 @@ final class SiteEnhance {
 		if ( ! function_exists( 'get_comment_author' ) ) {
 			return $link; // 纯单测环境守卫（边界层 WP 函数不在时零行为）。
 		}
-		$name = get_comment_author( $comment_id > 0 ? $comment_id : ( $comment ?? null ) );
-		return is_string( $name ) && '' !== $name ? $name : $link;
+		$target = $this->resolve_comment_target( $author_or_id, $comment );
+		if ( null === $target ) {
+			return $link; // 形态④：定位不到评论——fail-open 渲染（绝不因签名形态炸渲染链）。
+		}
+		$comment_obj = is_object( $target ) ? $target : get_comment( $target );
+		if ( ! is_object( $comment_obj ) ) {
+			return $link; // 评论已删/id 落空——fail-open 原样返回。
+		}
+		$name = get_comment_author( $comment_obj );
+		if ( ! is_string( $name ) || '' === $name ) {
+			return $link;
+		}
+		$raw = function_exists( 'apply_filters' )
+			? (bool) apply_filters( 'wink_gatekeeper_site_enhance_author_raw', false, $name )
+			: false;
+		return $raw ? $name : esc_html( $name );
+	}
+
+	/**
+	 * 评论目标解析（P1-1 四形态分派——纯逻辑可测）。
+	 *
+	 * ① core 实形态：作者名字符串在第 2 参、数字串 id 在第 3 参 → 以第 3 参为 id；
+	 * ② 第 3 参是评论对象（WP_Comment/stdClass）→ 直接用；
+	 * ③ 第 2 参是数字（docblock 历史形态/其它调用方防御）→ 以第 2 参为 id；
+	 * ④ 全部落空 → null（调用方原样返回 $link）。
+	 *
+	 * @param mixed $author_or_id 第 2 参。
+	 * @param mixed $comment      第 3 参。
+	 * @return object|int|string|null 评论对象、id，或 null=不可解析。
+	 */
+	private function resolve_comment_target( $author_or_id, $comment ) {
+		if ( is_object( $comment ) ) {
+			return $comment; // 形态②。
+		}
+		if ( is_numeric( $comment ) && ! is_numeric( $author_or_id ) ) {
+			return (int) $comment; // 形态①（core 7.1.4 实形态）。
+		}
+		if ( is_numeric( $author_or_id ) && (int) $author_or_id > 0 ) {
+			return (int) $author_or_id; // 形态③。
+		}
+		return null; // 形态④。
 	}
 
 	/**

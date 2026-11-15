@@ -3675,6 +3675,26 @@ final class SettingsPage {
 		exit;
 	}
 
+	/**
+	 * 【M6·P1-3】存量网址核查显式回捞处理器（admin_post_wink_gatekeeper_url_audit_backlog
+	 * ——Tab⑦ 操作卡「开始存量网址核查」）：manage_options+nonce 双闸；把「有 URL 且无
+	 * 判定 meta」的存量评论一次性并入批量队列（零外呼零判定——消费走批量车道日额度
+	 * 50/日 pacing，额度尽暂停黄条语义照旧）；完成回 Tab⑦（D6 分工：操作卡在此卡）。
+	 *
+	 * @return void
+	 */
+	public static function handle_url_audit_backlog(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG );
+
+		$worker = new \WinkGatekeeper\UrlAudit\UrlAuditWorker( self::settings() );
+		$worker->enqueue_batch_backlog();
+		wp_safe_redirect( self::tab_url( 'tools' ) );
+		exit;
+	}
+
 	/* -------------------------------------------------------------------
 	 * Tab⑤ 文案工坊（03 Tab⑤：16 输入 + 占位符帮助 + 恢复默认）
 	 * ------------------------------------------------------------------ */
@@ -4746,6 +4766,44 @@ final class SettingsPage {
 			<?php endif; ?>
 			</p>
 			<p><a id="wk-tools-audit-report-link" href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '查看体检报告 → 统计页', 'wink-gatekeeper' ); ?></a></p>
+		</section>
+		<?php
+		/* 【M6·P1-3】存量网址核查操作卡（D6 分工：操作卡 Tab⑦/报告卡 Tab⑥——报告卡
+		 * 在 render_tab_stats 的网址核查节零改动）。显式触发语义：开启网址核查本身
+		 * **不**回捞历史（审计 P1-3：自动回捞无有效上限=LLM 花费敞口）——站长在此
+		 * 点按钮才一次性入队，批量车道按日额度 50 自动推进、额度尽暂停黄条语义照旧。 */
+		$url_audit_settings   = self::settings();
+		$url_audit_on         = ! empty( $url_audit_settings['url_audit']['enabled'] );
+		$backlog_worker       = new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $url_audit_settings );
+		$backlog_count        = $backlog_worker->batch_queue_count();
+		?>
+		<section class="wk-card" id="wk-tools-url-audit-card">
+			<h2><?php esc_html_e( '存量网址核查', 'wink-gatekeeper' ); ?></h2>
+			<p class="wk-muted"><?php esc_html_e( '把站里已有评论中的网站地址交「网址核查」翻查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( '每日额度用完自动暂停（次日自动接着查），全程只出报告与标记，评论状态不会自动改动。', 'wink-gatekeeper' ); ?></p>
+			<p id="wk-tools-url-audit-state-line" class="wk-muted">
+				<?php if ( ! $url_audit_on ) : ?>
+					<?php esc_html_e( '网址核查未开启——先到「云端审核」页开启「网址核查」，再回来发起存量核查。', 'wink-gatekeeper' ); ?>
+				<?php elseif ( $backlog_count > 0 ) : ?>
+					<?php
+					printf(
+						/* translators: %s: 待核查条数。 */
+						esc_html__( '已排队 %s 条待核查（按每日额度自动推进）。', 'wink-gatekeeper' ),
+						esc_html( number_format_i18n( $backlog_count ) )
+					);
+					?>
+				<?php else : ?>
+					<?php esc_html_e( '没有待核查的存量网址——点下方按钮可扫描一遍（只入队带网址且未核查过的评论）。', 'wink-gatekeeper' ); ?>
+				<?php endif; ?>
+			</p>
+			<?php if ( $url_audit_on ) : ?>
+			<p>
+				<a class="button" id="wk-tools-url-audit-start-btn"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG ), \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG ) ); ?>"
+					onclick="return confirm('<?php echo esc_js( __( '开始翻查存量网址？将把带网址且未核查过的评论一次性排队，按每日额度逐条核查（消耗 AI 判定额度）。', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '开始存量网址核查', 'wink-gatekeeper' ); ?></a>
+			</p>
+			<?php endif; ?>
+			<p><a id="wk-tools-url-audit-report-link" href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '查看网址核查报告 → 统计页', 'wink-gatekeeper' ); ?></a></p>
 		</section>
 		<section class="wk-card">
 			<h2><?php esc_html_e( '导入/导出设置', 'wink-gatekeeper' ); ?></h2>

@@ -105,6 +105,14 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 		$this->client     = $client;
 		$this->usage_sink = $usage_sink;
 		$this->clock      = $clock ?? static fn(): int => time();
+		// 【M6·P1-2】K1 计量键统一接线（§0-2）：构造器尾部 static::DRIVER_ID——
+		// 未来子类（openai_custom/moli…）自动免疫「$driver_id 空 → usage_key='' →
+		// RemoteClient 跳过计量 → 云审零计量/配额闸死/事件归桶错位」整链（审计 P1-2）。
+		// 基类自身无 DRIVER_ID 常量（直接实例化的 fake/test 形态）→ defined 守卫
+		// 保持 ''（存量行为零变化）。
+		if ( defined( static::class . '::DRIVER_ID' ) ) {
+			$this->driver_id = static::DRIVER_ID;
+		}
 	}
 
 	/**

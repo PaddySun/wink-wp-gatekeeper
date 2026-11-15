@@ -11,8 +11,12 @@
  * 默认）——零额外暴露窗口（先入待审范式的核心安全性质）。
  *
  * 双车道（nw §4.4）：lane_incr 优先（低延迟）/lane_batch 让位（大吞吐）；同 host 串行+
- * 全局每轮限额；日预算闸 url_audit.incr_quota/batch_quota（Usage caller=url_audit_incr/
- * url_audit_batch——K2 计量）；批量车道先停增量车道继续（降级秩序，nw §2.5-5）。
+ * 全局每轮限额；日预算闸 url_audit.incr_quota/batch_quota（K1 计量键 url_audit_incr/
+ * url_audit_batch——【M6·P1-3】引擎按车道上报自此闸表对齐；K2 token 记账 caller 同键）；
+ * 批量车道先停增量车道继续（降级秩序，nw §2.5-5）。
+ * 【M6·P1-3】批量回捞显式化：原「批量车道开启即对全部历史 URL 评论自动体检」废弃——
+ * 改 Tab⑦ 显式动作「开始存量网址核查」一次性入队（OPTION_BATCH_QUEUE FIFO），配额
+ * 50/日+暂停黄条语义照旧（D6 分工：操作卡 Tab⑦/报告卡 Tab⑥）。
  *
  * 仅标记哲学：默认 conservative profile 零处置（评论状态不动）；均衡/激进档按
  * UrlVerdicts::disposal 执行（auto_url_reject meta 可一键批量撤销）；存量已发布评论
@@ -48,6 +52,20 @@ final class UrlAuditWorker {
 	 * 清缓存 admin action 名。
 	 */
 	public const ACTION_PURGE = 'wink_gatekeeper_url_audit_purge';
+
+	/**
+	 * 【M6·P1-3】批量车道显式回捞 admin action 名（Tab⑦ 操作卡「开始存量网址核查」）。
+	 */
+	public const ACTION_BACKLOG = 'wink_gatekeeper_url_audit_backlog';
+
+	/**
+	 * 【M6·P1-3】批量车道显式回捞队列 option（非 settings 树）：int[] 评论 id 升序（FIFO）。
+	 *
+	 * 「开启即自动回捞」已废弃（审计 P1-3：回捞无有效上限=LLM 花费敞口）——批量车道
+	 * 只消费本队列；入队唯一入口=Tab⑦ 显式动作（ACTION_BACKLOG，manage_options+nonce
+	 * 双闸）； pacing 走 batch_quota 50/日（暂停黄条语义照旧）。
+	 */
+	public const OPTION_BATCH_QUEUE = 'wink_gatekeeper_url_audit_batch_queue';
 
 	/**
 	 * 单轮处理上限（nw §2.5-6：每轮 ≤25 URL 或 ≤4 分钟——与存量审核同闸）。
@@ -86,6 +104,15 @@ final class UrlAuditWorker {
 	/** @var callable fn(): array{judge: UrlJudgeEngine, bocha: BochaSearch|null} 判定工厂。 */
 	private $judge_factory;
 
+	/** @var callable fn(): int[] 批量回捞扫描宇宙（有 URL 且无判定 meta——显式动作消费）。 */
+	private $backlog_finder;
+
+	/** @var callable fn(): int[] 批量回捞队列读取。 */
+	private $batch_queue_get;
+
+	/** @var callable fn(int[]): void 批量回捞队列写回。 */
+	private $batch_queue_set;
+
 	/** @var callable fn(): float 时钟。 */
 	private $clock;
 
@@ -104,6 +131,9 @@ final class UrlAuditWorker {
 		$this->disposal_executor  = $hooks['disposal_executor'] ?? null;
 		$this->fetcher_factory    = $hooks['fetcher_factory'] ?? null;
 		$this->judge_factory      = $hooks['judge_factory'] ?? null;
+		$this->backlog_finder     = $hooks['backlog_finder'] ?? null;
+		$this->batch_queue_get    = $hooks['batch_queue_get'] ?? null;
+		$this->batch_queue_set    = $hooks['batch_queue_set'] ?? null;
 		$this->clock              = $hooks['clock'] ?? static fn(): float => microtime( true );
 	}
 
@@ -440,13 +470,90 @@ final class UrlAuditWorker {
 	}
 
 	/**
-	 * 批量车道：有 URL 且未标记的评论（升序稳定序——LEFT JOIN meta NOT EXISTS）。
+	 * 批量车道：消费显式回捞队列（FIFO 头取——【M6·P1-3】「开启即自动回捞」废弃，
+	 * 本通道不再做任何 live 扫描；扫描入队唯一入口=enqueue_batch_backlog，由 Tab⑦
+	 * 显式动作触发）。
 	 *
 	 * @param int   $limit 探测数。
-	 * @param array $exclude_ids 排除（未用——查询本身按 meta 排除）。
+	 * @param array $exclude_ids 排除（未用——队列消费语义无排除面）。
 	 * @return int[]
 	 */
 	public function default_batch_ids( int $limit, array $exclude_ids = array() ): array {
+		$queue = $this->batch_queue_read();
+		$take  = array_slice( $queue, 0, max( 0, $limit ) );
+		if ( array() !== $take ) {
+			$this->batch_queue_write( array_slice( $queue, count( $take ) ) );
+		}
+		return array_map( 'intval', $take );
+	}
+
+	/**
+	 * 批量回捞队列读取（构造器注入优先；缺省 WP option 通道）。
+	 *
+	 * @return int[]
+	 */
+	private function batch_queue_read(): array {
+		$get   = $this->batch_queue_get ?? static fn(): array => get_option( self::OPTION_BATCH_QUEUE, array() );
+		$queue = $get();
+		return is_array( $queue ) ? array_map( 'intval', $queue ) : array();
+	}
+
+	/**
+	 * 批量回捞队列写回（构造器注入优先；缺省 WP option 通道，非 autoload）。
+	 *
+	 * @param int[] $queue 队列。
+	 * @return void
+	 */
+	private function batch_queue_write( array $queue ): void {
+		$set = $this->batch_queue_set ?? static function ( array $q ): void {
+			update_option( self::OPTION_BATCH_QUEUE, array_map( 'intval', $q ), false );
+		};
+		$set( $queue );
+	}
+
+	/**
+	 * 批量回捞队列计数（Tab⑦ 状态行展示；零 WP 外显依赖）。
+	 *
+	 * @return int
+	 */
+	public function batch_queue_count(): int {
+		return count( $this->batch_queue_read() );
+	}
+
+	/**
+	 * 【M6·P1-3】显式存量回捞入队（Tab⑦「开始存量网址核查」动作落点）：把「有 URL
+	 * 且无判定 meta」的存量评论一次性并入批量队列（去重保序；既有队列条目在前）。
+	 * 返回本次**新增**条数（0=无增量）。消费 pacing 走批量车道 batch_quota 50/日
+	 * （配额闸/暂停语义照旧——本函数零外呼零判定）。
+	 *
+	 * @return int 新增入队数。
+	 */
+	public function enqueue_batch_backlog(): int {
+		$finder = $this->backlog_finder ?? array( $this, 'backlog_universe_ids' );
+		$ids    = (array) $finder();
+		$queue  = $this->batch_queue_read();
+		$merged = array_map( 'intval', $queue );
+		$added  = 0;
+		foreach ( array_map( 'intval', $ids ) as $id ) {
+			if ( $id > 0 && ! in_array( $id, $merged, true ) ) {
+				$merged[] = $id;
+				++$added;
+			}
+		}
+		if ( $added > 0 ) {
+			$this->batch_queue_write( $merged );
+		}
+		return $added;
+	}
+
+	/**
+	 * 回捞扫描宇宙（【M6·P1-3】语义与原批量车道 live 查询一致：有 URL 且无判定 meta、
+	 * 评论状态 approved∈{0,1}，升序稳定序——只是从「每 tick 隐式扫描」改为「显式动作
+	 * 一次性入队」，闸与配额自此约束整个回捞量）。
+	 *
+	 * @return int[]
+	 */
+	public function backlog_universe_ids(): array {
 		global $wpdb;
 		$rows = $wpdb->get_col(
 			$wpdb->prepare(
@@ -454,9 +561,8 @@ final class UrlAuditWorker {
 				 LEFT JOIN {$wpdb->commentmeta} m ON m.comment_id = c.comment_ID AND m.meta_key = %s
 				 WHERE m.meta_id IS NULL AND c.comment_approved IN ('0','1')
 				 AND c.comment_author_url <> ''
-				 ORDER BY c.comment_ID ASC LIMIT %d",
-				self::META_KEY,
-				$limit
+				 ORDER BY c.comment_ID ASC",
+				self::META_KEY
 			)
 		);
 		return array_map( 'intval', is_array( $rows ) ? $rows : array() );

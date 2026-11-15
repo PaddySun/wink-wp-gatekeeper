@@ -12,6 +12,7 @@ namespace WinkGatekeeper\UrlAudit;
 
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Stats\LlmUsage;
+use WinkGatekeeper\Stats\Usage;
 
 /**
  * URL 判定执行器（chat/completions 调用+UrlJudge prompt 组装+K2 双车道记账——
@@ -68,7 +69,10 @@ final class UrlJudgeEngine {
 			),
 			'body'      => (string) json_encode( $payload, JSON_UNESCAPED_UNICODE ),
 			'timeout'   => (int) ( $this->config['timeout'] ?? 8 ),
-			'usage_key' => 'deepseek', // K1 按次（传输脊键=驱动 id）。
+			// 【M6·P1-3】K1 计量键按车道上报（§0-3）：预算闸（UrlAuditWorker::quota_reached）
+			// 查 url_audit_incr/url_audit_batch 键——引擎写侧自此对齐闸读侧；「deepseek」
+			// 键保留给评论云审主链（K1 语义不变）。非法 caller fail-safe 归增量键（只放大严）。
+			'usage_key' => $this->usage_key_for( $caller ),
 		) );
 
 		if ( ! $result->is_ok() ) {
@@ -118,6 +122,22 @@ final class UrlJudgeEngine {
 	 */
 	public function last_meta(): array {
 		return $this->last_meta;
+	}
+
+	/**
+	 * lane→K1 usage_key 映射（【M6·P1-3】§0-3 闸键对齐——写侧唯一落点）。
+	 *
+	 * 白名单映射：url_audit_incr|url_audit_batch 原样透传（=预算闸所查键）；
+	 * 其它值 fail-safe 归增量键（消耗必须可被某道闸拦住——只放大严）。
+	 *
+	 * @param string $caller 车道标识（K2 caller 同源）。
+	 * @return string Usage 计量键。
+	 */
+	private function usage_key_for( string $caller ): string {
+		if ( LlmUsage::CALLER_URL_AUDIT_BATCH === $caller ) {
+			return Usage::KEY_URL_AUDIT_BATCH;
+		}
+		return Usage::KEY_URL_AUDIT_INCR;
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.6.2
+Stable tag: 0.6.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.6.3 =
+
+M6·批A 审计 P1 三连修复（2026-11-15——TDD 先红后绿，独立审计 AUDIT-INDEP-2026-11 销账前三件）。① 修复后台仪表盘「活动与新闻」区块致命错误：兼容 WordPress 核心评论作者链接过滤器的真实参数形态（此前类型不匹配导致仪表盘活动流报错、本插件统计卡片不显示、经典主题前台评论区/订阅源崩溃）；顺带收紧前台去链接模式下作者名的输出转义。② 修复云端审核计量失真：DeepSeek 调用此前从未计入用量（今日次数恒 0、每日 200 次额度防线失效、拦截统计归桶错位）——计量键改在协议族基类构造器统一接线，未来新增服务商自动免疫。③ 网址核查额度防线修复：AI 判定消耗此前全部计入评论审核键、两车道日额度形同虚设——改为按车道如实记账（闸读侧零改动）；**开启网址核查不再自动翻查全部历史评论**，改为工具页新操作卡「开始存量网址核查」显式发起（一次性排队，每日额度自动推进、用完自动暂停次日恢复）。测试 1764→1802 / 断言 11357→11432 全绿（M6ASiteEnhanceSignatureTest+M6ADriverMeteringTest+M6AUrlAuditGateTest 新 38 例）。
 
 = 0.6.2 =
 
