@@ -248,7 +248,7 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		public function test_base_constructor_wiring_present_in_source(): void {
-			$src = file_get_contents( dirname( __DIR__ ) . '/includes/drivers/Review/OpenAiCompatibleReviewDriver.php' );
+			$src = file_get_contents( dirname( __DIR__ ) . '/includes/drivers/review/OpenAiCompatibleReviewDriver.php' );
 			self::assertIsString( $src );
 			self::assertStringContainsString(
 				'$this->driver_id = static::DRIVER_ID;',
