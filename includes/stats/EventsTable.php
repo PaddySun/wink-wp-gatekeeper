@@ -53,6 +53,27 @@ final class EventsTable {
 	public const RULE_HIT_MAX = 120;
 
 	/**
+	 * 写路径容量检查静态缓存复用窗（秒；【M6·批F-b P1-4】60s 内 COUNT 复用一次）。
+	 */
+	public const CAPACITY_CACHE_SECONDS = 60;
+
+	/**
+	 * 容量闸小时日志去重 transient 键前缀（uninstall.php 清理清单已补录）。
+	 */
+	public const CAPACITY_LOG_PREFIX = 'wk_ec_log_';
+
+	/**
+	 * @var array{0: int, 1: int}|null 容量 COUNT 静态缓存 [checked_at, rows]
+	 *                                 （进程内 60s 复用——长驻进程/CLI 循环受益）。
+	 */
+	private static $capacity_cache = null;
+
+	/**
+	 * @var string|null 进程内已记容量日志的小时桶（跨请求去重靠 wk_ec_log_ transient）。
+	 */
+	private static $capacity_log_hour = null;
+
+	/**
 	 * 完整表名（拼接站点前缀）。
 	 *
 	 * @param string $prefix $wpdb->prefix。
@@ -206,6 +227,123 @@ DDL;
 		return max( 0, $current_rows - $max_rows );
 	}
 
+	/* -------------------------------------------------------------------
+	 * 【M6·批F-b P1-4】写路径容量检查（轻量恢复版；审计 REPORT §4 P1-4）——
+	 * P0-4 曾移除每行尾随 COUNT（3→2 查询）换洪水期减负；本版以「小时级 COUNT
+	 * 静态缓存 60s 复用」恢复容量兜底：超 wk_events_capacity（默认 MAX_ROWS）
+	 * 拒写（返回 null）+ 每小时至多一条 error_log（transient 去重 best-effort）。
+	 * 拒写语义 = rows **严格大于**阈值才拒（与 trim_overflow 的 > 语义同构——
+	 * 恰等于阈值仍放行一行，每日维护可回到阈值内，避免「恰满即永久冻写」死锁）；
+	 * filter 显式归零/负值 = 闸关（豁免口）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 是否超容量阈值（纯决策）：rows 严格大于 threshold 才拒；threshold ≤ 0 = 闸关。
+	 *
+	 * @param int $rows      当前行数。
+	 * @param int $threshold 容量阈值（wk_events_capacity，默认 MAX_ROWS）。
+	 * @return bool true=拒写。
+	 */
+	public static function capacity_exceeded( int $rows, int $threshold ): bool {
+		if ( $threshold <= 0 ) {
+			return false; // 闸关。
+		}
+		return $rows > $threshold;
+	}
+
+	/**
+	 * filter 值钳制（纯决策）：负值钳 0（闸关——不虚构负容量），其余透传。
+	 *
+	 * @param int $filtered wk_events_capacity filter 结果。
+	 * @return int
+	 */
+	public static function capacity_threshold_clamped( int $filtered ): int {
+		return max( 0, $filtered );
+	}
+
+	/**
+	 * 容量 COUNT 静态缓存是否失效（纯决策）：无缓存或距今 ≥ $ttl 秒 = 失效须重查。
+	 *
+	 * @param array{0: int, 1: int}|null $cache [checked_at, rows]。
+	 * @param int                        $now   当前时间戳。
+	 * @param int                        $ttl   复用窗秒数（CAPACITY_CACHE_SECONDS）。
+	 * @return bool
+	 */
+	public static function capacity_cache_stale( ?array $cache, int $now, int $ttl ): bool {
+		if ( null === $cache ) {
+			return true;
+		}
+		return ( $now - (int) $cache[0] ) >= $ttl;
+	}
+
+	/**
+	 * 容量阈值读取（WP 边界）：wk_events_capacity filter（默认 MAX_ROWS）+ 钳制。
+	 *
+	 * @return int
+	 */
+	private static function capacity_threshold(): int {
+		$filtered = self::MAX_ROWS;
+		if ( function_exists( 'apply_filters' ) ) {
+			$filtered = (int) apply_filters( 'wk_events_capacity', self::MAX_ROWS ); // WP 边界。
+		}
+		return self::capacity_threshold_clamped( $filtered );
+	}
+
+	/**
+	 * 写路径容量闸（WP 边界；insert() 顶部消费——拒写时零 MAX/INSERT 查询）。
+	 *
+	 * COUNT 静态缓存 60s 复用（长驻进程受益；HTTP 单请求进程每请求至多一查）；
+	 * 超阈值拒写 + error_log 每小时至多一条（进程内小时桶 + wk_ec_log_ transient
+	 * 跨请求去重——transient 被对象缓存逐出时最坏重复记一条，best-effort）。
+	 *
+	 * @param \wpdb  $wpdb  数据库句柄。
+	 * @param string $table 完整表名。
+	 * @return bool true=已满拒写（insert 应返回 null）。
+	 */
+	private static function capacity_full( $wpdb, string $table ): bool {
+		$threshold = self::capacity_threshold();
+		if ( $threshold <= 0 ) {
+			return false; // 闸关：零 COUNT（filter 归零豁免口）。
+		}
+
+		$now = time();
+		if ( self::capacity_cache_stale( self::$capacity_cache, $now, self::CAPACITY_CACHE_SECONDS ) ) {
+			$rows = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $table ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			self::$capacity_cache = array( $now, $rows );
+		}
+
+		if ( ! self::capacity_exceeded( (int) self::$capacity_cache[1], $threshold ) ) {
+			return false;
+		}
+
+		self::log_capacity_once( $now, $threshold );
+		return true;
+	}
+
+	/**
+	 * 容量拒写日志（每小时至多一条；WP 边界 error_log + transient 去重）。
+	 *
+	 * @param int $now       当前时间戳。
+	 * @param int $threshold 容量阈值（日志文案可诊断）。
+	 * @return void
+	 */
+	private static function log_capacity_once( int $now, int $threshold ): void {
+		$hour = gmdate( 'YmdH', $now );
+		if ( self::$capacity_log_hour === $hour ) {
+			return; // 进程内本小时已记。
+		}
+		$key = self::CAPACITY_LOG_PREFIX . $hour;
+		if ( function_exists( 'get_transient' ) && get_transient( $key ) ) {
+			self::$capacity_log_hour = $hour;
+			return; // 跨请求本小时已记。
+		}
+		self::$capacity_log_hour = $hour;
+		error_log( '[wink-wp-gatekeeper] 事件表容量已满（>' . $threshold . ' 行）——拒写新事件，等待每日维护滚动清理（wk_events_capacity filter 可调/归零豁免）' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		if ( function_exists( 'set_transient' ) ) {
+			set_transient( $key, 1, 2 * HOUR_IN_SECONDS ); // 本小时去重（TTL 2h 兜底回收——wk_es_ 同款）。
+		}
+	}
+
 	/**
 	 * 事件表容量读数（UI 批 3·N11——Tab① 块 E「站点底账」消费；agent C B-6 裁决：
 	 * 「事件记录 正常」无站内健康指标砍除，换可行的事件表容量读数）。
@@ -325,6 +463,15 @@ DDL;
 		global $wpdb;
 
 		$table = self::table_name( $wpdb->prefix );
+
+		/* 【M6·批F-b P1-4】写路径容量检查恢复（轻量缓存版，见 capacity_full 头注）：
+		 * 超 wk_events_capacity（默认 10000）拒写——返回 null（与「彻底失败」同形态，
+		 * 调用方 event_no 为空不引用）；每小时至多一条 error_log。拒绝洪水期表膨胀
+		 * 的第二道闸（第一道=stub/rate 事件采样封顶 EventSampling）。 */
+		if ( self::capacity_full( $wpdb, $table ) ) {
+			return null;
+		}
+
 		$today = current_time( 'Ymd' );
 
 		$row = array(
@@ -356,11 +503,10 @@ DDL;
 			);
 
 			if ( false !== $inserted ) {
-				// 【P0-4·F1 批】写入路径不再做容量检查（R-AK §D P0-3）：旧实现每行尾随
-				// 溢出清理调用（万行表 COUNT(*)）——拒绝洪水期每事件多付一查（恰是最不该
-				// 加压的时刻）。容量兜底职责归 daily_maintenance（既有独立调用），写入路径
-				// 从 3 查询（SELECT MAX + INSERT + COUNT）降 2；两次 cron 间瞬时行数上限
-				// 放宽的可接受取舍（Akismet 同款「清理靠 daily」语义）。
+				// 【P0-4·F1 批→M6·批F-b 演进】P0-4 移除的是「每行尾随溢出清理调用」
+				// （万行表 COUNT(*)，3→2 查询）；批 F-b 依审计 P1-4 以轻量形态恢复容量
+				// 兜底——COUNT 前置到入口且静态缓存 60s 复用（capacity_full），不再是
+				// 每行尾随 COUNT。daily_maintenance 滚动清理职责不变（拒写面由写闸承担）。
 				return $event_no;
 			}
 		}

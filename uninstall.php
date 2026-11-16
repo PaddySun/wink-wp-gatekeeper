@@ -22,7 +22,8 @@
  *   - DROP 仅 wink 自建事件表（{prefix}wink_gatekeeper_events——先 SHOW TABLES 探测后
  *     PHP 侧严格全等比对，防 LIKE 下划线通配的相似表名误伤）；
  *   - 清 wink 自有 transient 前缀（wk_lf_ / wk_ip_ / wk_rp_ / wk_cv_ / wk_pk_ / wk_tc_ /
- *     wk_cm_ / wk_irb_ / wk_ua_——逐前缀精确，禁止 LIKE %wink% 类宽匹配）；
+ *     wk_cm_ / wk_irb_ / wk_ua_ / 【M6·批F-b】wk_es_ / wk_ec_log_——逐前缀精确，
+ *     禁止 LIKE %wink% 类宽匹配）；
  *   - 清 wink 自有 comment meta 键 wink_gatekeeper_archive（逐键 delete_metadata，不清整行评论）
  *     【v1.9·M5 回写·审计 C2】+ wink_audit_existing（存量审核判定标记，
  *     ExistingAuditTask::META_KEY）+ url_audit（网址核查判定 meta，UrlAuditWorker::META_KEY）
@@ -122,13 +123,15 @@ $wink_guarded( static function (): void {
  * 【v1.4】wk_cv_ 验证短缓存 / wk_pk_ 预检限流桶 / wk_tc_ 信用 COUNT 缓存——04 §7 补录；
  * 【v1.7·M3-IP 定稿 §9】wk_cm_ 评论提交限流桶（P0-A 配套补录）/ wk_irb_ IP 信誉退避键
  * （I2 批补录——AbuseIpdbService 步 2 全局退避 transient）；
+ * 【M6·批F-b】wk_es_ stub/rate 事件采样小时桶（P1-4 配套补录，TTL 2h）/
+ * wk_ec_log_ 事件表容量闸小时日志去重键（P1-4 配套补录，TTL 2h）；
  * trust stub 无状态纯签名、无存储无清理（02 §3.3a））。
  * transients 可能落数据库 options 表或对象缓存——这里按 option 存的键索引清理
  * （04 §7 口径）；对象缓存型 transients 由下方步骤 6 的 flush 兜底。
  * 每前缀匹配两种键：主键 _transient_<prefix>_* 与过期时间键 _transient_timeout_<prefix>_*。
  * 【F3-1 谨慎性】逐前缀精确匹配（wink 自有前缀），禁止 %wink% 类宽匹配误伤同前缀他人数据。 */
 $wink_guarded( static function () use ( $wpdb ): void {
-	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_irb_', 'wk_ua_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.
+	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_irb_', 'wk_ua_', 'wk_es_', 'wk_ec_log_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.【M6·F2】wk_es_/wk_ec_log_ 事件写放大封顶键.
 		$wink_transient_keys = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options}

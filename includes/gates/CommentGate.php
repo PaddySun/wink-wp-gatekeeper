@@ -62,6 +62,7 @@ use WinkGatekeeper\Gates\ResponseDispatcher;
 use WinkGatekeeper\Gates\TestMode;
 use WinkGatekeeper\Gates\TrustStub;
 use WinkGatekeeper\Settings\SettingsPage;
+use WinkGatekeeper\Stats\EventSampling;
 use WinkGatekeeper\Stats\EventsTable;
 use WinkGatekeeper\Stats\StatsCache;
 use WinkGatekeeper\Verdict;
@@ -71,6 +72,12 @@ final class CommentGate extends AbstractGate {
 	protected $id = 'comment';
 
 	public const CONTEXT_POST_FIELD = 'comment_post_ID';
+
+	/**
+	 * 同步链预算墙默认值（秒；【M6·批F-b P1-5】schema gates.comment.chain_budget 同值——
+	 * 设置树缺键时的防护默认，0=关）。
+	 */
+	public const DEFAULT_CHAIN_BUDGET = 30;
 
 	/**
 	 * @var array<string, mixed> 设置树。
@@ -272,12 +279,20 @@ final class CommentGate extends AbstractGate {
 			?? new LocalRulesDriver( isset( $settings['review']['local'] ) && is_array( $settings['review']['local'] ) ? $settings['review']['local'] : array() );
 		$this->recorder = $recorder
 			?? function ( string $stage, Verdict $verdict, array $meta ): ?string {
+				/* 【M6·批F-b P1-4】stub/rate 事件写放大采样封顶（EventSampling，10 行/IP/h
+				 * 小时桶）：封顶 → 丢事件行**且**跳过 stats option UPDATE（写放大双源同封）；
+				 * 拒绝行为本身不变（本闭包只在判定收口后调用），真实闸链路径（有票拒、云端拒
+				 * 等 ip/captcha/review 族 stage）不在采样域恒放行。 */
+				$event_ip_hash = self::ip_hash( (string) ( $meta['client_ip'] ?? '' ) );
+				if ( ! EventSampling::allow( $stage, $event_ip_hash ) ) {
+					return null;
+				}
 				// WP 边界默认：事件表写入矩阵（04 §3——R1 G6 回归生产路径：pass 默认不落库、
 				// 免验票审计特例与采样开关在 should_record 内收口）+ 统计计数（04 §4）。
 				$driver_id = ( '' !== $verdict->driver_id() ) ? $verdict->driver_id() : 'gate';
 				$event_no  = null;
 				if ( EventsTable::should_record( $stage, $verdict, $this->settings ) ) {
-					$event_no = EventsTable::insert( 'comment', $stage, $driver_id, $verdict, $meta, self::ip_hash( $meta['client_ip'] ?? '' ) );
+					$event_no = EventsTable::insert( 'comment', $stage, $driver_id, $verdict, $meta, $event_ip_hash );
 				}
 				// 【v1.5·C1】drill 行（test_mode 旁路/演练）落库照常（04 §3——旁路恒落库审计足迹），
 				// 只豁免统计计数（04 §4 drill 恒排除；is_drill 单点判定沿 B1b）。
@@ -370,6 +385,12 @@ final class CommentGate extends AbstractGate {
 		$this->hold_meta       = array();
 		$this->hold_driver     = null;
 		$this->hold_event_recorded = false; // 收口事件闩锁重置（单请求单评论一行语义）。
+
+		/* 【M6·批F-b P1-5】同步链预算墙起点（t0，时钟注入可测）：云审串行循环每驱动调用
+		 * 前查剩余（步骤 4）——单 LLM 最坏 ≈89s/四驱动理论 ≈215s 同步挂起 worker（审计
+		 * P1-5）由此封顶为「墙 + 墙内已发起的最后一次外呼耗时」。t0 覆盖整条编排
+		 * （存根/限流/验票段耗时计入墙——同步链总墙钟口径）。 */
+		$t0 = (int) call_user_func( $this->now );
 
 		if ( $exempt ) {
 			// 步骤 0：管理员/后台豁免（DOING_AUTOSAVE/WP_IMPORTING/is_admin 由边界钩子判定）。
@@ -726,8 +747,28 @@ final class CommentGate extends AbstractGate {
 		 * 送审串/$review_meta 由步骤 2.5 统一拼装（同一拼装函数——本地与云端同口径）。 */
 		$cloud_ids     = $this->active_cloud_chain_ids();
 		$effective     = array(); // driver_id => Verdict（非 error 的有效判定）。
+		$chain_budget  = $this->chain_budget_seconds();          // 【P1-5】墙值（0=关）。
+		$budget_deadline = $t0 + $chain_budget;                  // 墙边界（t0+budget）。
+		$chain_budget_exceeded = false;                          // 超墙标记（收口事件 meta 消费）。
 		foreach ( $cloud_ids as $cloud_id ) {
 			$cloud_driver = $this->cloud_chain[ $cloud_id ];
+
+			/* 【M6·批F-b P1-5】链级预算墙：每驱动调用前查剩余——t0+budget 之内才发起
+			 * 下一次外呼。超墙 → 跳过剩余云审驱动（首个被挡驱动记一条 error 事件
+			 * meta.chain_budget_exceeded=true——报错历史可见防静默截断；其后 break 零
+			 * 事件零调用，事件行不放大），按既有 fail 口径收口（fail_mode 语义不变：
+			 * 墙内有效判定照常定级；全故障+fail-review→待审 cloud_all_failed；fail-open
+			 * →放行）。 */
+			if ( $chain_budget > 0 && (int) call_user_func( $this->now ) >= $budget_deadline ) {
+				$chain_budget_exceeded = true;
+				$this->record_cloud_event(
+					$cloud_id,
+					Verdict::error( $cloud_id, 'chain_budget_exceeded', array( 'chain_budget_exceeded' ) ),
+					$resolved,
+					array( 'chain_budget_exceeded' => true, 'budget_seconds' => $chain_budget )
+				);
+				break;
+			}
 
 			// 停转检查（02 §5 快速失败）：semantic 停转/配额尽 → 零调用，计为该驱动 error。
 			$halt_state = null;
@@ -799,14 +840,22 @@ final class CommentGate extends AbstractGate {
 				'ip_src'    => $resolved['ip_src'],
 				'client_ip' => $resolved['ip'],
 			);
+			if ( $chain_budget_exceeded ) {
+				$this->hold_meta['chain_budget_exceeded'] = true; // 【P1-5】截断后收口可溯源。
+			}
 			$commentdata['comment_approved'] = '0';
 			return array( 'decision' => 'allow', 'commentdata' => $commentdata );
 		}
 
 		/* 云端全故障收口（02 §2.2）：启用中的云端驱动全部 error/停转 → 忽略 LocalRules 的 pass、
 		 * 按云端降级档处理（否则 LocalRules 恒有的 pass 使云端全故障退化为事实放行，违背 D6）。
-		 * 多驱动 fail_mode 不一致取最严者（fail-review 优先）。 */
-		if ( array() !== $cloud_ids && array() === $effective ) {
+		 * 多驱动 fail_mode 不一致取最严者（fail-review 优先）。
+		 * 【M6·批F-b P1-5】预算墙截断并入同一收口（审计修复方向「截断转 review 收口」）：
+		 * 截断=云端审查未完成——墙内仅有 pass 判定时不得据此放行（后续驱动或判 reject，
+		 * 截断丢失的是潜在更严判定），按既有 fail 口径收口（fail_mode 语义不变：
+		 * fail-review→待审兜底 / fail-open→放行）；reject/review 墙内有效判定不受影响
+		 * （reject 在循环内即时拦截，review 由 most_severe 分支先行收口）。 */
+		if ( ( array() !== $cloud_ids && array() === $effective ) || $chain_budget_exceeded ) {
 			if ( 'review' === $this->strictest_fail_mode( $cloud_ids ) ) {
 				$this->hold_moderation = true;
 				$this->hold_source     = 'cloud_all_failed'; // 【v1.4·R1 G1】云端全故障 fail-review 兜底。
@@ -818,6 +867,9 @@ final class CommentGate extends AbstractGate {
 					'ip_src'    => $resolved['ip_src'],
 					'client_ip' => $resolved['ip'],
 				);
+				if ( $chain_budget_exceeded ) {
+					$this->hold_meta['chain_budget_exceeded'] = true; // 【P1-5】预算墙截断——收口可溯源。
+				}
 				$commentdata['comment_approved'] = '0'; // fail-review：入待审（error 事件已逐驱动记录）。
 			}
 			// fail-open：放行（error 事件照记——fail-open 不等于无痕）。
@@ -1457,6 +1509,20 @@ final class CommentGate extends AbstractGate {
 			}
 		}
 		return 'open';
+	}
+
+	/**
+	 * 同步链预算墙值（秒；【M6·批F-b P1-5】gates.comment.chain_budget——absint 语义，
+	 * 0=关；缺键/非法回落 DEFAULT_CHAIN_BUDGET 防护默认——不依赖存储树回填时点）。
+	 *
+	 * @return int
+	 */
+	private function chain_budget_seconds(): int {
+		$raw = $this->settings['gates']['comment']['chain_budget'] ?? self::DEFAULT_CHAIN_BUDGET;
+		if ( ! is_numeric( $raw ) ) {
+			return self::DEFAULT_CHAIN_BUDGET;
+		}
+		return max( 0, (int) $raw );
 	}
 
 	/**

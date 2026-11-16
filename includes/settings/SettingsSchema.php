@@ -53,6 +53,12 @@ final class SettingsSchema {
 					// admin-ajax / REST 三通道提交入口——存根校验后、四闸之前；超额=统一
 					// captcha_missing 文案不外呼）。0 = 不限流（Bootstrap 不装配=现行行为）。
 					'submit_rate_limit' => 30,
+					// 【M6·批F-b P1-5】评论同步链预算墙（秒；0=关）：云审串行循环每驱动调用前
+					// 查剩余——超墙跳过剩余云审驱动，按既有 fail 口径收口（fail_mode 语义不变）
+					// +跳过面 error 事件 meta.chain_budget_exceeded=true。单 LLM 最坏 ≈89s/
+					// 四驱动理论 ≈215s 同步挂起 worker（审计 P1-5）由此封顶为「墙+墙内已发起的
+					// 最后一次外呼耗时」。
+					'chain_budget' => 30,
 				),
 				'login'   => array(
 					'enabled'     => true,

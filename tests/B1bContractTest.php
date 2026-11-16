@@ -97,15 +97,15 @@ final class B1bContractTest extends TestCase {
 		$this->assertMatchesRegularExpression( "/return date\( 'Y-m-d H:i:s', \\\$timestamp \);/", $src );
 	}
 
-	/* ---------- 版本三处同步（R1 G7）——【M6·批F-a】版本钉翻转 0.6.8→0.6.8（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16） ---------- */
+	/* ---------- 版本三处同步（R1 G7）——【M6·批F-b】版本钉翻转 0.6.8→0.6.9（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16） ---------- */
 
 	public function test_version_is_bumped_to_0_2_4_in_three_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.6.8$/m', $entry, '插件头 Version 须为 0.6.8' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.6.8' )", $entry, '版本常量须为 0.6.8' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0.6.8$/m', $readme, 'readme Stable tag 须为 0.6.8' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.6.9$/m', $entry, '插件头 Version 须为 0.6.9' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.6.9' )", $entry, '版本常量须为 0.6.9' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.6.9$/m', $readme, 'readme Stable tag 须为 0.6.9' );
 		$this->assertStringContainsString( '= 0.3.0 =', $readme, 'Changelog 须有 0.3.0 条目' );
 		$this->assertStringContainsString( 'F4-4', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-6', $readme, 'Changelog 须含设计锚点' );

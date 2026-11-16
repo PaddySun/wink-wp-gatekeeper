@@ -24,6 +24,7 @@ use WinkGatekeeper\Drivers\CaptchaDriverInterface;
 use WinkGatekeeper\Intercept\Copywork;
 use WinkGatekeeper\Intercept\Stub;
 use WinkGatekeeper\Ip\IpResolver;
+use WinkGatekeeper\Stats\EventSampling;
 use WinkGatekeeper\Stats\EventsTable;
 use WinkGatekeeper\Stats\StatsCache;
 use WinkGatekeeper\Verdict;
@@ -130,6 +131,14 @@ abstract class AccountFormGate extends AbstractGate {
 			};
 		$this->degraded_limiter = $degraded_limiter;
 		$this->recorder     = $recorder ?? function ( string $stage, Verdict $verdict, array $meta ): ?string {
+			/* 【M6·批F-b P1-4】stub/rate 事件写放大采样封顶（EventSampling，10 行/IP/h
+			 * 小时桶）：封顶 → 丢事件行**且**跳过 stats option UPDATE（写放大双源同封）；
+			 * 拒绝行为本身不变，真实闸链路径（captcha/review 族 stage）不在采样域恒放行。
+			 * 登录族 stub 拒（bad-signature 匿名裸打同面）与评论闸同款封顶。 */
+			$event_ip_hash = self::ip_hash( (string) ( $meta['client_ip'] ?? '' ) );
+			if ( ! EventSampling::allow( $stage, $event_ip_hash ) ) {
+				return null;
+			}
 			// WP 边界默认：事件表（04 §3 写入矩阵——R1 G6 should_record 收口）+ 统计计数
 			// （【v1.5·F4-4/F4-6】02 §3.2a recorder 口径统一——captcha 判定收口按 verdict
 			// 三维 bump（pass→captcha_pass、reject→reject+captcha_reject、error→error），
@@ -138,7 +147,7 @@ abstract class AccountFormGate extends AbstractGate {
 			$driver_id = ( '' !== $verdict->driver_id() ) ? $verdict->driver_id() : 'gate';
 			$event_no  = null;
 			if ( EventsTable::should_record( $stage, $verdict, $this->settings ) ) {
-				$event_no = EventsTable::insert( $this->id, $stage, $driver_id, $verdict, $meta, self::ip_hash( (string) ( $meta['client_ip'] ?? '' ) ) );
+				$event_no = EventsTable::insert( $this->id, $stage, $driver_id, $verdict, $meta, $event_ip_hash );
 			}
 			// 【v1.5·C1】drill 行（test_mode 旁路）落库照常（04 §3——旁路恒落库审计足迹），
 			// 只豁免统计计数（04 §4 drill 恒排除；B1b 原全跳过形态与矩阵冲突，B2 起承接
