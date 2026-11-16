@@ -2,8 +2,11 @@
 /**
  * URL 判定缓存语义与处置矩阵（nw §4.3/§5.1/§5.2/§5.3，2026-11-14 U5 批）。
  *
- * 处置红线（三原则之「只放大严」）：URL pass 不单独产生任何自动化动作；inconclusive
- * 权重恒为零；自动定罪门 0.95 独立于 min_confidence 0.8（两档阈值语义分开别共享旋钮）；
+ * 处置红线（三原则之「只放大严」）：pass 仍零动作（不自动放行不自动定罪）；
+ * inconclusive→待审（统一人工判定，2026-11-16 用户拍板——原「零自动化动作」随
+ * 【M6·批E·§4-add】翻转为「不定罪但悬置待审」：违规站对一切抓取端普遍无正文可给，
+ * inconclusive 是违规站常态结局，放行不可接受；恒不定罪 §0-7 不变，hold 可手动批准
+ * 恢复）；自动定罪门 0.95 独立于 min_confidence 0.8（两档阈值语义分开别共享旋钮）；
  * injection_attempt 命中时自动放行保险丝失效（检测面保守化——不改变 reject 处置）。
  *
  * @package WinkGatekeeper\UrlAudit
@@ -36,7 +39,10 @@ final class UrlVerdicts {
 	}
 
 	/**
-	 * 增量处置矩阵（评论已在待审；nw §5.1）。
+	 * 增量处置矩阵（nw §5.1；【M6·批E·§4-add】2026-11-16 用户拍板——「没看清」统一
+	 * 人工判定：inconclusive 与 review 一律→hold（待审=统一人工判定入口，三档 profile
+	 * 皆然，wp_set_comment_status 可逆终态可手动批准恢复）；pass 零动作、reject 分支
+	 * 形态不动（conservative 只标记/balanced≥0.95 spam/aggressive≥0.8 spam）。
 	 *
 	 * @param string $verdict           pass|reject|review|inconclusive。
 	 * @param float  $confidence        置信度（inconclusive 传 0）。
@@ -47,7 +53,14 @@ final class UrlVerdicts {
 	public static function disposal( string $verdict, float $confidence, string $profile, bool $injection_attempt ): array {
 		$note = '';
 
-		// 保守档：只出报告与标记，一切处置人工（nw §5.2 默认）。
+		// 【M6·批E·§4-add】没看清/存疑→hold（三档统一；恒不定罪 §0-7 不变——
+		// hold=悬置待审人工判定，可手动批准恢复；误伤面（正常站抓取失败）用户明示接受，
+		// inconclusive 缓存 TTL 24h+「重新核查此站」可复验）。
+		if ( 'inconclusive' === $verdict || 'review' === $verdict ) {
+			return array( 'action' => 'hold', 'auto_url_reject' => false, 'note' => '没看清/存疑——进待审等你判定（可手动恢复）' );
+		}
+
+		// 保守档：reject 不自动定罪（nw §5.2 默认——只出报告与标记，处置人工）。
 		if ( 'conservative' === $profile ) {
 			return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => '保守档：仅标记' );
 		}
@@ -58,11 +71,6 @@ final class UrlVerdicts {
 				return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => '注入尝试命中——自动放行保险丝失效' );
 			}
 			return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => 'URL 已核无问题（不改变评论状态）' );
-		}
-
-		// inconclusive 权重恒为零（nw §1.7 配套）。
-		if ( 'inconclusive' === $verdict || 'review' === $verdict ) {
-			return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => '未核实——保持待审附原因' );
 		}
 
 		// reject：自动定罪门（均衡=0.95 / 激进=0.8）。

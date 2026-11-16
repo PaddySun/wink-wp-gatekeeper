@@ -108,10 +108,17 @@ final class M5U5UrlAuditTest extends TestCase {
 	}
 
 	public function test_inconclusive_never_has_reject_weight(): void {
-		// 处置矩阵红线：inconclusive 在任何 profile 下动作恒 keep（零 reject 权重）。
+		// 【断言翻转·M6 批E·§4-add】原钉=inconclusive 在任何 profile 下动作恒 keep
+		// （「零处置」）。翻钉原因=用户 2026-11-16 拍板（第四轮反馈——施工图 §4-add）：
+		// 「我测试了用 DeepSeek 网页抓取几个违规站点，都返回 404。因此决策，『没看清』
+		// → 统一人工判定。」——inconclusive 与 review 一律→hold（待审=统一人工判定
+		// 入口，三档 profile 皆然）。恒不定罪红线不变（§0-7 fetch 失败≠违规——hold=
+		// 「不定罪但悬置待审」非「定罪」；零 reject 权重、零 auto_url_reject 保持）。
+		// 详 M6EDisposalMatrixTest 12 例全组合钉。
 		foreach ( array( 'conservative', 'balanced', 'aggressive' ) as $profile ) {
 			$a = UrlVerdicts::disposal( 'inconclusive', 0.0, $profile, false );
-			self::assertSame( 'keep', $a['action'], "{$profile} 档下 inconclusive 恒 keep" );
+			self::assertSame( 'hold', $a['action'], "{$profile} 档下 inconclusive→hold（没看清=统一人工判定，2026-11-16 拍板）" );
+			self::assertFalse( $a['auto_url_reject'], "{$profile} 档下 inconclusive 恒不定罪（零 auto_url_reject）" );
 		}
 	}
 

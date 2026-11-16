@@ -3564,9 +3564,9 @@ final class SettingsPage {
 					<th scope="row"><span id="wk-url-audit-profile-group"><?php esc_html_e( '处置档位', 'wink-gatekeeper' ); ?></span></th>
 					<td>
 						<dl>
-							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="conservative" <?php checked( $profile, 'conservative' ); ?>> <?php esc_html_e( '保守（默认）——只出报告和标记，一切处置你亲手来', 'wink-gatekeeper' ); ?></label></dt>
-							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="balanced" <?php checked( $profile, 'balanced' ); ?>> <?php esc_html_e( '均衡（推荐）——「证据确凿」的自动进垃圾箱（可一键撤销），其余附上证据等你复核', 'wink-gatekeeper' ); ?></label></dt>
-							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="aggressive" <?php checked( $profile, 'aggressive' ); ?>> <?php esc_html_e( '激进——拿不太准的也自动进垃圾箱；垃圾评论洪水期应急用，用完建议切回来', 'wink-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="conservative" <?php checked( $profile, 'conservative' ); ?>> <?php esc_html_e( '保守（默认）——违规不自动进垃圾箱，只出报告和标记；网址没看清的会先进待审等你判定', 'wink-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="balanced" <?php checked( $profile, 'balanced' ); ?>> <?php esc_html_e( '均衡（推荐）——证据确凿的自动进垃圾箱（可一键撤销），其余进待审等你复核', 'wink-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="aggressive" <?php checked( $profile, 'aggressive' ); ?>> <?php esc_html_e( '激进——拿不太准的也自动进垃圾箱，没看清的进待审；垃圾评论洪水期应急用，用完建议切回来', 'wink-gatekeeper' ); ?></label></dt>
 						</dl>
 						<p class="description"><?php esc_html_e( '「证据确凿」的门槛由系统掌握，界面不提供旋钮——只放大严。', 'wink-gatekeeper' ); ?></p>
 					</td>

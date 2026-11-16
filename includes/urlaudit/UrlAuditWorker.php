@@ -18,12 +18,15 @@
  * 改 Tab⑦ 显式动作「开始存量网址核查」一次性入队（OPTION_BATCH_QUEUE FIFO），配额
  * 50/日+暂停黄条语义照旧（D6 分工：操作卡 Tab⑦/报告卡 Tab⑥）。
  *
- * 处置哲学：增量车道默认 conservative profile 零处置（评论状态不动）；均衡/激进档按
- * UrlVerdicts::disposal 执行（auto_url_reject meta 可一键批量撤销）。存量车道
- * 【M6·批C·C-2】（用户 2026-11-16 拍板——原 nw §5.3「仅标记」退役）：reject→垃圾箱
- * （spam）、review 与 inconclusive（没看清）→待审（hold）、pass→不动；全部走
- * wp_set_comment_status 可逆终态面（垃圾箱可一键恢复、待审可批准），处置结果落 meta
- * disposed_to（spam|hold|none）溯源。宇宙 approved-only（C-1）天然规避触碰垃圾/待审。
+ * 处置哲学：增量车道【M6·批E·§4-add】（2026-11-16 用户拍板——「没看清」统一人工判定）：
+ * inconclusive 与 review 一律→hold（待审=统一人工判定入口，三档 profile 皆然——恒不定罪
+ * §0-7 不变，hold 可手动批准恢复，误伤面用户明示接受）；pass 零动作；reject 按 profile
+ * （conservative 只标记/balanced≥0.95/aggressive≥0.8 自动标垃圾，auto_url_reject meta
+ * 可一键批量撤销）。存量车道【M6·批C·C-2】（用户 2026-11-16 拍板——原 nw §5.3「仅标记」
+ * 退役）：reject→垃圾箱（spam）、review 与 inconclusive（没看清）→待审（hold）、pass→
+ * 不动；全部走 wp_set_comment_status 可逆终态面（垃圾箱可一键恢复、待审可批准），处置
+ * 结果落 meta disposed_to（spam|hold|none）溯源。宇宙 approved-only（C-1）天然规避触碰
+ * 垃圾/待审。
  *
  * @package WinkGatekeeper\UrlAudit
  */
@@ -113,7 +116,7 @@ final class UrlAuditWorker {
 	/** @var callable fn(int $id, array|null $meta): void meta 写/清。 */
 	private $meta_writer;
 
-	/** @var callable fn(int $id, string $action): bool 处置执行（wp_set_comment_status——仅均衡/激进档消费）。 */
+	/** @var callable fn(int $id, string $action): bool 处置执行（wp_set_comment_status——spam 自动定罪/hold 没看清进待审两可逆终态消费）。 */
 	private $disposal_executor;
 
 	/** @var callable fn(): UrlFetcher fetcher 工厂。 */
@@ -433,20 +436,21 @@ final class UrlAuditWorker {
 				$meta['auto_url_reject'] = true;
 				$meta['undo']            = true; // 可一键批量撤销（审计 trail 撤销落事件）。
 			}
-			// 增量车道处置矩阵零改动（C-2 红线）；disposed_to 只记录实际处置去向。
-			$meta['disposed_to'] = ! empty( $disposal['auto_url_reject'] ) ? 'spam' : 'none';
+			// 【M6·批E·§4-add】disposed_to 记实际处置去向：spam（自动定罪）/hold
+			// （没看清/存疑→待审=统一人工判定入口，三档 profile 皆然）/none（pass 等）。
+			$meta['disposed_to'] = ! empty( $disposal['auto_url_reject'] )
+				? 'spam'
+				: ( 'hold' === $disposal['action'] ? 'hold' : 'none' );
 		}
 
 		$meta_writer( $comment_id, $meta );
 
-		// 自动标垃圾执行（均衡/激进档高置信——wp_set_comment_status 'spam' 可逆终态）。
-		if ( 'incr' === $lane && ( $meta['action'] ?? '' ) === 'spam' && ! empty( $meta['auto_url_reject'] ) ) {
-			$executor( $comment_id, 'spam' );
-		}
-
-		// 【M6·批C·C-2】存量车道处置执行（spam|hold 可逆终态面——判违规进垃圾箱、
-		// 没看清进待审，都能手动恢复；宇宙 approved-only 天然规避触碰垃圾/待审）。
-		if ( 'batch' === $lane && in_array( (string) ( $meta['disposed_to'] ?? 'none' ), array( 'spam', 'hold' ), true ) ) {
+		// 处置执行（双车道统一走 disposal_executor 注入面——wp_set_comment_status
+		// 可逆终态：垃圾箱可一键恢复、待审可批准，零新增执行件）：
+		//  incr 车道【M6·批E·§4-add】spam=自动定罪（均衡/激进档高置信）/hold=没看清进待审；
+		//  batch 车道【M6·批C·C-2】存量矩阵 disposed_to∈{spam,hold}（宇宙 approved-only
+		//  天然规避触碰垃圾/待审）。
+		if ( in_array( (string) ( $meta['disposed_to'] ?? 'none' ), array( 'spam', 'hold' ), true ) ) {
 			$executor( $comment_id, (string) $meta['disposed_to'] );
 		}
 	}
@@ -629,7 +633,8 @@ final class UrlAuditWorker {
 
 	/**
 	 * @param int    $id     评论 id。
-	 * @param string $action spam|hold（wp_set_comment_status——可逆终态面）。
+	 * @param string $action spam|hold（wp_set_comment_status——可逆终态面；垃圾箱可一键
+	 *                       恢复、待审可批准）。
 	 * @return bool
 	 */
 	public function default_disposal_executor( int $id, string $action ): bool {
