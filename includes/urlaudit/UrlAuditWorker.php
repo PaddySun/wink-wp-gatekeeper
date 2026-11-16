@@ -28,6 +28,12 @@
  * 结果落 meta disposed_to（spam|hold|none）溯源。宇宙 approved-only（C-1）天然规避触碰
  * 垃圾/待审。
  *
+ * 搜索兜底【M6·批F-a·§4-add2】（0.6.8，2026-11-16 第五轮反馈——「打不开时真用搜索兜底」）：
+ * fetch 失败族（outcome 非 ok 全族）且搜索源可用 → 先搜索后判定（search_evidence 块送
+ * 判定引擎——仅当搜索结果明确将域名与违规类目直接关联才可 reject，否则 review/inconclusive；
+ * 九键闭集/处置矩阵/profile 定罪门全不动）；搜索不可用/失败/空 → 维持 inconclusive 现行为；
+ * 搜索兜底产出的判定 meta 记 evidence=search（缓存行同标——报告与人工复核可溯源）。
+ *
  * @package WinkGatekeeper\UrlAudit
  */
 
@@ -313,6 +319,7 @@ final class UrlAuditWorker {
 		$cached = $recheck ? null : UrlAuditCache::get( $url );
 		$judgement = null;
 		$fetch_meta = array();
+		$evidence   = ''; // 【M6·批F-a】判定证据形态（''=页面正文|'search'=搜索线索兜底）。
 
 		if ( is_array( $cached ) && isset( $cached['verdict'] ) ) {
 			// 命中 reject（高置信）走矩阵；命中 pass 只记录不改变状态；inconclusive 保持待审。
@@ -323,6 +330,11 @@ final class UrlAuditWorker {
 				'hits'       => is_array( $cached['hits'] ?? null ) ? $cached['hits'] : array(),
 			);
 			$fetch_meta = array( 'cache' => 'hit' );
+			// 【M6·批F-a】缓存行 evidence 传播：命中行若系搜索证据判定产出，meta 如实
+			// 沿用（报告/人工复核「此判定基于搜索线索而非页面正文」对缓存命中同样成立）。
+			if ( 'search' === (string) ( $cached['evidence'] ?? '' ) ) {
+				$evidence = 'search';
+			}
 		} else {
 			// ② fetch（缓存 miss / 重查强制）。
 			$fetcher = $fetcher_f();
@@ -352,33 +364,84 @@ final class UrlAuditWorker {
 			}
 
 			if ( 'ok' !== $fetched['fetch_class'] ) {
-				// 失败类→inconclusive（cloaking_suspect→review 倾向）——永不静默放行永不静默定罪。
-				$state = UrlFetchPolicy::fetch_class_to_state( $fetched['fetch_class'] );
-				$judgement = array(
-					'verdict'    => $state['state'],
-					'confidence' => 0.0,
-					'reason'     => 'fetch: ' . $fetched['fetch_class'],
-					'hits'       => array(),
-				);
+				// 【M6·批F-a·§4-add2】fetch 失败族（outcome 非 ok 全族）+搜索源可用 → 先搜索
+				// 后判定（搜索证据兜底——违规站对一切抓取端普遍无正文可给〔批 E 背景实证〕，
+				// 搜索线索是唯一剩余证据面）。搜索不可用/调用失败/结果空 → 维持 inconclusive
+				// （现行为回归，恒不出错 §0-7）。
+				$engine = $judge_f();
+				$search_provider = is_array( $engine ) ? ( $engine['bocha'] ?? null ) : null;
+				$host = (string) ( parse_url( $url, PHP_URL_HOST ) ?? '' );
+				$signal = null;
+				if ( $search_provider instanceof UrlSearchProvider && $search_provider->is_configured() && '' !== $host ) {
+					// query=域名本体（搜索源语法择优：DeepSeek tools/search 契约 query 为
+					// 纯文本 1-128 字、site: 算子无文档背书；域名本体在两源皆可用——报告落档）。
+					$signal = $search_provider->search_site( $host );
+				}
+				$signal_usable = is_array( $signal )
+					&& ( array() !== ( $signal['snippets'] ?? array() ) || '' !== (string) ( $signal['siteName'] ?? '' ) );
+
+				if ( $signal_usable ) {
+					// ②' 搜索证据判定（无页面正文；prompt：仅当搜索结果明确将域名与违规类目
+					// 直接关联才可 reject，否则 review/inconclusive；九键闭集/解析器/min_confidence/
+					// 注入检测/计量与页面正文模式全共用——send_and_parse 同脊）。
+					$judgement = $engine['judge']->judge_on_search_evidence(
+						$signal,
+						$url,
+						(string) $comment['author'] . "\n" . (string) $comment['body'],
+						'incr' === $lane ? 'url_audit_incr' : 'url_audit_batch'
+					);
+					$fetch_meta['llm'] = true;
+					$evidence          = 'search';
+					// 【M6·批B·B-5①】LLM 运行性错误捕获同款（搜索证据判定路径——transport/
+					// contract 类照进报错历史；业务 inconclusive 恒不标记）。
+					$llm_meta = $engine['judge']->last_meta();
+					if ( ! isset( $out['runtime_error'] ) && isset( $llm_meta['llm_error'] ) && is_array( $llm_meta['llm_error'] ) ) {
+						$out['runtime_error'] = array(
+							'lane'      => $lane,
+							'category'  => (string) ( $llm_meta['llm_error']['category'] ?? '' ),
+							'http_code' => (int) ( $llm_meta['llm_error']['http_code'] ?? 0 ),
+						);
+					}
+					// ④' 缓存写入（搜索证据判定照常入缓存——TTL 按 verdict 分档；evidence/
+					// fetch_class/prompt_version 溯源行——「此判定基于搜索线索」可查）。
+					UrlAuditCache::put( $url, array_merge( $judgement, array(
+						'final_url'      => $fetched['final_url'],
+						'judged_at'      => (int) ( $this->clock )(),
+						'prompt_version' => UrlJudge::SEARCH_PROMPT_VERSION,
+						'model'          => (string) ( $engine['model'] ?? '' ),
+						'evidence'       => 'search',
+						'fetch_class'    => $fetched['fetch_class'],
+					) ) );
+				} else {
+					// 搜索不可用/失败/空 → 失败类→inconclusive（cloaking_suspect→review 倾向）
+					// ——永不静默放行永不静默定罪（现行为回归）。
+					$state = UrlFetchPolicy::fetch_class_to_state( $fetched['fetch_class'] );
+					$judgement = array(
+						'verdict'    => $state['state'],
+						'confidence' => 0.0,
+						'reason'     => 'fetch: ' . $fetched['fetch_class'],
+						'hits'       => array(),
+					);
+					// 博查交叉信号（可选启用且 fetch 失败类时——降低 inconclusive 占比）。
+					if ( 'inconclusive' === $judgement['verdict'] && ! empty( $this->settings['url_audit']['bocha']['enabled'] ) ) {
+						$judgement['bocha'] = 'available_not_used'; // 信号记录位——搜索兜底未产出可用证据。
+					}
+					UrlAuditCache::put( $url, array(
+						'verdict'       => $judgement['verdict'],
+						'confidence'    => 0.0,
+						'reason'        => $judgement['reason'],
+						'hits'          => array(),
+						'fetch_class'   => $fetched['fetch_class'],
+						'final_url'     => $fetched['final_url'],
+						'judged_at'     => (int) ( $this->clock )(),
+						'prompt_version' => UrlJudge::PROMPT_VERSION,
+					) );
+				}
 				// 【M6·批D·D-4】402 余额不足 → 车道暂停（黄条语义——额度/余额类账号侧
-				// 停转，次日或充值后自动恢复）；当条照常按 inconclusive 收口后停轮。
+				// 停转，次日或充值后自动恢复）；当条照常收口后停轮（搜索兜底不改暂停语义）。
 				if ( 'quota_exhausted' === $fetched['fetch_class'] ) {
 					$out['stopped'] = 'fetch_account_exhausted';
 				}
-				// 博查交叉信号（可选启用且 fetch 失败类时——降低 inconclusive 占比）。
-				if ( 'inconclusive' === $judgement['verdict'] && ! empty( $this->settings['url_audit']['bocha']['enabled'] ) ) {
-					$judgement['bocha'] = 'available_not_used'; // 信号记录位——首版博查仅 LLM 判定路径消费。
-				}
-				UrlAuditCache::put( $url, array(
-					'verdict'       => $judgement['verdict'],
-					'confidence'    => 0.0,
-					'reason'        => $judgement['reason'],
-					'hits'          => array(),
-					'fetch_class'   => $fetched['fetch_class'],
-					'final_url'     => $fetched['final_url'],
-					'judged_at'     => (int) ( $this->clock )(),
-					'prompt_version' => UrlJudge::PROMPT_VERSION,
-				) );
 			} else {
 				// ③ LLM 判定（URL 审核专用 prompt——nw §2.2；caller 分车道计量）。
 				$engine = $judge_f();
@@ -415,6 +478,11 @@ final class UrlAuditWorker {
 			'judged_at'  => (int) ( $this->clock )(),
 			'profile'    => $profile,
 		);
+		// 【M6·批F-a·§4-add2】判定证据形态溯源：evidence=search=「此判定基于搜索线索而非
+		// 页面正文」（fetch 失败族兜底路径/缓存命中传播）；缺省键=页面正文取证（零键不撒谎）。
+		if ( '' !== $evidence ) {
+			$meta['evidence'] = $evidence;
+		}
 
 		if ( 'batch' === $lane ) {
 			// 【M6·批C·C-2】存量处置（用户 2026-11-16 拍板——「仅标记」退役）：reject→
@@ -808,12 +876,15 @@ final class UrlAuditWorker {
 	 * 【M6·批D·D-6】已核查计数改本轮口径：只数 judged_at >= started_at 的 meta——
 	 * 全量重查语义下清单内旧 meta（上轮判定）不算本轮已核查，覆盖后落新 judged_at
 	 * 才计数（「已核查 N/M」如实反映本轮进度——覆盖计数正确回归钉）。
+	 * 【M6·批F-a·§4-add2】新增 reasons 原因归堆（本轮口径内 reject/review/inconclusive
+	 * 按「原因文本+证据形态」归堆，pass 不归因；evidence=search 行由渲染面补人话标记
+	 * 「网址打不开，依据搜索线索判定」）。
 	 *
 	 * @param array<string, mixed>    $record         运行记录（started_at/ids/enqueued）。
 	 * @param array<int, array>       $metas          清单内已落判定 meta（id=>meta）。
 	 * @param int                     $queue_residual 批量队列残留数（batch_queue_count）。
 	 * @param int[]                   $gone_ids       清单内评论本体已删的 id（收口）。
-	 * @return array{state: string, started_at: int, finished_at: int, enqueued: int, judged: int, remaining: int, queue_residual: int, caliber: array{pass: int, pending: int, spam: int}, gone: int}|array{state: string}
+	 * @return array{state: string, started_at: int, finished_at: int, enqueued: int, judged: int, remaining: int, queue_residual: int, caliber: array{pass: int, pending: int, spam: int}, gone: int, reasons: array<int, array{reason: string, n: int, evidence: string}>}|array{state: string}
 	 */
 	public static function backlog_report_view( array $record, array $metas, int $queue_residual, array $gone_ids = array() ): array {
 		$ids = is_array( $record['ids'] ?? null ) ? array_map( 'intval', $record['ids'] ) : array();
@@ -822,6 +893,7 @@ final class UrlAuditWorker {
 		}
 		$gone        = array_flip( array_map( 'intval', $gone_ids ) );
 		$caliber     = array( 'pass' => 0, 'pending' => 0, 'spam' => 0 );
+		$reasons     = array(); // 【M6·批F-a】原因归堆（reason+evidence 键——Tab⑦ 人话标记消费）。
 		$judged      = 0;
 		$finished_at = 0;
 		$started_at  = (int) ( $record['started_at'] ?? 0 );
@@ -843,12 +915,29 @@ final class UrlAuditWorker {
 			$verdict     = (string) $meta['verdict'];
 			if ( 'pass' === $verdict ) {
 				++$caliber['pass'];
-			} elseif ( 'reject' === $verdict ) {
+				continue; // pass 不进原因堆（与存量报告口径一致——非终态/判违规才归因）。
+			}
+			if ( 'reject' === $verdict ) {
 				++$caliber['spam'];
 			} elseif ( in_array( $verdict, array( 'review', 'inconclusive' ), true ) ) {
 				++$caliber['pending'];
 			}
+			// 【M6·批F-a·§4-add2】原因归堆（本轮口径内）：键=原因文本+证据形态——
+			// evidence=search 行渲染时补人话标记「网址打不开，依据搜索线索判定」。
+			$reason = trim( (string) ( $meta['reason'] ?? '' ) );
+			if ( '' === $reason ) {
+				$reason = '（无原因说明）';
+			}
+			$reason = mb_substr( $reason, 0, 40 );
+			$ev     = 'search' === (string) ( $meta['evidence'] ?? '' ) ? 'search' : '';
+			$key    = $reason . '|' . $ev;
+			if ( isset( $reasons[ $key ] ) ) {
+				++$reasons[ $key ]['n'];
+			} else {
+				$reasons[ $key ] = array( 'reason' => $reason, 'n' => 1, 'evidence' => $ev );
+			}
 		}
+		uasort( $reasons, static fn( $a, $b ) => $b['n'] <=> $a['n'] );
 		$remaining = count( $ids ) - $judged - count( $gone_ids );
 		return array(
 			'state'          => ( $remaining > 0 || $queue_residual > 0 ) ? 'running' : 'completed',
@@ -860,6 +949,7 @@ final class UrlAuditWorker {
 			'queue_residual' => max( 0, $queue_residual ),
 			'caliber'        => $caliber,
 			'gone'           => count( $gone_ids ),
+			'reasons'        => array_values( $reasons ),
 		);
 	}
 

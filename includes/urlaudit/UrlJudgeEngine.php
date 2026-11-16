@@ -40,6 +40,8 @@ final class UrlJudgeEngine {
 	}
 
 	/**
+	 * 页面正文模式判定（fetch ok 路径——nw §2.2 全量证据）。
+	 *
 	 * @param array<string, mixed> $fetched   fetcher 结果。
 	 * @param string               $url       规范化 URL。
 	 * @param string               $comment_ctx 评论上下文（昵称+正文）。
@@ -60,12 +62,52 @@ final class UrlJudgeEngine {
 		}
 
 		$messages = UrlJudge::build_messages( $url, $fetched, $comment_ctx, $bocha_signal );
+		return $this->send_and_parse( $messages, UrlJudge::SYSTEM_PROMPT, $caller );
+	}
+
+	/**
+	 * 【M6·批F-a·§4-add2】搜索证据模式判定（fetch 失败族兜底路径——无页面正文，证据=
+	 * 第三方检索线索）。施工图纪律：仅基于搜索证据；仅当搜索结果明确将域名本身与违规
+	 * 类目直接关联才可 reject，否则 review/inconclusive——引擎侧机械收口 pass→review
+	 * （搜索线索不足以证明站点正常；prompt 同款纪律的兜底执行，「只放大严」）。输出
+	 * 契约与页面正文模式同形（九键闭集/解析器/min_confidence/注入检测/计量全共用）。
+	 *
+	 * @param array<string, mixed> $search_signal 搜索信号 {snippets: string[], siteName: string}（调用方已保证可用非空）。
+	 * @param string               $url           规范化 URL。
+	 * @param string               $comment_ctx   评论上下文（昵称+正文）。
+	 * @param string               $caller        url_audit_batch|url_audit_incr（K2）。
+	 * @return array{verdict:string, confidence:float, reason:string, hits:array<string>, injection_attempt: bool}
+	 */
+	public function judge_on_search_evidence( array $search_signal, string $url, string $comment_ctx, string $caller ): array {
+		$this->last_meta = array(); // 单次判定语境（B-5 llm_error 标记不跨判定残留）。
+
+		$messages  = UrlJudge::build_search_evidence_messages( $url, $search_signal, $comment_ctx );
+		$judgement = $this->send_and_parse( $messages, UrlJudge::SEARCH_SYSTEM_PROMPT, $caller );
+
+		// 搜索线索不定罪也不洗白（§4-add2「否则 review/inconclusive」机械收口）：
+		// pass 在搜索证据模式降级 review（错杀面=进待审可恢复——批 E 已接受；漏杀面零增）。
+		if ( 'pass' === $judgement['verdict'] ) {
+			$judgement['verdict'] = 'review';
+		}
+		return $judgement;
+	}
+
+	/**
+	 * 判定共用尾段（payload 组装→chat/completions→宽容解析→K2 记账→min_confidence
+	 * 收口→注入检测——页面正文/搜索证据两模式全共用，行为与批 B 前判定路径逐行同形）。
+	 *
+	 * @param array<int, array{role: string, content: string}> $messages user 消息（不含 system）。
+	 * @param string                                           $system_prompt 系统提示词（模式分族唯一位）。
+	 * @param string                                           $caller url_audit_batch|url_audit_incr。
+	 * @return array{verdict:string, confidence:float, reason:string, hits:array<string>, injection_attempt: bool}
+	 */
+	private function send_and_parse( array $messages, string $system_prompt, string $caller ): array {
 		$payload  = array(
 			'model'           => $this->model,
 			'temperature'     => 0,
 			'response_format' => array( 'type' => 'json_object' ),
 			'messages'        => array_merge(
-				array( array( 'role' => 'system', 'content' => UrlJudge::SYSTEM_PROMPT ) ),
+				array( array( 'role' => 'system', 'content' => $system_prompt ) ),
 				$messages
 			),
 		);

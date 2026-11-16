@@ -5075,6 +5075,39 @@ final class SettingsPage {
 					}
 				?></p>
 				<?php
+				/* 【M6·批F-a·§4-add2】原因明细折叠（URL 报告——与存量审核报告同款式）：
+				 * evidence=search 的原因行补人话标记「网址打不开，依据搜索线索判定」——
+				 * 人工复核一眼可知「此判定基于搜索线索而非页面正文」。渲染红线：原因=
+				 * 攻击者可控（AI 原文/第三方摘要透传）——单次 esc_html 收口+截断（XSS）。 */
+				$url_reasons = is_array( $url_view['reasons'] ?? null ) ? $url_view['reasons'] : array();
+				?>
+				<details id="wk-tools-url-audit-reasons">
+					<summary><?php echo esc_html( sprintf(
+						/* translators: %d: 原因类数 */
+						__( '原因明细（%d 类）', 'wink-gatekeeper' ),
+						count( $url_reasons )
+					) ); ?></summary>
+					<?php if ( array() !== $url_reasons ) : ?>
+						<p><?php
+							$url_parts = array();
+							foreach ( $url_reasons as $url_reason_row ) {
+								$url_prefix = 'search' === (string) ( $url_reason_row['evidence'] ?? '' )
+									? __( '网址打不开，依据搜索线索判定', 'wink-gatekeeper' )
+									: '';
+								$url_parts[] = sprintf(
+									'%2$s「%1$s」%3$d 条',
+									mb_substr( (string) ( $url_reason_row['reason'] ?? '' ), 0, 40 ),
+									'' !== $url_prefix ? '【' . $url_prefix . '】' : '',
+									(int) ( $url_reason_row['n'] ?? 0 )
+								);
+							}
+							echo esc_html( implode( ' · ', $url_parts ) ); // XSS 红线：单次转义收口。
+						?></p>
+					<?php else : ?>
+						<p class="wk-muted"><?php esc_html_e( '暂无命中', 'wink-gatekeeper' ); ?></p>
+					<?php endif; ?>
+				</details>
+				<?php
 				/* 按网站归堆表随报告迁址（原 Tab⑥ 报告卡内 U5 批节——「重新核查此站」
 				 * 站长举报误判入口保留，nw §4.3）。 */
 				$host_rows = $backlog_worker->host_aggregates();
