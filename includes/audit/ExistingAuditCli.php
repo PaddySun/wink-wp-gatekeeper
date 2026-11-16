@@ -50,8 +50,9 @@ final class ExistingAuditCli {
 		switch ( $verb ) {
 			case 'start':
 				try {
-					$total = ExistingAuditWorker::count_unaudited();
-					$p     = $worker->start( $total );
+					// 【M6·批C·C-1】宇宙快照化：发起时固化 ID 清单（F1「23/22」修复）。
+					$universe = ExistingAuditWorker::unaudited_universe_ids();
+					$p        = $worker->start( count( $universe ), $universe );
 					self::schedule_tick();
 					\WP_CLI::success( "任务已建立：共 {$p['total']} 条，服务商 {$p['driver']}，单轮 ≤{$p['batch_size']} 条。运行 `wp wink-gatekeeper audit-existing run` 或等待 cron tick。" );
 				} catch ( \RuntimeException $e ) {

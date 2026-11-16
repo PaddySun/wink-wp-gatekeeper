@@ -277,13 +277,19 @@ final class M5U5UrlAuditTest extends TestCase {
 		self::assertSame( 'spam', $b['action'], '注入尝试不改变 reject 处置（检测面不是判定信号）' );
 	}
 
-	public function test_existing_published_never_auto_disposed_by_default(): void {
-		// nw §5.3：存量已发布评论默认仅标记（机器处置信任代价高）。
+	public function test_existing_disposal_moves_reject_spam_and_unclear_hold(): void {
+		// 【断言翻转·M6 批C·C-2】原钉=nw §5.3「存量已发布评论默认仅标记」（原断言
+		// reject→flag/inconclusive→none）。翻钉原因=用户 2026-11-16 拍板：仅标记在存量
+		// 审计两系统退役（施工图 §3b C-2）——reject→垃圾箱（spam）、review 与
+		// inconclusive（没看清）→待审（hold）、pass→不动；全部可逆（wp_set_comment_status
+		// 可逆终态面+meta disposed_to 溯源）。增量车道 disposal() 矩阵零改动（上方用例原样）。
 		$a = UrlVerdicts::disposal_existing( 'reject', 0.99 );
-		self::assertSame( 'flag', $a['action'], '存量 reject 高置信=仅标记+建议处理' );
+		self::assertSame( 'spam', $a['action'], '存量 reject→垃圾箱（可手动恢复）' );
 		$b = UrlVerdicts::disposal_existing( 'pass', 0.95 );
-		self::assertSame( 'none', $b['action'] );
+		self::assertSame( 'none', $b['action'], 'pass→不动' );
 		$c = UrlVerdicts::disposal_existing( 'inconclusive', 0.0 );
-		self::assertSame( 'none', $c['action'], '未核实计入批量汇总零动作' );
+		self::assertSame( 'hold', $c['action'], '没看清→待审（可手动恢复）' );
+		$d = UrlVerdicts::disposal_existing( 'review', 0.5 );
+		self::assertSame( 'hold', $d['action'], 'review→待审（可手动恢复）' );
 	}
 }

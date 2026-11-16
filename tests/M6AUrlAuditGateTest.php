@@ -389,8 +389,13 @@ namespace WinkGatekeeper\Tests {
 			$out = $worker->run_round();
 
 			self::assertSame( 1, $out['batch_processed'], '显式队列条目经批量车道消费' );
-			self::assertSame( 'batch', $metas[301]['lane'] ?? '', 'meta lane=batch（存量恒 flag 语义面）' );
-			self::assertSame( array(), $executor, '存量车道零自动处置（仅标记哲学）' );
+			self::assertSame( 'batch', $metas[301]['lane'] ?? '', 'meta lane=batch（存量处置语义面）' );
+			// 【断言翻转·M6 批C·C-2】原钉=「存量车道零自动处置（仅标记哲学）」。翻钉原因=
+			// 用户 2026-11-16 拍板（施工图 §3b C-2）：存量 reject→spam、review/inconclusive
+			// →hold（wp_set_comment_status 可逆终态面）——本用例 fetch 失败族=inconclusive
+			// →hold（没看清进待审）。
+			self::assertSame( array( array( 301, 'hold' ) ), $executor, '存量 inconclusive（没看清）→待审（可手动恢复）' );
+			self::assertSame( 'hold', $metas[301]['disposed_to'] ?? '', 'meta disposed_to=hold（处置溯源新字段）' );
 		}
 
 		/* ===============================================================

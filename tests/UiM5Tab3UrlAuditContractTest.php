@@ -107,9 +107,13 @@ final class UiM5Tab3UrlAuditContractTest extends TestCase {
 	}
 
 	public function test_report_host_aggregate_section(): void {
-		$card = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_stats_existing_audit_card' );
-		self::assertStringContainsString( 'wk-existing-host-table', $card, '按网站归堆表锚（U5 补位）' );
-		self::assertStringContainsString( '重新核查此站', $card, 'host 级清缓存站长入口（nw §4.3）' );
+		// 【断言翻转·M6 批C·C-3】原钉=按网站归堆表在 Tab⑥ 报告卡
+		// （render_stats_existing_audit_card）内。翻钉原因=用户 2026-11-16 反馈（施工图
+		// §3b C-3）：Tab⑥ 报告卡退役迁 Tab⑦——host 表随报告迁入 Tab⑦ 网址核查报告卡
+		// （details 折叠；「重新核查此站」站长举报误判入口保留，nw §4.3）。
+		$tools = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
+		self::assertStringContainsString( 'wk-tools-url-audit-hosts', $tools, '按网站归堆表锚（随报告迁 Tab⑦）' );
+		self::assertStringContainsString( '重新核查此站', $tools, 'host 级清缓存站长入口（nw §4.3）' );
 	}
 
 	/* ===================================================================

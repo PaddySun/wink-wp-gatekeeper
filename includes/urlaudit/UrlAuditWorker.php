@@ -18,9 +18,12 @@
  * 改 Tab⑦ 显式动作「开始存量网址核查」一次性入队（OPTION_BATCH_QUEUE FIFO），配额
  * 50/日+暂停黄条语义照旧（D6 分工：操作卡 Tab⑦/报告卡 Tab⑥）。
  *
- * 仅标记哲学：默认 conservative profile 零处置（评论状态不动）；均衡/激进档按
- * UrlVerdicts::disposal 执行（auto_url_reject meta 可一键批量撤销）；存量已发布评论
- * 恒 flag（nw §5.3——零自动处置，UrlVerdicts::disposal_existing）。
+ * 处置哲学：增量车道默认 conservative profile 零处置（评论状态不动）；均衡/激进档按
+ * UrlVerdicts::disposal 执行（auto_url_reject meta 可一键批量撤销）。存量车道
+ * 【M6·批C·C-2】（用户 2026-11-16 拍板——原 nw §5.3「仅标记」退役）：reject→垃圾箱
+ * （spam）、review 与 inconclusive（没看清）→待审（hold）、pass→不动；全部走
+ * wp_set_comment_status 可逆终态面（垃圾箱可一键恢复、待审可批准），处置结果落 meta
+ * disposed_to（spam|hold|none）溯源。宇宙 approved-only（C-1）天然规避触碰垃圾/待审。
  *
  * @package WinkGatekeeper\UrlAudit
  */
@@ -66,6 +69,14 @@ final class UrlAuditWorker {
 	 * 双闸）； pacing 走 batch_quota 50/日（暂停黄条语义照旧）。
 	 */
 	public const OPTION_BATCH_QUEUE = 'wink_gatekeeper_url_audit_batch_queue';
+
+	/**
+	 * 【M6·批C·C-3】存量网址核查运行记录 option（非 settings 树）：{started_at:int,
+	 * ids:int[], enqueued:int}——入队时建/归并（上轮已完成则覆盖）；报告渲染时由
+	 * 清单 meta 反查统计（起止时间+口径三行+残留），tick 零写（最小方案——施工图
+	 * §3b C-3「tick 消费更新或完成后一次性由 meta 反查」取后者）。
+	 */
+	public const OPTION_BACKLOG_RECORD = 'wink_gatekeeper_url_audit_backlog_record';
 
 	/**
 	 * 单轮处理上限（nw §2.5-6：每轮 ≤25 URL 或 ≤4 分钟——与存量审核同闸）。
@@ -363,9 +374,12 @@ final class UrlAuditWorker {
 		);
 
 		if ( 'batch' === $lane ) {
-			$existing_disposal = UrlVerdicts::disposal_existing( $judgement['verdict'], (float) $judgement['confidence'] );
-			$meta['action']    = $existing_disposal['action'];
-			$meta['note']      = $existing_disposal['note'];
+			// 【M6·批C·C-2】存量处置（用户 2026-11-16 拍板——「仅标记」退役）：reject→
+			// 垃圾箱、review/inconclusive→待审、pass→不动；可逆终态面+disposed_to 溯源。
+			$existing_disposal   = UrlVerdicts::disposal_existing( $judgement['verdict'], (float) $judgement['confidence'] );
+			$meta['action']      = $existing_disposal['action'];
+			$meta['note']        = $existing_disposal['note'];
+			$meta['disposed_to'] = in_array( $existing_disposal['action'], array( 'spam', 'hold' ), true ) ? $existing_disposal['action'] : 'none';
 		} else {
 			$disposal = UrlVerdicts::disposal(
 				$judgement['verdict'],
@@ -379,6 +393,8 @@ final class UrlAuditWorker {
 				$meta['auto_url_reject'] = true;
 				$meta['undo']            = true; // 可一键批量撤销（审计 trail 撤销落事件）。
 			}
+			// 增量车道处置矩阵零改动（C-2 红线）；disposed_to 只记录实际处置去向。
+			$meta['disposed_to'] = ! empty( $disposal['auto_url_reject'] ) ? 'spam' : 'none';
 		}
 
 		$meta_writer( $comment_id, $meta );
@@ -386,6 +402,12 @@ final class UrlAuditWorker {
 		// 自动标垃圾执行（均衡/激进档高置信——wp_set_comment_status 'spam' 可逆终态）。
 		if ( 'incr' === $lane && ( $meta['action'] ?? '' ) === 'spam' && ! empty( $meta['auto_url_reject'] ) ) {
 			$executor( $comment_id, 'spam' );
+		}
+
+		// 【M6·批C·C-2】存量车道处置执行（spam|hold 可逆终态面——判违规进垃圾箱、
+		// 没看清进待审，都能手动恢复；宇宙 approved-only 天然规避触碰垃圾/待审）。
+		if ( 'batch' === $lane && in_array( (string) ( $meta['disposed_to'] ?? 'none' ), array( 'spam', 'hold' ), true ) ) {
+			$executor( $comment_id, (string) $meta['disposed_to'] );
 		}
 	}
 
@@ -647,6 +669,10 @@ final class UrlAuditWorker {
 	 * 返回本次**新增**条数（0=无增量）。消费 pacing 走批量车道 batch_quota 50/日
 	 * （配额闸/暂停语义照旧——本函数零外呼零判定）。
 	 *
+	 * 【M6·批C·C-3】入队即建运行记录 option（started_at+ids+enqueued）：上轮未完成→
+	 * 归并续跑（started_at 保留）；上轮已完成（清单全落判定 meta）→新一轮覆盖。
+	 * 报告渲染由 meta 反查统计（backlog_report_data——tick 零写，最小方案）。
+	 *
 	 * @return int 新增入队数。
 	 */
 	public function enqueue_batch_backlog(): int {
@@ -655,22 +681,154 @@ final class UrlAuditWorker {
 		$queue  = $this->batch_queue_read();
 		$merged = array_map( 'intval', $queue );
 		$added  = 0;
+		$new_ids = array();
 		foreach ( array_map( 'intval', $ids ) as $id ) {
 			if ( $id > 0 && ! in_array( $id, $merged, true ) ) {
 				$merged[] = $id;
+				$new_ids[] = $id;
 				++$added;
 			}
 		}
 		if ( $added > 0 ) {
 			$this->batch_queue_write( $merged );
+			$this->record_backlog_run( $new_ids );
 		}
 		return $added;
 	}
 
 	/**
-	 * 回捞扫描宇宙（【M6·P1-3】语义与原批量车道 live 查询一致：有 URL 且无判定 meta、
-	 * 评论状态 approved∈{0,1}，升序稳定序——只是从「每 tick 隐式扫描」改为「显式动作
-	 * 一次性入队」，闸与配额自此约束整个回捞量）。
+	 * 【M6·批C·C-3】运行记录落盘（入队侧——上轮未完成归并/已完成覆盖）。
+	 *
+	 * @param int[] $added_ids 本次新增清单 id。
+	 * @return void
+	 */
+	private function record_backlog_run( array $added_ids ): void {
+		$record   = get_option( self::OPTION_BACKLOG_RECORD, array() );
+		$record   = is_array( $record ) ? $record : array();
+		$prev_ids = is_array( $record['ids'] ?? null ) ? array_map( 'intval', $record['ids'] ) : array();
+
+		// 上轮已完成（清单全部落判定 meta——meta 反查口径）→新一轮覆盖；否则归并续跑。
+		if ( array() !== $prev_ids && $this->record_run_finished( $prev_ids ) ) {
+			$prev_ids = array();
+			$record   = array();
+		}
+
+		$ids = array_values( array_unique( array_merge( $prev_ids, array_map( 'intval', $added_ids ) ) ) );
+		update_option( self::OPTION_BACKLOG_RECORD, array(
+			'started_at' => array() !== $prev_ids ? (int) ( $record['started_at'] ?? 0 ) : (int) ( $this->clock )(),
+			'ids'        => $ids,
+			'enqueued'   => count( $ids ),
+		), false );
+	}
+
+	/**
+	 * 【M6·批C·C-3】运行记录完成判定（清单全落判定 meta=完成；空清单视同完成）。
+	 *
+	 * @param int[] $ids 记录清单。
+	 * @return bool
+	 */
+	private function record_run_finished( array $ids ): bool {
+		if ( array() === $ids ) {
+			return true;
+		}
+		$reader = $this->meta_reader ?? array( $this, 'default_meta_reader' );
+		foreach ( $ids as $id ) {
+			$meta = $reader( (int) $id );
+			if ( ! is_array( $meta ) || ! isset( $meta['verdict'] ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 【M6·批C·C-3】报告视图模型（纯函数——三态 empty/running/completed+处置口径
+	 * 三行统计+起止时间+残留；Tab⑦ 渲染消费，单测面）。
+	 *
+	 * 口径=处理口径（用户 2026-11-16 反馈原话：没问题/待审核/垃圾箱）：pass→没问题、
+	 * review+inconclusive→待审核（未核实不下结论）、reject→垃圾箱（已按 C-2 处置，
+	 * 可手动恢复）。完成时间=meta 反查 max(judged_at)；残留=清单内未落判定 meta 数
+	 * （评论本体已删的 gone 计收口不计残留）。
+	 *
+	 * @param array<string, mixed>    $record         运行记录（started_at/ids/enqueued）。
+	 * @param array<int, array>       $metas          清单内已落判定 meta（id=>meta）。
+	 * @param int                     $queue_residual 批量队列残留数（batch_queue_count）。
+	 * @param int[]                   $gone_ids       清单内评论本体已删的 id（收口）。
+	 * @return array{state: string, started_at: int, finished_at: int, enqueued: int, judged: int, remaining: int, queue_residual: int, caliber: array{pass: int, pending: int, spam: int}, gone: int}|array{state: string}
+	 */
+	public static function backlog_report_view( array $record, array $metas, int $queue_residual, array $gone_ids = array() ): array {
+		$ids = is_array( $record['ids'] ?? null ) ? array_map( 'intval', $record['ids'] ) : array();
+		if ( array() === $ids ) {
+			return array( 'state' => 'empty' );
+		}
+		$gone        = array_flip( array_map( 'intval', $gone_ids ) );
+		$caliber     = array( 'pass' => 0, 'pending' => 0, 'spam' => 0 );
+		$judged      = 0;
+		$finished_at = 0;
+		foreach ( $ids as $id ) {
+			if ( isset( $gone[ $id ] ) ) {
+				continue; // 本体已删=收口（不计残留不进口径）。
+			}
+			$meta = $metas[ $id ] ?? null;
+			if ( ! is_array( $meta ) || ! isset( $meta['verdict'] ) ) {
+				continue; // 未落判定=残留。
+			}
+			++$judged;
+			$finished_at = max( $finished_at, (int) ( $meta['judged_at'] ?? 0 ) );
+			$verdict     = (string) $meta['verdict'];
+			if ( 'pass' === $verdict ) {
+				++$caliber['pass'];
+			} elseif ( 'reject' === $verdict ) {
+				++$caliber['spam'];
+			} elseif ( in_array( $verdict, array( 'review', 'inconclusive' ), true ) ) {
+				++$caliber['pending'];
+			}
+		}
+		$remaining = count( $ids ) - $judged - count( $gone_ids );
+		return array(
+			'state'          => ( $remaining > 0 || $queue_residual > 0 ) ? 'running' : 'completed',
+			'started_at'     => (int) ( $record['started_at'] ?? 0 ),
+			'finished_at'    => $finished_at,
+			'enqueued'       => count( $ids ),
+			'judged'         => $judged,
+			'remaining'      => max( 0, $remaining ),
+			'queue_residual' => max( 0, $queue_residual ),
+			'caliber'        => $caliber,
+			'gone'           => count( $gone_ids ),
+		);
+	}
+
+	/**
+	 * 【M6·批C·C-3】报告数据反查（WP 边界——Tab⑦ 渲染消费；meta 反查最小方案，
+	 * tick 零写）：读运行记录 option→逐 id 读 url_audit meta→纯函数视图；未落判定
+	 * 且评论本体已删的 id 计 gone（收口防「永不完成」）。
+	 *
+	 * @return array<string, mixed> backlog_report_view 返回形态。
+	 */
+	public function backlog_report_data(): array {
+		$record = get_option( self::OPTION_BACKLOG_RECORD, array() );
+		$record = is_array( $record ) ? $record : array();
+		$ids    = is_array( $record['ids'] ?? null ) ? array_map( 'intval', $record['ids'] ) : array();
+		$reader = $this->meta_reader ?? array( $this, 'default_meta_reader' );
+		$metas  = array();
+		$gone   = array();
+		foreach ( $ids as $id ) {
+			$meta = $reader( $id );
+			if ( is_array( $meta ) && isset( $meta['verdict'] ) ) {
+				$metas[ $id ] = $meta;
+				continue;
+			}
+			if ( ! get_comment( $id ) ) {
+				$gone[] = $id; // 本体已删=收口。
+			}
+		}
+		return self::backlog_report_view( $record, $metas, $this->batch_queue_count(), $gone );
+	}
+
+	/**
+	 * 回捞扫描宇宙（【M6·P1-3】有 URL 且无判定 meta、升序稳定序——显式动作一次性入队，
+	 * 闸与配额约束整个回捞量。【M6·批C·C-1】approved-only（用户 2026-11-16：不把已经
+	 * 判定为垃圾的翻出来鞭尸）：垃圾与待审不进扫描宇宙。
 	 *
 	 * @return int[]
 	 */
@@ -680,7 +838,7 @@ final class UrlAuditWorker {
 			$wpdb->prepare(
 				"SELECT c.comment_ID FROM {$wpdb->comments} c
 				 LEFT JOIN {$wpdb->commentmeta} m ON m.comment_id = c.comment_ID AND m.meta_key = %s
-				 WHERE m.meta_id IS NULL AND c.comment_approved IN ('0','1')
+				 WHERE m.meta_id IS NULL AND c.comment_approved = '1'
 				 AND c.comment_author_url <> ''
 				 ORDER BY c.comment_ID ASC",
 				self::META_KEY

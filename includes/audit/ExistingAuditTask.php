@@ -5,8 +5,11 @@
  * 定位铁律（newswright §1.1）：审核在后台 worker 跑，**不在管理员请求线程**——Tab⑦ 发起
  * 只建任务（进度快照），抓取/送审全部在 cron/CLI worker 分批执行。
  *
- * 处置策略（定稿 §3 拍板 0.5）：存量场景默认「仅标记」且基础段**唯一默认**——
- * verdict/reason/hits 落 comment_meta，不动评论状态；自动处置开关留后续批（F33）。
+ * 处置策略（【M6·批C·C-2】2026-11-16 用户拍板——「仅标记唯一默认」在存量审计两系统
+ * 退役）：reject→垃圾箱（spam）、review→待审（hold）、pass→不动、gone→仅记 meta；
+ * 全部走 wp_set_comment_status 可逆终态面（垃圾箱可一键恢复、待审可批准），处置结果
+ * 落 meta 新字段 disposed_to（spam|hold|none）可溯源。原定稿 §3 拍板 0.5「仅标记」
+ * 自此退役（增量车道处置矩阵不动）。
  *
  * 送审串（定稿 §3）：单条「昵称+正文」——邮箱剔除纪律沿用（签名级：build_content
  * 不收 email 形参）；网站 URL 不入内容送审串（URL 是 U5 的事）。
@@ -65,6 +68,27 @@ final class ExistingAuditTask {
 	public const VERDICT_KEYS = array( 'pass', 'reject', 'review', 'gone' );
 
 	/**
+	 * 处置可逆终态闭集（【M6·批C·C-2】——wp_set_comment_status 可逆面：垃圾箱可一键
+	 * 恢复、待审可批准；none=零处置）。
+	 */
+	public const DISPOSAL_KEYS = array( 'spam', 'hold', 'none' );
+
+	/**
+	 * verdict→存量处置映射（【M6·批C·C-2】用户 2026-11-16 拍板）：判违规进垃圾箱、
+	 * 没看清进待审（都能手动恢复）；pass/gone/error/未知→不动（fail-safe 零处置）。
+	 *
+	 * @param string $verdict pass|reject|review|gone|error|其余未知值。
+	 * @return string spam|hold|none（DISPOSAL_KEYS 闭集内）。
+	 */
+	public static function disposal_for_verdict( string $verdict ): string {
+		return match ( $verdict ) {
+			'reject' => 'spam',
+			'review' => 'hold',
+			default  => 'none', // pass/gone/error/未知——零处置（只放大严）。
+		};
+	}
+
+	/**
 	 * 发起时建进度快照（K5 口径：总数=发起时快照，新增评论不追进本轮）。
 	 *
 	 * @param int    $total     发起时全量快照数。
@@ -115,22 +139,25 @@ final class ExistingAuditTask {
 	}
 
 	/**
-	 * meta 记录形态（verdict/reason/hits/driver/audited_at——定稿 §3 幂等键内容）。
+	 * meta 记录形态（verdict/reason/hits/driver/audited_at——定稿 §3 幂等键内容；
+	 * 【M6·批C·C-2】+ disposed_to 处置溯源）。
 	 *
-	 * @param string   $verdict   pass|reject|review|error。
-	 * @param string   $reason    驱动 reason（展示面按不可信数据转义——渲染层职责）。
-	 * @param string[] $hits      命中键（驱动原值）。
-	 * @param string   $driver_id 驱动 id。
+	 * @param string   $verdict    pass|reject|review|error。
+	 * @param string   $reason     驱动 reason（展示面按不可信数据转义——渲染层职责）。
+	 * @param string[] $hits       命中键（驱动原值）。
+	 * @param string   $driver_id  驱动 id。
 	 * @param int      $audited_at 审核时刻。
+	 * @param string   $disposed_to 处置结果 spam|hold|none（缺省 none——gone 仅记 meta）。
 	 * @return array<string, mixed>
 	 */
-	public static function meta_record( string $verdict, string $reason, array $hits, string $driver_id, int $audited_at ): array {
+	public static function meta_record( string $verdict, string $reason, array $hits, string $driver_id, int $audited_at, string $disposed_to = 'none' ): array {
 		return array(
-			'verdict'    => $verdict,
-			'reason'     => $reason,
-			'hits'       => $hits,
-			'driver'     => $driver_id,
-			'audited_at' => $audited_at,
+			'verdict'     => $verdict,
+			'reason'      => $reason,
+			'hits'        => $hits,
+			'driver'      => $driver_id,
+			'audited_at'  => $audited_at,
+			'disposed_to' => in_array( $disposed_to, self::DISPOSAL_KEYS, true ) ? $disposed_to : 'none',
 		);
 	}
 
@@ -246,5 +273,53 @@ final class ExistingAuditTask {
 		$progress['finished_at']  = $at;
 		unset( $progress['pause_reason'], $progress['quota_paused_at'], $progress['quota_notified'] );
 		return $progress;
+	}
+
+	/**
+	 * 报告视图模型（【M6·批C·C-3】Tab⑦ 存量审核报告——wk-overview-report 同款形态的
+	 * 纯函数面：三态（empty/running/completed）+ 处置口径三行统计对账）。
+	 *
+	 * 口径=处理口径（用户 2026-11-16 反馈原话）：没问题（pass）/ 待审核（review——未
+	 * 核实不下结论）/ 垃圾箱（reject——已按 C-2 处置进垃圾箱，可手动恢复）；gone 与
+	 * error 作灰字注脚不入三行。
+	 *
+	 * @param array<string, mixed>        $progress 进度 option（空数组=idle）。
+	 * @param array<string, int>|null     $counts   verdict 计数（report_data()['counts'] 形态）。
+	 * @return array{state: string, driver: string, started_at: int, finished_at: int, processed: int, total: int, caliber: array{pass: int, pending: int, spam: int, gone: int, error: int}}
+	 */
+	public static function report_view( array $progress, ?array $counts = null ): array {
+		$counts  = is_array( $counts ) ? $counts : array();
+		$status  = (string) ( $progress['status'] ?? 'idle' );
+		$empty_p = array() === $progress || ( 'idle' === $status && 0 === (int) ( $progress['processed'] ?? 0 ) && 0 === (int) ( $progress['total'] ?? 0 ) );
+		$has_any = 0 < array_sum( array_map( 'intval', array( $counts['pass'] ?? 0, $counts['reject'] ?? 0, $counts['review'] ?? 0, $counts['gone'] ?? 0, $counts['error'] ?? 0 ) ) );
+
+		if ( $empty_p && ! $has_any ) {
+			return array(
+				'state'       => 'empty',
+				'driver'      => '',
+				'started_at'  => 0,
+				'finished_at' => 0,
+				'processed'   => 0,
+				'total'       => 0,
+				'caliber'     => array( 'pass' => 0, 'pending' => 0, 'spam' => 0, 'gone' => 0, 'error' => 0 ),
+			);
+		}
+
+		$state = 'completed' === $status || ( 0 < (int) ( $progress['finished_at'] ?? 0 ) ) ? 'completed' : 'running';
+		return array(
+			'state'       => $state,
+			'driver'      => (string) ( $progress['driver'] ?? '' ),
+			'started_at'  => (int) ( $progress['started_at'] ?? 0 ),
+			'finished_at' => (int) ( $progress['finished_at'] ?? 0 ),
+			'processed'   => (int) ( $progress['processed'] ?? 0 ),
+			'total'       => (int) ( $progress['total'] ?? 0 ),
+			'caliber'     => array(
+				'pass'    => (int) ( $counts['pass'] ?? 0 ),
+				'pending' => (int) ( $counts['review'] ?? 0 ),
+				'spam'    => (int) ( $counts['reject'] ?? 0 ),
+				'gone'    => (int) ( $counts['gone'] ?? 0 ),
+				'error'   => (int) ( $counts['error'] ?? 0 ),
+			),
+		);
 	}
 }

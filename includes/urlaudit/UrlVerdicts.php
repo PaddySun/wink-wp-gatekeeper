@@ -74,19 +74,22 @@ final class UrlVerdicts {
 	}
 
 	/**
-	 * 存量批量处置（已发布评论——nw §5.3：默认仅标记，机器处置信任代价高）。
+	 * 存量批量处置（【M6·批C·C-2】用户 2026-11-16 拍板——原 nw §5.3「仅标记」退役）：
+	 * reject→垃圾箱（spam；U4 判定管线 conf≥min_confidence 才出 reject=已含置信门）、
+	 * review 与 inconclusive（没看清）→待审（hold）、pass→不动；全部 wp_set_comment_status
+	 * 可逆终态面（垃圾箱可一键恢复、待审可批准），处置结果落 meta disposed_to 溯源。
 	 *
-	 * @param string $verdict   判定键。
+	 * @param string $verdict    判定键。
 	 * @param float  $confidence 置信度。
 	 * @return array{action: string, note: string}
 	 */
 	public static function disposal_existing( string $verdict, float $confidence ): array {
 		if ( 'reject' === $verdict ) {
-			return array( 'action' => 'flag', 'note' => '仅标记+建议处理（可批量操作）' );
+			return array( 'action' => 'spam', 'note' => '判违规——进垃圾箱（可手动恢复）' );
 		}
-		if ( 'inconclusive' === $verdict ) {
-			return array( 'action' => 'none', 'note' => '计入「未能核实」批量汇总' );
+		if ( 'inconclusive' === $verdict || 'review' === $verdict ) {
+			return array( 'action' => 'hold', 'note' => '没看清/存疑——进待审（可手动恢复）' );
 		}
-		return array( 'action' => 'none', 'note' => '无动作（可选已核无问题计数）' );
+		return array( 'action' => 'none', 'note' => '没问题——不动（可选已核无问题计数）' );
 	}
 }

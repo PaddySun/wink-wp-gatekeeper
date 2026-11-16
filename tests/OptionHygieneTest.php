@@ -49,6 +49,7 @@ final class OptionHygieneTest extends TestCase {
 		// ExistingAuditTask 进度。【M6·批A·P1-3】UrlAuditWorker 批量回捞队列扩钉
 		// （新 option 落位即入卸载清单——同族卫生纪律，非断言翻转）。
 		// 【M6·批B·B-5】UrlAuditWorker 配额暂停边沿标记扩钉（同上，非断言翻转）。
+		// 【M6·批C·C-3】UrlAuditWorker 存量网址核查运行记录扩钉（同上，非断言翻转）。
 		$expected = array_values( array_unique( array(
 			SettingsPage::OPTION_NAME,
 			TestMode::OPTION_NAME, // 与 SettingsPage 同值——同键去重后仍须在删除清单。
@@ -59,6 +60,7 @@ final class OptionHygieneTest extends TestCase {
 			UrlAuditWorker::OPTION_INCR_QUEUE,
 			UrlAuditWorker::OPTION_BATCH_QUEUE,
 			UrlAuditWorker::OPTION_PAUSE_EDGE,
+			UrlAuditWorker::OPTION_BACKLOG_RECORD,
 			ExistingAuditTask::OPTION_PROGRESS,
 		) ) );
 		sort( $expected );
@@ -69,14 +71,15 @@ final class OptionHygieneTest extends TestCase {
 		$this->assertContains( UrlAuditWorker::OPTION_INCR_QUEUE, $deleted, 'wink_gatekeeper_url_audit_incr_queue（M5 网址核查增量队列）必须在卸载清单' );
 		$this->assertContains( UrlAuditWorker::OPTION_BATCH_QUEUE, $deleted, 'wink_gatekeeper_url_audit_batch_queue（M6 批A 网址核查批量回捞队列）必须在卸载清单' );
 		$this->assertContains( UrlAuditWorker::OPTION_PAUSE_EDGE, $deleted, 'wink_gatekeeper_url_audit_pause_edge（M6 批B 暂停边沿标记）必须在卸载清单' );
+		$this->assertContains( UrlAuditWorker::OPTION_BACKLOG_RECORD, $deleted, 'wink_gatekeeper_url_audit_backlog_record（M6 批C 存量网址核查运行记录）必须在卸载清单' );
 		$this->assertContains( ExistingAuditTask::OPTION_PROGRESS, $deleted, 'wink_gatekeeper_audit_existing_progress（M5 存量审核进度）必须在卸载清单' );
 	}
 
 	public function test_uninstall_header_documents_all_options(): void {
 		$src = self::uninstall_src();
 
-		// 【M6·批B·B-5】8→9（暂停边沿标记补录——注记原因=新增 option 落位，非语义翻转）。
-		$this->assertStringContainsString( '9 个 option', $src, '头注清单与实际删除数同步（4→7·M5 三 option 补录；7→8·M6 批A 回捞队列补录；8→9·M6 批B 暂停边沿标记补录）' );
+		// 【M6·批C·C-3】9→10（存量网址核查运行记录补录——注记原因=新增 option 落位，非语义翻转）。
+		$this->assertStringContainsString( '10 个 option', $src, '头注清单与实际删除数同步（4→7·M5 三 option 补录；7→8·M6 批A 回捞队列补录；8→9·M6 批B 暂停边沿标记补录；9→10·M6 批C 运行记录补录）' );
 		$this->assertStringContainsString( DriverHealth::OPTION_NAME, $src, '头注点名 health 键（R-AK §D P0-1：头注自己写的清单就是承诺）' );
 		$this->assertStringContainsString( LlmUsage::OPTION_NAME, $src, '头注点名 llm_usage 键（M5·审计 C2）' );
 		$this->assertStringContainsString( UrlAuditWorker::OPTION_INCR_QUEUE, $src, '头注点名 url_audit_incr_queue 键（M5·审计 C2）' );

@@ -3,7 +3,9 @@
  * M5 U3 批 · 存量审核 Worker 编排测试（注入桩，零 WP 依赖）。
  *
  * 覆盖：分批双闸（25 条/4 分钟先到为准）/配额暂停续跑边沿一次/幂等跳过/已删评论 gone/
- * 仅标记不变式（零处置依赖）/送审串邮箱剔除签名级/驱动缺位暂停/断点续跑。
+ * 处置契约（【M6·批C·C-2】翻转原「仅标记不变式」钉——用户 2026-11-16 拍板）/送审串
+ * 邮箱剔除签名级/驱动缺位暂停/断点续跑。
+ * 快照语义（【M6·批C·C-1】）行为面由 M6CExistingAuditReformTest 承载。
  *
  * @package WinkGatekeeper\Tests
  */
@@ -35,6 +37,7 @@ final class M5U3WorkerTest extends TestCase {
 			'now'          => $opts['now'] ?? 100000.0,
 			'jitter_total' => 0.0,
 			'checked'      => array(), // [ [id, content, meta], ... ]
+			'disposals'    => array(), // 【M6·批C·C-2】处置捕获（编排语义测试不触 WP 默认通道）。
 		) );
 
 		$n = (int) ( $opts['count'] ?? 0 );
@@ -127,6 +130,12 @@ final class M5U3WorkerTest extends TestCase {
 			},
 			static function ( string $id ) use ( &$state ) {
 				return $state['health'];
+			},
+			// 【M6·批C·C-2】处置执行注入（捕获面——默认 wp_set_comment_status 通道在
+			// 单测零 WP 依赖下不可触达；行为断言见 M6CExistingAuditReformTest）。
+			static function ( int $id, string $action ) use ( &$state ): bool {
+				$state['disposals'][] = array( $id, $action );
+				return true;
 			}
 		);
 		return array( $worker, $state ); // ArrayObject——测试侧 $s['…']=… 直接作用于桩状态。
@@ -262,13 +271,18 @@ final class M5U3WorkerTest extends TestCase {
 		}
 	}
 
-	public function test_worker_has_no_disposal_dependency(): void {
-		// 仅标记不变式：Worker 源码零处置依赖（wp_set_comment_status/spam 语义零出现）。
+	public function test_worker_disposal_contract(): void {
+		// 【断言翻转·M6 批C·C-2】原钉=「仅标记不变式」源码零处置依赖（wp_set_comment_status/
+		// 'spam' 零出现——定稿 §3 拍板 0.5）。翻钉原因=用户 2026-11-16 拍板：仅标记在存量
+		// 审计两系统退役（施工图 §3b C-2）——reject→spam、review→hold（wp_set_comment_status
+		// 可逆终态面）， disposed_to 落 meta；增量车道处置矩阵不动。
 		$src = file_get_contents( __DIR__ . '/../includes/audit/ExistingAuditWorker.php' );
 		self::assertIsString( $src );
-		self::assertStringNotContainsString( 'wp_set_comment_status', $src, '存量基础段零自动处置（定稿 §3 拍板 0.5）' );
-		self::assertStringNotContainsString( "'spam'", $src, '零自动标垃圾' );
-		self::assertStringNotContainsString( 'wp_trash_comment', $src, '零自动删除' );
+		self::assertStringContainsString( 'wp_set_comment_status', $src, '处置可逆终态面在场（spam|hold）' );
+		self::assertStringContainsString( 'disposed_to', $src, '处置结果落 meta 新字段' );
+		self::assertStringContainsString( 'disposal_for_verdict', $src, '处置矩阵纯函数收口（verdict→spam|hold|none）' );
+		self::assertStringNotContainsString( 'wp_trash_comment', $src, '零自动删除（退役只到可逆终态为止——红线不放宽）' );
+		self::assertStringNotContainsString( 'wp_delete_comment', $src, '零物理删除' );
 	}
 
 	/* ===================================================================

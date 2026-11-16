@@ -1,14 +1,24 @@
 <?php
 /**
- * U3 存量审核 Worker（分批执行编排，2026-11-14）。
+ * U3 存量审核 Worker（分批执行编排，2026-11-14；【M6·批C】2026-11-16 重构）。
  *
  * 全部 WP 交互经构造器可注入闭包（单测零 WP 依赖；生产装配走 defaults 工厂——
- * Bootstrap::assemble_audit_worker）。**仅标记不变式**：本类零处置依赖（不触碰任何
- * 评论状态变更/删除/分类面——定稿 §3 拍板 0.5「仅标记为唯一默认」，
- * M5U3WorkerTest 源码级钉死）。
+ * Bootstrap 的 HOOK_TICK 闭包/SettingsPage::audit_worker）。
+ *
+ * 【M6·批C·C-2】处置语义（用户 2026-11-16 拍板——原「仅标记不变式」退役）：本类
+ * 在判定落 meta 后按 ExistingAuditTask::disposal_for_verdict 执行处置——reject→垃圾箱
+ * （wp_set_comment_status 'spam'）、review→待审（'hold'）、pass→不动、gone→仅记 meta；
+ * 处置结果落 meta disposed_to（spam|hold|none 可逆终态闭集）；处置执行器可注入
+ * （default=wp_set_comment_status）。增量车道处置矩阵零改动（C-2 红线）。
+ *
+ * 【M6·批C·C-1】宇宙快照语义（F1「23/22」修复）：发起时固化宇宙 ID 清单进 progress
+ * option（start 第二参）；worker 只处理清单内 ID；processed 恒 ≤ total；完成判据=
+ * 清单全部落 meta（含 gone）。旧 progress（无 ids 键）不迁移——动态探测路径原样保留，
+ * 随下次运行自然归位。宇宙查询 approved-only（comment_approved='1'）：垃圾与待审
+ * 不翻出来重查。
  *
  * 分批语义（定稿 §3 + nw §2.5/§4.4）：单轮 ≤25 条或 ≤4 分钟墙钟先到为准；批间抖动
- * 0.5–2s；配额达限=暂停+边沿通知一次（Tab⑥ 黄条+Tab① 通栏消费 quota_notified），
+ * 0.5–2s；配额达限=暂停+边沿通知一次（Tab① 黄条+Tab① 通栏消费 quota_notified），
  * 配额恢复自动续跑（nw 次日自动恢复语义）；幂等按 comment_meta 跳过——断点续跑天然成立。
  *
  * @package WinkGatekeeper\Audit
@@ -60,6 +70,9 @@ final class ExistingAuditWorker {
 	/** @var callable fn(string $driver_id): string|null 健康停转态（null=正常）。 */
 	private $health_checker;
 
+	/** @var callable fn(int $id, string $action): bool 处置执行（【M6·批C·C-2】wp_set_comment_status 可逆终态面）。 */
+	private $disposal_executor;
+
 	/**
 	 * @param array<string, mixed> $settings 设置树。
 	 * @param callable|null        $storage_get     进度读取（默认 get_option）。
@@ -73,6 +86,7 @@ final class ExistingAuditWorker {
 	 * @param callable|null        $sleeper         休眠（默认 usleep 秒转微秒）。
 	 * @param callable|null        $quota_checker   配额判定（默认 Usage::quota_reached）。
 	 * @param callable|null        $health_checker  健康态（默认 DriverHealth::state_today）。
+	 * @param callable|null        $disposal_executor 处置执行（【M6·批C·C-2】默认 wp_set_comment_status；spam|hold 可逆终态面）。
 	 */
 	public function __construct(
 		array $settings,
@@ -86,7 +100,8 @@ final class ExistingAuditWorker {
 		?callable $clock = null,
 		?callable $sleeper = null,
 		?callable $quota_checker = null,
-		?callable $health_checker = null
+		?callable $health_checker = null,
+		?callable $disposal_executor = null
 	) {
 		$this->settings       = $settings;
 		$this->storage_get    = $storage_get ?? static fn() => get_option( ExistingAuditTask::OPTION_PROGRESS, false );
@@ -107,16 +122,26 @@ final class ExistingAuditWorker {
 			return $quota > 0 && \WinkGatekeeper\Stats\Usage::quota_reached( \WinkGatekeeper\Stats\Usage::get(), $driver_id, $quota );
 		};
 		$this->health_checker = $health_checker ?? static fn( string $driver_id ): ?string => \WinkGatekeeper\Stats\DriverHealth::state_today( $driver_id );
+		// 【M6·批C·C-2】处置可逆终态面（与 UrlAuditWorker::default_disposal_executor 同形态）。
+		$this->disposal_executor = $disposal_executor ?? static function ( int $id, string $action ): bool {
+			return (bool) wp_set_comment_status( $id, $action );
+		};
 	}
 
 	/**
 	 * 发起任务（Tab⑦「开始体检」/CLI start——只建任务快照不送审）。
 	 *
-	 * @param int $total 发起时全量快照数（K5）。
+	 * 【M6·批C·C-1】宇宙快照化（F1「23/22」修复）：$universe_ids 非空时固化 ID 清单
+	 * 进 progress option（K5 快照意图的真实现）——worker 只处理清单内 ID，processed
+	 * 恒 ≤ total（total=清单数，快照权威）；null 时沿用旧形态（单测桩/历史兼容），
+	 * 生产调用方（SettingsPage/CLI）必须传快照清单。
+	 *
+	 * @param int     $total        发起时全量快照数（K5；$universe_ids 非空时以 count 清单为准）。
+	 * @param int[]|null $universe_ids 发起时宇宙 ID 快照（unaudited_universe_ids——升序）。
 	 * @return array<string, mixed> 进度。
 	 * @throws \RuntimeException 任务已在运行。
 	 */
-	public function start( int $total ): array {
+	public function start( int $total, ?array $universe_ids = null ): array {
 		$progress = ( $this->storage_get )();
 		if ( is_array( $progress ) && 'running' === ( $progress['status'] ?? '' ) ) {
 			throw new \RuntimeException( 'audit task already running' );
@@ -135,6 +160,11 @@ final class ExistingAuditWorker {
 		$driver_id = is_array( $driver ) ? (string) $driver['id'] : '';
 
 		$progress = ExistingAuditTask::new_progress( $total, $driver_id, ExistingAuditTask::BATCH_MAX_ITEMS, (int) ( $this->clock )() );
+		if ( null !== $universe_ids ) {
+			$ids               = array_values( array_unique( array_filter( array_map( 'intval', $universe_ids ), static fn( $v ): bool => (int) $v > 0 ) ) );
+			$progress['ids']   = $ids;
+			$progress['total'] = count( $ids ); // 快照权威——processed 恒 ≤ total。
+		}
 		( $this->storage_put )( $progress );
 		return $progress;
 	}
@@ -189,26 +219,50 @@ final class ExistingAuditWorker {
 
 		$round_start = ( $this->clock )();
 		$processed   = 0;
-		$exhausted   = false; // 探测面空=待审余量跑完（完成判据之二）。
+		$exhausted   = false; // 探测面/快照清单跑空=完成判据之一。
 		$comment_reader = $this->comment_reader ?? array( $this, 'default_comment_reader' );
 		$meta_reader    = $this->meta_reader ?? array( $this, 'default_meta_reader' );
 		$meta_writer    = $this->meta_writer ?? array( $this, 'default_meta_writer' );
 		$ids_provider   = $this->unaudited_ids ?? array( $this, 'default_unaudited_ids' );
+		$executor       = $this->disposal_executor;
+
+		// 【M6·批C·C-1】宇宙快照（发起时固化清单）优先；旧 progress（无 ids 键）不迁移
+		// ——动态探测路径原样保留（自然归位）。
+		$snapshot_ids = is_array( $progress['ids'] ?? null ) ? array_map( 'intval', $progress['ids'] ) : null;
+		$cursor       = 0;
 
 		while ( $processed < ExistingAuditTask::BATCH_MAX_ITEMS
 			&& ! ExistingAuditTask::deadline_reached( $round_start, ( $this->clock )() ) ) {
 
-			$ids = $ids_provider( 1 );
-			if ( array() === $ids ) {
-				$exhausted = true;
-				break; // 全部审完。
-			}
-			$id = (int) $ids[0];
+			if ( null !== $snapshot_ids ) {
+				// 快照语义：只处理清单内 ID；已落 meta 的（幂等）跳过。
+				$id = 0;
+				while ( $cursor < count( $snapshot_ids ) ) {
+					$candidate = (int) $snapshot_ids[ $cursor ];
+					++$cursor;
+					if ( ExistingAuditTask::should_process( $meta_reader( $candidate ) ) ) {
+						$id = $candidate;
+						break;
+					}
+				}
+				if ( 0 === $id ) {
+					$exhausted = true;
+					break; // 清单全落 meta（含 gone）——权威完成态。
+				}
+			} else {
+				// 旧形态（无快照清单）：动态探测（每轮重选未标记——历史行为）。
+				$ids = $ids_provider( 1 );
+				if ( array() === $ids ) {
+					$exhausted = true;
+					break; // 全部审完。
+				}
+				$id = (int) $ids[0];
 
-			// 幂等（查询面已排除 meta 在者——双保险读时再判）。
-			$meta = $meta_reader( $id );
-			if ( ! ExistingAuditTask::should_process( $meta ) ) {
-				continue;
+				// 幂等（查询面已排除 meta 在者——双保险读时再判）。
+				$meta = $meta_reader( $id );
+				if ( ! ExistingAuditTask::should_process( $meta ) ) {
+					continue;
+				}
 			}
 
 			$comment = $comment_reader( $id );
@@ -230,6 +284,13 @@ final class ExistingAuditWorker {
 				)
 			);
 
+			// 【M6·批C·C-2】处置（可逆终态面——用户 2026-11-16 拍板）：reject→垃圾箱、
+			// review→待审、pass/gone→不动；disposed_to 落 meta 溯源。
+			$disposed_to = ExistingAuditTask::disposal_for_verdict( $verdict->verdict() );
+			if ( 'none' !== $disposed_to ) {
+				$executor( $id, $disposed_to ); // spam|hold——wp_set_comment_status 可逆面。
+			}
+
 			$meta_writer(
 				$id,
 				ExistingAuditTask::meta_record(
@@ -237,7 +298,8 @@ final class ExistingAuditWorker {
 					$verdict->reason(),
 					$verdict->hits(),
 					$driver['id'],
-					(int) ( $this->clock )()
+					(int) ( $this->clock )(),
+					$disposed_to
 				)
 			);
 
@@ -258,8 +320,8 @@ final class ExistingAuditWorker {
 			}
 		}
 
-		// 完成判据：探测面跑空（exhausted）或计数达标（幂等预存行使 processed 恒小于
-		// total 快照——探测面空是权威完成态）。
+		// 完成判据：探测面/快照清单跑空（exhausted）或计数达标（幂等预存行使 processed
+		// 恒小于 total 快照——探测面空是权威完成态）。
 		if ( $exhausted || ExistingAuditTask::is_finished( $progress ) ) {
 			$progress = ExistingAuditTask::mark_completed( $progress, (int) ( $this->clock )() );
 		}
@@ -448,7 +510,10 @@ final class ExistingAuditWorker {
 	}
 
 	/**
-	 * 未审核 id 探测（$wpdb：approve/hold 两态 + meta NOT EXISTS；id 升序=稳定分批序）。
+	 * 未审核 id 探测（$wpdb：已批准存量 + meta NOT EXISTS；id 升序=稳定分批序）。
+	 *
+	 * 【M6·批C·C-1】宇宙 approved-only（用户 2026-11-16：不把已经判定为垃圾的翻出来
+	 * 鞭尸）——垃圾与待审不进探测面；仅旧形态 progress（无快照清单）仍消费本通道。
 	 *
 	 * @param int $limit 探测条数。
 	 * @return int[]
@@ -459,7 +524,7 @@ final class ExistingAuditWorker {
 			$wpdb->prepare(
 				"SELECT c.comment_ID FROM {$wpdb->comments} c
 				 LEFT JOIN {$wpdb->commentmeta} m ON m.comment_id = c.comment_ID AND m.meta_key = %s
-				 WHERE m.meta_id IS NULL AND c.comment_approved IN ('0','1')
+				 WHERE m.meta_id IS NULL AND c.comment_approved = '1'
 				 ORDER BY c.comment_ID ASC LIMIT %d",
 				ExistingAuditTask::META_KEY,
 				$limit
@@ -468,13 +533,46 @@ final class ExistingAuditWorker {
 		return array_map( 'intval', is_array( $rows ) ? $rows : array() );
 	}
 
+	/**
+	 * 【M6·批C·C-1】发起时宇宙 ID 快照（start 第二参数据源——SettingsPage/CLI start 消费）：
+	 * 已批准存量 + 无判定 meta，升序。发起后新增的评论不进本轮（快照权威——F1「23/22」修复）。
+	 *
+	 * @return int[]
+	 */
+	public static function unaudited_universe_ids(): array {
+		global $wpdb;
+		$rows = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT c.comment_ID FROM {$wpdb->comments} c
+				 LEFT JOIN {$wpdb->commentmeta} m ON m.comment_id = c.comment_ID AND m.meta_key = %s
+				 WHERE m.meta_id IS NULL AND c.comment_approved = '1'
+				 ORDER BY c.comment_ID ASC",
+				ExistingAuditTask::META_KEY
+			)
+		);
+		return array_map( 'intval', is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
+	 * 【M6·批C·C-2】处置执行（默认 WP 通道——wp_set_comment_status 可逆终态面：
+	 * spam=垃圾箱可一键恢复、hold=待审可批准；与 UrlAuditWorker::default_disposal_executor
+	 * 同形态。单测注入捕获）。
+	 *
+	 * @param int    $id     评论 id。
+	 * @param string $action spam|hold。
+	 * @return bool
+	 */
+	public function default_disposal_executor( int $id, string $action ): bool {
+		return (bool) wp_set_comment_status( $id, $action );
+	}
+
 	/* -------------------------------------------------------------------
 	 * 统计面（WP 边界——Tab⑥ 报告卡/CLI start 快照消费；K5/K6/K7 口径）
 	 * ------------------------------------------------------------------ */
 
 	/**
 	 * 待审快照计数（K5「总数=发起时快照」的快照对象=发起时未标记行——进度条恰好走满；
-	 * 已标记行不进本轮 processed 口径）。
+	 * 已标记行不进本轮 processed 口径。【M6·批C·C-1】approved-only：垃圾与待审不入计数）。
 	 *
 	 * @return int
 	 */
@@ -484,20 +582,21 @@ final class ExistingAuditWorker {
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->comments} c
 				 LEFT JOIN {$wpdb->commentmeta} m ON m.comment_id = c.comment_ID AND m.meta_key = %s
-				 WHERE m.meta_id IS NULL AND c.comment_approved IN ('0','1')",
+				 WHERE m.meta_id IS NULL AND c.comment_approved = '1'",
 				ExistingAuditTask::META_KEY
 			)
 		);
 	}
 
 	/**
-	 * universe 全量 id（重新体检清标记面）。
+	 * universe 全量 id（重新体检清标记面。【M6·批C·C-1】approved-only——垃圾/待审的
+	 * meta 不清（不翻出来重查的同族语义：处置进垃圾箱/待审的结果不被 reset 无效化）。
 	 *
 	 * @return int[]
 	 */
 	public static function universe_ids(): array {
 		global $wpdb;
-		$rows = $wpdb->get_col( "SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved IN ('0','1')" );
+		$rows = $wpdb->get_col( "SELECT comment_ID FROM {$wpdb->comments} WHERE comment_approved = '1'" );
 		return array_map( 'intval', is_array( $rows ) ? $rows : array() );
 	}
 
