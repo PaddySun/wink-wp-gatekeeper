@@ -219,6 +219,10 @@ final class Sanitize {
 			'url_audit.provider.api_key'                => 'password',
 			'url_audit.provider.base_url'               => 'url',
 			'url_audit.provider.model'                  => 'text',
+			// 【M6·批D·D-1】网页抓取服务商三态+抓取专用 Key+fetch 成功次日配额（§4 C-1）。
+			'url_audit.fetcher.mode'                    => 'url_audit_fetcher_mode',
+			'url_audit.fetcher.api_key'                 => 'password',
+			'url_audit.fetch_daily_cap'                 => 'absint',
 
 			// 统计 / 品牌 / 共存 / 卸载。
 			'stats.enabled'                             => 'bool',
@@ -325,6 +329,11 @@ final class Sanitize {
 				// deepseek（N2 可选加做——按成功次计费），非法值归 bocha（fail-safe——
 				// 出厂语义零行为变化，切换付费源须站长显式选择）。
 				return ( is_scalar( $value ) && 'deepseek' === (string) $value ) ? 'deepseek' : 'bocha';
+			case 'url_audit_fetcher_mode':
+				// 【M6·批D·D-1】网页抓取服务商三枚举（N1）：inherit（默认——跟随云端审核）|
+				// self（本站直接打开，免费）| deepseek（DeepSeek 网页抓取，按次计费），非法值
+				// 归 inherit（fail-safe——出厂语义零行为变化，付费路径须站长显式选择）。
+				return ( is_scalar( $value ) && in_array( (string) $value, array( 'self', 'deepseek' ), true ) ) ? (string) $value : 'inherit';
 			case 'raw_bytes':
 				// 【v1.4·R4】raw 截断字节（stats.raw_max_bytes）：absint 后钳 128-2048（04 §3 截断/体量行）。
 				return max( 128, min( 2048, is_scalar( $value ) ? abs( (int) $value ) : 512 ) );

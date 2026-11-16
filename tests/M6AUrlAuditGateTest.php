@@ -345,11 +345,15 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		public function test_backlog_universe_ids_is_meta_gap_scan(): void {
-			// 扫描宇宙=有 URL 且无判定 meta 的存量评论（LEFT JOIN NOT EXISTS 形态保持）。
+			// 【M6·批D·D-6】翻转注记（原钉=「无判定 meta」排除/meta gap 扫描；翻钉原因=
+			// 用户 2026-11-16 拍板「用户点击开始存量网址核查就全部查一遍」——施工图
+			// §3b-add 全量重查语义：宇宙移除「无判定 meta」排除，全部 approved+有 URL
+			// 评论都重查，新判定覆盖旧 meta；approved-only C-1 红线保持）。新钉=
+			// 全量宇宙（approved+URL），详 M6DRecheckSemanticsTest::test_universe_drops_meta_exclusion。
 			$src = file_get_contents( dirname( __DIR__ ) . '/includes/urlaudit/UrlAuditWorker.php' );
 			self::assertIsString( $src );
 			self::assertStringContainsString( 'comment_author_url', $src, '扫描宇宙含 URL 条件' );
-			self::assertStringContainsString( 'm.meta_id IS NULL', $src, '无判定 meta 条件（meta gap 扫描）' );
+			self::assertStringNotContainsString( 'm.meta_id IS NULL', $src, '「无判定 meta」排除已移除（全部重查一遍——§3b-add）' );
 		}
 
 		public function test_batch_lane_processes_queued_comment_with_batch_lane(): void {

@@ -237,8 +237,21 @@ final class UrlAuditWorker {
 				$lane       = 'batch';
 			}
 
+			// 【M6·批D·D-5】fetch 成功次日配额闸（§4 C-5：出队后 fetch 前；0=不限）——
+			// url_audit_fetch 计 200 且有正文的成功次（官方计费口径），闸拦的是真烧钱动作。
+			if ( $this->quota_reached( 'fetch_daily_cap', Usage::KEY_URL_AUDIT_FETCH ) ) {
+				$out['stopped'] = 'fetch_cap_exhausted';
+				break;
+			}
+
 			$this->process_comment( $comment_id, $lane, $profile, $out );
 			++$out[ 'incr' === $lane ? 'incr_processed' : 'batch_processed' ];
+
+			// 【M6·批D·D-4】fetch 账号级暂停（402 余额不足——process_comment 置 stopped）：
+			// 当条已按 inconclusive 收口，本轮到此为止（黄条语义，次日/充值后自动恢复）。
+			if ( '' !== (string) ( $out['stopped'] ?? '' ) ) {
+				break;
+			}
 		}
 
 		// 【M6·批B·B-5】轮末事件发射面（disabled 早退不经过——功能关=零事件零外呼）。
@@ -281,14 +294,20 @@ final class UrlAuditWorker {
 			return;
 		}
 
-		// 幂等：已标记跳过（编辑重提/重复扫描）。
+		// 【M6·批D·D-6】全量重查语义（用户 2026-11-16 拍板——§3b-add「全部重查一遍——
+		// 忽略历史结果，网站内容可能已变化」）：批量车道=重查——已判定也重查（不再幂等
+		// 跳过），新判定覆盖旧 meta、disposed_to 按 §3b C-2 矩阵重算。增量车道语义零改动。
+		$recheck = 'batch' === $lane;
+
+		// 幂等：已标记跳过（编辑重提/重复扫描）——仅增量车道。
 		$existing = $meta_reader( $comment_id );
-		if ( is_array( $existing ) && isset( $existing['verdict'] ) ) {
+		if ( ! $recheck && is_array( $existing ) && isset( $existing['verdict'] ) ) {
 			return;
 		}
 
-		// ① 缓存命中（同 URL 只烧一次——nw §2.5-2）。
-		$cached = UrlAuditCache::get( $url );
+		// ① 缓存命中（同 URL 只烧一次——nw §2.5-2）。【D-6】重查绕过（force refetch——
+		// pass 14d/reject 90d 缓存不适用于显式重查；「之前正常现在不正常」正是重查的意义）。
+		$cached = $recheck ? null : UrlAuditCache::get( $url );
 		$judgement = null;
 		$fetch_meta = array();
 
@@ -302,7 +321,7 @@ final class UrlAuditWorker {
 			);
 			$fetch_meta = array( 'cache' => 'hit' );
 		} else {
-			// ② fetch（缓存 miss）。
+			// ② fetch（缓存 miss / 重查强制）。
 			$fetcher = $fetcher_f();
 			$fetched = $fetcher->fetch( $url, ! empty( $this->settings['url_audit']['robots_comply'] ) );
 			$fetch_meta = array(
@@ -311,7 +330,23 @@ final class UrlAuditWorker {
 				'final_url'   => $fetched['final_url'],
 				'hops'        => $fetched['hop_hosts'],
 				'redirects'   => $fetched['redirects'],
+				// 【M6·批D·D-4】抓取服务商溯源（C-4 注：deepseek 模式记 deepseek、self 模式
+				// 记 self——存量判定可查「当年是谁打开的网页」）+http_code 归真。
+				'fetch_provider' => (string) ( $fetched['fetch_provider'] ?? 'self' ),
+				'http_code'      => (int) ( $fetched['status'] ?? 0 ),
 			);
+
+			// 【M6·批D·D-4】fetch 账号级失败捕获（DeepSeek Fetch 401 凭据无效/402 余额不足
+			// ——U-3 ② 运行性错误事件面；轮末发射每轮至多 1 条。目标站业务类 404/403/超时
+			// 恒不标记——§0-7 fetch 失败≠违规）。
+			if ( ! isset( $out['runtime_error'] ) && ! empty( $fetched['account_error'] ) ) {
+				$out['runtime_error'] = array(
+					'source'    => 'fetch',
+					'lane'      => $lane,
+					'category'  => (string) $fetched['fetch_class'],
+					'http_code' => (int) ( $fetched['status'] ?? 0 ),
+				);
+			}
 
 			if ( 'ok' !== $fetched['fetch_class'] ) {
 				// 失败类→inconclusive（cloaking_suspect→review 倾向）——永不静默放行永不静默定罪。
@@ -322,6 +357,11 @@ final class UrlAuditWorker {
 					'reason'     => 'fetch: ' . $fetched['fetch_class'],
 					'hits'       => array(),
 				);
+				// 【M6·批D·D-4】402 余额不足 → 车道暂停（黄条语义——额度/余额类账号侧
+				// 停转，次日或充值后自动恢复）；当条照常按 inconclusive 收口后停轮。
+				if ( 'quota_exhausted' === $fetched['fetch_class'] ) {
+					$out['stopped'] = 'fetch_account_exhausted';
+				}
 				// 博查交叉信号（可选启用且 fetch 失败类时——降低 inconclusive 占比）。
 				if ( 'inconclusive' === $judgement['verdict'] && ! empty( $this->settings['url_audit']['bocha']['enabled'] ) ) {
 					$judgement['bocha'] = 'available_not_used'; // 信号记录位——首版博查仅 LLM 判定路径消费。
@@ -457,19 +497,21 @@ final class UrlAuditWorker {
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * LLM 运行性错误事件发射（① transport/semantic/contract 类——非业务 inconclusive）。
+	 * 运行性错误事件发射（【M6·批B·B-5】① LLM transport/semantic/contract 类；
+	 * 【M6·批D·D-4】② fetch 账号级失败（DeepSeek Fetch 401/402）——均非业务 inconclusive）。
 	 *
 	 * 事件形态：gate=comment、stage=url_audit、driver=deepseek、verdict=error、
 	 * rule_hit=remote_<category>（故障谓词+Labels 人话复用）、meta 最小化
-	 * {reason, lane, http_code}——零 URL 零正文零 IP（PIPL）。每 tick 轮至多 1 条
-	 * （process_comment 只记首条——防写放大 P1-4 同族纪律）。
+	 * {reason, lane, http_code}——零 URL 零正文零 IP（PIPL）。每 tick 轮至多
+	 * 1 条（process_comment 只记首条——防写放大 P1-4 同族纪律）。
 	 *
-	 * @param array{lane: string, category: string, http_code: int} $err 错误信息。
+	 * @param array{source?: string, lane: string, category: string, http_code: int} $err 错误信息（source=llm(缺省)|fetch）。
 	 * @return void
 	 */
 	private function emit_runtime_error( array $err ): void {
 		$category = '' !== (string) ( $err['category'] ?? '' ) ? (string) $err['category'] : 'error';
-		$reason   = 'llm ' . $category;
+		$prefix   = 'fetch' === (string) ( $err['source'] ?? 'llm' ) ? 'fetch ' : 'llm ';
+		$reason   = $prefix . $category;
 		$this->record_event( $reason, array( 'remote_' . $category ), array(
 			'reason'    => $reason,
 			'lane'      => (string) ( $err['lane'] ?? '' ),
@@ -478,22 +520,32 @@ final class UrlAuditWorker {
 	}
 
 	/**
-	 * 配额暂停边沿事件（③ incr/batch 闸触发暂停时一次；同日同车道去重——
-	 * OPTION_PAUSE_EDGE 标记持久化，跨日自动开新边沿）。
+	 * 配额暂停边沿事件（③ incr/batch/fetch 任一闸或账号级余额暂停触发时一次；同日
+	 * 同车道去重——OPTION_PAUSE_EDGE 标记持久化，跨日自动开新边沿）。
 	 *
 	 * 业务性 inconclusive（目标站 404/403/超时）恒不进本发射面（§0-7 fetch 失败≠违规）；
-	 * fetch 账号级失败（DeepSeek Fetch 402/401——批 C DeepSeekFetchAdapter 落地）届时
-	 * 调 record_event 同面发射（meta 形态一致）。
+	 * 【M6·批D·D-4】fetch 账号级失败本体走 ② 运行性错误面（emit_runtime_error），
+	 * 本面只记「暂停」这一状态变化。
 	 *
-	 * @param string $stopped run_round 停转原因（incr_quota_exhausted|batch_quota_exhausted|…）。
+	 * @param string $stopped run_round 停转原因（incr_quota_exhausted|batch_quota_exhausted|
+	 *                        fetch_cap_exhausted|fetch_account_exhausted|…）。
 	 * @return void
 	 */
 	private function maybe_emit_pause_edge( string $stopped ): void {
 		$lane = '';
+		$reason = '';
 		if ( 'incr_quota_exhausted' === $stopped ) {
-			$lane = 'incr';
+			$lane   = 'incr';
+			$reason = 'url_audit incr quota exhausted';
 		} elseif ( 'batch_quota_exhausted' === $stopped ) {
-			$lane = 'batch';
+			$lane   = 'batch';
+			$reason = 'url_audit batch quota exhausted';
+		} elseif ( 'fetch_cap_exhausted' === $stopped ) {
+			$lane   = 'fetch';
+			$reason = 'url_audit fetch quota exhausted';
+		} elseif ( 'fetch_account_exhausted' === $stopped ) {
+			$lane   = 'fetch';
+			$reason = 'url_audit fetch account exhausted';
 		}
 		if ( '' === $lane ) {
 			return;
@@ -506,7 +558,6 @@ final class UrlAuditWorker {
 		}
 		$marker[ $lane ] = $today;
 		update_option( self::OPTION_PAUSE_EDGE, $marker, false );
-		$reason = 'url_audit ' . $lane . ' quota exhausted';
 		$this->record_event( $reason, array( 'quota_paused' ), array(
 			'reason'    => $reason,
 			'lane'      => $lane,
@@ -749,6 +800,9 @@ final class UrlAuditWorker {
 	 * review+inconclusive→待审核（未核实不下结论）、reject→垃圾箱（已按 C-2 处置，
 	 * 可手动恢复）。完成时间=meta 反查 max(judged_at)；残留=清单内未落判定 meta 数
 	 * （评论本体已删的 gone 计收口不计残留）。
+	 * 【M6·批D·D-6】已核查计数改本轮口径：只数 judged_at >= started_at 的 meta——
+	 * 全量重查语义下清单内旧 meta（上轮判定）不算本轮已核查，覆盖后落新 judged_at
+	 * 才计数（「已核查 N/M」如实反映本轮进度——覆盖计数正确回归钉）。
 	 *
 	 * @param array<string, mixed>    $record         运行记录（started_at/ids/enqueued）。
 	 * @param array<int, array>       $metas          清单内已落判定 meta（id=>meta）。
@@ -765,6 +819,7 @@ final class UrlAuditWorker {
 		$caliber     = array( 'pass' => 0, 'pending' => 0, 'spam' => 0 );
 		$judged      = 0;
 		$finished_at = 0;
+		$started_at  = (int) ( $record['started_at'] ?? 0 );
 		foreach ( $ids as $id ) {
 			if ( isset( $gone[ $id ] ) ) {
 				continue; // 本体已删=收口（不计残留不进口径）。
@@ -772,6 +827,11 @@ final class UrlAuditWorker {
 			$meta = $metas[ $id ] ?? null;
 			if ( ! is_array( $meta ) || ! isset( $meta['verdict'] ) ) {
 				continue; // 未落判定=残留。
+			}
+			// 【M6·批D·D-6】本轮口径（覆盖计数正确）：重查语义下清单内旧 meta（上轮
+			// 判定 judged_at < started_at）不计入本轮已核查数——覆盖后落新 judged_at 才算。
+			if ( (int) ( $meta['judged_at'] ?? 0 ) < $started_at ) {
+				continue;
 			}
 			++$judged;
 			$finished_at = max( $finished_at, (int) ( $meta['judged_at'] ?? 0 ) );
@@ -826,23 +886,24 @@ final class UrlAuditWorker {
 	}
 
 	/**
-	 * 回捞扫描宇宙（【M6·P1-3】有 URL 且无判定 meta、升序稳定序——显式动作一次性入队，
-	 * 闸与配额约束整个回捞量。【M6·批C·C-1】approved-only（用户 2026-11-16：不把已经
-	 * 判定为垃圾的翻出来鞭尸）：垃圾与待审不进扫描宇宙。
+	 * 回捞扫描宇宙（升序稳定序——显式动作一次性入队，闸与配额约束整个回捞量）。
+	 *
+	 * 【M6·批C·C-1】approved-only（用户 2026-11-16：不把已经判定为垃圾的翻出来鞭尸）：
+	 * 垃圾与待审不进扫描宇宙。
+	 * 【M6·批D·D-6】全量重查语义（用户 2026-11-16 拍板——§3b-add「用户点击开始存量
+	 * 网址核查就全部查一遍」）：移除「无判定 meta」排除条件——宇宙=全部 approved+
+	 * 有 URL 评论（网站内容可能已变化，重查覆盖旧判定）；成本护栏照旧=50/日配额+
+	 * 暂停黄条（大站分多日跑完）。
 	 *
 	 * @return int[]
 	 */
 	public function backlog_universe_ids(): array {
 		global $wpdb;
 		$rows = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT c.comment_ID FROM {$wpdb->comments} c
-				 LEFT JOIN {$wpdb->commentmeta} m ON m.comment_id = c.comment_ID AND m.meta_key = %s
-				 WHERE m.meta_id IS NULL AND c.comment_approved = '1'
-				 AND c.comment_author_url <> ''
-				 ORDER BY c.comment_ID ASC",
-				self::META_KEY
-			)
+			"SELECT c.comment_ID FROM {$wpdb->comments} c
+			 WHERE c.comment_approved = '1'
+			 AND c.comment_author_url <> ''
+			 ORDER BY c.comment_ID ASC"
 		);
 		return array_map( 'intval', is_array( $rows ) ? $rows : array() );
 	}
@@ -924,12 +985,56 @@ final class UrlAuditWorker {
 	}
 
 	/**
-	 * fetcher 工厂（RemoteClient 传输脊——计量 usage_key 由 judge 传）。
+	 * fetcher 工厂（【M6·批D·D-3】按 url_audit.fetcher.mode 分派——deepseek 档返回
+	 * DeepSeekFetchAdapter（本站零直访陌生 URL，传输脊只对 api.deepseek.com 一条外呼）；
+	 * 其余档返回现款 UrlFetcher（免费路径+15s/逐跳 SSRF 防线原样）。RemoteClient 传输脊；
+	 * fetch 计量在 adapter 响应侧（成功次），usage_key 由 judge 传）。
 	 *
-	 * @return UrlFetcher
+	 * @return UrlFetcher|DeepSeekFetchAdapter fetch($url,$robots_comply) 同构面。
 	 */
-	public function default_fetcher_factory(): UrlFetcher {
+	public function default_fetcher_factory(): object {
+		if ( 'deepseek' === self::fetcher_mode( $this->settings ) ) {
+			$cred = self::fetcher_credentials( $this->settings );
+			return new DeepSeekFetchAdapter( $cred['api_key'], $cred['base_url'], $this->default_client() );
+		}
 		return new UrlFetcher( $this->default_client() );
+	}
+
+	/**
+	 * 【M6·批D·D-3】抓取模式解析（纯函数，单测面——C-6 inherit 跟随切换语义）：
+	 * self/deepseek 显式档原样；inherit（默认）=跟随云端审核驱动——review.cloud.chain
+	 * 首位=deepseek → 抓取落 DeepSeek；其他驱动（TMS/百度/green…）或云审关 → 本站
+	 * 直接打开兜底（免费路径保底——N1 提案表）。
+	 *
+	 * @param array<string, mixed> $settings merge 后整树。
+	 * @return string inherit 解析后 ∈ self|deepseek（inherit 档返回解析结果）。
+	 */
+	public static function fetcher_mode( array $settings ): string {
+		$mode = (string) ( $settings['url_audit']['fetcher']['mode'] ?? 'inherit' );
+		if ( in_array( $mode, array( 'self', 'deepseek' ), true ) ) {
+			return $mode;
+		}
+		$chain  = is_array( $settings['review']['cloud']['chain'] ?? null ) ? $settings['review']['cloud']['chain'] : array();
+		$active = (string) ( $chain[0] ?? '' ); // UI 单选下拉即 chain[0] 可视面（04 §2）。
+		return 'deepseek' === $active ? 'deepseek' : 'self';
+	}
+
+	/**
+	 * 【M6·批D·D-1】抓取凭证链解析（纯函数，单测面——§0-5 key 链统一）：
+	 * fetcher.api_key 非空=专用 Key 覆盖（仅 deepseek 档消费——本函数只在该档被调）；
+	 * 空=跟随 AI 判定凭证链（provider custom→其 api_key/base_url；inherit→Tab③ 主凭证
+	 * ——provider_config 统一解析源）。base_url 恒跟随凭证链（空串由 adapter 缺省官方）。
+	 *
+	 * @param array<string, mixed> $settings merge 后整树。
+	 * @return array{api_key: string, base_url: string}
+	 */
+	public static function fetcher_credentials( array $settings ): array {
+		$config   = self::provider_config( $settings );
+		$own_key  = trim( (string) ( $settings['url_audit']['fetcher']['api_key'] ?? '' ) );
+		return array(
+			'api_key'  => '' !== $own_key ? $own_key : (string) ( $config['api_key'] ?? '' ),
+			'base_url' => (string) ( $config['base_url'] ?? '' ),
+		);
 	}
 
 	/**

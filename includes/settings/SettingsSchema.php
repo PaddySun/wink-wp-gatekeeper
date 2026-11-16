@@ -296,6 +296,19 @@ final class SettingsSchema {
 					'base_url' => '',
 					'model'   => '',
 				),
+				// 【M6·批D·D-1】网页抓取服务商三态（N1 抓取服务商化，施工图 §4 C-1）：
+				// inherit（默认）=跟随云端审核——云端审核为 DeepSeek 时用 DeepSeek 网页抓取
+				// （key 链=AI 判定凭证链 §0-5），其他驱动时本站直接打开（免费路径保底）；
+				// self=总是自建抓取（现款 UrlFetcher——15s/逐跳 SSRF 防线原样）；
+				// deepseek=总是 DeepSeek Fetch（按次计费 ¥5/1000 成功次——api_key 仅本档且
+				// 非空时生效，空=跟随 AI 凭证链 §0-5）。
+				'fetcher'      => array(
+					'mode'    => 'inherit',
+					'api_key' => '',
+				),
+				// 【M6·批D·D-5】fetch 成功次日配额（200 且有正文=官方计费口径；0=不限）——
+				// 闸在 worker 出队后 fetch 前（§0-6 新增防护默认值；系统掌握不露旋钮，D8 先例）。
+				'fetch_daily_cap' => 200,
 				'batch_quota'  => 50,
 				'incr_quota'   => 100,
 				'robots_comply' => false,

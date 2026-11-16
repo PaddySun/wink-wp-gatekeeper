@@ -3619,7 +3619,7 @@ final class SettingsPage {
 								<option value="inherit" <?php selected( $ua_provider_mode, 'inherit' ); ?>><?php esc_html_e( '回落云端审核 DeepSeek 凭证（默认——零新增配置）', 'wink-gatekeeper' ); ?></option>
 								<option value="custom" <?php selected( $ua_provider_mode, 'custom' ); ?>><?php esc_html_e( '独立凭证（网址核查专用）', 'wink-gatekeeper' ); ?></option>
 							</select>
-							<p class="description"><?php esc_html_e( '独立凭证只用于网址核查的 AI 判定——评论云端审核仍走 Tab③ 的 DeepSeek 配置，两边互不影响；想用不同的 DeepSeek 账号/额度时才需要选独立。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( '回落（默认）：云端审核为 DeepSeek 时，AI 判定与网页抓取都用 DeepSeek（同一份凭证）；云端审核是其他驱动（如腾讯 TMS）时，AI 判定走其配置、网页抓取走本站直接打开。独立：网址核查用单独的 DeepSeek 凭证（与评论云端审核互不影响，想用不同的账号/额度时才需要选独立）。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -3661,6 +3661,35 @@ final class SettingsPage {
 							</button>
 							<span id="wk-url-audit-provider-test-result" aria-live="polite"></span>
 							<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；红 = 密钥无效或连不上。结果不落库。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+				</table>
+				<?php
+				/* 【M6·批D·D-2】网页抓取服务商三态（N1 抓取服务商化，§4 C-2）：全部在高级
+				 * 折叠区。抓取专用 Key 行组条件显隐（mode=deepseek 才显示——PHP 初始 hidden +
+				 * admin-brand.js change 绑定，provider rows 联动范式同款；DOM 锚
+				 * wk-url-audit-fetcher-mode / wk-url-audit-fetcher-rows）。 */
+				$fetcher_mode = (string) ( $ua['fetcher']['mode'] ?? 'inherit' );
+				?>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="wk-url-audit-fetcher-mode"><?php esc_html_e( '网页抓取服务商', 'wink-gatekeeper' ); ?></label></th>
+						<td>
+							<select id="wk-url-audit-fetcher-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'fetcher', 'mode' ) ) ); ?>">
+								<option value="inherit" <?php selected( $fetcher_mode, 'inherit' ); ?>><?php esc_html_e( '跟随云端审核（默认——云端审核为 DeepSeek 时用 DeepSeek 抓取，其他驱动时本站直接打开）', 'wink-gatekeeper' ); ?></option>
+								<option value="self" <?php selected( $fetcher_mode, 'self' ); ?>><?php esc_html_e( '本站直接打开（免费）', 'wink-gatekeeper' ); ?></option>
+								<option value="deepseek" <?php selected( $fetcher_mode, 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页抓取（按次计费 ¥5/1000 次）', 'wink-gatekeeper' ); ?></option>
+							</select>
+							<p class="description"><?php esc_html_e( '选 DeepSeek 抓取时，本站服务器不再直接打开评论者的网址——由 DeepSeek 代为抓取正文（对打不开/反爬的站点成功率高很多，如某些成人站、强反爬站），按成功次数计费。本站直接打开不花钱但遇到反爬站容易「没看清」。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+				</table>
+				<table class="form-table" role="presentation" id="wk-url-audit-fetcher-rows"<?php echo 'deepseek' === $fetcher_mode ? '' : ' hidden'; ?>>
+					<tr>
+						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( '抓取专用 DeepSeek Key', 'wink-gatekeeper' ); ?></span></th>
+						<td>
+							<?php self::password_field( array( 'url_audit', 'fetcher', 'api_key' ), '' !== (string) ( $ua['fetcher']['api_key'] ?? '' ), '抓取专用 DeepSeek Key' ); ?>
+							<p class="description"><?php esc_html_e( '留空=用上方「AI 判定凭证」的 Key（一般不用填）。想给网页抓取单独用一个 DeepSeek 账号时才填。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -4117,6 +4146,21 @@ final class SettingsPage {
 					/* translators: %d: 今日 DeepSeek 搜索成功次数 */
 					esc_html__( '网址核查搜索（DeepSeek）：今日 %1$d 次（按成功次数计费，打不开网页时的搜索线索）', 'wink-gatekeeper' ),
 					(int) $url_search_used
+				);
+				?></p>
+			<?php endif; ?>
+
+			<?php
+			/* 【M6·批D·D-5】网页抓取消耗行（K 系口径：抓取=第三方打开网页看过——DeepSeek
+			 * Fetch 成功次；数据门控渲染：零消耗整行不显，同上纪律）。 */
+			$url_fetch_used = \WinkGatekeeper\Stats\Usage::daily_total_for( \WinkGatekeeper\Stats\Usage::get(), \WinkGatekeeper\Stats\Usage::KEY_URL_AUDIT_FETCH );
+			if ( $url_fetch_used > 0 ) :
+				?>
+			<p id="wk-stats-url-fetch-line" class="wk-muted"><?php
+				printf(
+					/* translators: %d: 今日 DeepSeek 网页抓取成功次数 */
+					esc_html__( '网页抓取（DeepSeek 代开网页）：今日 %1$d 次（按成功次数计费——选「DeepSeek 网页抓取」时第三方打开网页看过）', 'wink-gatekeeper' ),
+					(int) $url_fetch_used
 				);
 				?></p>
 			<?php endif; ?>
@@ -4920,7 +4964,7 @@ final class SettingsPage {
 		?>
 		<section class="wk-card" id="wk-tools-url-audit-card">
 			<h2><?php esc_html_e( '存量网址核查', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '把站里已有评论中的网站地址交「网址核查」翻查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( '把站里已有评论中的网站地址交「网址核查」全部重查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。', 'wink-gatekeeper' ); ?></p>
 			<p class="wk-muted"><?php esc_html_e( '每日额度用完自动暂停（次日自动接着查）：判违规的进垃圾箱、没看清的进待审，都能手动恢复。', 'wink-gatekeeper' ); ?></p>
 			<p id="wk-tools-url-audit-state-line" class="wk-muted">
 				<?php if ( ! $url_audit_on ) : ?>
@@ -4934,7 +4978,7 @@ final class SettingsPage {
 					);
 					?>
 				<?php else : ?>
-					<?php esc_html_e( '没有待核查的存量网址——点下方按钮可扫描一遍（只入队带网址且未核查过的评论）。', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( '没有待核查的存量网址——点下方按钮可把带网址的已批准评论全部重查一遍。', 'wink-gatekeeper' ); ?>
 				<?php endif; ?>
 			</p>
 			<?php if ( $backlog_added >= 0 ) : ?>
@@ -4952,7 +4996,7 @@ final class SettingsPage {
 			<p>
 				<a class="button" id="wk-tools-url-audit-start-btn"
 					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG ), \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG ) ); ?>"
-					onclick="return confirm('<?php echo esc_js( __( '开始翻查存量网址？将把带网址且未核查过的评论一次性排队，按每日额度逐条核查（消耗 AI 判定额度）。判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '开始存量网址核查', 'wink-gatekeeper' ); ?></a>
+					onclick="return confirm('<?php echo esc_js( __( '全部重查一遍？将忽略历史结果（网站内容可能已变化），把带网址的已批准评论重新排队核查，按每日额度逐条进行（消耗额度）。判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '开始存量网址核查（全部重查一遍——忽略历史结果，网站内容可能已变化）', 'wink-gatekeeper' ); ?></a>
 			</p>
 			<?php endif; ?>
 		</section>

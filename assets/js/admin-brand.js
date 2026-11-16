@@ -404,6 +404,22 @@
 		syncProviderRows();
 	} )();
 
+	// 【M6·批D·D-2】Tab③ 网页抓取服务商：仅「DeepSeek 网页抓取」（deepseek）档显示
+	// 「抓取专用 DeepSeek Key」行（provider rows 联动范式同款；PHP 初始态已按存量值
+	// hidden，此处接管切换显隐；留空=跟随 AI 判定凭证）。
+	( function () {
+		var fetcherMode = document.getElementById( 'wk-url-audit-fetcher-mode' );
+		var fetcherRows = document.getElementById( 'wk-url-audit-fetcher-rows' );
+		if ( ! fetcherMode || ! fetcherRows ) {
+			return;
+		}
+		var syncFetcherRows = function () {
+			fetcherRows.hidden = fetcherMode.value !== 'deepseek';
+		};
+		fetcherMode.addEventListener( 'change', syncFetcherRows );
+		syncFetcherRows();
+	} )();
+
 	// 【M5·U2】Tab⑧ 卡二「测试当前头像来源」（三态：绿=正常/黄=能用但慢/红=连不上——
 	// 测的是镜像通不通非密钥；服务端 RemoteClient 探测零计量零事件）。
 	var avatarProbeButton = document.getElementById( 'wk-avatar-test-btn' );
