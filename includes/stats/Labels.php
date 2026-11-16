@@ -468,4 +468,33 @@ final class Labels {
 		}
 		return self::rule_hit_word( $rule_hit );
 	}
+
+	/* -------------------------------------------------------------------
+	 * 【M6·批I·I-1】仪表盘调用量卡计量键 → 行人话名（P-1 抛光——来源
+	 * IMPL-M6-H-VERIFY §2 目验新发现：fetch/search 域行显示原始计量键退役）。
+	 * ------------------------------------------------------------------- */
+
+	/**
+	 * 计量键 → 调用量卡行名（键位常量单一来源=Usage::KEY_*；键闭集映射，
+	 * 未收录键返回 ''——消费面回落原键不吞不虚构）。
+	 *
+	 * 单一来源注记：url_audit_fetch/incr/batch 三键只由 DeepSeek 抓取适配器/判定引擎
+	 * 计量（批 H H-1 语义——本站直抓零外呼零计量、抓取未配置零计量），键→名静态映射
+	 * 恒真；若按「当前 fetcher」动态解析，日内改配置会把上午的 DeepSeek 计数错标成
+	 * 本站直抓（不撒谎纪律优先，静态键映射）。驱动 id 行名**不进本表**（显示名单一
+	 * 来源=registry_entry()['label'] 经 Bootstrap 注入面）。
+	 *
+	 * @param string $key 计量键。
+	 * @return string 人话行名（未收录键=''）。
+	 */
+	public static function usage_row_word( string $key ): string {
+		return match ( $key ) {
+			Usage::KEY_URL_AUDIT_FETCH  => '网页抓取（DeepSeek）',          // 抓取成功次（DeepSeekFetchAdapter 响应侧）。
+			Usage::KEY_URL_AUDIT_INCR   => '网址判定·增量车道（DeepSeek）', // 新评论车道判定次。
+			Usage::KEY_URL_AUDIT_BATCH  => '网址判定·批量车道（DeepSeek）', // 存量网址核查车道判定次。
+			Usage::KEY_DEEPSEEK_SEARCH  => '网页搜索（DeepSeek）',
+			'bocha_search'              => '网页搜索（博查）',              // M5 U5 K3 键（Usage 无常量位——字面同源单点）。
+			default                     => '',
+		};
+	}
 }

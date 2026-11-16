@@ -1082,6 +1082,7 @@ final class Bootstrap {
 
 		// 用量行人话名（registry_entry label 单一来源；abuseipdb 两键 M3 前手名——
 		// 未注册 id 经 DashboardDigest 回落原名，不虚构）。
+		// 【M6·批I·I-1】deepseek 补录（P-1：评论审核域行原裸 id 退役——registry label 单一来源）。
 		$driver_labels = array(
 			'tencent'          => (string) TencentCaptchaDriver::registry_entry()['label'],
 			'aliyun'           => (string) AliyunCaptchaDriver::registry_entry()['label'],
@@ -1089,6 +1090,7 @@ final class Bootstrap {
 			'tencent_tms'      => (string) TencentTmsDriver::registry_entry()['label'],
 			'aliyun_green'     => (string) AliyunGreenPlusDriver::registry_entry()['label'],
 			'baidu'            => (string) BaiduTextModerationDriver::registry_entry()['label'],
+			'deepseek'         => (string) DeepSeekReviewDriver::registry_entry()['label'],
 			'abuseipdb'        => 'AbuseIPDB',
 			'abuseipdb_report' => 'AbuseIPDB（上报）',
 		);

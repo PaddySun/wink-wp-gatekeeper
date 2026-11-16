@@ -269,10 +269,12 @@ final class LoginCounters {
 		if ( null === $raw || false === $raw ) {
 			return false; // 无标志 = 未超阈。
 		}
-		if ( ! is_array( $raw ) || ! isset( $raw['exp'] ) || ! is_int( $raw['exp'] ) ) {
+		/* 【M6·批I·I-2】is_int → is_numeric + (int)（F-b 同型——数值串 exp 曾恒判点亮，
+		 * 过期标志不熄灭；垃圾串仍按点亮 fail-safe 不放宽）。 */
+		if ( ! is_array( $raw ) || ! isset( $raw['exp'] ) || ! is_numeric( $raw['exp'] ) ) {
 			return true; // 损坏按已点亮（吸收①）。
 		}
-		return $now < $raw['exp'];
+		return $now < (int) $raw['exp'];
 	}
 
 	/**
@@ -287,10 +289,11 @@ final class LoginCounters {
 		if ( null === $raw || false === $raw ) {
 			return false;
 		}
-		if ( ! is_array( $raw ) || ! isset( $raw['exp'] ) || ! is_int( $raw['exp'] ) ) {
+		/* 【M6·批I·I-2】is_int → is_numeric + (int)（F-b 同型——同 render_flag 注记）。 */
+		if ( ! is_array( $raw ) || ! isset( $raw['exp'] ) || ! is_numeric( $raw['exp'] ) ) {
 			return true; // 损坏按已点亮（fail-safe）。
 		}
-		return $now < $raw['exp'];
+		return $now < (int) $raw['exp'];
 	}
 
 	/**
@@ -339,13 +342,17 @@ final class LoginCounters {
 	private function bump( string $key, int $threshold, int $now ): bool {
 		$raw = call_user_func( $this->get, $key );
 
-		if ( is_array( $raw ) && isset( $raw['n'], $raw['exp'] ) && is_int( $raw['n'] ) && is_int( $raw['exp'] ) ) {
-			if ( $now >= $raw['exp'] ) {
+		/* 【M6·批I·I-2】数值判定 is_int → is_numeric + (int) 规范化（F-b 坑同型推广——
+		 * Redis 对象缓存跨进程把 int 标量以 string 回读：is_int 会把数值串桶当损坏走
+		 * 「饱和重写」分支，阈 3 时第 2 次失败即饱和。is_numeric 接受 int/数值串/float；
+		 * 垃圾串/布尔/数组仍归损坏分支 fail-safe 饱和重写不放宽）。 */
+		if ( is_array( $raw ) && isset( $raw['n'], $raw['exp'] ) && is_numeric( $raw['n'] ) && is_numeric( $raw['exp'] ) ) {
+			if ( $now >= (int) $raw['exp'] ) {
 				$bucket = array( 'n' => 1, 'exp' => $now + $this->window ); // 窗口过 → 重开新桶。
-			} elseif ( $raw['n'] >= $threshold ) {
+			} elseif ( (int) $raw['n'] >= $threshold ) {
 				return true; // 饱和短路：值不变写退化为覆盖同值——直接跳过。
 			} else {
-				$bucket = array( 'n' => $raw['n'] + 1, 'exp' => $raw['exp'] ); // 固定窗口：exp 不动。
+				$bucket = array( 'n' => (int) $raw['n'] + 1, 'exp' => (int) $raw['exp'] ); // 固定窗口：exp 不动（写回 int 规范化）。
 			}
 		} elseif ( null === $raw || false === $raw ) {
 			$bucket = array( 'n' => 1, 'exp' => $now + $this->window ); // 新桶。
@@ -372,10 +379,12 @@ final class LoginCounters {
 		if ( null === $raw || false === $raw ) {
 			return false; // 无记录。
 		}
-		if ( ! is_array( $raw ) || ! isset( $raw['n'], $raw['exp'] ) || ! is_int( $raw['n'] ) || ! is_int( $raw['exp'] ) ) {
+		/* 【M6·批I·I-2】is_int → is_numeric + (int)（F-b 同型——数值串桶曾恒判饱和，
+		 * 阈下 IP/账号被误强制出码；垃圾串仍按饱和 fail-safe 不放宽）。 */
+		if ( ! is_array( $raw ) || ! isset( $raw['n'], $raw['exp'] ) || ! is_numeric( $raw['n'] ) || ! is_numeric( $raw['exp'] ) ) {
 			return true; // 损坏按饱和（吸收①：宁多渲染一次不漏放）。
 		}
-		return $now < $raw['exp'] && $raw['n'] >= $threshold;
+		return $now < (int) $raw['exp'] && (int) $raw['n'] >= $threshold;
 	}
 
 	/**

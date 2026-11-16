@@ -1008,10 +1008,21 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	private function bump_spike(): void {
 		$now    = (int) call_user_func( $this->now );
 		$bucket = call_user_func( $this->cache_get, self::SPIKE_KEY );
+		/* 【M6·批I·I-2】数值判定 is_int → is_numeric + (int) 规范化（F-b 坑同型推广——
+		 * Redis 对象缓存跨进程把 int 标量以 string 回读：is_int 守卫把数值串桶当窗过/损坏，
+		 * 每请求开新窗、计数钉死 1，usage_spike 告警永不触发。is_numeric 接受 int/数值串/
+		 * float；命中后按 int 规范化重建桶（写回侧恒 int——回读形态自愈）。垃圾串仍归
+		 * 新窗分支，损坏语义不放宽）。 */
 		if ( ! is_array( $bucket ) || ! isset( $bucket['start'], $bucket['count'] )
-			|| ! is_int( $bucket['start'] ) || ! is_int( $bucket['count'] )
-			|| $now >= $bucket['start'] + self::SPIKE_WINDOW ) {
+			|| ! is_numeric( $bucket['start'] ) || ! is_numeric( $bucket['count'] )
+			|| $now >= (int) $bucket['start'] + self::SPIKE_WINDOW ) {
 			$bucket = array( 'start' => $now, 'count' => 0, 'alarmed' => false ); // 窗过/损坏 → 新窗。
+		} else {
+			$bucket = array(
+				'start'   => (int) $bucket['start'],
+				'count'   => (int) $bucket['count'],
+				'alarmed' => ! empty( $bucket['alarmed'] ),
+			);
 		}
 		$bucket['count'] = $bucket['count'] + 1;
 

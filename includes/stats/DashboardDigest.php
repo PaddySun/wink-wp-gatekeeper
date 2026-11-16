@@ -320,7 +320,8 @@ final class DashboardDigest {
 	}
 
 	/**
-	 * 计量键 → 人话名（注入映射优先，回落驱动 id——不虚构人话名）。
+	 * 计量键 → 人话名（注入映射优先 → Labels::usage_row_word() 计量键映射
+	 * 【M6·批I·I-1】→ 回落驱动 id——不虚构人话名不吞键）。
 	 *
 	 * @param array<string, mixed> $args 全量输入。
 	 * @param string               $key  计量键。
@@ -328,7 +329,11 @@ final class DashboardDigest {
 	 */
 	private static function driver_label( array $args, string $key ): string {
 		$labels = isset( $args['driver_labels'] ) && is_array( $args['driver_labels'] ) ? $args['driver_labels'] : array();
-		return isset( $labels[ $key ] ) && is_string( $labels[ $key ] ) && '' !== $labels[ $key ] ? $labels[ $key ] : $key;
+		if ( isset( $labels[ $key ] ) && is_string( $labels[ $key ] ) && '' !== $labels[ $key ] ) {
+			return $labels[ $key ];
+		}
+		$row_word = Labels::usage_row_word( $key ); // 【M6·批I·I-1】fetch/search 计量键人话（未收录键=''）。
+		return '' !== $row_word ? $row_word : $key;
 	}
 
 	/**

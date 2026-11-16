@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.7.2 =
+
+M6·批I 扫尾三件（2026-11-17——TDD 先红后绿）。① **仪表盘「第三方调用量」行名全部人话**：网页抓取板块显示「网页抓取（DeepSeek）」「网址判定·增量车道（DeepSeek）」「网址判定·批量车道（DeepSeek）」，网页搜索板块显示「网页搜索（博查）」「网页搜索（DeepSeek）」，评论审核板块显示服务商显示名（如「DeepSeek」）——此前的原始计量键（url_audit_fetch、bocha_search、deepseek 等）不再直接露出；「本站直接打开——不计费」声明行与各板块顺序不变。② 数值计数器健壮性加固：开启 Redis 等对象缓存的站点，登录失败计数、登录警报与标志、IP 上报突增告警在跨进程读取时不再误判（此前数值会被读成字符串导致「第 2 次失败即锁定」「警报永不过期」「突增告警永不触发」等偏差——均朝过度拦截或告警失灵方向，现已统一按数值规范处理；破坏性数据仍按原故障保护语义兜底）。③ CI 构建确定性：phpunit 测试框架版本钉精确 12.5.43（与开发基线一致，不再随解析浮动）。
 
 = 0.7.1 =
 

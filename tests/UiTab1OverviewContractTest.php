@@ -259,14 +259,14 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringNotContainsString( '本地规则无外部故障面', $bodies, '恒正常黑话退役（对照表 B-7）' );
 	}
 
-	/* ---------- 版本 0.7.1（随批次推进同步——当前 0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」】；F2·M4UX UI 收官批 定稿 §3 历史面） ---------- */
+	/* ---------- 版本 0.7.2（随批次推进同步——当前 0.7.2=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）【0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」】；F2·M4UX UI 收官批 定稿 §3 历史面） ---------- */
 
 	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.1$/m', $entry, '插件头 Version 0.7.1' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.1' )", $entry, '版本常量 0.7.1' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.1$/m', $readme, 'readme Stable tag 0.7.1' );
-		$this->assertStringContainsString( '= 0.7.1 =', $readme, 'Changelog 0.7.1 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.2$/m', $entry, '插件头 Version 0.7.2' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.2' )", $entry, '版本常量 0.7.2' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.2$/m', $readme, 'readme Stable tag 0.7.2' );
+		$this->assertStringContainsString( '= 0.7.2 =', $readme, 'Changelog 0.7.2 条目' );
 	}
 }
