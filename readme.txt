@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.6.9
+Stable tag: 0.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,13 +38,33 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 
 = 卸载会删除数据吗？=
 
-0.5.4 起：**删除插件（Delete）即全清卸载**——清理全部本插件自有数据（7 个 option〔含 M5 三 option：LLM 用量/网址核查队列/体检进度〕、事件表、cron、wk_* 缓存前缀、自有 comment meta 键〔含存量审核/网址核查标记〕）并清空对象缓存。想保留数据请勿卸载，直接上传新版 zip「升级」（升级不触发卸载清理，数据原样保留且缺失键由 migrate 机制补默认）。
+0.5.4 起：**删除插件（Delete）即全清卸载**（【P1-6·0.7.0 作用域更正】此宣称**仅后台 UI 路径成立**——命令行见下一条）——后台「插件 → 删除」会执行卸载清理：全部本插件自有数据（10 个 option〔含 M6 三 option：批量核查队列/配额暂停标记/存量网址核查运行记录〕、事件表、cron、wk_* 缓存前缀、自有 comment meta 键〔含存量审核/网址核查标记〕）并清空对象缓存。想保留数据请勿卸载，直接上传新版 zip「升级」（升级不触发卸载清理，数据原样保留且缺失键由 migrate 机制补默认）。
+
+= 命令行怎么卸载？【P1-6·0.7.0 新增】=
+
+**不要用 `wp plugin delete wink-wp-gatekeeper`**——wp-cli 的 delete 子命令只删插件文件、**不执行 uninstall.php**（rm -rf 语义），卸载清理清单一项都不会跑：配置 option（含明文 API Key）、事件表、评论标记、cron 排期、缓存键**全部残留**，而站长会误以为已清干净。CLI 卸载标准流程（二选一）：
+
+1. `wp plugin uninstall wink-wp-gatekeeper`——wp-cli 会先执行 uninstall.php（数据全清）再删文件；
+2. 后台「插件 → 删除」——WP 核心 delete_plugins() 通道触发 uninstall.php，数据全清。
+
+= 生产部署前置要做哪几件事？【P1-7·0.7.0 新增】=
+
+插件重投入（云审/网址核查付费外呼、事件写入）依赖两类基础设施，公网直连面默认开放——上生产前建议完成四件：
+
+1. **真实 IP 透传**：CDN/反代后的站点在 Tab④「真实 IP 获取方式」配置信任链（Cloudflare 用 custom_header 模式读 `CF-Connecting-IP`；多级反代用 traverse 档+受信网段）——解析错了会误伤真人验证码且污染 IP 信誉库；配置后用 Tab④ 诊断面板核对「当前生效」行。
+2. **系统 cron 驱动 wp-cron**：wp-config 定义 `DISABLE_WP_CRON=true` 后，挂系统 cron 本地驱动（例：`*/5 * * * * docker exec -u www-data <容器名> wp cron event run --due-now`）——存量网址核查/历史评论体检两 worker 与每日维护清理都靠 cron tick 推进，页面触发关掉后必须有人接盘（B 机现状即此形态）。
+3. **拦截 wp-cron.php 外部直连**：`DISABLE_WP_CRON` 只关页面触发，**不拦 wp-cron.php 文件直连**——匿名 GET 该文件可驱动到期事件（含两 worker 的付费 LLM 外呼）。在源站或 WAF 规则里拒绝外部对 `wp-cron.php` 的直连（只放行本机 loopback/容器内网来源）。
+4. **（可选）SECRET 加固**：对 wp-cron.php 请求校验密钥（WAF 规则或 WP 原生钩子方案皆可）——进一步收紧直连面；常规站做完 2+3 已足够。详表与现状注记见文档 `06-真机测试计划.md` 生产部署清单「wp-cron 加固」节。
 
 = 会与官方 hCaptcha 插件冲突吗？=
 
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.7.0 =
+
+M6·批G 文档收口批（2026-11-16——纯文档+头注，代码零行为改动；独立审计 AUDIT-INDEP-2026-11 P1-6/P1-7 文档面销账+M6 六文档 v1.10 回写+0.7.0 收口）。① **命令行卸载警示（P1-6）**：wp-cli 的 `wp plugin delete` 只删插件文件、**不执行卸载清理脚本**——数据（含明文 API Key 的配置、事件表、评论标记、定时任务、缓存键）会全部残留而站长以为已清干净。卸载插件请用后台「插件 → 删除」或 `wp plugin uninstall`（两者都会执行卸载清理、数据全清）；本插件自述文件与 FAQ 已按此口径更正。② **生产部署前置指引（P1-7）**：`DISABLE_WP_CRON` 只关页面触发、拦不住 wp-cron.php 匿名直连——匿名请求可驱动到期任务（含付费 AI 外呼）。新增「生产部署前置」FAQ 与部署清单：真实 IP 透传（Tab④ 信任链配置）、系统 cron 本地驱动 wp-cron、源站/WAF 拦 wp-cron.php 外部直连、可选密钥加固。③ **文档 v1.10 回写**：六份设计文档按 M6 七批（0.6.3→0.6.9 已发布行为）全面对齐——功能总览补 M6 里程碑验收行；架构文档补计量闸键对齐、AI 凭证基类接线契约、网址核查抓取服务商三态与搜索兜底判定路径、评论同步链 30 秒预算墙与事件采样封顶、存量审核处置新语义（判违规进垃圾箱、没看清进待审，均可手动恢复）；交互文档补网址核查配置区三控件与余额探测、工具页双报告区（含「全部重查一遍」语义）；数据文档补全部新配置键、缓存前缀与卸载清单实况（10 个 option）；驱动规格文档新增 DeepSeek 网页抓取/网页搜索/余额查询三端点规格与失败分类映射表；真机测试计划新增 M6 验证对账节与生产部署清单。测试数不变：2006 tests / 12311 assertions 全绿（文档批零新例）。
 
 = 0.6.9 =
 

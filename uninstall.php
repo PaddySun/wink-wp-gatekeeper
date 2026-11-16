@@ -8,6 +8,18 @@
  *     即「卸载重装后历史还在」的根因；B 机存量值待真机复核，静态推断+本地行为级验证）；
  *   - **保留数据路径 = 不卸载、直接上传新版 zip「升级」**——WP 升级不触发本文件，语义天然成立。
  *
+ * 【P1-6·M6 批G·CLI 卸载警示（2026-11-16——独立审计 AUDIT-INDEP-2026-11 REPORT §4 P1-6
+ *   销账，代码零改动纯头注）】**「Delete=全清」仅后台 UI 路径成立**——wp-cli 的
+ *   `wp plugin delete wink-wp-gatekeeper` 实现即 rm -rf，**不执行本文件**（wp-cli 2.12
+ *   Plugin_Command::delete_plugin() 不调核心 delete_plugins()）——CLI delete 后本清单
+ *   逐项不兑现：settings option（含明文 API 凭据）、events 表、全部 comment meta、
+ *   cron 排期与 wk_* transient 全残留，站长会误以为已全清。
+ *   **CLI 卸载标准流程**（二选一）：
+ *   ① `wp plugin uninstall wink-wp-gatekeeper`——wp-cli 会先执行本文件（WP_UNINSTALL_PLUGIN
+ *      通道）再删文件，数据全清；
+ *   ② 后台「插件 → 删除」——WP 核心走 delete_plugins() → 触发本文件，数据全清。
+ *   同族指引：docs 06 真机计划顶部接续横幅「勘误」行已按此口径（`wp plugin uninstall`）。
+ *
  * 数据红线（只碰 wink 自有数据，绝不删坏）：
  *   - 删 10 个 option：wink_gatekeeper_settings / stats / usage / health
  *     【v1.9·M5 回写·审计 C2】+ wink_gatekeeper_llm_usage（LLM 消耗统计，
