@@ -59,8 +59,9 @@ final class DashboardDigest {
 	 * @return array<string, mixed> {
 	 *   health:  {gates: [{gate,label,enabled}], captcha: {driver_id,label,configured},
 	 *            halts: [{driver_id,state,note,detail}], cron_alive: bool}
-	 *   usage:   {rows: [{driver_id,label,used,quota,quota_reached}], site_total: int,
-	 *            disaster_pass: int}
+	 *   usage:   {domains: [{id,label,rows: [{driver_id,label,used,quota,quota_reached,
+	 *            bill_free}]}], site_total: int, disaster_pass: int}
+	 *            ——【M6·批H·H-4】五域固定顺序视图模型（仅非空域）
 	 *   overview:{reject: int, review: int, error: int}
 	 *   debug_note: string
 	 * }
@@ -120,7 +121,7 @@ final class DashboardDigest {
 		}
 
 		$driver_id = isset( $args['captcha_driver'] ) && is_string( $args['captcha_driver'] ) && '' !== $args['captcha_driver']
-			? $args['captcha_driver'] : 'tencent';
+			? $args['captcha_driver'] : 'aliyun'; // 【M6·批H·H-3】防御回落随新出厂默认。
 		$driver_label = isset( $args['captcha_driver_label'] ) && is_string( $args['captcha_driver_label'] ) && '' !== $args['captcha_driver_label']
 			? $args['captcha_driver_label'] : $driver_id;
 
@@ -139,6 +140,15 @@ final class DashboardDigest {
 	/**
 	 * 卡 2 第三方调用量视图模型（「今天花了多少额度、哪些调用白花了」）。
 	 *
+	 * 【M6·批H·H-4】五域固定顺序视图模型（§0-4 用户 2026-11-16——手测反馈「不同服务
+	 * 商搭配时这里显示什么」）：人机验证 → 评论审核（云审）→ 内容审核（本地四闸零外呼
+	 * 零计量=恒空域不渲染）→ 网页抓取 → 网页搜索；IP 信誉域殿后（五域定稿未列，两键
+	 * 数据不丢——偏差已登记批 H 报告）。每域只显**当前实际启用驱动**的行（混合搭配各域
+	 * 各行如实显示：百度在链=百度行、LLM 自定义=自定义行）；行按今日计量存在才渲染
+	 * （零数据=现款空态语义——整域不显）。本站直抓不计费不计次（批 D 语义）→ 抓取域
+	 * 显「本站直接打开——不计费」声明行无次数（bill_free）；抓取未配置（H-1）零行
+	 * （不撒谎）；网址核查关=抓取域整域不渲染。
+	 *
 	 * 配额映射：review.cloud.{id}.daily_quota（云审核驱动）；abuseipdb /
 	 * abuseipdb_report 两键共用 iprep.abuseipdb.daily_quota（同一账户配额——上报与
 	 * 查询共用 04 §6 口径）；其余键（验证码驱动）无日配额=0（不渲染 N / M 行）。
@@ -146,39 +156,101 @@ final class DashboardDigest {
 	 * @param array<string, mixed> $settings   设置树。
 	 * @param array<string, mixed> $usage     Usage 树。
 	 * @param array<string, mixed> $stats     StatsCache 树（容灾放行键）。
-	 * @param array<string, mixed> $args      全量输入（驱动人话名）。
+	 * @param array<string, mixed> $args      全量输入（驱动人话名/验证码驱动 id）。
 	 * @param string               $today_dash  今日（usage 口径）。
 	 * @param string               $today_ymd   今日（stats 口径）。
-	 * @return array<string, mixed>
+	 * @return array<string, mixed> domains: [{id,label,rows:[{driver_id,label,used,quota,
+	 *   quota_reached,bill_free}]}]（仅非空域、固定相对序）；site_total/disaster_pass 照旧。
 	 */
 	private static function usage_card( array $settings, array $usage, array $stats, array $args, string $today_dash, string $today_ymd ): array {
-		$rows        = array();
 		$site_total  = 0;
 		$counters    = isset( $usage['date'], $usage['counters'] ) && $usage['date'] === $today_dash && is_array( $usage['counters'] )
 			? $usage['counters'] : array();
 
-		if ( array() !== $counters ) {
-			$keys = array_keys( $counters );
-			sort( $keys ); // 驱动行字典序（确定性渲染——DOM 断言稳定）。
-			foreach ( $keys as $key ) {
-				if ( ! is_string( $key ) || '' === $key ) {
-					continue;
+		$has = static fn( string $key ): bool => isset( $counters[ $key ] ) && is_string( $key );
+		$row = static function ( string $key ) use ( $usage, $settings, $args ): array {
+			$quota = self::quota_for( $settings, $key );
+			return array(
+				'driver_id'     => $key,
+				'label'         => self::driver_label( $args, $key ),
+				'used'          => Usage::daily_total_for( $usage, $key ),
+				'quota'         => $quota,
+				'quota_reached' => Usage::quota_reached( $usage, $key, $quota ),
+				'bill_free'     => false,
+			);
+		};
+
+		$domains = array();
+
+		// ① 人机验证——当前选中驱动一行。
+		$captcha_driver = isset( $args['captcha_driver'] ) && is_string( $args['captcha_driver'] ) && '' !== $args['captcha_driver']
+			? $args['captcha_driver'] : 'aliyun'; // 【M6·批H·H-3】防御回落随新出厂默认。
+		if ( array() !== $counters && $has( $captcha_driver ) ) {
+			$domains[] = array( 'id' => 'captcha', 'label' => '人机验证', 'rows' => array( $row( $captcha_driver ) ) );
+		}
+
+		// ② 评论审核（云审）——链上驱动一行（UI 单选下拉即 chain[0] 可视面）。
+		$chain  = is_array( $settings['review']['cloud']['chain'] ?? null ) ? $settings['review']['cloud']['chain'] : array();
+		$active = (string) ( $chain[0] ?? '' );
+		if ( array() !== $counters && '' !== $active && $has( $active ) ) {
+			$domains[] = array( 'id' => 'review', 'label' => '评论审核（云审）', 'rows' => array( $row( $active ) ) );
+		}
+
+		// ③ 内容审核（本地四闸）——零外呼零计量，恒空域不渲染（D8 不虚设行）。
+
+		// ④ 网页抓取——抓取服务商行 + 车道判定行 + 本站直抓不计费声明行。
+		if ( ! empty( $settings['url_audit']['enabled'] ) ) {
+			$fetch_rows = array();
+			foreach ( array( 'url_audit_fetch', 'url_audit_incr', 'url_audit_batch' ) as $key ) {
+				if ( $has( $key ) ) {
+					$fetch_rows[] = $row( $key );
 				}
-				$used  = Usage::daily_total_for( $usage, $key );
-				$quota = self::quota_for( $settings, $key );
-				$rows[] = array(
-					'driver_id'     => $key,
-					'label'         => self::driver_label( $args, $key ),
-					'used'          => $used,
-					'quota'         => $quota,
-					'quota_reached' => Usage::quota_reached( $usage, $key, $quota ),
+			}
+			$fetch_mode = \WinkGatekeeper\UrlAudit\UrlAuditWorker::fetcher_mode( $settings );
+			if ( 'self' === $fetch_mode ) {
+				// 【M6·批H·H-4③】本站直抓不计费不计次（批 D 语义）→ 声明行无次数。
+				$fetch_rows[] = array(
+					'driver_id'     => 'self_fetch',
+					'label'         => '本站直接打开——不计费',
+					'used'          => 0,
+					'quota'         => 0,
+					'quota_reached' => false,
+					'bill_free'     => true,
 				);
 			}
+			if ( array() !== $fetch_rows ) {
+				$domains[] = array( 'id' => 'fetch', 'label' => '网页抓取', 'rows' => $fetch_rows );
+			}
+		}
+
+		// ⑤ 网页搜索——博查/DeepSeek 两源行（按今日计量存在渲染）。
+		$search_rows = array();
+		foreach ( array( 'bocha_search', 'deepseek_search' ) as $key ) {
+			if ( $has( $key ) ) {
+				$search_rows[] = $row( $key );
+			}
+		}
+		if ( array() !== $search_rows ) {
+			$domains[] = array( 'id' => 'search', 'label' => '网页搜索', 'rows' => $search_rows );
+		}
+
+		// ⑥ IP 信誉（殿后）——abuseipdb 查询/上报两键（五域定稿未列，数据不丢如实显示）。
+		$iprep_rows = array();
+		foreach ( array( 'abuseipdb', 'abuseipdb_report' ) as $key ) {
+			if ( $has( $key ) ) {
+				$iprep_rows[] = $row( $key );
+			}
+		}
+		if ( array() !== $iprep_rows ) {
+			$domains[] = array( 'id' => 'iprep', 'label' => 'IP 信誉', 'rows' => $iprep_rows );
+		}
+
+		if ( array() !== $counters ) {
 			$site_total = Usage::daily_total( $usage );
 		}
 
 		return array(
-			'rows'          => $rows,
+			'domains'       => $domains,
 			'site_total'    => $site_total,
 			'disaster_pass' => self::today_disaster_pass( $stats, $today_ymd ),
 		);

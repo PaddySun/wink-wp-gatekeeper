@@ -50,8 +50,10 @@ final class SettingsSchemaV14Test extends TestCase {
 		);
 
 		// 登录自适应重构：user_threshold 迁移目标键 + iprep_gate；threshold/max_user_keys 不再出现。
+		// 【M6·批H·H-2 翻转注记】ip_threshold 出厂默认 10→3（0.7.1 用户拍板——特征值平移
+		// 见 migrate_fields；显式其他值原样保留）。
 		$this->assertSame( 3, $defaults['captcha']['login_adaptive']['user_threshold'] );
-		$this->assertSame( 10, $defaults['captcha']['login_adaptive']['ip_threshold'] );
+		$this->assertSame( 3, $defaults['captcha']['login_adaptive']['ip_threshold'] );
 		$this->assertSame( true, $defaults['captcha']['login_adaptive']['iprep_gate'] );
 		$this->assertArrayNotHasKey( 'threshold', $defaults['captcha']['login_adaptive'] );
 		$this->assertArrayNotHasKey( 'max_user_keys', $defaults['captcha']['login_adaptive'] );

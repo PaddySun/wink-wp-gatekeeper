@@ -91,7 +91,10 @@ final class LoginCountersTest extends TestCase {
 
 	public function test_user_key_is_per_username(): void {
 		$clock = 1000000;
-		$c     = $this->make( $clock )['counters'];
+		// 【M6·批H·H-2 翻转注记】原空设置依赖构造器回落 ip_threshold=10（同 IP 3 次不饱和
+		// IP 键）；0.7.1 起出厂默认 10→3（同 IP 3 次即饱和，editor 会被 IP 维度波及）——
+		// 本例意图=用户名维度独立性隔离验证，改显式 10（P2-4：显式其他值原样保留）作夹具。
+		$c     = $this->make( $clock, self::defaults() )['counters'];
 
 		for ( $i = 0; $i < 3; $i++ ) {
 			$c->record_failure( '203.0.113.7', 'admin' );

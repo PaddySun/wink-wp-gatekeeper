@@ -318,6 +318,8 @@ namespace WinkGatekeeper\Tests {
 		private function makeWorker( array $overrides = array(), array $ua = array(), array &$refs = array() ): UrlAuditWorker {
 			$settings                         = SettingsSchema::defaults();
 			$settings['url_audit']['enabled'] = true;
+			// 【M6·批H·H-1】抓取管线测试夹具显式 self 档（inherit 现解析 unconfigured 不自动自抓——本批语义翻转，管线行为测试须显式选择抓取档）。
+			$settings['url_audit']['fetcher']['mode'] = 'self';
 			$settings['url_audit']['profile'] = 'balanced';
 			foreach ( $ua as $key => $value ) {
 				$settings['url_audit'][ $key ] = $value;

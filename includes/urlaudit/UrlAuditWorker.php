@@ -337,6 +337,31 @@ final class UrlAuditWorker {
 			}
 		} else {
 			// ② fetch（缓存 miss / 重查强制）。
+			// 【M6·批H·H-1】抓取未配置档（§0-1 用户拍板——本站直抓永不自动启用）：inherit
+			// 解析=unconfigured（云端审核非 DeepSeek/未配置）→ 零 fetch 零 judge 零外呼零缓存，
+			// judge 以 fetch:unconfigured → inconclusive → hold 收口（批 E 语义——待审=统一
+			// 人工判定入口）。配置态非 URL 语义：不写 UrlAuditCache（配置修正后同 URL 应真判，
+			// 24h inconclusive 缓存不得遮蔽）——meta 照写（防每 tick 重处理空转）。
+			if ( 'unconfigured' === self::fetcher_mode( $this->settings ) ) {
+				$judgement = array(
+					'verdict'    => 'inconclusive',
+					'confidence' => 0.0,
+					'reason'     => 'fetch: unconfigured',
+					'hits'       => array(),
+				);
+				$fetch_meta = array(
+					'cache'          => 'miss',
+					'fetch_class'    => 'unconfigured',
+					'final_url'      => $url,
+					'hops'           => array(),
+					'redirects'      => 0,
+					'fetch_provider' => 'unconfigured',
+					'http_code'      => 0,
+				);
+				$this->finish_and_dispose( $comment_id, $lane, $profile, $judgement, $fetch_meta, $evidence );
+				return;
+			}
+
 			$fetcher = $fetcher_f();
 			$fetched = $fetcher->fetch( $url, ! empty( $this->settings['url_audit']['robots_comply'] ) );
 			$fetch_meta = array(
@@ -467,7 +492,29 @@ final class UrlAuditWorker {
 			}
 		}
 
-		// ⑤ 处置（增量矩阵/存量 flag——UrlVerdicts 收口）。
+		// ⑤ 处置（增量矩阵/存量 flag——UrlVerdicts 收口）。【M6·批H·H-1】收口块提为共用件
+		// finish_and_dispose（unconfigured 档同脊收口——meta 写+处置执行语义逐字一致）。
+		$this->finish_and_dispose( $comment_id, $lane, $profile, $judgement, $fetch_meta, $evidence );
+	}
+
+	/**
+	 * 【M6·批H·H-1】判定收口共用件（自 process_comment ⑤ 块原样上提——零行为漂移）：
+	 * meta 组装（verdict/reason 截 200/fetch 溯源/evidence）+ 双车道处置矩阵
+	 * （incr=UrlVerdicts::disposal / batch=disposal_existing）+ meta 写 + disposed_to∈
+	 * {spam,hold} 的处置执行（disposal_executor 注入面）。
+	 *
+	 * @param int                   $comment_id 评论 id。
+	 * @param string                $lane       incr|batch。
+	 * @param string                $profile    处置档。
+	 * @param array<string, mixed>  $judgement  判定（verdict/confidence/reason/hits）。
+	 * @param array<string, mixed>  $fetch_meta fetch 溯源块。
+	 * @param string                $evidence   证据形态（''=页面正文|'search'=搜索线索）。
+	 * @return void
+	 */
+	private function finish_and_dispose( int $comment_id, string $lane, string $profile, array $judgement, array $fetch_meta, string $evidence ): void {
+		$meta_writer = $this->meta_writer ?? array( $this, 'default_meta_writer' );
+		$executor    = $this->disposal_executor ?? array( $this, 'default_disposal_executor' );
+
 		$meta = array(
 			'verdict'    => $judgement['verdict'],
 			'confidence' => $judgement['confidence'],
@@ -928,7 +975,9 @@ final class UrlAuditWorker {
 			if ( '' === $reason ) {
 				$reason = '（无原因说明）';
 			}
-			$reason = mb_substr( $reason, 0, 40 );
+			// 【M6·批H·H-8】归堆截断补「…」（单点件 InterceptDigest::truncate_reason——
+			// 归堆先于渲染截断，聚合侧同规约全消费面生效）。
+			$reason = \WinkGatekeeper\Stats\InterceptDigest::truncate_reason( $reason );
 			$ev     = 'search' === (string) ( $meta['evidence'] ?? '' ) ? 'search' : '';
 			$key    = $reason . '|' . $ev;
 			if ( isset( $reasons[ $key ] ) ) {
@@ -1032,7 +1081,10 @@ final class UrlAuditWorker {
 			$judged_at = (int) ( $meta['judged_at'] ?? 0 );
 			$fetch     = is_array( $meta['fetch'] ?? null ) ? $meta['fetch'] : array();
 			// K8：今天真的打开/判定过的（缓存命中不算——fetch.cache=miss 且 judged_at 今日）。
-			if ( 'miss' === ( $fetch['cache'] ?? '' ) && gmdate( 'Y-m-d', $judged_at ) === $today_key ) {
+			// 【M6·批H·H-1】抓取未配置档行排除（零打开零判定——不得虚报「今日核查」）。
+			if ( 'miss' === ( $fetch['cache'] ?? '' )
+				&& 'unconfigured' !== (string) ( $fetch['fetch_provider'] ?? '' )
+				&& gmdate( 'Y-m-d', $judged_at ) === $today_key ) {
 				++$today_checked;
 			}
 			if ( ! empty( $meta['auto_url_reject'] ) ) {
@@ -1043,6 +1095,48 @@ final class UrlAuditWorker {
 			}
 		}
 		return array( 'today_checked' => $today_checked, 'auto_rejected' => $auto_rejected, 'pending_review' => $pending_review );
+	}
+
+	/**
+	 * 【M6·批H·H-9】网址核查今日处置三数（Tab⑥「最近拦下的评论」区头部汇总行——
+	 * 「网址核查今日处置 N 条（垃圾箱 X·待审 Y）→ 查看详情」）。口径=meta 反查（读路径
+	 * 零新增存储零新事件零写放大——P1-4 事件表拦截口径保持纯净不稀释）：judged_at 今日
+	 * 且 disposed_to∈{spam,hold}（抓取未配置档 disposed_to=hold 也计——「今日进待审」
+	 * 是真实发生过的处置事实）。
+	 *
+	 * @return array{total: int, spam: int, hold: int}
+	 */
+	public function today_disposal_line(): array {
+		global $wpdb;
+		$meta_table = $wpdb->commentmeta;
+		$today_key  = gmdate( 'Y-m-d' );
+		$total      = 0;
+		$spam       = 0;
+		$hold       = 0;
+		$rows       = $wpdb->get_results(
+			$wpdb->prepare( "SELECT meta_value FROM {$meta_table} WHERE meta_key = %s", self::META_KEY ),
+			ARRAY_A
+		);
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			$meta = maybe_unserialize( (string) ( $row['meta_value'] ?? '' ) );
+			if ( ! is_array( $meta ) || ! isset( $meta['verdict'] ) ) {
+				continue;
+			}
+			$disposed_to = (string) ( $meta['disposed_to'] ?? 'none' );
+			if ( ! in_array( $disposed_to, array( 'spam', 'hold' ), true ) ) {
+				continue; // 只数「处置了」的（垃圾箱/待审两去向——none=零处置不进汇总）。
+			}
+			if ( gmdate( 'Y-m-d', (int) ( $meta['judged_at'] ?? 0 ) ) !== $today_key ) {
+				continue; // 今日口径（judged_at 日历日——与 stats_line K8 同款）。
+			}
+			++$total;
+			if ( 'spam' === $disposed_to ) {
+				++$spam;
+			} else {
+				++$hold;
+			}
+		}
+		return array( 'total' => $total, 'spam' => $spam, 'hold' => $hold );
 	}
 
 	/**
@@ -1084,6 +1178,8 @@ final class UrlAuditWorker {
 	 * DeepSeekFetchAdapter（本站零直访陌生 URL，传输脊只对 api.deepseek.com 一条外呼）；
 	 * 其余档返回现款 UrlFetcher（免费路径+15s/逐跳 SSRF 防线原样）。RemoteClient 传输脊；
 	 * fetch 计量在 adapter 响应侧（成功次），usage_key 由 judge 传）。
+	 * 【M6·批H·H-1】unconfigured 档消费面在 process_comment 先行短路（零 fetch）——
+	 * 工厂本档永不投产（防御形态仍返回 UrlFetcher，与显式 self 同构）。
 	 *
 	 * @return UrlFetcher|DeepSeekFetchAdapter fetch($url,$robots_comply) 同构面。
 	 */
@@ -1096,13 +1192,16 @@ final class UrlAuditWorker {
 	}
 
 	/**
-	 * 【M6·批D·D-3】抓取模式解析（纯函数，单测面——C-6 inherit 跟随切换语义）：
-	 * self/deepseek 显式档原样；inherit（默认）=跟随云端审核驱动——review.cloud.chain
-	 * 首位=deepseek → 抓取落 DeepSeek；其他驱动（TMS/百度/green…）或云审关 → 本站
-	 * 直接打开兜底（免费路径保底——N1 提案表）。
+	 * 【M6·批D·D-3】抓取模式解析（纯函数，单测面）；【M6·批H·H-1】inherit 跟随语义翻转
+	 * （§0-1 用户 2026-11-16 拍板——**本站直抓永不自动启用**）：
+	 * self/deepseek 显式档原样（self 仅显式选择时生效）；inherit（默认）=跟随云端审核
+	 * 驱动——review.cloud.chain 首位=deepseek → 抓取落 DeepSeek；**其他驱动（TMS/百度/
+	 * green…）或云审关（含未配置）→ 'unconfigured'（抓取未配置）**：不自动自抓（旧
+	 * 「本站直开兜底」退役——暴露源站 IP 不可作默认行为），judge 以 fetch:unconfigured
+	 * →inconclusive→hold（批 E 语义，process_comment 消费）。
 	 *
 	 * @param array<string, mixed> $settings merge 后整树。
-	 * @return string inherit 解析后 ∈ self|deepseek（inherit 档返回解析结果）。
+	 * @return string 解析后 ∈ self|deepseek|unconfigured（inherit 档返回解析结果）。
 	 */
 	public static function fetcher_mode( array $settings ): string {
 		$mode = (string) ( $settings['url_audit']['fetcher']['mode'] ?? 'inherit' );
@@ -1111,7 +1210,7 @@ final class UrlAuditWorker {
 		}
 		$chain  = is_array( $settings['review']['cloud']['chain'] ?? null ) ? $settings['review']['cloud']['chain'] : array();
 		$active = (string) ( $chain[0] ?? '' ); // UI 单选下拉即 chain[0] 可视面（04 §2）。
-		return 'deepseek' === $active ? 'deepseek' : 'self';
+		return 'deepseek' === $active ? 'deepseek' : 'unconfigured';
 	}
 
 	/**

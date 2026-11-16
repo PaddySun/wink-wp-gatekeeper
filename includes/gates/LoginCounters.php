@@ -6,7 +6,8 @@
  *                     —— 纯用户名键不绑 IP：同一 user_login 的失败**跨 IP 累计**
  *                     （堵「僵尸网络分布式爆破单账号（每 IP 只试 1–2 次规避阈值）」的
  *                     结构性盲区——旧组合键每新 IP 各开新键、计数永不累加）。
- *   键 B（IP 聚合键） wk_lf_ip_<hmac16(ip)>              阈 ip_threshold（默认 10）
+ *   键 B（IP 聚合键） wk_lf_ip_<hmac16(ip)>              阈 ip_threshold（默认 3——0.7.1 起，
+ *                     H-2 前出厂 10 特征值 migrate 平移；显式其他值保留）
  *                     —— 防单 IP password spray（轮换用户名）。
  *   任一维度超阈 = 已饱和（出码 + 强制验票）。
  *
@@ -117,7 +118,9 @@ final class LoginCounters {
 	) {
 		// 【v1.4·R4-G】threshold 已迁移为 user_threshold（读取兼容旧键——迁移前的 option 直读场景）。
 		$this->user_threshold = max( 1, (int) ( $settings['user_threshold'] ?? $settings['threshold'] ?? 3 ) );
-		$this->ip_threshold   = max( 1, (int) ( $settings['ip_threshold'] ?? 10 ) );
+		// 【M6·批H·H-2】ip_threshold 出厂默认 10→3（特征值平移在 SettingsSchema::migrate_fields
+		// ——防御回落随新默认；站长显式其他值照常消费）。
+		$this->ip_threshold   = max( 1, (int) ( $settings['ip_threshold'] ?? 3 ) );
 		$this->window         = max( 60, (int) ( $settings['window_minutes'] ?? 15 ) * 60 );
 
 		$this->get  = $get ?? static function ( string $key ) {

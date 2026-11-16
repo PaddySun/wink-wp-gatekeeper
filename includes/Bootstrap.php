@@ -1062,8 +1062,9 @@ final class Bootstrap {
 
 		// 验证码驱动配置态：真实驱动 is_configured 判定（纯逻辑层不复制凭据规则——单点真相；
 		// 传输脊空壳构造不发起任何网络调用——is_configured 只读凭据字段）。
+		// 【M6·批H·H-3】防御回落随新出厂默认 aliyun。
 		$captcha_driver = is_string( $settings['captcha']['driver'] ?? null ) && '' !== $settings['captcha']['driver']
-			? $settings['captcha']['driver'] : 'tencent';
+			? $settings['captcha']['driver'] : 'aliyun';
 		$captcha_configured = false;
 		$captcha_label      = $captcha_driver;
 		if ( 'tencent' === $captcha_driver ) {
@@ -1154,25 +1155,32 @@ final class Bootstrap {
 				</p>
 			</div>
 
-			<?php /* 卡 2：第三方调用量——各驱动今日行 + 配额 N / M + 站点总外呼 + 容灾放行。 */ ?>
+			<?php /* 卡 2：第三方调用量——【M6·批H·H-4】五域固定顺序（人机验证→评论审核→
+			 * 〔内容审核本地不计数不显〕→网页抓取→网页搜索；IP 信誉殿后）+各域实际启用驱动行
+			 * +本站直抓不计费声明行 + 站点总外呼 + 容灾放行。 */ ?>
 			<div class="wk-widget-card" id="wk-widget-usage">
 				<p class="wk-widget-card-title"><?php echo esc_html( __( '第三方调用量（今日）', 'wink-gatekeeper' ) ); ?></p>
-				<?php if ( array() === $view['usage']['rows'] ) : ?>
+				<?php if ( array() === $view['usage']['domains'] ) : ?>
 					<p class="wk-widget-empty"><?php echo esc_html( __( '今日无外呼。', 'wink-gatekeeper' ) ); ?></p>
 				<?php else : ?>
-					<ul class="wk-widget-usage">
-						<?php foreach ( $view['usage']['rows'] as $row ) : ?>
-							<li class="wk-widget-usage-row<?php echo esc_attr( ! empty( $row['quota_reached'] ) ? ' is-red' : '' ); ?>">
-								<?php echo esc_html( (string) $row['label'] ); ?>
-								<?php if ( (int) $row['quota'] > 0 ) : ?>
-									<span class="wk-widget-num"><?php echo (int) $row['used']; ?> / <?php echo (int) $row['quota']; ?></span>
-									<?php echo ! empty( $row['quota_reached'] ) ? esc_html( __( '——已达限，当日暂停', 'wink-gatekeeper' ) ) : ''; ?>
-								<?php else : ?>
-									<span class="wk-widget-num"><?php echo (int) $row['used']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?>
-								<?php endif; ?>
-							</li>
-						<?php endforeach; ?>
-					</ul>
+					<?php foreach ( $view['usage']['domains'] as $domain ) : ?>
+						<p class="wk-widget-usage-domain"><?php echo esc_html( (string) $domain['label'] ); ?></p>
+						<ul class="wk-widget-usage">
+							<?php foreach ( $domain['rows'] as $row ) : ?>
+								<li class="wk-widget-usage-row<?php echo esc_attr( ! empty( $row['quota_reached'] ) ? ' is-red' : '' ); ?>">
+									<?php echo esc_html( (string) $row['label'] ); ?>
+									<?php if ( ! empty( $row['bill_free'] ) ) : ?>
+										<?php /* 【M6·批H·H-4③】本站直抓不计费声明行——无次数渲染。 */ ?>
+									<?php elseif ( (int) $row['quota'] > 0 ) : ?>
+										<span class="wk-widget-num"><?php echo (int) $row['used']; ?> / <?php echo (int) $row['quota']; ?></span>
+										<?php echo ! empty( $row['quota_reached'] ) ? esc_html( __( '——已达限，当日暂停', 'wink-gatekeeper' ) ) : ''; ?>
+									<?php else : ?>
+										<span class="wk-widget-num"><?php echo (int) $row['used']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?>
+									<?php endif; ?>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endforeach; ?>
 					<p class="wk-widget-line">
 						<?php echo esc_html( __( '站点今日总外呼', 'wink-gatekeeper' ) ); ?>
 						<span class="wk-widget-num"><?php echo (int) $view['usage']['site_total']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?>

@@ -83,7 +83,11 @@ final class SettingsSchema {
 			),
 
 				'captcha'                => array(
-					'driver'    => 'tencent', // tencent(M1) aliyun hcaptcha turnstile geetest(M4) | null.
+					// 【M6·批H·H-3·breaking】出厂默认驱动 tencent→aliyun（用户 2026-11-16 拍板——
+					// 天御免费额度耗尽需 300 元套餐门槛，阿里云验证码免费开通按量计费；registry/UI
+					// 排列顺序不动——D14 腾讯系优先只退位默认值）。存量平移见 migrate_fields 撞车守卫：
+					// 天御凭据已配=站长显式选择原样保留；出厂特征值 tencent（零凭据）平移新默认。
+					'driver'    => 'aliyun', // aliyun(默认) tencent(M1) hcaptcha turnstile geetest(M4) | null.
 					// M2 反馈2 T3（D+A-lite）：验证短缓存窗口（分钟）——票据核验成功后同存根+同 IP
 					// 免重复验票；0 = 关闭。默认与 VerifyCache::DEFAULT_TTL_MINUTES 一致。
 					'verify_cache_minutes' => 10,
@@ -151,7 +155,11 @@ final class SettingsSchema {
 				'login_adaptive' => array(
 					'user_threshold' => 3,    // 【v1.4】原 threshold 迁移平移（migrate）；仅真实用户计数。
 					'window_minutes' => 15,
-					'ip_threshold'   => 10,   // 同 IP 聚合阈值（收紧 5 为站长可选预设）。
+					// 【M6·批H·H-2·breaking】同 IP 聚合默认 10→**3**（用户 2026-11-16——登录闸
+					// 描述写死「10 次」与默认不符反馈）。特征值平移见 migrate_fields：出厂 10
+					// （站长从未动过）→ 移除键由 merge_defaults 补新默认 3；显式其他值原样保留
+					// （P2-4 语义照旧——timeout/cache_minutes 平移同法）。
+					'ip_threshold'   => 3,
 					'iprep_gate'     => true, // 【v1.4·澄清A】登录闸 IP 信誉三态联动开关（关=纯计数）。
 				),
 			),
@@ -439,10 +447,14 @@ final class SettingsSchema {
 	 *     特征值 60 / iprep.negative_cache_minutes 旧默认特征值 10 → 移除键由 merge_defaults
 	 *     补新默认 1440/60（站长自定义值原样保留；soft_quota 新键同批整树补齐）；
 	 *   ③c【I3·定稿 §4.2/O5-P1-3】iprep.report.triggers.ip_reject 废弃清除（自反馈回路）；
-	 *   ③d【I3·定稿 §4.3/拍板 0.4】iprep.report.enabled 默认 true→false **存量不迁移**
-	 *     （P0-B xmlrpc_login 先例——新装站点默认关；存量站点保留存储值，breaking 注明；
-	 *     新键 triggers.login_attempts/local_rules_fail+两 _threshold 子键+daily_cap+
-	 *     category_/comment_ 每面覆盖键由 merge_defaults 整树补齐）；
+		 *   ③d【I3·定稿 §4.3/拍板 0.4】iprep.report.enabled 默认 true→false **存量不迁移**
+		 *     （P0-B xmlrpc_login 先例——新装站点默认关；存量站点保留升级前存储值，breaking 注明；
+		 *     新键 triggers.login_attempts/local_rules_fail+两 _threshold 子键+daily_cap+
+		 *     category_/comment_ 每面覆盖键由 merge_defaults 整树补齐）；
+		 *   ③f【M6·批H·H-2】captcha.login_adaptive.ip_threshold 出厂特征值 10 平移新默认 3
+		 *     （站长显式其他值原样保留）；
+		 *   ③g【M6·批H·H-3】captcha.driver 出厂特征值 'tencent' 平移新默认 'aliyun'
+		 *     （撞车守卫：天御凭据已配=站长显式选择原样保留——chain+api_key 空判据先例）；
 	 *   ③e【P0-9·F1】iprep.abuseipdb.timeout 旧默认特征值 1 平移新默认 3（出厂值非站长
 	 *     显式选择——cache_minutes 平移同法；多跳链路建议 5s 注记 readme Changelog）；
 	 *   ④ review.cloud.chain == ['deepseek']（v1.3 前的默认值、站长从未动过）→ []；
@@ -489,6 +501,35 @@ final class SettingsSchema {
 		// ③ iprep.abuseipdb.fail_mode 丢弃。
 		if ( isset( $existing['iprep']['abuseipdb'] ) && is_array( $existing['iprep']['abuseipdb'] ) ) {
 			unset( $existing['iprep']['abuseipdb']['fail_mode'] );
+		}
+
+		// 【M6·批H·H-2·breaking】captcha.login_adaptive.ip_threshold 出厂默认 10→3 平移
+		// （特征值 10=站长从未动过的旧出厂值 → 移除键由随后 merge_defaults 补新默认 3；
+		// 站长显式其他值原样保留——P0-9 timeout 平移同法）。
+		if ( isset( $existing['captcha'] ) && is_array( $existing['captcha'] )
+			&& isset( $existing['captcha']['login_adaptive'] ) && is_array( $existing['captcha']['login_adaptive'] )
+			&& array_key_exists( 'ip_threshold', $existing['captcha']['login_adaptive'] )
+			&& 10 === (int) $existing['captcha']['login_adaptive']['ip_threshold'] ) {
+			unset( $existing['captcha']['login_adaptive']['ip_threshold'] );
+		}
+
+		// 【M6·批H·H-3·breaking】captcha.driver 出厂默认 'tencent'→'aliyun' 平移（撞车守卫：
+		// 天御凭据已配=站长显式选择的铁证 → 原样保留（M5FIX chain+api_key 空判据先例）；
+		// 出厂特征值 'tencent'（四凭据全空=从未动过）→ 移除键由 merge_defaults 补新默认
+		// 'aliyun'（两态皆未配置驱动=inert，行为等价零惊吓）；显式其他值（hcaptcha/
+		// turnstile/geetest…）原样保留。registry/UI 排列顺序不动（D14 腾讯系优先只退位默认值）。
+		if ( isset( $existing['captcha'] ) && is_array( $existing['captcha'] )
+			&& array_key_exists( 'driver', $existing['captcha'] )
+			&& 'tencent' === $existing['captcha']['driver'] ) {
+			$tencent   = isset( $existing['captcha']['tencent'] ) && is_array( $existing['captcha']['tencent'] )
+				? $existing['captcha']['tencent'] : array();
+			$has_creds = '' !== trim( (string) ( $tencent['app_id'] ?? '' ) )
+				|| '' !== trim( (string) ( $tencent['secret_id'] ?? '' ) )
+				|| '' !== trim( (string) ( $tencent['secret_key'] ?? '' ) )
+				|| '' !== trim( (string) ( $tencent['app_secret_key'] ?? '' ) );
+			if ( ! $has_creds ) {
+				unset( $existing['captcha']['driver'] );
+			}
 		}
 
 		// ③b【v1.7·M3-IP 定稿 §3.3】两 TTL 默认平移（O5-P1-2 保实况键名）：已存值==旧默认

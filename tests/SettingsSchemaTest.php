@@ -43,7 +43,9 @@ final class SettingsSchemaTest extends TestCase {
 		array( array( 'gates', 'register', 'render_mode' ), 'always' ),
 		array( array( 'gates', 'lostpassword', 'enabled' ), true ),
 
-			array( array( 'captcha', 'driver' ), 'tencent' ),
+			// 【M6·批H·H-3 翻转注记】出厂默认驱动 tencent→aliyun（0.7.1 用户拍板——天御免费
+			// 额度门槛；registry/UI 排列顺序不动；存量 tencent 零凭据树 migrate 平移）。
+			array( array( 'captcha', 'driver' ), 'aliyun' ),
 			array( array( 'captcha', 'tencent', 'app_id' ), '' ),
 			array( array( 'captcha', 'tencent', 'secret_key' ), '' ),
 			array( array( 'captcha', 'tencent', 'app_secret_key' ), '' ),
@@ -53,7 +55,8 @@ final class SettingsSchemaTest extends TestCase {
 			// 【v1.4·R4-G】threshold→user_threshold 迁移；max_user_keys 不再出现（04 §2 v1.4）。
 			array( array( 'captcha', 'login_adaptive', 'user_threshold' ), 3 ),
 			array( array( 'captcha', 'login_adaptive', 'window_minutes' ), 15 ),
-			array( array( 'captcha', 'login_adaptive', 'ip_threshold' ), 10 ),
+			// 【M6·批H·H-2 翻转注记】ip_threshold 出厂默认 10→3（0.7.1 用户拍板——特征值平移）。
+			array( array( 'captcha', 'login_adaptive', 'ip_threshold' ), 3 ),
 			array( array( 'captcha', 'login_adaptive', 'iprep_gate' ), true ),
 
 			array( array( 'review', 'local', 'min_length' ), 0 ),

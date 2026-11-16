@@ -60,13 +60,13 @@ final class B1aContractTest extends TestCase {
 	/* ---------- 版本三处同步（R1 G7） ---------- */
 
 	public function test_version_is_bumped_to_0_2_3_in_three_places(): void {
-		// 版本断言随批次推进更新（当前 0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=M6·批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」；0.6.6=批D 抓取服务商化与全量重查；0.6.5=批C 存量审核处置与报告重构；0.6.4=批B 网址核查配置面增强；0.6.3=批A 审计 P1 三连】；历史批次契约面在 UiTab6StatsContractTest）。
+		// 版本断言随批次推进更新（当前 0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=M6·批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」；0.6.6=批D 抓取服务商化与全量重查；0.6.5=批C 存量审核处置与报告重构；0.6.4=批B 网址核查配置面增强；0.6.3=批A 审计 P1 三连】；历史批次契约面在 UiTab6StatsContractTest）。
 		$entry = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.0$/m', $entry, '插件头 Version 须为 0.7.0' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.0' )", $entry, '版本常量须为 0.7.0' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.0$/m', $readme, 'readme Stable tag 须为 0.7.0' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.1$/m', $entry, '插件头 Version 须为 0.7.1' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.1' )", $entry, '版本常量须为 0.7.1' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.1$/m', $readme, 'readme Stable tag 须为 0.7.1' );
 		$this->assertStringContainsString( '819 tests / 3657 assertions', $readme, 'Changelog 须含测试数（R1 G7 纪律）' );
 		$this->assertStringContainsString( 'F4-1', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-3', $readme, 'Changelog 须含设计锚点' );

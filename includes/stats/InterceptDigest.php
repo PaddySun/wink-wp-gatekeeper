@@ -102,6 +102,24 @@ final class InterceptDigest {
 	}
 
 	/**
+	 * 报告原因截断单点件（【M6·批H·H-8】用户 2026-11-16——截断展示尾部补「…」省略号，
+	 * 全消费面生效）：未达限原样返回；超限=前 N 字+「…」。消费面=Tab⑦ 报告原因明细
+	 * 渲染（SettingsPage）与 URL 报告原因归堆（UrlAuditWorker::backlog_report_view——
+	 * 归堆先于渲染截断，聚合侧必须同规约，否则消费面只见裸 40 字）。原因=攻击者可控
+	 * （AI 原文/驱动透传）——调用面负责 esc_html（本件只切字不加转义，XSS 红线分工一致）。
+	 *
+	 * @param string $reason 原因文本。
+	 * @param int    $max    截断上限（默认 40——两消费面既有口径）。
+	 * @return string
+	 */
+	public static function truncate_reason( string $reason, int $max = 40 ): string {
+		if ( mb_strlen( $reason, 'UTF-8' ) <= $max ) {
+			return $reason;
+		}
+		return mb_substr( $reason, 0, $max, 'UTF-8' ) . '…';
+	}
+
+	/**
 	 * 明细卡行组装（纯逻辑：events 行 + comments 映射 → 展示行）。
 	 *
 	 * @param array<int, array<string, mixed>> $events 事件行（event_no/created_at/stage/

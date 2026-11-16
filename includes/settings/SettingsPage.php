@@ -207,6 +207,19 @@ final class SettingsPage {
 	 * @return array<string, mixed>
 	 */
 	public static function sanitize( $input ): array {
+		// 【M6·批H·H-6】显式清除凭据旗标（渲染层 hidden 0 伴随域+独立 <leaf>_clear 键名）
+		// 在清洗前剥除——旗标键不进设置树不进 rejected 报告；返回被勾选（旗标=1）的
+		// password 点分路径列表（保存树收口阶段消费）。提交态为空的勾选路径记账（在
+		// 「空串保留」之前——提交态语义，preserve 还原值不作数）。
+		$clear_flags = self::strip_credential_clear_flags( $input );
+		$clear_empty = array();
+		foreach ( $clear_flags as $flag_path ) {
+			$segments = explode( '.', $flag_path );
+			if ( '' === (string) self::dig( is_array( $input ) ? $input : array(), $segments, '' ) ) {
+				$clear_empty[] = $flag_path;
+			}
+		}
+
 		list( $clean, $rejected ) = Sanitize::clean( $input );
 
 		// M1：$rejected（点分路径列表）接入「已剥除未知字段」后台提示。
@@ -241,6 +254,13 @@ final class SettingsPage {
 				$node = self::dig( $stored, $segments, '' );
 			}
 			unset( $node );
+		}
+
+		// 【M6·批H·H-6】清除旗标收口（在「空串保留」之后应用——显式清空覆盖保留语义）：
+		// 勾选且提交值为空串 → 凭据置空串（渲染层「已配置✓」消失，U-1/黄条联动照常）；
+		// 勾选但提交了新值 → 新值优先（显式替换语义，清除控件与换钥互不劫持）。
+		foreach ( $clear_empty as $flag_path ) {
+			self::assign_path( $clean, explode( '.', $flag_path ), '' );
 		}
 
 		$merged = self::merge_submitted( $stored, $clean );
@@ -326,6 +346,75 @@ final class SettingsPage {
 			$node = $node[ $segment ];
 		}
 		return $node;
+	}
+
+	/**
+	 * 【M6·批H·H-6】显式清除凭据旗标剥除（sanitize 桥清洗前置步）：遍历 password 型
+	 * 规则路径，提交树同层若携带独立旗标键 <leaf>_clear（渲染层 hidden 0 伴随域+checkbox
+	 * 形态）→ 剥除旗标键（不进设置树不进 rejected 报告）并按值记账（'1'=勾选清除）。
+	 *
+	 * @param mixed $input 表单提交树（引用——旗标键就地剥除；非数组安全退空）。
+	 * @return string[] 被勾选的 password 点分路径列表。
+	 */
+	private static function strip_credential_clear_flags( &$input ): array {
+		$flagged = array();
+		if ( ! is_array( $input ) ) {
+			return $flagged;
+		}
+		foreach ( Sanitize::rules() as $path => $type ) {
+			if ( 'password' !== $type ) {
+				continue;
+			}
+			$segments = explode( '.', $path );
+			$leaf     = (string) end( $segments );
+			$parent   = &self::dig_ref( $input, array_slice( $segments, 0, -1 ) );
+			if ( is_array( $parent ) && array_key_exists( $leaf . '_clear', $parent ) ) {
+				if ( '1' === (string) $parent[ $leaf . '_clear' ] ) {
+					$flagged[] = $path;
+				}
+				unset( $parent[ $leaf . '_clear' ] );
+			}
+			unset( $parent );
+		}
+		return $flagged;
+	}
+
+	/**
+	 * 按路径段取引用（缺中间节点就地建空数组——assign_path 配套）。
+	 *
+	 * @param array    $tree     树（引用）。
+	 * @param string[] $segments 路径段。
+	 * @return array|null 最深节点引用（越界标量=null）。
+	 */
+	private static function &dig_ref( array &$tree, array $segments ): ?array {
+		$node = &$tree;
+		foreach ( $segments as $segment ) {
+			if ( ! is_array( $node ) ) {
+				$null = null;
+				return $null;
+			}
+			if ( ! array_key_exists( $segment, $node ) || ! is_array( $node[ $segment ] ) ) {
+				$node[ $segment ] = array();
+			}
+			$node = &$node[ $segment ];
+		}
+		return $node;
+	}
+
+	/**
+	 * 按路径段赋值（缺中间节点建空数组——清除凭据收口消费）。
+	 *
+	 * @param array    $tree     树（引用）。
+	 * @param string[] $segments 路径段。
+	 * @param mixed    $value    值。
+	 * @return void
+	 */
+	private static function assign_path( array &$tree, array $segments, $value ): void {
+		$leaf = array_pop( $segments );
+		$node = &self::dig_ref( $tree, $segments );
+		if ( is_array( $node ) && null !== $leaf ) {
+			$node[ $leaf ] = $value;
+		}
 	}
 
 	/**
@@ -527,6 +616,16 @@ final class SettingsPage {
 				?>
 				——<a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '暂停', 'wink-gatekeeper' ); ?></a>
 				· <a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '看报告 →', 'wink-gatekeeper' ); ?></a>
+			</p></div>
+			<?php
+		}
+		// ⓪'【M6·批H·H-7】存量网址核查运行中黄条（对齐 A-U3 先例——运行记录未完成或
+		// 队列非空才出现；完成/空队列熄灭）。每日额度推进消耗外呼——总览页可见性兜底。
+		if ( 'running' === ( new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $settings ) )->backlog_report_data()['state'] ) {
+			?>
+			<div class="notice notice-warning inline" id="wk-overview-url-backlog-bar"><p>
+				<?php esc_html_e( '存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）。', 'wink-gatekeeper' ); ?>
+				——<a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '看报告 →', 'wink-gatekeeper' ); ?></a>
 			</p></div>
 			<?php
 		}
@@ -1131,9 +1230,24 @@ final class SettingsPage {
 								<option value="<?php echo esc_attr( $mode ); ?>" <?php selected( $settings['gates']['login']['render_mode'], $mode ); ?>><?php echo esc_html( $label ); ?></option>
 							<?php endforeach; ?>
 						</select>
-						<p class="description"><?php esc_html_e( '自适应：同一账户跨 IP 累计 3 次口令错误（仅统计真实存在的账户）、或同 IP 聚合 10 次、或站点级账号警报点亮后，登录页才出现验证码，平时零打扰；常显：每次登录都先验证。失败计数对 XML-RPC 同样生效；验证码驱动未配置时超阈也不拦。', 'wink-gatekeeper' ); ?></p>
+						<?php
+						/* 【M6·批H·H-2】登录闸描述动态化（用户 2026-11-16——说明写死「10 次」与
+						 * 当前配置值不符）：阈值按当前配置值渲染（缺键回落出厂默认 3/3），改阈值
+						 * 保存后说明同步——不再硬编码次数。 */
+						$adaptive = isset( $settings['captcha']['login_adaptive'] ) && is_array( $settings['captcha']['login_adaptive'] ) ? $settings['captcha']['login_adaptive'] : array();
+						$desc_user_threshold = isset( $adaptive['user_threshold'] ) && is_numeric( $adaptive['user_threshold'] ) ? max( 1, (int) $adaptive['user_threshold'] ) : 3;
+						$desc_ip_threshold   = isset( $adaptive['ip_threshold'] ) && is_numeric( $adaptive['ip_threshold'] ) ? max( 1, (int) $adaptive['ip_threshold'] ) : 3;
+						?>
+						<p class="description" id="wk-login-adaptive-desc"><?php
+							echo esc_html( sprintf(
+								/* translators: 1: 同用户名失败阈值 2: 同 IP 聚合阈值（均随当前配置值渲染） */
+								__( '自适应：同一账户跨 IP 累计 %1$d 次口令错误（仅统计真实存在的账户）、或同 IP 聚合 %2$d 次、或站点级账号警报点亮后，登录页才出现验证码，平时零打扰；常显：每次登录都先验证。失败计数对 XML-RPC 同样生效；验证码驱动未配置时超阈也不拦。', 'wink-gatekeeper' ),
+								$desc_user_threshold,
+								$desc_ip_threshold
+							) );
+						?></p>
 
-						<?php $adaptive = isset( $settings['captcha']['login_adaptive'] ) && is_array( $settings['captcha']['login_adaptive'] ) ? $settings['captcha']['login_adaptive'] : array(); ?>
+						
 						<details class="wk-guide" style="margin-top:10px;">
 							<summary><?php esc_html_e( '高级：阈值 / 窗口 / IP 信誉联动 / XML-RPC', 'wink-gatekeeper' ); ?></summary>
 							<table class="form-table" role="presentation">
@@ -1155,7 +1269,7 @@ final class SettingsPage {
 								<tr>
 									<th scope="row"><label for="wk-login-ip-threshold"><?php esc_html_e( '同 IP 失败阈值', 'wink-gatekeeper' ); ?></label></th>
 									<td>
-										<input type="number" id="wk-login-ip-threshold" min="1" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'login_adaptive', 'ip_threshold' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $adaptive['ip_threshold'] ?? 10 ) ); ?>" class="small-text" />
+										<input type="number" id="wk-login-ip-threshold" min="1" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'login_adaptive', 'ip_threshold' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $adaptive['ip_threshold'] ?? 3 ) ); ?>" class="small-text" />
 										<p class="description"><?php esc_html_e( '同 IP 换用户名喷洒的聚合阈值：无论用户名怎么换，累计达此次数即触发。', 'wink-gatekeeper' ); ?></p>
 									</td>
 								</tr>
@@ -1781,6 +1895,11 @@ final class SettingsPage {
 	/**
 	 * password 型字段（04 §2 安全规则：不回显键值，仅「已配置✓」状态提示）。
 	 *
+	 * 【M6·批H·H-6】显式清除凭据控件（已配置时随附「清除此凭据」checkbox）：hidden 0
+	 * 伴随域（未勾选显式提交 0=既有「空串保留」语义不动）+独立清空键名 <leaf>_clear
+	 * （不进设置树——sanitize 桥清洗前剥除消费）。清除语义=勾选+留空保存 → 凭据置空串；
+	 * 勾选+填新值 → 新值优先。仅 manage_options（register_setting 主保存通道双闸照旧）。
+	 *
 	 * @param string[] $path       设置树路径。
 	 * @param bool     $configured 是否已有值。
 	 * @param string   $label      字段显示名（JS 必填标红提示消费，data-wk-label）。
@@ -1793,6 +1912,14 @@ final class SettingsPage {
 			. ' data-wk-required="1" data-wk-label="' . esc_attr( $label ) . '" data-wk-configured="' . ( $configured ? '1' : '0' ) . '" />';
 		if ( $configured ) {
 			echo ' <span class="wk-muted">' . esc_html__( '已配置 ✓（留空保存则不修改）', 'wink-gatekeeper' ) . '</span>';
+			$leaf       = (string) end( $path );
+			$clear_name = self::field_name( array_merge( array_slice( $path, 0, -1 ), array( $leaf . '_clear' ) ) );
+			$clear_id   = 'wk-clear-' . implode( '-', $path );
+			echo '<label class="wk-clear-credential" for="' . esc_attr( $clear_id ) . '">'
+				. '<input type="hidden" name="' . esc_attr( $clear_name ) . '" value="0" />'
+				. '<input type="checkbox" id="' . esc_attr( $clear_id ) . '" name="' . esc_attr( $clear_name ) . '" value="1" /> '
+				. esc_html__( '清除此凭据', 'wink-gatekeeper' )
+				. '</label>';
 		}
 	}
 
@@ -1808,6 +1935,19 @@ final class SettingsPage {
 			$parts[] = '[' . $segment . ']';
 		}
 		return implode( '', $parts );
+	}
+
+	/**
+	 * 报告原因截断单点件（【M6·批H·H-8】用户 2026-11-16——截断展示尾部补「…」省略号，
+	 * 全消费面生效）：单一实现在 InterceptDigest::truncate_reason（纯逻辑层——渲染面与
+	 * 归堆面〔UrlAuditWorker::backlog_report_view〕同规约）；本件为渲染侧薄委托。
+	 *
+	 * @param string $reason 原因文本。
+	 * @param int    $max    截断上限（默认 40——两消费面既有口径）。
+	 * @return string 未达限原样；超限=前 N 字+「…」。
+	 */
+	private static function truncate_reason( string $reason, int $max = 40 ): string {
+		return \WinkGatekeeper\Stats\InterceptDigest::truncate_reason( $reason, $max );
 	}
 
 	/* -------------------------------------------------------------------
@@ -3592,10 +3732,10 @@ final class SettingsPage {
 								<label for="wk-url-audit-search-source"><?php esc_html_e( '搜索源', 'wink-gatekeeper' ); ?></label>
 								<select id="wk-url-audit-search-source" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'search_source' ) ) ); ?>">
 									<option value="bocha" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'bocha' ); ?>><?php esc_html_e( '博查网页搜索（默认——需上方博查 Key，按次计费独立计量）', 'wink-gatekeeper' ); ?></option>
-									<option value="deepseek" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页搜索（用 AI 判定凭证——按成功次计费）', 'wink-gatekeeper' ); ?></option>
+									<option value="deepseek" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页搜索（用上方 LLM提供商的凭证——按成功次计费）', 'wink-gatekeeper' ); ?></option>
 								</select>
 							</p>
-							<p class="description"><?php esc_html_e( '选博查需在博查开放平台（bocha.cn）申请 API Key（按次计费、独立计量）；选 DeepSeek 则跟随 AI 判定凭证（无需额外 Key，按成功次数计费）。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( '选博查需在博查开放平台（bocha.cn）申请 API Key（按次计费、独立计量）；选 DeepSeek 则跟随上方 LLM提供商的凭证（无需额外 Key，按成功次数计费）。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -3612,16 +3752,18 @@ final class SettingsPage {
 						$ua_provider_model = 'deepseek-flash'; // 空串=标准档（provider_config 回落同源——UI 选中态如实反映）。
 					}
 					?>
-					<tr>
-						<th scope="row"><label for="wk-url-audit-provider-mode"><?php esc_html_e( 'AI 判定凭证', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<select id="wk-url-audit-provider-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'mode' ) ) ); ?>">
-								<option value="inherit" <?php selected( $ua_provider_mode, 'inherit' ); ?>><?php esc_html_e( '回落云端审核 DeepSeek 凭证（默认——零新增配置）', 'wink-gatekeeper' ); ?></option>
-								<option value="custom" <?php selected( $ua_provider_mode, 'custom' ); ?>><?php esc_html_e( '独立凭证（网址核查专用）', 'wink-gatekeeper' ); ?></option>
-							</select>
-							<p class="description"><?php esc_html_e( '回落（默认）：云端审核为 DeepSeek 时，AI 判定与网页抓取都用 DeepSeek（同一份凭证）；云端审核是其他驱动（如腾讯 TMS）时，AI 判定走其配置、网页抓取走本站直接打开。独立：网址核查用单独的 DeepSeek 凭证（与评论云端审核互不影响，想用不同的账号/额度时才需要选独立）。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
+						<tr>
+							<!-- 【M6·批H·H-5】行标签改「LLM提供商」（用户 2026-11-16）；
+							 * inherit 选项文案与抓取服务商统一为「跟随云端审核」语义（§0-5）。 -->
+							<th scope="row"><label for="wk-url-audit-provider-mode"><?php esc_html_e( 'LLM提供商', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<select id="wk-url-audit-provider-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'mode' ) ) ); ?>">
+									<option value="inherit" <?php selected( $ua_provider_mode, 'inherit' ); ?>><?php esc_html_e( '跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行判定）', 'wink-gatekeeper' ); ?></option>
+									<option value="custom" <?php selected( $ua_provider_mode, 'custom' ); ?>><?php esc_html_e( '独立凭证（网址核查专用）', 'wink-gatekeeper' ); ?></option>
+								</select>
+								<p class="description"><?php esc_html_e( '跟随（默认）：云端审核为 DeepSeek 时，判定与网页抓取都用 DeepSeek（同一份凭证）；云端审核是其他驱动时，判定走其配置、网页抓取不会自动启用（抓取未配置——需要抓取请在下方「网页抓取服务商」手动选择）。独立：网址核查用单独的 DeepSeek 凭证（与评论云端审核互不影响，想用不同的账号/额度时才需要选独立）。', 'wink-gatekeeper' ); ?></p>
+							</td>
+						</tr>
 				</table>
 				<table class="form-table" role="presentation" id="wk-url-audit-provider-rows"<?php echo 'custom' === $ua_provider_mode ? '' : ' hidden'; ?>>
 					<tr>
@@ -3671,25 +3813,27 @@ final class SettingsPage {
 				 * wk-url-audit-fetcher-mode / wk-url-audit-fetcher-rows）。 */
 				$fetcher_mode = (string) ( $ua['fetcher']['mode'] ?? 'inherit' );
 				?>
-				<table class="form-table" role="presentation">
-					<tr>
-						<th scope="row"><label for="wk-url-audit-fetcher-mode"><?php esc_html_e( '网页抓取服务商', 'wink-gatekeeper' ); ?></label></th>
-						<td>
-							<select id="wk-url-audit-fetcher-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'fetcher', 'mode' ) ) ); ?>">
-								<option value="inherit" <?php selected( $fetcher_mode, 'inherit' ); ?>><?php esc_html_e( '跟随云端审核（默认——云端审核为 DeepSeek 时用 DeepSeek 抓取，其他驱动时本站直接打开）', 'wink-gatekeeper' ); ?></option>
-								<option value="self" <?php selected( $fetcher_mode, 'self' ); ?>><?php esc_html_e( '本站直接打开（免费）', 'wink-gatekeeper' ); ?></option>
-								<option value="deepseek" <?php selected( $fetcher_mode, 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页抓取（按次计费 ¥5/1000 次）', 'wink-gatekeeper' ); ?></option>
-							</select>
-							<p class="description"><?php esc_html_e( '选 DeepSeek 抓取时，本站服务器不再直接打开评论者的网址——由 DeepSeek 代为抓取正文（对打不开/反爬的站点成功率高很多，如某些成人站、强反爬站），按成功次数计费。本站直接打开不花钱但遇到反爬站容易「没看清」。', 'wink-gatekeeper' ); ?></p>
-						</td>
-					</tr>
-				</table>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row"><label for="wk-url-audit-fetcher-mode"><?php esc_html_e( '网页抓取服务商', 'wink-gatekeeper' ); ?></label></th>
+							<td>
+								<select id="wk-url-audit-fetcher-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'fetcher', 'mode' ) ) ); ?>">
+									<!-- 【M6·批H·H-5】inherit 文案与 LLM提供商行统一「跟随云端审核」语义
+									 * +末句保留抓取自身动作说明；【M6·批H·H-1】新语义如实入文案。 -->
+									<option value="inherit" <?php selected( $fetcher_mode, 'inherit' ); ?>><?php esc_html_e( '跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行抓取；其他驱动时抓取未配置，本站直抓不自动启用）', 'wink-gatekeeper' ); ?></option>
+									<option value="self" <?php selected( $fetcher_mode, 'self' ); ?>><?php esc_html_e( '本站直接打开（免费）', 'wink-gatekeeper' ); ?></option>
+									<option value="deepseek" <?php selected( $fetcher_mode, 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页抓取（按次计费 ¥5/1000 次）', 'wink-gatekeeper' ); ?></option>
+								</select>
+								<p class="description"><?php esc_html_e( '选 DeepSeek 抓取时，本站服务器不再直接打开评论者的网址——由 DeepSeek 代为抓取正文（对打不开/反爬的站点成功率高很多，如某些成人站、强反爬站），按成功次数计费。本站直接打开不花钱但会暴露源站 IP，且遇到反爬站容易「没看清」——默认不自动启用，需在此手动选择。', 'wink-gatekeeper' ); ?></p>
+							</td>
+						</tr>
+					</table>
 				<table class="form-table" role="presentation" id="wk-url-audit-fetcher-rows"<?php echo 'deepseek' === $fetcher_mode ? '' : ' hidden'; ?>>
 					<tr>
 						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( '抓取专用 DeepSeek Key', 'wink-gatekeeper' ); ?></span></th>
 						<td>
 							<?php self::password_field( array( 'url_audit', 'fetcher', 'api_key' ), '' !== (string) ( $ua['fetcher']['api_key'] ?? '' ), '抓取专用 DeepSeek Key' ); ?>
-							<p class="description"><?php esc_html_e( '留空=用上方「AI 判定凭证」的 Key（一般不用填）。想给网页抓取单独用一个 DeepSeek 账号时才填。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( '留空=用上方「LLM提供商」的 Key（一般不用填）。想给网页抓取单独用一个 DeepSeek 账号时才填。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -3717,6 +3861,17 @@ final class SettingsPage {
 					</tr>
 				</table>
 			</details>
+
+			<?php /* 【M6·批H·H-1】网页抓取未配置黄条（U-1 式——§0-1 用户拍板「本站直抓永不
+			 * 自动启用」配套可见性）：enabled 且 fetcher.mode 解析=unconfigured（inherit+
+			 * 云端审核非 DeepSeek/未配置）才渲染；显式 self/inherit+DS/功能关不渲染
+			 * （范式=B-4 notice 同款，折叠区外常显+深链高级区）。 */ ?>
+			<?php if ( $enabled && 'unconfigured' === \WinkGatekeeper\UrlAudit\UrlAuditWorker::fetcher_mode( $settings ) ) : ?>
+			<div class="notice notice-warning inline" id="wk-url-audit-fetcher-unconfigured-notice"><p>
+				<?php esc_html_e( '网页抓取未配置——本站直抓因暴露源站 IP 默认不自动启用，请在', 'wink-gatekeeper' ); ?>
+				<a href="#wk-url-audit-advanced"><?php esc_html_e( '高级区的「网页抓取服务商」手动选择', 'wink-gatekeeper' ); ?></a>。
+			</p></div>
+			<?php endif; ?>
 
 			<?php /* 【M6·批B·B-4】网址核查未配置 notice（条件显隐——U-1 缺口）：enabled 且
 			 * AI 判定凭证链为空才渲染；配置齐不渲染（范式=UI-1-2 云审未配置 notice 同款）。 */ ?>
@@ -4190,6 +4345,23 @@ final class SettingsPage {
 			<p class="wk-muted"><?php esc_html_e( '放行=推算值（今日动作数−拦下−转人工−出错）。', 'wink-gatekeeper' ); ?></p>
 
 			<h3 class="wk-sub-title"><?php esc_html_e( '最近拦下的评论（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
+			<?php
+			/* 【M6·批H·H-9】网址核查今日处置汇总行（区头部——「网址核查今日处置 N 条
+			 * （垃圾箱 X·待审 Y）→ 查看详情」深链工具页报告锚）。数据源=meta 反查（零新事件
+			 * 零写放大——事件表拦截口径保持纯净 P1-4 不稀释）；零处置=整行不显（K 系纪律）。 */
+			$url_disposal = ( new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $settings ?? array() ) )->today_disposal_line();
+			if ( $url_disposal['total'] > 0 ) :
+				?>
+			<p id="wk-stats-url-disposal-line" class="wk-muted"><?php
+				printf(
+					/* translators: 1: total 2: spam 3: hold */
+					esc_html__( '网址核查今日处置 %1$d 条（垃圾箱 %2$d · 待审 %3$d）', 'wink-gatekeeper' ),
+					(int) $url_disposal['total'],
+					(int) $url_disposal['spam'],
+					(int) $url_disposal['hold']
+				);
+				?><a href="<?php echo esc_url( self::tab_url( 'tools' ) . '#wk-tools-url-audit-report' ); ?>"><?php esc_html_e( '→ 查看详情', 'wink-gatekeeper' ); ?></a></p>
+			<?php endif; ?>
 			<?php self::render_comment_recent_table(); ?>
 		</section>
 		<?php
@@ -4938,7 +5110,8 @@ final class SettingsPage {
 						<p><?php
 							$parts = array();
 							foreach ( $rep_data['reasons'] as $row ) {
-								$parts[] = sprintf( '「%s」%d 条', esc_html( mb_substr( (string) $row['reason'], 0, 40 ) ), (int) $row['n'] );
+								// 【M6·批H·H-8】截断展示补「…」省略号（单点件全消费面生效）。
+								$parts[] = sprintf( '「%s」%d 条', esc_html( self::truncate_reason( (string) $row['reason'] ) ), (int) $row['n'] );
 							}
 							echo esc_html( implode( ' · ', $parts ) ); // XSS 红线：原因=攻击者可控（AI 原文/驱动透传）——转义+截断。
 						?></p>
@@ -4961,9 +5134,18 @@ final class SettingsPage {
 		 * （wk-url-backlog）——立即呈现「已入队 N 条·开始核查」。 */
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读回跳状态渲染（无副作用；nonce 双闸在 handler）。
 		$backlog_added = isset( $_GET['wk-url-backlog'] ) && is_scalar( $_GET['wk-url-backlog'] ) ? absint( (string) $_GET['wk-url-backlog'] ) : -1;
+		/* 【M6·批H·H-7】运行中黄条数据源（自报告卡前置到操作卡——两卡同源三态）：
+		 * state=running（运行记录未完成或队列非空）→ 操作卡头 notice-warning「存量网址
+		 * 核查进行中…」；completed/empty 不渲染（完成/空队列熄灭——A-U3 有话才出现先例）。 */
+		$url_view = $backlog_worker->backlog_report_data();
 		?>
 		<section class="wk-card" id="wk-tools-url-audit-card">
 			<h2><?php esc_html_e( '存量网址核查', 'wink-gatekeeper' ); ?></h2>
+			<?php if ( 'running' === $url_view['state'] ) : ?>
+			<div class="notice notice-warning inline" id="wk-tools-url-audit-running-bar"><p>
+				<?php esc_html_e( '存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）；完成后可看下方报告。', 'wink-gatekeeper' ); ?>
+			</p></div>
+			<?php endif; ?>
 			<p class="wk-muted"><?php esc_html_e( '把站里已有评论中的网站地址交「网址核查」全部重查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。', 'wink-gatekeeper' ); ?></p>
 			<p class="wk-muted"><?php esc_html_e( '每日额度用完自动暂停（次日自动接着查）：判违规的进垃圾箱、没看清的进待审，都能手动恢复。', 'wink-gatekeeper' ); ?></p>
 			<p id="wk-tools-url-audit-state-line" class="wk-muted">
@@ -5004,8 +5186,8 @@ final class SettingsPage {
 		/* 【M6·批C·C-3】存量网址核查报告卡（新增——操作卡下方，同 wk-overview-report
 		 * 款式）：口径三行统计（没问题/待审核/垃圾箱）+起止时间+队列残留数。数据源=
 		 * backlog 运行记录 option（入队时建 record：started_at+ids+enqueued）+渲染时
-		 * meta 反查统计（tick 零写——施工图 §3b C-3 最小方案，报告落档说明）。 */
-		$url_view = $backlog_worker->backlog_report_data();
+		 * meta 反查统计（tick 零写——施工图 §3b C-3 最小方案，报告落档说明）。
+		 * 【M6·批H·H-7】$url_view 已前置（操作卡运行中黄条同源）——本卡直接消费。 */
 		?>
 		<section class="wk-card" id="wk-tools-url-audit-report">
 			<h2><?php esc_html_e( '存量网址核查报告', 'wink-gatekeeper' ); ?></h2>
@@ -5096,7 +5278,7 @@ final class SettingsPage {
 									: '';
 								$url_parts[] = sprintf(
 									'%2$s「%1$s」%3$d 条',
-									mb_substr( (string) ( $url_reason_row['reason'] ?? '' ), 0, 40 ),
+									self::truncate_reason( (string) ( $url_reason_row['reason'] ?? '' ) ), // 【M6·批H·H-8】截断补「…」（单点件）。
 									'' !== $url_prefix ? '【' . $url_prefix . '】' : '',
 									(int) ( $url_reason_row['n'] ?? 0 )
 								);

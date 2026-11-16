@@ -130,6 +130,18 @@ final class DashboardDigestTest extends TestCase {
 
 	/* ================= 卡 2：第三方调用量 ================= */
 
+	/**
+	 * 【M6·批H·H-4 翻转注记】卡 2 视图模型 rows（平铺字典序）→ domains（五域固定顺序，
+	 * 每域只显当前启用驱动的行）——0.7.1 用户拍板；域行 shape 不变+bill_free 新键。
+	 */
+	private function domainsById( array $usage_view ): array {
+		$map = array();
+		foreach ( $usage_view['domains'] as $domain ) {
+			$map[ $domain['id'] ] = $domain;
+		}
+		return $map;
+	}
+
 	public function test_usage_rows_per_driver_with_quota(): void {
 		$usage = Usage::seed();
 		$usage = Usage::bump( $usage, self::YMD_DASH, 'tencent' );
@@ -139,6 +151,7 @@ final class DashboardDigestTest extends TestCase {
 		$usage = Usage::bump( $usage, self::YMD_DASH, 'tencent_tms' );
 
 		$settings                              = SettingsSchema::defaults();
+		$settings['review']['cloud']['chain'] = array( 'tencent_tms' ); // 【M6·批H·H-4】评论审核域=链上驱动一行。
 		$settings['review']['cloud']['tencent_tms']['daily_quota'] = 500;
 
 		$out = DashboardDigest::widget_overview( $this->args( array(
@@ -147,17 +160,21 @@ final class DashboardDigestTest extends TestCase {
 			'driver_labels' => array( 'tencent' => '腾讯天御验证码 2.0', 'tencent_tms' => '腾讯云文本审核' ),
 		) ) );
 
-		$rows = $out['usage']['rows'];
-		$this->assertCount( 2, $rows );
-		$this->assertSame( 'tencent', $rows[0]['driver_id'] );
-		$this->assertSame( 128, $rows[0]['used'] );
-		$this->assertSame( 0, $rows[0]['quota'], '验证码驱动无日配额=0（不渲染 N / M 行）' );
-		$this->assertFalse( $rows[0]['quota_reached'] );
-		$this->assertSame( '腾讯天御验证码 2.0', $rows[0]['label'] );
-		$this->assertSame( 'tencent_tms', $rows[1]['driver_id'] );
-		$this->assertSame( 1, $rows[1]['used'] );
-		$this->assertSame( 500, $rows[1]['quota'] );
-		$this->assertFalse( $rows[1]['quota_reached'], '未达限' );
+		$domains = $this->domainsById( $out['usage'] );
+		$this->assertSame( array( 'captcha', 'review' ), array_column( $out['usage']['domains'], 'id' ), '两域各一行（顺序固定）' );
+		$captcha_rows = $domains['captcha']['rows'];
+		$review_rows  = $domains['review']['rows'];
+		$this->assertCount( 1, $captcha_rows );
+		$this->assertCount( 1, $review_rows );
+		$this->assertSame( 'tencent', $captcha_rows[0]['driver_id'] );
+		$this->assertSame( 128, $captcha_rows[0]['used'] );
+		$this->assertSame( 0, $captcha_rows[0]['quota'], '验证码驱动无日配额=0（不渲染 N / M 行）' );
+		$this->assertFalse( $captcha_rows[0]['quota_reached'] );
+		$this->assertSame( '腾讯天御验证码 2.0', $captcha_rows[0]['label'] );
+		$this->assertSame( 'tencent_tms', $review_rows[0]['driver_id'] );
+		$this->assertSame( 1, $review_rows[0]['used'] );
+		$this->assertSame( 500, $review_rows[0]['quota'] );
+		$this->assertFalse( $review_rows[0]['quota_reached'], '未达限' );
 	}
 
 	public function test_usage_quota_reached_red_flag(): void {
@@ -167,11 +184,12 @@ final class DashboardDigestTest extends TestCase {
 		}
 
 		$settings                              = SettingsSchema::defaults();
+		$settings['review']['cloud']['chain'] = array( 'tencent_tms' ); // 【M6·批H·H-4】链上驱动才入评论审核域。
 		$settings['review']['cloud']['tencent_tms']['daily_quota'] = 500;
 
 		$out = DashboardDigest::widget_overview( $this->args( array( 'usage' => $usage, 'settings' => $settings ) ) );
 
-		$this->assertTrue( $out['usage']['rows'][0]['quota_reached'], '达限=红态（与 DriverHealth quota_exhausted 联动说明）' );
+		$this->assertTrue( $this->domainsById( $out['usage'] )['review']['rows'][0]['quota_reached'], '达限=红态（与 DriverHealth quota_exhausted 联动说明）' );
 	}
 
 	public function test_usage_site_total_line(): void {
@@ -196,7 +214,8 @@ final class DashboardDigestTest extends TestCase {
 
 	public function test_usage_empty_state(): void {
 		$out = DashboardDigest::widget_overview( $this->args() );
-		$this->assertSame( array(), $out['usage']['rows'], '空态：无驱动行' );
+		// 【M6·批H·H-4 翻转注记】rows（平铺）→ domains（五域固定顺序）——0.7.1。
+		$this->assertSame( array(), $out['usage']['domains'], '空态：无域无行' );
 		$this->assertSame( 0, $out['usage']['site_total'] );
 		$this->assertSame( 0, $out['usage']['disaster_pass'] );
 	}
@@ -208,7 +227,8 @@ final class DashboardDigestTest extends TestCase {
 
 		$out = DashboardDigest::widget_overview( $this->args( array( 'usage' => $usage ) ) );
 		// Usage 树无跨日翻转读取逻辑——树内 date 键与今日不一致时视作空态（不虚报昨日数）。
-		$this->assertSame( array(), $out['usage']['rows'], '昨日 usage 树=今日空态（不虚报）' );
+		// 【M6·批H·H-4 翻转注记】rows→domains——0.7.1。
+		$this->assertSame( array(), $out['usage']['domains'], '昨日 usage 树=今日空态（不虚报）' );
 		$this->assertSame( 0, $out['usage']['site_total'] );
 	}
 
