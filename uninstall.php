@@ -9,11 +9,13 @@
  *   - **保留数据路径 = 不卸载、直接上传新版 zip「升级」**——WP 升级不触发本文件，语义天然成立。
  *
  * 数据红线（只碰 wink 自有数据，绝不删坏）：
- *   - 删 8 个 option：wink_gatekeeper_settings / stats / usage / health
+ *   - 删 9 个 option：wink_gatekeeper_settings / stats / usage / health
  *     【v1.9·M5 回写·审计 C2】+ wink_gatekeeper_llm_usage（LLM 消耗统计，
  *     LlmUsage::OPTION_NAME）+ wink_gatekeeper_url_audit_incr_queue（网址核查增量
  *     队列，UrlAuditWorker::OPTION_INCR_QUEUE）+ wink_gatekeeper_url_audit_batch_queue
  *     （网址核查批量回捞队列【M6·批A·P1-3】，UrlAuditWorker::OPTION_BATCH_QUEUE）
+ *     + wink_gatekeeper_url_audit_pause_edge（配额暂停边沿标记【M6·批B·B-5】，
+ *     UrlAuditWorker::OPTION_PAUSE_EDGE）
  *     + wink_gatekeeper_audit_existing_progress
  *     （存量审核进度，ExistingAuditTask::OPTION_PROGRESS）（键名全等，逐个精确）；
  *   - DROP 仅 wink 自建事件表（{prefix}wink_gatekeeper_events——先 SHOW TABLES 探测后
@@ -61,10 +63,11 @@ $wink_guarded = static function ( callable $wink_step ): void {
 	}
 };
 
-/* 1. 删 8 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留；
+/* 1. 删 9 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留；
  * 【v1.9·M5 回写·审计 C2】M5 三 option 补录：LlmUsage::OPTION_NAME /
  * UrlAuditWorker::OPTION_INCR_QUEUE / ExistingAuditTask::OPTION_PROGRESS；
- * 【M6·批A·P1-3】批量回捞显式队列 UrlAuditWorker::OPTION_BATCH_QUEUE 补录）。 */
+ * 【M6·批A·P1-3】批量回捞显式队列 UrlAuditWorker::OPTION_BATCH_QUEUE 补录；
+ * 【M6·批B·B-5】配额暂停边沿标记 UrlAuditWorker::OPTION_PAUSE_EDGE 补录）。 */
 $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_settings' );
 } );
@@ -85,6 +88,9 @@ $wink_guarded( static function (): void {
 } );
 $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_url_audit_batch_queue' ); // 【M6·P1-3】批量回捞显式队列（UrlAuditWorker::OPTION_BATCH_QUEUE）。
+} );
+$wink_guarded( static function (): void {
+	delete_option( 'wink_gatekeeper_url_audit_pause_edge' ); // 【M6·批B·B-5】配额暂停边沿标记（UrlAuditWorker::OPTION_PAUSE_EDGE）。
 } );
 $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_audit_existing_progress' );

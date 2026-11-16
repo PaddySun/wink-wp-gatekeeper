@@ -688,4 +688,111 @@ final class CredentialProbe {
 		}
 		return null;
 	}
+
+	/**
+	 * DeepSeek 余额探测三态判定（【M6·批B·N4】GET /user/balance 零费用端点——信息量
+	 * 升级：Key 有效性+账户可用性+可见余额一次拿全；D5「零 token 成本」裁决精神不变）。
+	 *
+	 * 官方契约（api/查询余额.md）：200 → {is_available, balance_infos[{currency(CNY|USD),
+	 * total_balance, granted_balance, topped_up_balance}]}。
+	 *
+	 * 三态：绿=200 且 is_available=true（响应附 balance 对象 currency/total_balance/
+	 * granted_balance；人话行「余额 110.00 CNY（含赠金 10.00）」——零赠金省略赠金段）；
+	 * 黄=200 且 is_available=false（欠费/不可用）；红=401/402/403（密钥被拒/欠费）与
+	 * transport（连接不上）。灰=200 但响应不含余额结构（契约异常——诚实兜底，
+	 * 不虚构三态）。
+	 *
+	 * 响应闭集纪律：{state, message, missing, code, balance}——不含提交值（凭据零回显
+	 * 契约照查，03 §1 敏感字段契约）。
+	 *
+	 * @param RemoteResult $result GET {base_url}/user/balance 结果。
+	 * @return array{state: string, message: string, missing: array<string>, code: string, balance: array{currency: string, total_balance: string, granted_balance: string}|null}
+	 */
+	public static function classify_deepseek_balance( RemoteResult $result ): array {
+		$payload = array( 'state' => 'gray', 'message' => '', 'missing' => array(), 'code' => '', 'balance' => null );
+
+		// 语义/传输类（RemoteClient classify：4xx=semantic；401/402 明列设计档）。
+		if ( ! $result->is_ok() ) {
+			$status          = $result->status();
+			$payload['code'] = 'http=' . $status;
+			if ( 401 === $status || 402 === $status || 403 === $status ) {
+				$payload['state']   = 'red';
+				$payload['message'] = 402 === $status
+					? '密钥有效但账户欠费（402）：请到 DeepSeek 开放平台充值后重试。'
+					: '密钥被拒（HTTP ' . $status . '）：API Key 无效——请到 DeepSeek 开放平台核对后重试。';
+				return $payload;
+			}
+			if ( RemoteResult::TRANSPORT === $result->category() ) {
+				$payload['state']   = 'red';
+				$payload['message'] = '连接不上 DeepSeek（网络异常）——稍后重试；持续失败请检查服务器出网。';
+				return $payload;
+			}
+			$payload['state']   = 'red';
+			$payload['message'] = '探测未成功（HTTP ' . $status . '，' . $result->category() . '）——稍后重试；持续失败请核对接入地址。';
+			return $payload;
+		}
+
+		// 2xx：绿/黄态=JSON 可解析且 is_available 键在场。
+		$decoded = self::decoded( $result );
+		if ( ! is_array( $decoded ) || ! array_key_exists( 'is_available', $decoded ) ) {
+			$payload['state']   = 'gray';
+			$payload['code']    = 'contract';
+			$payload['message'] = '响应不含余额结构（契约不符）——端点可能不是 DeepSeek 官方形态，请核对接入地址（独立端点无标准余额 API 时用模型列表探活）。';
+			return $payload;
+		}
+
+		$balance = self::balance_object( $decoded );
+		if ( true === $decoded['is_available'] ) {
+			$payload['state']   = 'green';
+			$payload['code']    = 'balance_ok';
+			$payload['balance'] = $balance;
+			$payload['message'] = self::balance_message( $balance );
+			return $payload;
+		}
+
+		$payload['state']   = 'yellow';
+		$payload['code']    = 'balance_unavailable';
+		$payload['balance'] = $balance;
+		$payload['message'] = '账户当前不可调用（余额不可用，可能已欠费）——请到 DeepSeek 开放平台充值后重试。';
+		return $payload;
+	}
+
+	/**
+	 * balance_infos[0] → balance 对象（缺失键归空串——不虚构数字）。
+	 *
+	 * @param array<string, mixed> $decoded 已解码响应。
+	 * @return array{currency: string, total_balance: string, granted_balance: string}|null
+	 */
+	private static function balance_object( array $decoded ): ?array {
+		$infos = $decoded['balance_infos'] ?? null;
+		$first = is_array( $infos ) && isset( $infos[0] ) && is_array( $infos[0] ) ? $infos[0] : array();
+		if ( array() === $first ) {
+			return null;
+		}
+		return array(
+			'currency'        => is_string( $first['currency'] ?? null ) ? (string) $first['currency'] : '',
+			'total_balance'   => is_string( $first['total_balance'] ?? null ) ? (string) $first['total_balance'] : '',
+			'granted_balance' => is_string( $first['granted_balance'] ?? null ) ? (string) $first['granted_balance'] : '',
+		);
+	}
+
+	/**
+	 * 绿态人话行（「余额 110.00 CNY（含赠金 10.00）」——零赠金省略赠金段不虚构）。
+	 *
+	 * @param array{currency: string, total_balance: string, granted_balance: string}|null $balance 余额对象。
+	 * @return string
+	 */
+	private static function balance_message( ?array $balance ): string {
+		$currency = is_array( $balance ) ? (string) ( $balance['currency'] ?? '' ) : '';
+		$total    = is_array( $balance ) ? (string) ( $balance['total_balance'] ?? '' ) : '';
+		$granted  = is_array( $balance ) ? (string) ( $balance['granted_balance'] ?? '' ) : '';
+		if ( '' === $total ) {
+			return '凭据可用（余额探测通过，零费用）——账户可用，余额信息未返回。';
+		}
+		$line = '凭据可用（余额探测通过，零费用）。余额 ' . $total . ( '' !== $currency ? ' ' . $currency : '' );
+		if ( '' !== $granted && 0.0 < (float) $granted ) {
+			$line .= '（含赠金 ' . $granted . '）';
+		}
+		return $line . '。';
+	}
 }

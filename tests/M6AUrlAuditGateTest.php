@@ -395,9 +395,13 @@ namespace WinkGatekeeper\Tests {
 
 		/* ===============================================================
 		 * 闸读侧零改动（回归钉）：播种两闸键→对应车道停转
+		 * 【M6·批B·B-5 扩例注记】暂停边沿事件发射为批 B 新行为（quota 停转即发
+		 * quota_paused 事件一次）——本组测试注入事件 sink 并加钉暂停事件形态；
+		 * sink 注入非断言翻转（停转语义断言原样保留）。
 		 * =============================================================== */
 
 		public function test_seeding_incr_key_stops_incremental_lane(): void {
+			$events = array();
 			for ( $i = 0; $i < 2; $i++ ) {
 				Usage::bump_option( 'url_audit_incr' );
 			}
@@ -405,22 +409,33 @@ namespace WinkGatekeeper\Tests {
 				'incr_take' => static function ( int $limit ): array {
 					return array( 401 );
 				},
+				'event_recorder' => static function ( string $reason, array $hits, array $meta ) use ( &$events ): void {
+					$events[] = array( 'reason' => $reason, 'hits' => $hits, 'meta' => $meta );
+				},
 			), array( 'incr_quota' => 2, 'batch_quota' => 50 ) );
 
 			$out = $worker->run_round();
 
 			self::assertSame( 'incr_quota_exhausted', $out['stopped'], '播种 url_audit_incr=配额 → 增量车道停转（审计 P3 手法回归）' );
 			self::assertSame( 0, $out['incr_processed'] );
+			self::assertSame( array( 'quota_paused' ), $events[0]['hits'] ?? array(), '【M6·批B·B-5】暂停边沿事件=quota_paused' );
+			self::assertSame( 'incr', $events[0]['meta']['lane'] ?? '' );
 		}
 
 		public function test_seeding_batch_key_stops_batch_lane(): void {
+			$events = array();
 			Usage::bump_option( 'url_audit_batch' );
-			$worker = $this->makeWorker( array(), array( 'incr_quota' => 0, 'batch_quota' => 1 ) );
+			$worker = $this->makeWorker( array(
+				'event_recorder' => static function ( string $reason, array $hits, array $meta ) use ( &$events ): void {
+					$events[] = array( 'reason' => $reason, 'hits' => $hits, 'meta' => $meta );
+				},
+			), array( 'incr_quota' => 0, 'batch_quota' => 1 ) );
 
 			$out = $worker->run_round();
 
 			self::assertSame( 'batch_quota_exhausted', $out['stopped'], '批量先停增量继续（降级秩序语义不变）' );
 			self::assertSame( 0, $out['batch_processed'] );
+			self::assertSame( 'batch', $events[0]['meta']['lane'] ?? '', '【M6·批B·B-5】批量车道暂停边沿事件 lane=batch' );
 		}
 
 		/* ===============================================================

@@ -214,6 +214,8 @@ final class Sanitize {
 			// 【M5 修复批·D2】判定凭证来源四键（schema url_audit.provider 子树同批——
 			// schema↔rules 双向一致性由 SanitizeTest 封口，加键必须同时加规则）。
 			'url_audit.provider.mode'                   => 'url_audit_provider_mode',
+			// 【M6·批B·B-2】搜索源二枚举（bocha 默认|deepseek——非法值归 bocha fail-safe）。
+			'url_audit.search_source'                   => 'url_audit_search_source',
 			'url_audit.provider.api_key'                => 'password',
 			'url_audit.provider.base_url'               => 'url',
 			'url_audit.provider.model'                  => 'text',
@@ -318,6 +320,11 @@ final class Sanitize {
 				// 凭证，默认）| custom（独立凭证），非法值归 inherit（fail-safe——回落是
 				// 零新增配置的出厂语义，独立凭证须站长显式选择才生效）。
 				return ( is_scalar( $value ) && 'custom' === (string) $value ) ? 'custom' : 'inherit';
+			case 'url_audit_search_source':
+				// 【M6·批B·B-2】网址核查搜索源二枚举：bocha（默认——零成本路径，K3 现款）|
+				// deepseek（N2 可选加做——按成功次计费），非法值归 bocha（fail-safe——
+				// 出厂语义零行为变化，切换付费源须站长显式选择）。
+				return ( is_scalar( $value ) && 'deepseek' === (string) $value ) ? 'deepseek' : 'bocha';
 			case 'raw_bytes':
 				// 【v1.4·R4】raw 截断字节（stats.raw_max_bytes）：absint 后钳 128-2048（04 §3 截断/体量行）。
 				return max( 128, min( 2048, is_scalar( $value ) ? abs( (int) $value ) : 512 ) );

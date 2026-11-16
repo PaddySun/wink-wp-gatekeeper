@@ -277,6 +277,9 @@ final class SettingsSchema {
 			'url_audit'              => array(
 				'enabled'      => false,
 				'profile'      => 'conservative',
+				// 【M6·批B·B-2】搜索源二枚举：bocha（默认，K3 现款零行为变化）|deepseek
+				// （N2 可选加做——key 链=AI 判定凭证链 §0-5，计量 deepseek_search 成功次）。
+				'search_source' => 'bocha',
 				'bocha'        => array(
 					'enabled' => false,
 					'api_key' => '',

@@ -321,6 +321,58 @@
 		} );
 	}
 
+	// 【M6·批B·B-3】Tab③ 网址核查独立凭据「测试凭据」（N4 范围边界——DeepSeek 协议族
+	// 同用余额探测，base_url 跟随其配置；表单值覆盖=password 空串回落已存值语义）。
+	var urlAuditProbeButton = document.getElementById( 'wk-url-audit-provider-test-btn' );
+	if ( urlAuditProbeButton ) {
+		urlAuditProbeButton.addEventListener( 'click', function () {
+			var result = document.getElementById( 'wk-url-audit-provider-test-result' );
+			urlAuditProbeButton.disabled = true;
+			if ( result ) {
+				result.textContent = '测试中……';
+				result.className = '';
+			}
+			function uaFieldOrEmpty( id ) {
+				var el = document.getElementById( id );
+				return el ? el.value.trim() : '';
+			}
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_test_credentials_url_audit' );
+			body.append( 'nonce', urlAuditProbeButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'url_audit_provider_api_key', uaFieldOrEmpty( 'wk-field-url-audit-provider-api_key' ) );
+			body.append( 'url_audit_provider_base_url', uaFieldOrEmpty( 'wk-url-audit-provider-base-url' ) );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( ! result ) {
+					return;
+				}
+				var data = payload && payload.data ? payload.data : null;
+				if ( payload && payload.success && data ) {
+					result.textContent = data.message || '';
+					var uaStateClass = { green: 'wk-probe--green', yellow: 'wk-probe--yellow', red: 'wk-probe--red' };
+					result.className = 'wk-probe ' + ( uaStateClass[ data.state ] || 'wk-probe--gray' );
+				} else {
+					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).catch( function () {
+				if ( result ) {
+					result.textContent = '测试失败（网络错误）。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).finally( function () {
+				urlAuditProbeButton.disabled = false;
+			} );
+		} );
+	}
+
 	// 【M5·U2】Tab⑧ 卡二头像源：仅 custom 显示自定义地址行（custom_header 联动范式同款
 	// ——PHP 初始态已按存量值 hidden，此处接管切换显隐）。
 	( function () {

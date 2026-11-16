@@ -23,14 +23,20 @@ final class UrlJudgeEngine {
 	private $config;
 	private $client;
 	private $model;
-	private $bocha;
+
+	/**
+	 * @var UrlSearchProvider|null 搜索源（【M6·批B·B-2】接口化——bocha(默认)|deepseek
+	 *                            按 url_audit.search_source 在 judge 工厂分派装配）。
+	 */
+	private $search;
+
 	private $last_meta = array();
 
-	public function __construct( array $config, RemoteClient $client, string $model, ?BochaSearch $bocha ) {
+	public function __construct( array $config, RemoteClient $client, string $model, ?UrlSearchProvider $search = null ) {
 		$this->config = $config;
 		$this->client = $client;
 		$this->model  = $model;
-		$this->bocha  = $bocha;
+		$this->search = $search;
 	}
 
 	/**
@@ -41,10 +47,13 @@ final class UrlJudgeEngine {
 	 * @return array{verdict:string, confidence:float, reason:string, hits:array<string>, injection_attempt: bool}
 	 */
 	public function judge( array $fetched, string $url, string $comment_ctx, string $caller ): array {
-		// 博查交叉信号（fetch 侧不决定——并列喂 LLM；调用失败零信号不阻塞）。
+		$this->last_meta = array(); // 单次判定语境（B-5 llm_error 标记不跨判定残留）。
+
+		// 搜索源交叉信号（fetch 侧不决定——并列喂 LLM；调用失败零信号不阻塞不劣化：
+		// 「搜索失败≠违规」§0-7 同族语义；【M6·批B·B-2】接口化任意 UrlSearchProvider）。
 		$bocha_signal = array();
-		if ( null !== $this->bocha && $this->bocha->is_configured() ) {
-			$signal = $this->bocha->search_site( (string) ( parse_url( $url, PHP_URL_HOST ) ?? '' ) );
+		if ( null !== $this->search && $this->search->is_configured() ) {
+			$signal = $this->search->search_site( (string) ( parse_url( $url, PHP_URL_HOST ) ?? '' ) );
 			if ( null !== $signal ) {
 				$bocha_signal = $signal;
 			}
@@ -76,6 +85,12 @@ final class UrlJudgeEngine {
 		) );
 
 		if ( ! $result->is_ok() ) {
+			// 【M6·批B·B-5①】运行性错误标记（transport/semantic/contract/parse——
+			// 服务商/网络侧故障，非业务 inconclusive；worker 据此发事件进报错历史）。
+			$this->last_meta['llm_error'] = array(
+				'category'  => $result->category(),
+				'http_code' => $result->status(),
+			);
 			return array( 'verdict' => 'inconclusive', 'confidence' => 0.0, 'reason' => 'llm: ' . $result->category(), 'hits' => array(), 'injection_attempt' => false );
 		}
 
@@ -92,6 +107,8 @@ final class UrlJudgeEngine {
 
 		if ( null === $parsed ) {
 			// ParseError 穷尽=inconclusive 保持待审——绝不因我方解析失败定罪网站（nw §2.3）。
+			// 【M6·批B·B-5①】模型输出契约异常=运行性错误（非业务 inconclusive——事件面）。
+			$this->last_meta['llm_error'] = array( 'category' => 'contract', 'http_code' => 200 );
 			return array( 'verdict' => 'inconclusive', 'confidence' => 0.0, 'reason' => 'llm parse failed', 'hits' => array(), 'injection_attempt' => false );
 		}
 

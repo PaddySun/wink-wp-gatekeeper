@@ -19,7 +19,7 @@ namespace WinkGatekeeper\UrlAudit;
 
 use WinkGatekeeper\Http\RemoteClient;
 
-final class BochaSearch {
+final class BochaSearch implements UrlSearchProvider {
 
 	public const ENDPOINT  = 'https://api.bocha.cn/v1/web-search';
 	public const USAGE_KEY = 'bocha_search'; // K3 独立计量键（M5 定稿 §5.2-1）.

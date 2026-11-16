@@ -80,6 +80,12 @@ final class SettingsPage {
 	const AJAX_TEST_CREDENTIALS_DEEPSEEK = 'wink_gatekeeper_test_credentials_deepseek';
 
 	/**
+	 * 【M6·批B·B-3】网址核查独立凭证测试 AJAX action（provider custom——DeepSeek 协议族
+	 * 同用余额探测，base_url 跟随其配置）。
+	 */
+	const AJAX_TEST_CREDENTIALS_URL_AUDIT = 'wink_gatekeeper_test_credentials_url_audit';
+
+	/**
 	 * Tab④ 诊断面板「手动聚合查询」AJAX action（M3-IP 定稿 §5.1，I0 批）：
 	 * nonce + manage_options 双闸；**设计红线：四源仅此手动区出现——零闸路径/零缓存/零统计/
 	 * 零自动调用（不带 usage_key），任一源失败仅该卡片失败**；结果不落库（纯请求态渲染）。
@@ -2337,7 +2343,7 @@ final class SettingsPage {
 				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
 				<ol>
 					<li><?php esc_html_e( 'DeepSeek 开放平台（platform.deepseek.com）创建 API Key 并充值（按量计费，判定一次约几百 token）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '粘贴 API Key 至下方 → 点「测试凭据」（模型列表探活，零 token 成本）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '粘贴 API Key 至下方 → 点「测试凭据」（余额探测，零费用——顺带看到余额数字）。', 'wink-gatekeeper' ); ?></li>
 					<li><?php esc_html_e( '「低置信自动升级」默认开——说明见下方开关行（段级一次）。', 'wink-gatekeeper' ); ?></li>
 					<li><?php esc_html_e( '判定映射（站长不可调）：置信 ≥0.8 高置信直取、<0.8 一律入待审；AI 判 pass 不替评论放行（只放大严）。', 'wink-gatekeeper' ); ?></li>
 				</ol>
@@ -2419,7 +2425,7 @@ final class SettingsPage {
 				</button>
 				<span id="wk-deepseek-test-result" aria-live="polite"></span>
 			</p>
-			<p class="description"><?php esc_html_e( '模型列表探活（零 token 成本）：绿 = 凭据可用且判定模型在列表中；红 = 密钥被拒或账户欠费；黄 = API Key 未填。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；黄 = 账户暂不可用（可能欠费）；红 = 密钥无效或连不上；黄 = API Key 未填。结果不落库。独立端点用模型列表探活（OpenAI 兼容、无标准余额 API）。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<?php self::render_url_audit_card( $settings ); ?>
@@ -3356,10 +3362,17 @@ final class SettingsPage {
 	 * ------------------------------------------------------------------ */
 
 	/**
-	 * Tab③ DeepSeek「测试凭据」AJAX 处理器（【M5·U4】——models 探活三态，D5 裁决）。
+	 * Tab③ DeepSeek「测试凭据」AJAX 处理器（【M6·批B·N4】——余额端点三态探测）。
 	 *
-	 * 绿=HTTP 200 且模型列表含判定模型；红=401/402/403 密钥被拒/欠费；黄=API Key 未填；
-	 * 灰=传输/契约异常。表单值覆盖（password 空串保留已存值语义）；不计 usage 不落库。
+	 * 【M6·批B·N4 契约翻转】models 探活（M5·U4 D5 裁决）退役→GET /user/balance 余额
+	 * 探测（零费用端点，信息量升级：Key 有效性+账户可用性+可见余额一次拿全；绿态
+	 * 人话行「余额 110.00 CNY（含赠金 10.00）」）。probe_models 保留给 openai_custom
+	 * 泛兼容端点（无标准余额 API——UI 注明差异）。
+	 *
+	 * 绿=200 且 is_available=true（附 balance 对象 currency/total_balance/granted_balance）；
+	 * 黄=200 且 is_available=false（欠费）；红=401/402/403/transport；灰=契约异常；
+	 * 另黄=API Key 未填（本地预检）。表单值覆盖（password 空串保留已存值语义）；
+	 * 响应闭集不含提交值（凭据零回显）；不计 usage 不落库。
 	 *
 	 * @return void
 	 */
@@ -3381,8 +3394,6 @@ final class SettingsPage {
 		$api_key  = self::probe_field( $post, 'deepseek_api_key', (string) ( $current['api_key'] ?? '' ) );
 		$base_url = isset( $post['deepseek_base_url'] ) && is_scalar( $post['deepseek_base_url'] )
 			? trim( (string) $post['deepseek_base_url'] ) : (string) ( $current['base_url'] ?? 'https://api.deepseek.com' );
-		$model    = isset( $post['deepseek_model'] ) && is_scalar( $post['deepseek_model'] )
-			? (string) $post['deepseek_model'] : (string) ( $current['model'] ?? 'deepseek-flash' );
 
 		$precheck = CredentialProbe::local_precheck_deepseek( $api_key );
 		if ( null !== $precheck ) {
@@ -3392,10 +3403,51 @@ final class SettingsPage {
 		$config = array(
 			'api_key'  => $api_key,
 			'base_url' => '' !== $base_url ? $base_url : 'https://api.deepseek.com',
-			'model'    => $model,
 		);
 		$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver( $config, new RemoteClient() ); // 探测一次不计 usage。
-		$state  = CredentialProbe::classify_deepseek( $driver->probe_models(), $model );
+		$state  = CredentialProbe::classify_deepseek_balance( $driver->probe_balance() );
+		wp_send_json_success( $state );
+	}
+
+	/**
+	 * Tab③ 网址核查独立凭据「测试凭据」AJAX 处理器（【M6·批B·B-3】N4 范围边界）。
+	 *
+	 * provider custom 独立凭证为 DeepSeek 协议族→同用余额探测（base_url 跟随其配置，
+	 * 空回落官方地址——UrlAuditWorker::provider_config base_url 回落同源）。表单覆盖
+	 * （password 空串保留已存值语义）；响应闭集不含提交值；不计 usage 不落库。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_credentials_url_audit(): void {
+		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_URL_AUDIT, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+
+		$stored   = get_option( self::OPTION_NAME, array() );
+		$stored   = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		$provider = isset( $stored['url_audit']['provider'] ) && is_array( $stored['url_audit']['provider'] )
+			? $stored['url_audit']['provider'] : array();
+
+		$api_key  = self::probe_field( $post, 'url_audit_provider_api_key', (string) ( $provider['api_key'] ?? '' ) );
+		$base_url = isset( $post['url_audit_provider_base_url'] ) && is_scalar( $post['url_audit_provider_base_url'] )
+			? trim( (string) $post['url_audit_provider_base_url'] ) : (string) ( $provider['base_url'] ?? '' );
+
+		$precheck = CredentialProbe::local_precheck_deepseek( $api_key );
+		if ( null !== $precheck ) {
+			wp_send_json_success( $precheck );
+		}
+
+		$config = array(
+			'api_key'  => $api_key,
+			'base_url' => '' !== $base_url ? $base_url : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DEFAULT_BASE_URL,
+		);
+		$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver( $config, new RemoteClient() ); // 探测一次不计 usage。
+		$state  = CredentialProbe::classify_deepseek_balance( $driver->probe_balance() );
 		wp_send_json_success( $state );
 	}
 
@@ -3468,8 +3520,10 @@ final class SettingsPage {
 	 * Tab③「网址核查」配置区（【M5·U5】UI 设计块 2-B——增强层：关闭=零行为变化）。
 	 *
 	 * 三档 profile（radio+dl 逐档人话）；「0.95 自动定罪门」系统掌握不露旋钮（D8——
-	 * 只放大严）；博查交叉信号默认关（独立计量 K3）；高级折叠（双车道日额度/robots
-	 * 开关/清缓存按钮）；inert notice 条件显隐（site_field 收集关闭=增量面失效）。
+	 * 只放大严）；高级折叠（【M6·批B·B-1】博查「核查前先搜一搜」整行迁入+搜索源
+	 * 下拉【B-2】/双车道日额度/robots 开关/独立凭据测试按钮【B-3】/清缓存按钮）；
+	 * 未配置 notice 条件显隐（【B-4】enabled 且 AI 判定凭证链为空）；inert notice
+	 * 条件显隐（site_field 收集关闭=增量面失效）。
 	 *
 	 * @param array<string, mixed> $settings 设置树。
 	 * @return void
@@ -3479,6 +3533,14 @@ final class SettingsPage {
 		$enabled  = ! empty( $ua['enabled'] );
 		$profile  = (string) ( $ua['profile'] ?? 'conservative' );
 		$site_off = empty( $settings['comments']['site_field']['enabled'] ); // 收集关闭=增量面无对象.
+
+		/* 【M6·批B·B-4】AI 判定凭证链空判定（UrlAuditWorker::provider_config 同源语义）：
+		 * custom 且独立 key 非空=独立凭证；否则回落云审 DeepSeek key——两者皆空=链空。 */
+		$ua_provider      = is_array( $ua['provider'] ?? null ) ? $ua['provider'] : array();
+		$ua_provider_mode = (string) ( $ua_provider['mode'] ?? 'inherit' );
+		$ua_own_key       = trim( (string) ( $ua_provider['api_key'] ?? '' ) );
+		$cloud_ds_key     = (string) ( $settings['review']['cloud']['deepseek']['api_key'] ?? '' );
+		$chain_empty      = ( ! ( 'custom' === $ua_provider_mode && '' !== $ua_own_key ) ) && '' === trim( $cloud_ds_key );
 		?>
 		<section class="wk-card" id="wk-review-url-audit-card">
 			<h2><?php esc_html_e( '网址核查（增强层——关闭时评论防护照常，零行为变化）', 'wink-gatekeeper' ); ?></h2>
@@ -3506,22 +3568,34 @@ final class SettingsPage {
 						<p class="description"><?php esc_html_e( '「证据确凿」的门槛由系统掌握，界面不提供旋钮——只放大严。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
-				<tr id="wk-url-audit-bocha-row">
-					<th scope="row"><?php esc_html_e( '核查前先搜一搜', 'wink-gatekeeper' ); ?></th>
-					<td>
-						<label>
-							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="0" />
-							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['bocha']['enabled'] ) ); ?>>
-							<?php esc_html_e( '博查网页搜索交叉信号（默认关）——打不开网页时，搜索结果也能当判定线索，减少「没看清」的次数', 'wink-gatekeeper' ); ?>
-						</label>
-						<?php self::password_field( array( 'url_audit', 'bocha', 'api_key' ), '' !== (string) ( $ua['bocha']['api_key'] ?? '' ), '博查 API Key' ); ?>
-						<p class="description"><?php esc_html_e( '搜索按次计费、独立计量。需在博查开放平台（bocha.cn）申请 API Key。', 'wink-gatekeeper' ); ?></p>
-					</td>
-				</tr>
 			</table>
 
 			<details class="wk-guide" id="wk-url-audit-advanced">
 				<summary><?php esc_html_e( '高级（默认收起）', 'wink-gatekeeper' ); ?></summary>
+				<table class="form-table" role="presentation">
+					<?php /* 【M6·批B·B-1】「核查前先搜一搜」整行自主体 form-table 迁入本折叠
+					 * （N2：搜索属高级配置；字段 name 零变化=schema 零变化；bocha.enabled
+					 * hidden 0 伴随域照查）。 */ ?>
+					<tr id="wk-url-audit-bocha-row">
+						<th scope="row"><?php esc_html_e( '核查前先搜一搜', 'wink-gatekeeper' ); ?></th>
+						<td>
+							<label>
+								<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="0" />
+								<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['bocha']['enabled'] ) ); ?>>
+								<?php esc_html_e( '打不开网页时，搜索结果也能当判定线索，减少「没看清」的次数（默认关）', 'wink-gatekeeper' ); ?>
+							</label>
+							<?php self::password_field( array( 'url_audit', 'bocha', 'api_key' ), '' !== (string) ( $ua['bocha']['api_key'] ?? '' ), '博查 API Key' ); ?>
+							<p>
+								<label for="wk-url-audit-search-source"><?php esc_html_e( '搜索源', 'wink-gatekeeper' ); ?></label>
+								<select id="wk-url-audit-search-source" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'search_source' ) ) ); ?>">
+									<option value="bocha" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'bocha' ); ?>><?php esc_html_e( '博查网页搜索（默认——需上方博查 Key，按次计费独立计量）', 'wink-gatekeeper' ); ?></option>
+									<option value="deepseek" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页搜索（用 AI 判定凭证——按成功次计费）', 'wink-gatekeeper' ); ?></option>
+								</select>
+							</p>
+							<p class="description"><?php esc_html_e( '选博查需在博查开放平台（bocha.cn）申请 API Key（按次计费、独立计量）；选 DeepSeek 则跟随 AI 判定凭证（无需额外 Key，按成功次数计费）。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
+				</table>
 				<table class="form-table" role="presentation">
 					<?php
 					/* 【M5 修复批·D4】网址核查判定凭证（独立/回落云审二态）：无 checkbox
@@ -3530,8 +3604,6 @@ final class SettingsPage {
 					 * admin-brand.js change 绑定；DOM 锚 wk-url-audit-provider-mode /
 					 * wk-url-audit-provider-rows）。独立凭证只用于网址核查（与评论云审
 					 * 配额/健康态互不影响）。 */
-					$ua_provider       = is_array( $ua['provider'] ?? null ) ? $ua['provider'] : array();
-					$ua_provider_mode  = (string) ( $ua_provider['mode'] ?? 'inherit' );
 					$ua_provider_model = (string) ( $ua_provider['model'] ?? '' );
 					if ( '' === $ua_provider_model ) {
 						$ua_provider_model = 'deepseek-flash'; // 空串=标准档（provider_config 回落同源——UI 选中态如实反映）。
@@ -3575,6 +3647,19 @@ final class SettingsPage {
 							<p class="description"><?php esc_html_e( '留空用标准档。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( '测试独立凭证', 'wink-gatekeeper' ); ?></th>
+						<td>
+							<?php /* 【M6·批B·B-3】独立凭据测试（N4 范围边界：DeepSeek 协议族同用
+							 * 余额探测，base_url 跟随其配置）。 */ ?>
+							<button type="button" class="button" id="wk-url-audit-provider-test-btn"
+								data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_URL_AUDIT ) ); ?>">
+								<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+							</button>
+							<span id="wk-url-audit-provider-test-result" aria-live="polite"></span>
+							<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；红 = 密钥无效或连不上。结果不落库。', 'wink-gatekeeper' ); ?></p>
+						</td>
+					</tr>
 				</table>
 				<table class="form-table" role="presentation">
 					<tr>
@@ -3600,6 +3685,15 @@ final class SettingsPage {
 					</tr>
 				</table>
 			</details>
+
+			<?php /* 【M6·批B·B-4】网址核查未配置 notice（条件显隐——U-1 缺口）：enabled 且
+			 * AI 判定凭证链为空才渲染；配置齐不渲染（范式=UI-1-2 云审未配置 notice 同款）。 */ ?>
+			<?php if ( $enabled && $chain_empty ) : ?>
+			<div class="notice notice-warning inline" id="wk-url-audit-unconfigured-notice"><p>
+				<?php esc_html_e( '网址核查已启用，但 AI 判定（DeepSeek）还没有配置——核查无法完成判定。', 'wink-gatekeeper' ); ?>
+				<a href="#wk-review-deepseek-card"><?php esc_html_e( '到上方 DeepSeek 配置区填写 API Key', 'wink-gatekeeper' ); ?></a><?php esc_html_e( '，或在', 'wink-gatekeeper' ); ?><a href="#wk-url-audit-advanced"><?php esc_html_e( '下方「高级」里为网址核查单独配置', 'wink-gatekeeper' ); ?></a>。
+			</p></div>
+			<?php endif; ?>
 
 			<?php if ( $site_off ) : ?>
 			<div class="notice notice-warning inline" id="wk-url-audit-inert-notice"><p>
@@ -4091,6 +4185,22 @@ final class SettingsPage {
 					(int) $url_stats['today_checked'],
 					(int) $url_stats['auto_rejected'],
 					(int) $url_stats['pending_review']
+				);
+				?></p>
+			<?php endif; ?>
+
+			<?php
+			/* 【M6·批B·B-2】网址核查搜索消耗行（统计页消耗段加行——deepseek_search 成功次；
+			 * 数据门控渲染：零消耗整行不显，K 系口径与今日没用到同纪律；注：本函数体内
+			 * 禁 circled 序号字样——零序号契约扫描函数体含注释）。 */
+			$url_search_used = \WinkGatekeeper\Stats\Usage::daily_total_for( \WinkGatekeeper\Stats\Usage::get(), \WinkGatekeeper\Stats\Usage::KEY_DEEPSEEK_SEARCH );
+			if ( $url_search_used > 0 ) :
+				?>
+			<p id="wk-stats-url-search-line" class="wk-muted"><?php
+				printf(
+					/* translators: %d: 今日 DeepSeek 搜索成功次数 */
+					esc_html__( '网址核查搜索（DeepSeek）：今日 %1$d 次（按成功次数计费，打不开网页时的搜索线索）', 'wink-gatekeeper' ),
+					(int) $url_search_used
 				);
 				?></p>
 			<?php endif; ?>

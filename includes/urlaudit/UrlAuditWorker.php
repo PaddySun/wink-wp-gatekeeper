@@ -73,6 +73,13 @@ final class UrlAuditWorker {
 	public const BATCH_MAX = 25;
 
 	/**
+	 * 【M6·批B·B-5】配额暂停边沿标记 option（非 settings 树）：{incr: Y-m-d, batch: Y-m-d}
+	 * ——同日同车道只发一次暂停事件（边沿去重）；跨日自动开新边沿（配额次日凌晨重置，
+	 * 再撞闸=新暂停片段）。
+	 */
+	public const OPTION_PAUSE_EDGE = 'wink_gatekeeper_url_audit_pause_edge';
+
+	/**
 	 * @var array<string, mixed> 设置树。
 	 */
 	private $settings;
@@ -117,6 +124,17 @@ final class UrlAuditWorker {
 	private $clock;
 
 	/**
+	 * 【M6·批B·B-5】运行性错误事件 sink（fn(string $reason, array $hits, array $meta): void）。
+	 *
+	 * 缺省 WP 通道=EventsTable 直插（gate=comment、stage=url_audit、driver=deepseek、
+	 * verdict=error——DriverHealth health 行同款不经 should_record；verdict=error 被
+	 * fault_predicate_sql 覆盖→报错历史/今日故障卡可见）。单测全注入。
+	 *
+	 * @var callable|null
+	 */
+	private $event_recorder;
+
+	/**
 	 * @param array<string, mixed> $settings 设置树。
 	 * @param array<string, callable> $hooks 全部可注入（默认 WP 通道——见 defaults）。
 	 */
@@ -135,6 +153,7 @@ final class UrlAuditWorker {
 		$this->batch_queue_get    = $hooks['batch_queue_get'] ?? null;
 		$this->batch_queue_set    = $hooks['batch_queue_set'] ?? null;
 		$this->clock              = $hooks['clock'] ?? static fn(): float => microtime( true );
+		$this->event_recorder     = $hooks['event_recorder'] ?? null; // 【M6·批B·B-5】缺省=EventsTable 直插（见属性注）。
 	}
 
 	/**
@@ -159,6 +178,10 @@ final class UrlAuditWorker {
 
 	/**
 	 * 跑一轮双车道（cron tick/CLI；单轮 ≤25——增量优先消费）。
+	 *
+	 * 【M6·批B·B-5】轮末事件发射面：运行性错误（LLM transport/contract 类）每轮至多
+	 * 1 条（多评论同轮失败只记首条——防 P1-4 写放大）；配额暂停边沿同日同车道去重。
+	 * 恒不发射：业务性 inconclusive（目标站 fetch 失败族——§0-7 fetch 失败≠违规）。
 	 *
 	 * @return array{incr_processed: int, batch_processed: int, stopped: string}
 	 */
@@ -187,13 +210,13 @@ final class UrlAuditWorker {
 				// 增量日预算闸。
 				if ( $this->quota_reached( 'incr_quota', 'url_audit_incr' ) ) {
 					$out['stopped'] = 'incr_quota_exhausted'; // 增量停转=落 fail-review 现状语义（零新失败模式）。
-					return $out;
+					break; // 【M6·批B·B-5】单出口——轮末统一走事件发射面。
 				}
 			} else {
 				// 批量车道（增量队列空时消费；批量预算闸独立——批量先停增量继续）。
 				if ( $this->quota_reached( 'batch_quota', 'url_audit_batch' ) ) {
 					$out['stopped'] = 'batch_quota_exhausted';
-					return $out;
+					break;
 				}
 				$batch_ids = $batch( 1, array() );
 				if ( array() === $batch_ids ) {
@@ -206,6 +229,13 @@ final class UrlAuditWorker {
 			$this->process_comment( $comment_id, $lane, $profile, $out );
 			++$out[ 'incr' === $lane ? 'incr_processed' : 'batch_processed' ];
 		}
+
+		// 【M6·批B·B-5】轮末事件发射面（disabled 早退不经过——功能关=零事件零外呼）。
+		if ( isset( $out['runtime_error'] ) && is_array( $out['runtime_error'] ) ) {
+			$this->emit_runtime_error( $out['runtime_error'] );
+			unset( $out['runtime_error'] );
+		}
+		$this->maybe_emit_pause_edge( (string) $out['stopped'] );
 
 		return $out;
 	}
@@ -300,6 +330,16 @@ final class UrlAuditWorker {
 				$engine = $judge_f();
 				$judgement = $engine['judge']->judge( $fetched, $url, (string) $comment['author'] . "\n" . (string) $comment['body'], 'incr' === $lane ? 'url_audit_incr' : 'url_audit_batch' );
 				$fetch_meta['llm'] = true;
+				// 【M6·批B·B-5①】LLM 运行性错误捕获（transport/semantic/contract/parse——
+				// 非业务 inconclusive；轮末发射每轮至多 1 条。业务判定/fetch 失败族恒不标记）。
+				$llm_meta = $engine['judge']->last_meta();
+				if ( ! isset( $out['runtime_error'] ) && isset( $llm_meta['llm_error'] ) && is_array( $llm_meta['llm_error'] ) ) {
+					$out['runtime_error'] = array(
+						'lane'      => $lane,
+						'category'  => (string) ( $llm_meta['llm_error']['category'] ?? '' ),
+						'http_code' => (int) ( $llm_meta['llm_error']['http_code'] ?? 0 ),
+					);
+				}
 				// ④ 缓存写入（TTL 按 verdict 分档）。
 				UrlAuditCache::put( $url, array_merge( $judgement, array(
 					'final_url'     => $fetched['final_url'],
@@ -388,6 +428,87 @@ final class UrlAuditWorker {
 			return false;
 		}
 		return Usage::quota_reached( Usage::get(), $usage_key, $quota );
+	}
+
+	/* -------------------------------------------------------------------
+	 * 【M6·批B·B-5】运行性错误/暂停边沿事件发射（U-3 缺口补齐——报错历史可见）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * LLM 运行性错误事件发射（① transport/semantic/contract 类——非业务 inconclusive）。
+	 *
+	 * 事件形态：gate=comment、stage=url_audit、driver=deepseek、verdict=error、
+	 * rule_hit=remote_<category>（故障谓词+Labels 人话复用）、meta 最小化
+	 * {reason, lane, http_code}——零 URL 零正文零 IP（PIPL）。每 tick 轮至多 1 条
+	 * （process_comment 只记首条——防写放大 P1-4 同族纪律）。
+	 *
+	 * @param array{lane: string, category: string, http_code: int} $err 错误信息。
+	 * @return void
+	 */
+	private function emit_runtime_error( array $err ): void {
+		$category = '' !== (string) ( $err['category'] ?? '' ) ? (string) $err['category'] : 'error';
+		$reason   = 'llm ' . $category;
+		$this->record_event( $reason, array( 'remote_' . $category ), array(
+			'reason'    => $reason,
+			'lane'      => (string) ( $err['lane'] ?? '' ),
+			'http_code' => (int) ( $err['http_code'] ?? 0 ),
+		) );
+	}
+
+	/**
+	 * 配额暂停边沿事件（③ incr/batch 闸触发暂停时一次；同日同车道去重——
+	 * OPTION_PAUSE_EDGE 标记持久化，跨日自动开新边沿）。
+	 *
+	 * 业务性 inconclusive（目标站 404/403/超时）恒不进本发射面（§0-7 fetch 失败≠违规）；
+	 * fetch 账号级失败（DeepSeek Fetch 402/401——批 C DeepSeekFetchAdapter 落地）届时
+	 * 调 record_event 同面发射（meta 形态一致）。
+	 *
+	 * @param string $stopped run_round 停转原因（incr_quota_exhausted|batch_quota_exhausted|…）。
+	 * @return void
+	 */
+	private function maybe_emit_pause_edge( string $stopped ): void {
+		$lane = '';
+		if ( 'incr_quota_exhausted' === $stopped ) {
+			$lane = 'incr';
+		} elseif ( 'batch_quota_exhausted' === $stopped ) {
+			$lane = 'batch';
+		}
+		if ( '' === $lane ) {
+			return;
+		}
+		$today  = gmdate( 'Y-m-d', (int) ( $this->clock )() );
+		$marker = get_option( self::OPTION_PAUSE_EDGE, array() );
+		$marker = is_array( $marker ) ? $marker : array();
+		if ( ( (string) ( $marker[ $lane ] ?? '' ) ) === $today ) {
+			return; // 同日同车道已发——边沿去重（不逐 tick 重复）。
+		}
+		$marker[ $lane ] = $today;
+		update_option( self::OPTION_PAUSE_EDGE, $marker, false );
+		$reason = 'url_audit ' . $lane . ' quota exhausted';
+		$this->record_event( $reason, array( 'quota_paused' ), array(
+			'reason'    => $reason,
+			'lane'      => $lane,
+			'http_code' => 0,
+		) );
+	}
+
+	/**
+	 * 事件落库（sink 注入优先；缺省 WP 通道=EventsTable 直插——verdict=error 被
+	 * fault_predicate_sql 覆盖，报错历史/今日故障卡/Tab① 最近错误摘要自动可见）。
+	 *
+	 * @param string          $reason 理由（verdict reason 列）。
+	 * @param array<string>   $hits   命中标签（rule_hit 列）。
+	 * @param array<string, mixed> $meta 事件 meta（最小化闭集）。
+	 * @return void
+	 */
+	private function record_event( string $reason, array $hits, array $meta ): void {
+		$recorder = $this->event_recorder;
+		if ( null === $recorder ) {
+			$recorder = static function ( string $reason, array $hits, array $meta ): void {
+				\WinkGatekeeper\Stats\EventsTable::insert( 'comment', 'url_audit', 'deepseek', Verdict::error( 'deepseek', $reason, $hits ), $meta );
+			};
+		}
+		$recorder( $reason, $hits, $meta );
 	}
 
 	/* -------------------------------------------------------------------
@@ -654,28 +775,36 @@ final class UrlAuditWorker {
 	}
 
 	/**
-	 * 判定工厂（DeepSeek via 协议族配置+URL 审核 prompt；博查信号源可选装配）。
+	 * 判定工厂（DeepSeek via 协议族配置+URL 审核 prompt；搜索源按 search_source 分派）。
 	 *
 	 * 凭证来源走 provider_config（【M5 修复批·D3】url_audit.provider 子树——inherit
 	 * 回落云审 DeepSeek / custom 独立凭证）。
 	 *
-	 * @return array{judge: UrlJudgeEngine, model: string, bocha: BochaSearch|null}
+	 * 【M6·批B·B-2】搜索源分派（worker 消费点唯一装配位）：url_audit.search_source=
+	 * deepseek → DeepSeekSearch（key 链=§0-5 凭证链：provider custom→其 api_key/
+	 * base_url；inherit→Tab③ 主凭证——provider_config 已统一解析）；bocha（默认）→
+	 * 博查现款（K3 计量口径不动）。凭证链空=is_configured false=零信号降级不阻塞。
+	 *
+	 * @return array{judge: UrlJudgeEngine, model: string, bocha: UrlSearchProvider|null}
 	 */
 	public function default_judge_factory(): array {
 		$config = self::provider_config( $this->settings );
 		$client = $this->default_client();
-		$bocha  = null;
-		if ( ! empty( $this->settings['url_audit']['bocha']['enabled'] ) && '' !== (string) ( $this->settings['url_audit']['bocha']['api_key'] ?? '' ) ) {
-			$bocha = new BochaSearch( (string) $this->settings['url_audit']['bocha']['api_key'], $client );
+		$source = (string) ( $this->settings['url_audit']['search_source'] ?? 'bocha' );
+		$search = null;
+		if ( 'deepseek' === $source ) {
+			$search = new DeepSeekSearch( (string) ( $config['api_key'] ?? '' ), (string) ( $config['base_url'] ?? '' ), $client );
+		} elseif ( ! empty( $this->settings['url_audit']['bocha']['enabled'] ) && '' !== (string) ( $this->settings['url_audit']['bocha']['api_key'] ?? '' ) ) {
+			$search = new BochaSearch( (string) $this->settings['url_audit']['bocha']['api_key'], $client );
 		}
 		$model  = (string) ( $config['model'] ?? 'deepseek-flash' );
 		$engine = new UrlJudgeEngine(
 			$config,
 			$client,
 			$model,
-			$bocha
+			$search
 		);
-		return array( 'judge' => $engine, 'model' => $model, 'bocha' => $bocha );
+		return array( 'judge' => $engine, 'model' => $model, 'bocha' => $search );
 	}
 
 	/**

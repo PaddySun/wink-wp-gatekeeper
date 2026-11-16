@@ -6,8 +6,9 @@
  * deepseek-chat 已是旧别名，服务端映射 flash）、system_prompt=SettingsSchema::DEFAULT_SYSTEM_PROMPT
  * 单一来源、two_stage=true（M5 定稿 §4 两段式默认开）、upgrade_model=deepseek-reasoner。
  *
- * 端点：POST {base_url}/chat/completions（Authorization: Bearer）；测试凭据=GET /models
- * 探活（D5 裁决：零 token 成本证 Bearer 鉴权通——绿=HTTP 200 且返回列表含判定模型）。
+ * 端点：POST {base_url}/chat/completions（Authorization: Bearer）；测试凭据=GET /user/balance
+ * 余额探测（【M6·批B·N4】零费用端点——绿=200 且 is_available=true 附余额数字；
+ * probe_models GET /models 保留给 openai_custom 泛兼容端点）。
  *
  * 05 §2.2 规格行为全部在 OpenAiCompatibleReviewDriver 基类（五件套/收口/计量）——
  * 本类只做配置派生+registry 登记（「厂商子类只剩配置」分层纪律，D13 博客精神）。
@@ -81,7 +82,7 @@ final class DeepSeekReviewDriver extends OpenAiCompatibleReviewDriver {
 			'guide'        => array(
 				'steps' => array(
 					'1. DeepSeek 开放平台（platform.deepseek.com）创建 API Key 并充值（按量计费，判定一次约几百 token）。',
-					'2. 粘贴 API Key 至下方 → 点「测试凭据」（模型列表探活，零 token 成本）。',
+					'2. 粘贴 API Key 至下方 → 点「测试凭据」（余额探测，零费用——顺带验证 Key 有效与账户可用，显示余额数字）。',
 					'3. 「低置信自动升级」默认开：AI 拿不准的评论自动换「深思」模型再判一次，每条评论最多判两次。',
 					'4. 判定映射（站长不可调）：置信 ≥0.8 高置信直取、<0.8 一律入待审；AI 判 pass 不替评论放行（只放大严）。',
 				),
@@ -93,13 +94,38 @@ final class DeepSeekReviewDriver extends OpenAiCompatibleReviewDriver {
 	}
 
 	/**
-	 * 测试凭据探测（Tab③——GET /models 探活，D5 裁决：零 token 成本；不计 usage）。
+	 * 测试凭据探测·模型列表（GET /models 探活，D5 裁决：零 token 成本；不计 usage）。
+	 *
+	 * 【M6·批B·N4】Tab③ 主凭证测试已切换到 probe_balance（信息量升级+零费用）——
+	 * 本方法**保留**：openai_custom 等泛 OpenAI 兼容端点无标准余额 API，届时仍以
+	 * /models 探活（UI 注明差异）。
 	 *
 	 * @return \WinkGatekeeper\Http\RemoteResult
 	 */
 	public function probe_models(): \WinkGatekeeper\Http\RemoteResult {
 		$base = rtrim( (string) ( $this->config['base_url'] ?? self::DEFAULT_BASE_URL ), '/' );
 		return $this->client->get( $base . '/models', array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . (string) ( $this->config['api_key'] ?? '' ),
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 5,
+		) );
+	}
+
+	/**
+	 * 测试凭据探测·余额（【M6·批B·N4】GET /user/balance——Bearer，零费用端点；
+	 * 不计 usage 不落库）。
+	 *
+	 * 官方契约（api/查询余额.md，LetMESee 采集 2026-11-14）：200 → {is_available,
+	 * balance_infos[{currency(CNY|USD), total_balance, granted_balance,
+	 * topped_up_balance}]}。三态判定在 CredentialProbe::classify_deepseek_balance。
+	 *
+	 * @return \WinkGatekeeper\Http\RemoteResult
+	 */
+	public function probe_balance(): \WinkGatekeeper\Http\RemoteResult {
+		$base = rtrim( (string) ( $this->config['base_url'] ?? self::DEFAULT_BASE_URL ), '/' );
+		return $this->client->get( $base . '/user/balance', array(
 			'headers' => array(
 				'Authorization' => 'Bearer ' . (string) ( $this->config['api_key'] ?? '' ),
 				'Content-Type'  => 'application/json',

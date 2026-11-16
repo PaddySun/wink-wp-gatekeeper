@@ -195,7 +195,9 @@ final class Bootstrap {
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN, array( SettingsPage::class, 'ajax_test_credentials_aliyun_green' ) );
 		// Tab③ 百度「测试凭据」（B6：同双闸；绿态 = 探测 conclusionType=1，顺带解除 baidu 停转——05 §2.4）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_BAIDU, array( SettingsPage::class, 'ajax_test_credentials_baidu' ) );
-		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_DEEPSEEK, array( SettingsPage::class, 'ajax_test_credentials_deepseek' ) ); // 【M5·U4】models 探活（D5 零 token 成本）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_DEEPSEEK, array( SettingsPage::class, 'ajax_test_credentials_deepseek' ) ); // 【M6·批B·N4】余额端点探测（零费用——models 探活退役为泛端点备件）。
+		// 【M6·批B·B-3】网址核查独立凭据「测试凭据」（N4 范围边界：DeepSeek 协议族同用余额探测，base_url 跟随其配置）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_URL_AUDIT, array( SettingsPage::class, 'ajax_test_credentials_url_audit' ) );
 		// Tab④ 诊断面板「手动聚合查询」（M3-IP 定稿 §5.1，I0 批：同双闸；零落库零缓存零统计红线）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_IP_DIAGNOSE, array( SettingsPage::class, 'ajax_ip_diagnose' ) );
 		// Tab④ 分区②「测试凭据」（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批：同双闸；
@@ -1250,8 +1252,8 @@ final class Bootstrap {
 			// WINK_GATEKEEPER_VERSION 走时，版本号不变批次内的 JS 内容变化击不穿
 			// 缓存（实站回传：admin-brand.js 旧文件持续命中）。纪律：本文件内容
 			// 变化必须伴随本行版本参数变化（后缀递进 -m5fix1 → -m5fix2 …）。
-			// 仅 admin-brand 一行加缀——front 资产本批零内容变化（全量加缀=无谓击穿）。
-			WINK_GATEKEEPER_VERSION . '-m5fix1',
+			// 【M6·批B】本批 JS 内容变化（网址核查独立凭据测试按钮绑定）→ -m6b1。
+			WINK_GATEKEEPER_VERSION . '-m6b1',
 			true
 		);
 	}

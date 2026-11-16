@@ -128,9 +128,10 @@ final class Labels {
 	}
 
 	/**
-	 * 阶段 → 防线词（对照表 12——stub/签名存根→机器人试探；明细列「哪道防线拦的」）。
+	 * 阶段 → 防线词（对照表 12——stub/签名存根→机器人试探；明细列「哪道防线拦的」；
+	 * 【M6·批B·B-5】url_audit 运行性错误事件行（报错历史/时间线「网址核查」防线名）。
 	 *
-	 * @param string $stage 阶段键（stub|ip|captcha|review；开放枚举原样返回）。
+	 * @param string $stage 阶段键（stub|ip|captcha|review|url_audit；开放枚举原样返回）。
 	 */
 	public static function stage_word( string $stage ): string {
 		return match ( $stage ) {
@@ -138,6 +139,7 @@ final class Labels {
 			'ip'      => 'IP 信誉',
 			'captcha' => '人机验证',
 			'review'  => '内容审核',
+			'url_audit' => '网址核查', // 【M6·批B·B-5】运行性错误事件 stage 人话.
 			default   => $stage,
 		};
 	}
@@ -174,6 +176,8 @@ final class Labels {
 			'comment_flood'     => '发得太快（洪泛保护）',
 			'trust_pass'        => '信用免验通过',
 			'verify_cache_hit'  => '窗口内免重复验票',
+			// 【M6·批B·B-5】网址核查配额暂停边沿事件人话（报错历史时间线）。
+			'quota_paused'      => '今日额度用完（网址核查暂停）',
 		);
 		if ( isset( $exact[ $rule_hit ] ) ) {
 			return $exact[ $rule_hit ];

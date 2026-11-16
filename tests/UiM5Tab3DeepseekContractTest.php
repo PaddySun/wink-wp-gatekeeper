@@ -104,8 +104,13 @@ final class UiM5Tab3DeepseekContractTest extends TestCase {
 		self::assertStringContainsString( 'check_ajax_referer', $handler, 'nonce 双闸' );
 		self::assertStringContainsString( 'manage_options', $handler, 'manage_options 双闸' );
 		self::assertStringContainsString( 'RemoteClient', $handler, 'HTTP 走传输脊' );
-		self::assertStringContainsString( 'probe_models', $handler, '探活走驱动 probe_models（传输脊）' );
-		self::assertStringContainsString( '/models', self::source( 'includes/drivers/review/DeepSeekReviewDriver.php' ), 'GET {base_url}/models 探活（D5：零 token 成本）' );
+		// 【M6·批B·N4 契约翻转】models 探活（M5·U4 D5 裁决）→ GET /user/balance 余额探测
+		// （零费用端点信息量升级：Key 有效性+账户可用性+余额数字；probe_models 保留给
+		// openai_custom 泛兼容端点——驱动内 /models 断言保留钉其存在）。
+		self::assertStringContainsString( 'probe_balance', $handler, '探活走驱动 probe_balance（余额端点，零费用）' );
+		self::assertStringContainsString( 'classify_deepseek_balance', $handler, '三态判定走余额分类' );
+		self::assertStringContainsString( '/models', self::source( 'includes/drivers/review/DeepSeekReviewDriver.php' ), 'GET {base_url}/models 保留（泛兼容端点探活备件）' );
+		self::assertStringContainsString( '/user/balance', self::source( 'includes/drivers/review/DeepSeekReviewDriver.php' ), 'GET {base_url}/user/balance 余额端点在位（官方契约）' );
 		self::assertStringContainsString( 'CredentialProbe', $handler, '三态判定走 CredentialProbe' );
 	}
 

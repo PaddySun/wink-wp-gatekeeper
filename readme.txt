@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.6.3
+Stable tag: 0.6.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,6 +45,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.6.4 =
+
+M6·批B 网址核查配置面增强（2026-11-16——TDD 先红后绿，N2/N4/U-1/U-3 四件+U-3 事件面）。① 「核查前先搜一搜」整行移入「高级（默认收起）」折叠（配置项位置调整，行为零变化）；搜索源新增可选 DeepSeek 网页搜索（默认博查不变）——用 AI 判定凭证无需额外 Key，按成功次数计费，与官方账单口径一致；打不开网页时的搜索线索语义不变（搜索失败≠网站违规）。② DeepSeek「测试凭据」改用余额查询端点（零费用，信息更全）：绿色=凭据有效且账户可用（直接显示余额数字，如「余额 110.00 CNY（含赠金 10.00）」）；黄色=账户暂不可用（可能欠费）；红色=密钥无效或连不上。网址核查独立凭证同用余额探测（高级折叠内新增「测试凭据」按钮）；独立 OpenAI 兼容端点无标准余额 API，仍用模型列表探活。③ 网址核查启用但 AI 判定未配置时，配置区显示黄色提醒条（一键深链到 DeepSeek 配置区或高级独立配置），配置好后自动消失。④ 网址核查的运行性故障（AI 服务商连不上/返回异常/当日额度用完暂停）现在会进「报错历史」时间线，出岔子看得见了；目标网站本身打不开（404/403 等）不算故障，照旧归「未核实」不冤枉网站。测试 1802→1863 / 断言 11433→11620 全绿（M6BSearchSourceTest+M6BBalanceProbeTest+M6BNoticeAndEventsTest 新 61 例）。
 
 = 0.6.3 =
 
