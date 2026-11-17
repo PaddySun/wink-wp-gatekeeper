@@ -88,6 +88,13 @@ final class SettingsSchema {
 					// 排列顺序不动——D14 腾讯系优先只退位默认值）。存量平移见 migrate_fields 撞车守卫：
 					// 天御凭据已配=站长显式选择原样保留；出厂特征值 tencent（零凭据）平移新默认。
 					'driver'    => 'aliyun', // aliyun(默认) tencent(M1) hcaptcha turnstile geetest(M4) | null.
+					// 【W2·无按钮模式·breaking】提交触发形态（0.8.4 新键，Q2=①一刀切）：on_submit
+					// （默认——无按钮模式：不渲染独立验证按钮，访客直接点原生提交按钮触发人机
+					// 验证，过码后自动续提）| button（经典：独立「完成人机验证」按钮，0.8.3 及
+					// 以前形态）。存量站点升级即切新形态（merge_defaults 补新键——H-2/H-3 breaking
+					// 默认平移先例，零迁移代码）；Tab②「提交触发形态」radio 一键回经典。
+					// 枚举优于 bool（未来第三形态留位，W-8）。
+					'submit_flow' => 'on_submit',
 					// M2 反馈2 T3（D+A-lite）：验证短缓存窗口（分钟）——票据核验成功后同存根+同 IP
 					// 免重复验票；0 = 关闭。默认与 VerifyCache::DEFAULT_TTL_MINUTES 一致。
 					'verify_cache_minutes' => 10,

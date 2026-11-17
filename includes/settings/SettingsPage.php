@@ -1374,7 +1374,24 @@ final class SettingsPage {
 			<!-- 共存提示位：检测到官方 hCaptcha 插件接管时黄条「评论验证码由官方 hCaptcha 插件接管，本插件验证码已让位」——M4（02 §3.4）。 -->
 		</section>
 
-		<section class="wk-card" id="wk-captcha-config-area" data-wk-vendor="tencent"<?php echo ( $area['visible'] && 'tencent' === $active ) ? '' : ' hidden'; ?>>
+		<?php /* 【W2·无按钮模式】提交触发形态 radio 组（0.8.4，Q2=①一刀切默认 on_submit）：
+		 * 驱动无关（captcha.submit_flow 在 captcha 子树顶层——Q6 腾讯同批后两驱动共用），
+		 * 故落驱动选择卡之后的常显卡位，不进厂商配置区（那边按 active 驱动 hidden 切换）。 */ ?>
+		<section class="wk-card">
+			<h2><?php esc_html_e( '提交触发形态', 'wink-gatekeeper' ); ?></h2>
+			<?php $submit_flow = 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? 'button' : 'on_submit'; ?>
+			<label style="display:block;margin-bottom:6px;">
+				<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="on_submit" <?php checked( 'on_submit', $submit_flow ); ?> />
+				<?php esc_html_e( '无按钮模式（默认）——不渲染独立验证按钮，访客直接点「发表评论/登录」即触发人机验证，过码后自动放行提交', 'wink-gatekeeper' ); ?>
+			</label>
+			<label style="display:block;">
+				<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="button" <?php checked( 'button', $submit_flow ); ?> />
+				<?php esc_html_e( '独立验证按钮（经典）——先点表单内「完成人机验证」按钮过码，再提交（0.8.3 及以前形态）', 'wink-gatekeeper' ); ?>
+			</label>
+			<p class="description"><?php esc_html_e( '0.8.4 起默认无按钮模式（一刀切——升级站点前台形态即切换）；无 JS 或验证组件故障时自动回退经典按钮形态，服务端核验永远兜底。评论/登录/注册/找回四表单同型。', 'wink-gatekeeper' ); ?></p>
+		</section>
+
+	<section class="wk-card" id="wk-captcha-config-area" data-wk-vendor="tencent"<?php echo ( $area['visible'] && 'tencent' === $active ) ? '' : ' hidden'; ?>>
 			<h2><?php esc_html_e( '腾讯天御验证码 2.0 · 配置', 'wink-gatekeeper' ); ?></h2>
 
 			<?php

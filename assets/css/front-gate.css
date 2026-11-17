@@ -97,6 +97,13 @@
 	cursor: default; /* 已通过（disabled）：非交互态，文案「已通过验证」自明。 */
 }
 
+/* 【W2·无按钮模式】hidden 按钮隐藏（必做补丁）：上方 .wk-captcha-btn 的
+ * display:inline-block 会压过 hidden 属性的 UA 默认 display:none——不补此规则，
+ * on_submit 形态的按钮照常可见（mount.hidden 课程同族坑，0.8.4）。 */
+.wk-captcha-btn[hidden] {
+	display: none;
+}
+
 .wk-captcha-btn[data-wk-state="verified"]:hover,
 .wk-captcha-btn[data-wk-state="verified"]:focus-visible {
 	background: #1a7f37;

@@ -48,6 +48,9 @@ final class Sanitize {
 
 			// 验证码。
 			'captcha.driver'                            => 'text',
+			// 【W2·无按钮模式】提交触发形态白名单（captcha.submit_flow）：on_submit（默认）|
+			// button（经典），非法值归 on_submit（Q2=①一刀切——新形态默认）。
+			'captcha.submit_flow'                       => 'submit_flow',
 			// M2 反馈2 T3：验证短缓存窗口（分钟，0=关）。
 			'captcha.verify_cache_minutes'              => 'absint',
 			// 【v1.5·DESIGN-C1 §3/02 §2.8 安全门 #1】test_mode 演练旁路开关（默认关；since 为
@@ -305,6 +308,10 @@ final class Sanitize {
 				// 【v1.5·B3】白名单枚举（04 §2 captcha.aliyun.mode）：embed（默认）| popup，
 				// 非法值归 embed（fail-safe——页内触发条形态是规格默认）。
 				return ( is_scalar( $value ) && 'popup' === (string) $value ) ? 'popup' : 'embed';
+			case 'submit_flow':
+				// 【W2·无按钮模式】提交触发形态白名单（captcha.submit_flow）：on_submit（默认，
+				// Q2=①一刀切）| button（经典），非法值归 on_submit。
+				return ( is_scalar( $value ) && 'button' === (string) $value ) ? 'button' : 'on_submit';
 			case 'min_score':
 				// 【v1.5·C1】评分制阈值钳制（04 §2 captcha.min_score：数值钳 0.1–1.0；
 				// 02 §2.1 max(0.1, min(1.0, ·))——非标量/非法值归默认 0.5）。

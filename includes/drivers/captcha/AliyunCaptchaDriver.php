@@ -69,7 +69,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 	private const MSG_CONFIG = '验证码服务配置有误（请联系站长处理）。';
 
 	/**
-	 * @var array{access_key_id: string, access_key_secret: string, scene_id: string, prefix: string, mode: string}
+	 * @var array{access_key_id: string, access_key_secret: string, scene_id: string, prefix: string, mode: string, submit_flow: string}
 	 */
 	private $credentials;
 
@@ -111,6 +111,9 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			'prefix'            => trim( is_string( $aliyun['prefix'] ?? null ) ? $aliyun['prefix'] : '' ),
 			// 前端形态（04 §2 captcha.aliyun.mode）：embed（默认）| popup——非法值归 embed。
 			'mode'              => 'popup' === ( $aliyun['mode'] ?? '' ) ? 'popup' : 'embed',
+			// 【W2·无按钮模式】提交触发形态（captcha.submit_flow）：on_submit（默认，Q2=①
+			// 一刀切）| button（经典）——非法值归 on_submit；render() 按此分支（W-7）。
+			'submit_flow'       => 'button' === ( $settings['captcha']['submit_flow'] ?? '' ) ? 'button' : 'on_submit',
 		);
 
 		$messages = isset( $settings['copy']['messages'] ) && is_array( $settings['copy']['messages'] )
@@ -347,8 +350,17 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			return htmlspecialchars( $value, ENT_QUOTES, 'UTF-8' );
 		};
 
+		/* 【W2·无按钮模式】submit_flow 分支（W-7/R6）：on_submit（默认）= 容器加
+		 * data-submit-gate="1"（gatekeeper.js submit-gate 拦截链装配锚——R3 禁用四件对此
+		 * 容器停用）+ 按钮加 hidden 属性（SDK 的 button 参数仍需真实元素绑定——静态推断，
+		 * Q3 真机复验；CSS 补 .wk-captcha-btn[hidden]{display:none}——display:inline-block
+		 * 会压过 hidden 属性，mount.hidden 课程同族坑）；button = 经典形态，产物与 0.8.3
+		 * 逐字节同构（经典回归锚）。 */
+		$submit_gate = 'on_submit' === $this->credentials['submit_flow'];
+
 		$html = '<span class="wk-gate" data-gate="' . $esc( $gate ) . '" data-driver="aliyun"'
 			. ' data-interaction="click"'
+			. ( $submit_gate ? ' data-submit-gate="1"' : '' )
 			. ' data-mode="' . $esc( $this->credentials['mode'] ) . '"'
 			. ' data-token-fields="' . self::TOKEN_FIELD . '"'
 			. ' data-scene-id="' . $esc( $this->credentials['scene_id'] ) . '"'
@@ -357,6 +369,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			. '<input type="hidden" name="' . self::TOKEN_FIELD . '" value="">'
 			. '<span class="wk-gate-inline">'
 			. '<button type="button" class="wk-captcha-btn wk-verify-btn button" data-wk-state="unverified"'
+			. ( $submit_gate ? ' hidden' : '' )
 			. ' aria-live="polite">完成人机验证</button>'
 			. '</span>'
 			. '<noscript>需要启用 JavaScript 完成人机验证。</noscript>'

@@ -79,6 +79,11 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 	private $credentials;
 
 	/**
+	 * @var string 提交触发形态（【W2·无按钮模式】captcha.submit_flow：on_submit 默认 | button 经典）。
+	 */
+	private $submit_flow = 'on_submit';
+
+	/**
 	 * @var array<string, string> copy.messages 子树（文案工坊自定义）。
 	 */
 	private $messages;
@@ -138,6 +143,10 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 		$this->disaster_policy = self::DISASTER_POLICY_BLOCK === ( $tencent['disaster_pass'] ?? '' )
 			? self::DISASTER_POLICY_BLOCK
 			: self::DISASTER_POLICY_ALLOW;
+
+		// 【W2·无按钮模式】提交触发形态（captcha.submit_flow，Q6 腾讯同批）：on_submit
+		// （默认，Q2=①一刀切）| button（经典）——非法值归 on_submit；render() 按此分支。
+		$this->submit_flow = 'button' === ( $settings['captcha']['submit_flow'] ?? '' ) ? 'button' : 'on_submit';
 		$this->disaster_limiter = $disaster_limiter;
 
 		$messages = isset( $settings['copy']['messages'] ) && is_array( $settings['copy']['messages'] )
@@ -417,10 +426,16 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 		 * gate 维持 popup。SDK 嵌入组件实测固定宽 302px < wp-login 表单内容宽 320px——无裁切。 */
 		$is_embed = in_array( $gate, array( 'comment', 'login', 'register', 'lostpassword' ), true );
 
+		/* 【W2·无按钮模式】submit_flow 分支（Q6 腾讯同批，与 AliyunCaptchaDriver::render 同款）：
+		 * on_submit（默认）= 容器 data-submit-gate="1"（submit-gate 拦截链装配锚）+ 按钮
+		 * hidden 属性；button = 经典形态（产物与 0.8.3 逐字节同构）。 */
+		$submit_gate = 'on_submit' === $this->submit_flow;
+
 		// 结构照 03 §2.1 v1.4：span 容器（存根 + 双 token 写域 + 三态按钮 + noscript）
 		// ＋ embed 域尾随嵌入式挂载点（hidden 初始，适配器 show 时展开）。
 		$html = '<span class="wk-gate" data-gate="' . $esc( $gate ) . '" data-driver="tencent"'
 			. ' data-interaction="click"'
+			. ( $submit_gate ? ' data-submit-gate="1"' : '' )
 			. ' data-mode="' . ( $is_embed ? 'embed' : 'popup' ) . '"'
 			. ' data-token-fields="' . self::TOKEN_FIELD_TICKET . ',' . self::TOKEN_FIELD_RANDSTR . '"'
 			. ' data-app-id="' . $app_id . '">'
@@ -429,6 +444,7 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 			. '<input type="hidden" name="' . self::TOKEN_FIELD_RANDSTR . '" value="">'
 			. '<span class="wk-gate-inline">'
 			. '<button type="button" class="wk-captcha-btn wk-verify-btn button" data-wk-state="unverified"'
+			. ( $submit_gate ? ' hidden' : '' )
 			. ' aria-live="polite">完成人机验证</button>'
 			. '</span>'
 			. '<noscript>需要启用 JavaScript 完成人机验证。</noscript>'
