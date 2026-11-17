@@ -1002,6 +1002,10 @@ final class Bootstrap {
 			// 【v1.5·F4-1】免验轻提示（03 §2.1 v1.5：trust_pass 分支差异化文案——让「免验发生了」
 			// 前台可感知；aria-live 随按钮播报）。
 			'wk_trust_hint' => __( '老朋友，免验放行', 'wink-gatekeeper' ),
+			// 【W2·无按钮模式】submit-gate 模块文案（0.8.4，gatekeeper.js 消费——Toast 单例播报；
+			// 无按钮语境的「重试」=再点一次提交）。
+			'submit_gate_verify' => __( '请先完成人机验证再提交', 'wink-gatekeeper' ),
+			'submit_gate_retry'  => __( '人机验证未完成，请再点一次提交重试', 'wink-gatekeeper' ),
 			// 【F3-2·0.5.4】旧「过码后切网络提示」（net_changed）退役——用户明示删除
 			// （「插在这里很丑，删掉」M4UX-MANUAL-FEEDBACK-2 §一④）；天御票据网络绑定知识
 			// 改入人工卡备注行（MANUAL-CARD-M4UX ④），不做前台提示。

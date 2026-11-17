@@ -110,4 +110,68 @@ final class AliyunFrontendJsContractTest extends TestCase {
 		self::assertIsString( $src );
 		$this->assertStringContainsString( "wp_enqueue_script( 'wink-gatekeeper-driver-aliyun' )", $src );
 	}
+
+	/* ---------- 【W2·无按钮模式】requestVerify 契约 + embed boot 分支（0.8.4） ---------- */
+
+	public function test_adapter_request_verify_contract(): void {
+		$src = self::adapter();
+		$this->assertStringContainsString(
+			'requestVerify: function',
+			$src,
+			'【W2·W-3】适配器契约单方法（调度器 submit-gate 闸级拦截 + 适配器拉起——注册表元数据分派，不认驱动 id）'
+		);
+		$this->assertStringContainsString(
+			'wkCaptchaRequestVerify',
+			$src,
+			'容器级验证入口存根（initContainer 装配时暴露——per-container 闭包，wkMsgClearTimer 同款 DOM 属性形态）'
+		);
+		$this->assertStringContainsString(
+			'throw new Error',
+			$src,
+			'容器未装配抛错（调度器 startVerification catch → 经典形态回退——降级矩阵）'
+		);
+	}
+
+	public function test_request_verify_reuses_h41_autoshow_not_a_second_instance_show(): void {
+		$src = self::adapter();
+		$this->assertSame(
+			1,
+			substr_count( $src, 'instance.show();' ),
+			'popup 一步开层复用 H4-1 唯一面（getInstance 守卫内）——requestVerify 委托 show()，不另开 instance.show 调用点'
+		);
+	}
+
+	public function test_adapter_embed_boot_renders_for_submit_gate(): void {
+		// 【W2·Q1=A 页面加载即渲染】embed+data-submit-gate 容器 boot 期即拉起（触发条常驻
+		// 表单内，token 在场=提交直通；mount.hidden=false 回归门照用）。
+		$src = self::adapter();
+		$this->assertStringContainsString( 'data-submit-gate', $src, '无按钮容器锚读取（boot 分支条件）' );
+		$this->assertStringContainsString( "&& 'embed' === mode", $src, 'boot 分支 embed 限定（popup 不 boot 预载——提交拦截时一步开层）' );
+		// 条件序：boot 分支在 initContainer 体内、requestVerify 调用锚随 embed 条件在场。
+		$init = self::functionBody( $src, 'initContainer' );
+		$this->assertStringContainsString( 'requestVerify()', $init, 'boot 期调用 requestVerify（embed+submit-gate）' );
+	}
+
+	/**
+	 * 提取具名函数体（花括号配平）——契约断言按函数作用域收窄（FrontendJsContractTest 同法）。
+	 */
+	private static function functionBody( string $src, string $name ): string {
+		$start = strpos( $src, 'function ' . $name );
+		self::assertNotFalse( $start, "函数 {$name} 必须存在" );
+		$open  = strpos( $src, '{', $start );
+		$depth = 0;
+		$len   = strlen( $src );
+		for ( $i = $open; $i < $len; $i++ ) {
+			if ( '{' === $src[ $i ] ) {
+				$depth++;
+			} elseif ( '}' === $src[ $i ] ) {
+				$depth--;
+				if ( 0 === $depth ) {
+					return substr( $src, $open, $i - $open + 1 );
+				}
+			}
+		}
+		$this->fail( "函数 {$name} 花括号不配平" );
+		return '';
+	}
 }

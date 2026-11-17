@@ -139,4 +139,79 @@ final class FrontendJsContractTest extends TestCase {
 		);
 		self::assertStringContainsString( 'wk-gate-expire', $body, 'TTL 过期回退须派发 expire 事件（既有契约不回归）' );
 	}
+
+	/* ---------- 【W2·无按钮模式】submit-gate 模块（0.8.4，§2.1 统一拦截时序①-⑦） ---------- */
+
+	/**
+	 * 三防之一（带分号调用形态+函数体收窄）：submit-gate 拦截监听=捕获阶段（先于 H5-a
+	 * 与第三方 bubble 监听——Enter 隐式提交/密码管理器 requestSubmit/点击三路径全覆盖）。
+	 */
+	public function test_submit_gate_capture_phase_listener(): void {
+		$arm = self::functionBody( self::js(), 'armSubmitGate' );
+		self::assertStringContainsString( "addEventListener( 'submit'", $arm, 'submit-gate 拦截监听在场' );
+		self::assertStringContainsString( ', true );', $arm, '捕获阶段注册（capture=true）' );
+	}
+
+	/**
+	 * 三防之二（函数体收窄）：续提机制 = requestSubmit + form 级一次性 bypass 标志
+	 * （拦截链①防递归门），老环境 fallback form.submit()（丢监听链的如实降级）。
+	 */
+	public function test_submit_gate_resubmit_uses_request_submit_with_bypass(): void {
+		$body = self::functionBody( self::js(), 'resubmitForm' );
+		self::assertStringContainsString( 'data-wk-resubmit', $body, '一次性 bypass 标志（程序化续提放行——防递归）' );
+		self::assertStringContainsString( 'requestSubmit', $body, 'requestSubmit 续提（submit 事件重入、监听链完整——AJAX 评论主题兼容）' );
+		self::assertStringContainsString( 'form.submit()', $body, '老环境 fallback（无 requestSubmit——如实降级）' );
+	}
+
+	/**
+	 * 三防之三（条件-锚位序）：拦截链首段次序语义不变（R5 分层重排）——
+	 * G1 原生校验 → 预检门 → 人机验证。
+	 */
+	public function test_submit_gate_guard_order_g1_precheck_verify(): void {
+		$arm    = self::functionBody( self::js(), 'armSubmitGate' );
+		$g1     = strpos( $arm, 'nativeValidityGuard( form )' );
+		$pre    = strpos( $arm, 'runPrecheck(' );
+		$verify = strpos( $arm, 'startVerification(' );
+		self::assertGreaterThan( 0, $g1, 'G1 原生校验在拦截链首段' );
+		self::assertGreaterThan( $g1, $pre, '次序：G1 → 预检门（原生管完整性、四闸管内容）' );
+		self::assertGreaterThan( $pre, $verify, '次序：预检门 → 人机验证（captcha_needed 续接 requestVerify）' );
+	}
+
+	/**
+	 * R4：gating 期抑制 H5-a「正在接收检查」Toast（语义错位）——H5-a 监听内首行标志检查，
+	 * 条件锚先于 Toast 调用锚（bootContainer 函数体内锚位序）。
+	 */
+	public function test_submit_gate_gating_suppresses_h5a_toast(): void {
+		$js    = self::js();
+		$boot  = self::functionBody( $js, 'bootContainer' );
+		$flag  = strpos( $boot, 'data-wk-gating' );
+		$toast = strpos( $boot, 'showToast(' );
+		self::assertGreaterThan( 0, $flag, 'H5-a 监听内 gating 抑制分支在场' );
+		self::assertLessThan( $toast, $flag, '抑制分支先于 Toast 调用（条件-锚位序）' );
+		self::assertStringContainsString( 'data-wk-gating', self::functionBody( $js, 'startVerification' ), 'gating 标志由拦截链设置（⑤ 人机验证期）' );
+	}
+
+	/**
+	 * R10：状态外显=Toast 单例（按钮 hidden 后的主播报面）+ 契约缺失/抛错回退经典形态
+	 * （降级矩阵：适配器故障=无拦截+服务端兜底）。requestVerify 消费走注册表元数据
+	 * （driver-agnostic 不回归——test_gatekeeper_dispatcher_stays_driver_id_agnostic 照钉）。
+	 */
+	public function test_submit_gate_toast_surface_and_classic_fallback(): void {
+		$body = self::functionBody( self::js(), 'startVerification' );
+		self::assertStringContainsString( 'requestVerify', $body, '适配器契约消费（byId 注册表查找——不认驱动 id）' );
+		self::assertStringContainsString( 'showToast', $body, 'Toast 状态播报（引导文案——验证期反馈主通道）' );
+		self::assertStringContainsString( 'restoreClassicButton', $body, '契约缺失/抛错回退经典形态（按钮 hidden 还原）' );
+	}
+
+	/**
+	 * R3：armContainer 按 data-submit-gate 分流——无按钮分支 C1 禁用四件停用（refreshLocks/
+	 * guardEnterKey 跳过）；markToken 对无按钮容器跳过 refreshLocks（票据过期回退不得禁用
+	 * 提交控件——恒可点是本模式存在前提）。
+	 */
+	public function test_arm_container_and_mark_token_branch_by_submit_gate(): void {
+		$js = self::js();
+		self::assertStringContainsString( 'isSubmitGate( container )', self::functionBody( $js, 'armContainer' ), 'armContainer 分流（无按钮分支装配 submit-gate）' );
+		self::assertStringContainsString( 'armSubmitGate( container, form )', self::functionBody( $js, 'armContainer' ), '无按钮分支装配 submit-gate 模块' );
+		self::assertStringContainsString( 'isSubmitGate( container )', self::functionBody( $js, 'markToken' ), 'markToken 无按钮容器跳过 refreshLocks（禁用四件停用——R3）' );
+	}
 }

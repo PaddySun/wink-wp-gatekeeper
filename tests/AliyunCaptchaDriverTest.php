@@ -47,7 +47,9 @@ final class AliyunCaptchaDriverTest extends TestCase {
 	private static function driver( ?array $aliyun = null, ?RemoteClient $client = null ): AliyunCaptchaDriver {
 		$aliyun   = $aliyun ?? array( 'access_key_id' => 'LTAIkeksi', 'access_key_secret' => 'sekreto', 'scene_id' => 'scene-9', 'prefix' => 'wkpre', 'mode' => 'embed' );
 		$settings = array(
-			'captcha' => array( 'aliyun' => $aliyun ),
+			// 【W2·无按钮模式】captcha.submit_flow 显式 on_submit（0.8.4 出厂默认——render
+			// 断言按形态条件化翻转：本文件 render 用例断言默认新形态 hidden+data-submit-gate）。
+			'captcha' => array( 'aliyun' => $aliyun, 'submit_flow' => 'on_submit' ),
 			'copy'    => array( 'messages' => array( 'captcha_missing' => '还差一个眨眼——完成上方的验证再点提交。', 'captcha_failed' => '人机验证没有通过。' ) ),
 			'brand'   => array( 'contact_email' => 'admin@example.com' ),
 		);
@@ -329,6 +331,10 @@ final class AliyunCaptchaDriverTest extends TestCase {
 		$this->assertStringContainsString( 'class="wk-gate-embed"', $html );
 		$this->assertStringContainsString( 'id="wk-captcha-element-comment"', $html );
 		$this->assertStringContainsString( 'wk-captcha-btn', $html );
+		// 【W2·无按钮模式·R9 条件化翻转】默认形态 on_submit：容器 data-submit-gate 装配锚
+		// + 按钮 hidden 属性（SDK button 参数仍绑真实元素——静态推断 Q3）。
+		$this->assertStringContainsString( 'data-submit-gate="1"', $html, 'submit-gate 拦截链装配锚（on_submit 默认形态）' );
+		$this->assertMatchesRegularExpression( '/wk-captcha-btn[^>]*hidden/', $html, '三态按钮带 hidden（无按钮模式）' );
 	}
 
 	public function test_render_popup_mode_has_no_mount(): void {
@@ -337,6 +343,25 @@ final class AliyunCaptchaDriverTest extends TestCase {
 		$this->assertStringContainsString( 'data-mode="popup"', $html );
 		$this->assertStringNotContainsString( 'wk-gate-embed', $html );
 		$this->assertStringNotContainsString( 'wk-captcha-element', $html );
+		// 【W2·R9 条件化翻转】popup+on_submit：hidden 按钮与 submit-gate 锚照常在场。
+		$this->assertStringContainsString( 'data-submit-gate="1"', $html );
+		$this->assertMatchesRegularExpression( '/wk-captcha-btn[^>]*hidden/', $html );
+	}
+
+	/** 【W2·R9】经典形态（button）：hidden/data-submit-gate 双锚零出现（经典回归面）。 */
+	public function test_render_button_flow_keeps_classic_shape(): void {
+		$settings = array(
+			'captcha' => array(
+				'aliyun'      => array( 'access_key_id' => 'a', 'access_key_secret' => 's', 'scene_id' => 'x', 'prefix' => 'p', 'mode' => 'embed' ),
+				'submit_flow' => 'button',
+			),
+			'copy'    => array( 'messages' => array() ),
+			'brand'   => array( 'contact_email' => '' ),
+		);
+		$driver = new AliyunCaptchaDriver( $settings, self::client_returning( array( 'response' => array( 'code' => 500 ), 'body' => '' ) ) );
+		$html   = $driver->render( array( 'gate' => 'comment', 'stub' => 'S' ) );
+		$this->assertStringNotContainsString( 'data-submit-gate', $html, '经典形态零 submit-gate 锚' );
+		$this->assertDoesNotMatchRegularExpression( '/wk-captcha-btn[^>]*hidden/', $html, '经典形态按钮不带 hidden' );
 	}
 
 	public function test_render_never_leaks_secrets(): void {

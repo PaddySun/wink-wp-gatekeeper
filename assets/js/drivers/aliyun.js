@@ -197,6 +197,12 @@
 			expired:    [ 'unverified', 'expired', '验证已过期，请重新验证' ]
 		};
 
+		/* 【W2·⑦失败面播报】失败态键集——派发 wk-gate-verify-failed 供调度器 submit-gate
+		 * Toast 播报（无按钮模式下按钮 hidden，按钮态文案不可见）；经典形态无监听=零影响。 */
+		var FAILED_STATES = {
+			retry: 1, mismatch: 1, loadFail: 1, loadTimeout: 1, configError: 1, error: 1
+		};
+
 		function setState( key ) {
 			var spec = STATE_TEXT[ key ] || STATE_TEXT.unverified;
 			if ( button ) {
@@ -204,6 +210,11 @@
 				button.disabled = 'verified' === key; // verified 态禁用；其余态可点/可重试。
 				button.setAttribute( 'aria-disabled', 'verified' === key ? 'true' : 'false' );
 				button.textContent = text( spec[ 1 ], spec[ 2 ] );
+			}
+			if ( FAILED_STATES[ key ] ) {
+				// 【W2⑦】失败面统一播报事件（文案由调度器 submit-gate 给无按钮语境口径——
+				// 「重试」=再点一次提交，适配器不自行措辞）。
+				container.dispatchEvent( new CustomEvent( 'wk-gate-verify-failed', { bubbles: true } ) );
 			}
 		}
 
@@ -315,6 +326,9 @@
 						// reason=userDismiss|verifyComplete——用户主动关层且未过码回未验证态。
 						if ( 'userDismiss' === reason && ! done ) {
 							setState( 'unverified' );
+							/* 【W2⑦】关层未过码=失败面（访客主动放弃）——submit-gate Toast 引导
+							 * 重试（经典形态无监听=零影响）。 */
+							container.dispatchEvent( new CustomEvent( 'wk-gate-verify-failed', { bubbles: true } ) );
 						}
 					}
 				} );
@@ -356,12 +370,32 @@
 			);
 		}
 
+		/* 【W2·requestVerify 契约（W-3）】无按钮模式验证拉起单入口：popup=show() 复用
+		 * （H4-1 一步开层机制；SDK 加载/防重入/configError 守卫全在 show() 内）；embed=
+		 * Q1 方案 A 页面加载即渲染（boot 期已 initCaptcha，触发条常驻表单内），此处补
+		 * 挂载点滚动引导 + show()（boot 加载中/已完成时防重入静默返回）。 */
+		function requestVerify() {
+			if ( 'embed' === mode && mount && mount.scrollIntoView ) {
+				try { mount.scrollIntoView( { block: 'nearest', behavior: 'smooth' } ); } catch ( err ) {}
+			}
+			show();
+		}
+		container.wkCaptchaRequestVerify = requestVerify;
+
 		setState( 'unverified' );
 
 		if ( button ) {
 			button.addEventListener( 'click', function () {
 				show();
 			} );
+		}
+
+		/* 【W2·Q1=方案 A】无按钮模式 embed：页面加载即渲染——boot 期即拉 SDK+initCaptcha
+		 * （mount.hidden=false 照常——触发条常驻表单内，访客可先滑后提：token 在场=提交
+		 * 直通②，未过码提交由 submit-gate 拦截引导⑤）。popup 不 boot 预载——提交拦截时
+		 * requestVerify(=show()) 一步开层（H4-1 复用）。 */
+		if ( container.getAttribute( 'data-submit-gate' ) === '1' && 'embed' === mode ) {
+			requestVerify();
 		}
 
 		// 页面卸载清计时器（防计时器悬挂跨页）。
@@ -373,7 +407,17 @@
 	registry.aliyun = {
 		interaction: 'click',
 		tokenFields: [ 'wk_captcha_verify_param' ],
-		init: initContainer
+		init: initContainer,
+		/* 【W2·无按钮模式契约（W-3）】requestVerify(container)：验证拉起单方法——调度器
+		 * submit-gate 拦截后调用（闸级拦截/编排全在调度器，适配器只负责拉起）。
+		 * 容器未装配（init 未跑/抛错）→ 抛错交由调度器 startVerification 降级回经典形态。 */
+		requestVerify: function ( target ) {
+			var verify = target && target.wkCaptchaRequestVerify;
+			if ( typeof verify !== 'function' ) {
+				throw new Error( 'wk-gate: driver adapter not armed on this container' );
+			}
+			verify();
+		}
 	};
 	window.dispatchEvent( new Event( 'wk-gate-driver-registered' ) );
 } )();

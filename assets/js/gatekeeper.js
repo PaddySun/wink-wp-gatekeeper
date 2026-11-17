@@ -126,15 +126,26 @@
 		// init 成功才武装（=禁用提交）；失败路径从不调用本函数——按钮天然可点（无 JS 等价）。
 		var form = ownedForm( container );
 		if ( ! form ) {
+			// 【W2·无按钮模式降级】无 form 容器（怪主题）：submit 拦截链无法装配——移除
+			// 按钮 hidden 回退经典形态（运行时降级不冻结；降级矩阵末行，R6）。
+			if ( isSubmitGate( container ) ) {
+				restoreClassicButton( container );
+			}
 			return;
 		}
 		container.setAttribute( 'data-wk-armed', '1' );
 		container.removeAttribute( 'data-wk-token' );
-		guardEnterKey( form );
 		armPrecheckGate( container, form );
+		if ( isSubmitGate( container ) ) {
+			// 【W2·R3】无按钮分支：提交按钮恒可点是本模式存在前提——guardEnterKey/
+			// refreshLocks（含 wrapForCapture/flashHint 禁用四件）整体停用（代码保留服务
+			// 经典形态）；防护语义由 submit 拦截链承载（未过码提交根本发不出）。
+			armSubmitGate( container, form );
+			return;
+		}
+		guardEnterKey( form );
 		refreshLocks( form );
 	}
-
 	/* ---------- 【v1.4·R2】预检门（03 §2.1 信用免验预检门；适配器零改动契约） ----------
 	 *
 	 * 容器 data-wk-trust="1" 且 window.wkGatePrecheck 在场时启用（缺失/功能关=零行为变化）。
@@ -406,6 +417,12 @@
 			clearNativeGateHint( form );
 			hideMsgBar( container );
 			setGateButton( container, 'unverified', l10n( 'idle', '完成人机验证' ) );
+			if ( isSubmitGate( container ) ) {
+				// 【W2·R5】无按钮模式：预检放行 = 续接人机验证（无按钮可点——requestVerify
+				// 契约承接；gating 标志已在拦截链④置位）。
+				startVerification( container, form );
+				return;
+			}
 			form.setAttribute( 'data-wk-precheck-bypass', '1' );
 			try { button.click(); } catch ( err ) {}
 		}
@@ -429,6 +446,7 @@
 			}
 			if ( data && 'four_gate_fail' === data.result ) {
 				finish();
+				form.removeAttribute( 'data-wk-gating' ); // 【W2】gating 期结束（拦截止于本次提交——访客改稿后重新提交）。
 				setGateButton( container, 'unverified', l10n( 'idle', '完成人机验证' ) );
 				if ( data.rule && LOCAL_CONTENT_RULES[ data.rule ] ) {
 					// 【G2】本地内容四闸失败 → 评论框原生气泡弹后台自定义文案（动态不写死，
@@ -486,6 +504,10 @@
 		} else {
 			container.removeAttribute( 'data-wk-token' );
 		}
+		if ( form && isSubmitGate( container ) ) {
+			return; // 【W2·R3】无按钮容器：提交控件恒可点——refreshLocks（禁用/解锁）不适用
+			// （票据过期回退不得禁用提交；防护语义由 submit 拦截链承载）。
+		}
 		if ( form ) {
 			refreshLocks( form );
 		}
@@ -541,7 +563,10 @@
 
 		if ( adapter.interaction !== interaction ) {
 			// 元数据不匹配（渲染层与适配器声明漂移）：拒绝分派，提示刷新。
-		 setStatus( container, window.wkGateL10n && window.wkGateL10n.mismatch ? window.wkGateL10n.mismatch : '验证组件加载异常，请刷新页面重试。' );
+			if ( isSubmitGate( container ) ) {
+				restoreClassicButton( container ); // 【W2】hidden 按钮还原——错误文案可见可点。
+			}
+			setStatus( container, window.wkGateL10n && window.wkGateL10n.mismatch ? window.wkGateL10n.mismatch : '验证组件加载异常，请刷新页面重试。' );
 			return;
 		}
 
@@ -566,6 +591,11 @@
 		if ( submitForm && submitForm.getAttribute( 'data-wk-submitting' ) !== '1' ) {
 			submitForm.setAttribute( 'data-wk-submitting', '1' );
 			submitForm.addEventListener( 'submit', function () {
+				if ( submitForm.getAttribute( 'data-wk-gating' ) === '1' ) {
+					return; // 【W2·R4】gating 期抑制：人机验证等待期 ≠「接收检查」——验证期
+					// 反馈由 submit-gate 引导 Toast 承载（语义错位）；续提时标志已清（真实
+					// 提交在途，本监听正常触发——真实提交语义不变）。
+				}
 				showToast( window.wkGateL10n && window.wkGateL10n.checking_submit
 					? window.wkGateL10n.checking_submit
 					: '您的评论正在接收检查，请稍候……' );
@@ -584,10 +614,153 @@
 			container.removeAttribute( 'data-wk-armed' );
 			var form = ownedForm( container );
 			if ( form ) {
-				refreshLocks( form );
+				if ( isSubmitGate( container ) ) {
+					// 【W2】无按钮容器 init 抛错：Toast 播报 + 回退经典形态（降级矩阵——
+					// 适配器故障=无拦截+服务端兜底；错误文案随 hidden 还原可见可点）。
+					showToast( ( window.wkGateL10n && window.wkGateL10n.error ) || '验证组件初始化失败，请刷新页面重试。' );
+					restoreClassicButton( container );
+				} else {
+					refreshLocks( form );
+				}
 			}
 		}
 	}
+
+
+	/* ---------- 【W2·无按钮模式】submit-gate 模块（0.8.4；容器 data-submit-gate="1"） ----------
+	 *
+	 * 访客直接点原生提交按钮（评论「发表评论」/登录「登录」）即触发人机验证，过码后自动
+	 * 放行提交（§2.1 统一拦截时序①-⑦）。适配器契约新增 requestVerify(container) 单方法
+	 * （W-3：拦截/G1 分层/预检编排/续提防递归全是闸级能力——调度器仍不认驱动 id），交互
+	 * 声明与容器 data-interaction 均不动（'click' 照旧，分派契约零翻转）。
+	 *
+	 * 拦截链次序（R5 分层语义不变，触发面从验证按钮 click 平移到 submit）：
+	 *   ① 续提防递归门（data-wk-resubmit 一次性标志 → 放行本次程序化续提）；
+	 *   ② token 在场直通（embed 页面加载即渲染的常规路径；H5-a Toast 自然触发）；
+	 *   ③ G1 原生校验（nativeValidityGuard——原生管完整性 → 四闸管内容 → 人机验证）；
+	 *   ④ 预检门（trust 开且配置在场：trust_pass=写凭证+wk-gate-token 续提 / four_gate_fail=
+	 *      G2 气泡 / captcha_needed=releaseToAdapter 无按钮分支续接 startVerification）；
+	 *   ⑤ 人机验证（preventDefault 截住本次提交 → adapter.requestVerify(container)）；
+	 *   ⑥ token 到域且 gating 期未决 → requestSubmit 续提（监听链完整——AJAX 评论主题兼容）；
+	 *   ⑦ 失败面（适配器 wk-gate-verify-failed 事件）→ Toast 播报 + 保持拦截（再点提交重试）。
+	 *
+	 * 降级矩阵：无 JS/拦截器未装配=原生提交直发（服务端 captcha_missing 兜底，与经典形态
+	 * 等价）；适配器契约缺失/抛错=回退经典形态（按钮 hidden 还原）；无 form 容器=装配期
+	 * 即回退（armContainer）。gating 期 H5-a 抑制（R4）——验证期等待反馈由引导 Toast 承载。 */
+
+	function isSubmitGate( container ) {
+		return container.getAttribute( 'data-submit-gate' ) === '1';
+	}
+
+	/** 经典形态回退（R6/降级矩阵）：submit-gate 锚摘除 + 按钮 hidden 还原——验证按钮恢复
+	 * 可见可点（适配器经典 click 绑定仍在），提交直发由服务端 captcha_missing 兜底。 */
+	function restoreClassicButton( container ) {
+		container.removeAttribute( 'data-submit-gate' );
+		var button = gateButton( container );
+		if ( button ) {
+			button.hidden = false;
+		}
+	}
+
+	function submitGateContainers( form ) {
+		return Array.prototype.slice.call( form.querySelectorAll( '.wk-gate[data-submit-gate="1"][data-wk-armed="1"]' ) );
+	}
+
+	/** 续提（R2）：置一次性 bypass 标志（拦截链①放行——防递归）→ requestSubmit（submit
+	 * 事件重入，监听链完整——H5-a Toast 与第三方/AJAX 主题监听不丢）；无 requestSubmit
+	 * 老环境回退 form.submit()（丢监听链的如实降级——2021+ 浏览器全覆盖 WP 受众）。 */
+	function resubmitForm( form ) {
+		form.setAttribute( 'data-wk-resubmit', '1' );
+		if ( typeof form.requestSubmit === 'function' ) {
+			form.requestSubmit();
+		} else {
+			form.submit();
+		}
+	}
+
+	/** ⑤ 人机验证启动：gating 标志（R4——抑制 H5-a 误报）+ 适配器 requestVerify 契约。
+	 * 契约缺失/抛错 → 经典形态回退（降级矩阵：适配器故障=无拦截+服务端兜底）。 */
+	function startVerification( container, form ) {
+		form.setAttribute( 'data-wk-gating', '1' );
+		var adapter = byId( String( container.getAttribute( 'data-driver' ) || '' ) );
+		if ( adapter && typeof adapter.requestVerify === 'function' ) {
+			try {
+				adapter.requestVerify( container );
+				showToast( l10n( 'submit_gate_verify', '请先完成人机验证再提交' ) );
+				return;
+			} catch ( err ) {} // 契约抛错 → 经典回退。
+		}
+		restoreClassicButton( container );
+		form.removeAttribute( 'data-wk-gating' );
+	}
+
+	function armSubmitGate( container, form ) {
+		// ⑥ token 到域续提（每容器各挂）：gating 期未决 → 自动 requestSubmit——trust_pass
+		// 与过码两路径统一由 wk-gate-token 收口（onTrustPass 派发同一事件）。
+		container.addEventListener( 'wk-gate-token', function () {
+			if ( form.getAttribute( 'data-wk-gating' ) !== '1' ) {
+				return;
+			}
+			form.removeAttribute( 'data-wk-gating' );
+			resubmitForm( form );
+		} );
+
+		// ⑦ 失败面播报：适配器失败态（loadFail/onError/关层未过码）派发 wk-gate-verify-failed
+		// → Toast（R10：按钮 hidden 后的外显主通道；访客可再点提交重试——保持拦截）。
+		container.addEventListener( 'wk-gate-verify-failed', function () {
+			showToast( l10n( 'submit_gate_retry', '人机验证未完成，请再点一次提交重试' ) );
+		} );
+
+		if ( form.dataset.wkSubmitGateBound === '1' ) {
+			return; // form 级拦截链一次绑定（多容器防御：容器集合按实时属性判定）。
+		}
+		form.dataset.wkSubmitGateBound = '1';
+
+		// 捕获阶段 submit 拦截（capture=true——先于 H5-a/第三方 bubble 监听；Enter 隐式提交/
+		// 密码管理器 requestSubmit/用户点击三路径全部产生 submit 事件，天然全覆盖）。
+		form.addEventListener( 'submit', function ( event ) {
+			// ① 续提防递归门：程序化续提（resubmitForm 引发的 submit）直接放行。
+			if ( form.getAttribute( 'data-wk-resubmit' ) === '1' ) {
+				form.removeAttribute( 'data-wk-resubmit' );
+				return;
+			}
+			// ② token 在场直通（embed 页面加载即渲染的常规路径——多数提交零拦截零续提；
+			// 全部已武装 submit-gate 容器齐票才放行，refreshLocks 多容器语义同源）。
+			var gates = submitGateContainers( form );
+			var pending = [];
+			var i;
+			for ( i = 0; i < gates.length; i++ ) {
+				if ( gates[ i ].getAttribute( 'data-wk-token' ) !== '1' ) {
+					pending.push( gates[ i ] );
+				}
+			}
+			if ( pending.length === 0 ) {
+				return;
+			}
+			// ③ G1 原生校验（R5 次序不变：原生管完整性 → 四闸管内容 → 人机验证）——
+			// 有未填必填字段：浏览器已弹原生提示框，验证码层不拉起。
+			if ( ! nativeValidityGuard( form ) ) {
+				event.preventDefault();
+				return;
+			}
+			// 截住本次提交（⑤），编排预检/人机验证。
+			event.preventDefault();
+			var container = pending[ 0 ];
+			if ( container.getAttribute( 'data-wk-checking' ) === '1' ) {
+				return; // 预检在途：可等待不可再触发（提交扣住——预检收敛后统一续接/续提）。
+			}
+			if ( container.getAttribute( 'data-wk-trust' ) === '1' && precheckConfig() ) {
+				// ④ 预检门（trust 开且配置在场）：三分支由 runPrecheck 收口——trust_pass=写
+				// 凭证+wk-gate-token 续提；four_gate_fail=G2 气泡/错误条；captcha_needed=
+				// releaseToAdapter 无按钮分支续接 startVerification。
+				form.setAttribute( 'data-wk-gating', '1' );
+				runPrecheck( container, form, gateButton( container ) );
+				return;
+			}
+			startVerification( container, form );
+		}, true );
+	}
+
 
 	/**
 	 * 状态输出（M2-FIX2 v1.4 适配）：三态单按钮形态下文案落在验证按钮上；

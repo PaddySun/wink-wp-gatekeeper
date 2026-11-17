@@ -189,6 +189,13 @@
 			expired:    [ 'unverified', 'expired', '验证已过期，请重新验证' ]
 		};
 
+		/* 【W2·⑦失败面播报】失败态键集——派发 wk-gate-verify-failed 供调度器 submit-gate
+		 * Toast 播报（含 showTimeout：boot 预热不 launch、拉起只在提交拦截时，看门狗只护
+		 * 真实拉起期）；经典形态无监听=零影响。 */
+		var FAILED_STATES = {
+			retry: 1, mismatch: 1, loadFail: 1, loadTimeout: 1, showTimeout: 1, configError: 1, error: 1
+		};
+
 		function setState( key ) {
 			var spec = STATE_TEXT[ key ] || STATE_TEXT.unverified;
 			if ( button ) {
@@ -196,6 +203,12 @@
 				button.disabled = 'verified' === key; // verified 态禁用（用户反馈②）；其余态可点/可重试。
 				button.setAttribute( 'aria-disabled', 'verified' === key ? 'true' : 'false' );
 				button.textContent = text( spec[ 1 ], spec[ 2 ] );
+			}
+			/* 【W2·⑦失败面播报】失败态派发统一事件——调度器 submit-gate 监听 Toast（无按钮
+			 * 模式下按钮 hidden，按钮态文案不可见）；经典形态无监听=零影响。文案由调度器
+			 * 给无按钮语境口径（「重试」=再点一次提交），适配器不自行措辞。 */
+			if ( FAILED_STATES[ key ] ) {
+				container.dispatchEvent( new CustomEvent( 'wk-gate-verify-failed', { bubbles: true } ) );
 			}
 		}
 
@@ -334,12 +347,28 @@
 			);
 		}
 
+		/* 【W2·requestVerify 契约（W-3，Q6 腾讯同批）】无按钮模式验证拉起单入口：embed=
+		 * launch()（挂载点展开+嵌入式面板渲染+scrollIntoView 就近可见——既有路径原样）；
+		 * popup=launch() 弹层形态。防重入/配置守卫/加载链全在 show() 内。 */
+		container.wkCaptchaRequestVerify = function () {
+			show();
+		};
+
 		setState( 'unverified' );
 
 		if ( button ) {
 			button.addEventListener( 'click', function () {
 				show();
 			} );
+		}
+
+		/* 【W2·Q1=A 的天御同款（Q6 腾讯同批）】无按钮模式 embed：boot 期仅预热 SDK
+		 * （ensureSdk——脚本就绪后首次 requestVerify/launch 面板即时呈现）。**不 boot
+		 * launch**：嵌入式挑战面板 20s show 看门狗会把访客阅读页面期间未作答的面板销毁回
+		 * 可重试态（M2-FIX2 show 超时出口语义）——拉起留到提交拦截时（预热后零加载延迟，
+		 * 交互等价「页面即渲染」）。popup 不预热。 */
+		if ( container.getAttribute( 'data-submit-gate' ) === '1' && 'embed' === mode ) {
+			ensureSdk( function () {}, function () {} );
 		}
 
 		// 页面卸载清计时器（防计时器悬挂跨页）。
@@ -351,7 +380,17 @@
 	registry.tencent = {
 		interaction: 'click',
 		tokenFields: [ 'wk_captcha_ticket', 'wk_captcha_randstr' ],
-		init: initContainer
+		init: initContainer,
+		/* 【W2·无按钮模式契约（W-3，Q6 腾讯同批）】requestVerify(container)：验证拉起单
+		 * 方法——调度器 submit-gate 拦截后调用。容器未装配（init 未跑/抛错）→ 抛错交由
+		 * 调度器 startVerification 降级回经典形态。 */
+		requestVerify: function ( target ) {
+			var verify = target && target.wkCaptchaRequestVerify;
+			if ( typeof verify !== 'function' ) {
+				throw new Error( 'wk-gate: driver adapter not armed on this container' );
+			}
+			verify();
+		}
 	};
 	window.dispatchEvent( new Event( 'wk-gate-driver-registered' ) );
 } )();

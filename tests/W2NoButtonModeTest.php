@@ -235,4 +235,35 @@ final class W2NoButtonModeTest extends TestCase {
 			'display:none 必做——.wk-captcha-btn 的 display:inline-block 会压过 hidden 属性（mount.hidden 课程同族坑）'
 		);
 	}
+
+	/* ---------- 批 W2-2：submit-gate JS 契约（Q6 两适配器 + 调度器 l10n） ---------- */
+
+	public function test_tencent_adapter_request_verify_contract(): void {
+		$src = self::source( 'assets/js/drivers/tencent.js' );
+		$this->assertStringContainsString( 'requestVerify: function', $src, '【Q6 腾讯同批】天御契约单方法（弹层 API 对标 instance.show() 形态）' );
+		$this->assertStringContainsString( 'wkCaptchaRequestVerify', $src, '容器级验证入口存根（initContainer 装配时暴露）' );
+	}
+
+	public function test_tencent_adapter_embed_boot_renders_for_submit_gate(): void {
+		$src = self::source( 'assets/js/drivers/tencent.js' );
+		$this->assertStringContainsString( 'data-submit-gate', $src, '无按钮容器锚读取（Q1=A boot 分支条件）' );
+		$this->assertStringContainsString( "&& 'embed' === mode", $src, 'boot 分支 embed 限定（popup 提交拦截时拉起）' );
+	}
+
+	public function test_adapters_broadcast_verify_failed_for_toast(): void {
+		// ⑦ 失败面播报：适配器失败态（loadFail/onError/关层未过码等）派发统一事件——
+		// 调度器 submit-gate 监听并 Toast（R10：按钮 hidden 后的外显主通道）。
+		foreach ( array( 'assets/js/drivers/aliyun.js', 'assets/js/drivers/tencent.js' ) as $rel ) {
+			$src = self::source( $rel );
+			$this->assertStringContainsString( 'wk-gate-verify-failed', $src, "{$rel} 失败面播报事件在场" );
+		}
+	}
+
+	public function test_bootstrap_l10n_submit_gate_keys(): void {
+		$src = self::source( 'includes/Bootstrap.php' );
+		$this->assertStringContainsString( "'submit_gate_verify'", $src, 'wkGateL10n 新键：拦截引导文案键' );
+		$this->assertStringContainsString( '请先完成人机验证再提交', $src, '拦截引导文案（⑤ Toast）' );
+		$this->assertStringContainsString( "'submit_gate_retry'", $src, 'wkGateL10n 新键：失败重试文案键' );
+		$this->assertStringContainsString( '人机验证未完成，请再点一次提交重试', $src, '失败重试文案（⑦ Toast——无按钮语境的「重试」=再点一次提交）' );
+	}
 }
