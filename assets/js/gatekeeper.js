@@ -539,6 +539,23 @@
 			markToken( container, false );
 		} );
 
+		/* 【M6·批H5·H5-a】真实提交等待期提示：表单原生 POST 发生（验证已过/预检放行）
+		 * 即为同步闸判定等待期（访客视角"转圈"）——内联提示条告知检查进行中+提交控件
+		 * 禁用防重复提交。form 级标志防双容器重复执行；服务端完成即自然跳转（结果页/
+		 * 拦截页），无需清除逻辑；无 JS/无验证码容器面不提示（渐进增强哲学）。 */
+		var submitForm = container.closest ? ( container.closest( 'form' ) || null ) : null;
+		if ( submitForm && submitForm.getAttribute( 'data-wk-submitting' ) !== '1' ) {
+			submitForm.setAttribute( 'data-wk-submitting', '1' );
+			submitForm.addEventListener( 'submit', function () {
+				showMsgBar( container, window.wkGateL10n && window.wkGateL10n.checking_submit
+					? window.wkGateL10n.checking_submit
+					: '您的评论正在接收检查，请稍候……' );
+				submitControls( submitForm ).forEach( function ( control ) {
+					control.disabled = true; // 防重复提交（本次提交已在途，禁用无碍）。
+				} );
+			}, false );
+		}
+
 		try {
 			adapter.init( container );
 			armContainer( container ); // init 成功 → 未验证禁用提交（渐进增强）。

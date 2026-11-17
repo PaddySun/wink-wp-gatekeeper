@@ -600,3 +600,22 @@
 	margin: 0;
 	color: #b32d2e;
 }
+
+/* 【M6·批H5·H5-b】保存按钮悬浮右下角：免滚到底部即可保存（纯 CSS 零行为变化）。
+ * 锚收窄 .wk-form > p.submit（不误伤 WP 他处 .submit）；阴影提示可点；表单底部
+ * padding 补偿防悬浮层遮挡末行控件。 */
+.wk-form > p.submit {
+	position: fixed;
+	right: 32px;
+	bottom: 32px;
+	z-index: 9990;
+	margin: 0;
+	padding: 8px 16px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+.wk-form {
+	padding-bottom: 96px; /* 悬浮层高度补偿（按钮+边距）——末行不被遮挡。 */
+}

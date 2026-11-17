@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.8.1
+Stable tag: 0.8.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,10 @@ Wink 门口保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.8.2 =
+
+M6·批H5 收尾小批两件（2026-11-18）。① **前台评论提交等待提示**：访客点击发表评论后（人机验证已通过），页面在评论框下方立即显示「您的评论正在接收检查，请稍候……」，同时提交按钮暂时禁用防重复点击——替代此前"浏览器转圈无反馈"的等待体验；检查完成后自动跳转结果页。② **后台保存按钮悬浮**：设置页「保存设置」按钮改为悬浮在页面右下角，任意 Tab 位置随手可存，不必滚动到底部。测试 2110→2112 / 断言 12817→12826 全绿（M6H5PolishTest 新 2 例）。
 
 = 0.8.1 =
 

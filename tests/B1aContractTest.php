@@ -64,9 +64,9 @@ final class B1aContractTest extends TestCase {
 		$entry = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.1$/m', $entry, '插件头 Version 须为 0.8.1' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.1' )", $entry, '版本常量须为 0.8.1' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.1$/m', $readme, 'readme Stable tag 须为 0.8.1' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.2$/m', $entry, '插件头 Version 须为 0.8.2' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.2' )", $entry, '版本常量须为 0.8.2' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.8.2$/m', $readme, 'readme Stable tag 须为 0.8.2' );
 		$this->assertStringContainsString( '819 tests / 3657 assertions', $readme, 'Changelog 须含测试数（R1 G7 纪律）' );
 		$this->assertStringContainsString( 'F4-1', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-3', $readme, 'Changelog 须含设计锚点' );
