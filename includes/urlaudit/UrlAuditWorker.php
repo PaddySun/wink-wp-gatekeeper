@@ -1423,6 +1423,29 @@ final class UrlAuditWorker {
 	}
 
 	/**
+	 * 【M6·批E·E-4】独立凭据探测分流判定（纯函数，单测面）：url_audit provider custom
+	 * 的 base_url host 精确比对 api.deepseek.com（或空/无 host 回落官方）→ true=维持
+	 * DeepSeek /user/balance 余额探测（信息量优先）；其他 host → false=切 openai_custom
+	 * /models 探活（泛端点无标准余额 API）。分流点收敛一处（AJAX 边界消费——
+	 * ajax_test_credentials_url_audit；判定引擎/fetcher 派生零改动）。
+	 *
+	 * host 精确比对（strtolower 归一）：api.deepseek.com.evil.example.com 前缀伪装不认；
+	 * 无 host 形态（裸词/相对路径）fail-safe 回落 true=分流前既有行为面。
+	 *
+	 * @param string $base_url 独立凭据接入地址（表单覆盖+存量回落后）。
+	 * @return bool true=DeepSeek 官方域（余额探测）/ false=泛端点（模型列表探活）。
+	 */
+	public static function provider_probe_is_deepseek( string $base_url ): bool {
+		$host = '';
+		if ( '' !== trim( $base_url ) ) {
+			$parsed = parse_url( trim( $base_url ) );
+			$host   = is_array( $parsed ) && isset( $parsed['host'] ) && is_string( $parsed['host'] )
+				? strtolower( trim( $parsed['host'] ) ) : '';
+		}
+		return '' === $host || 'api.deepseek.com' === $host;
+	}
+
+	/**
 	 * @return RemoteClient
 	 */
 	private function default_client(): RemoteClient {

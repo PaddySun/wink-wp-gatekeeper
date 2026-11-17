@@ -269,6 +269,22 @@
 		syncUpgradeRow();
 	} )();
 
+	// 【M6·批E】Tab③ openai_custom：仅 two_stage 开显示升级用模型行（wk-deepseek-two-stage
+	// 范式同款——PHP 初始态已按存量值 hidden，此处接管 checkbox change 显隐；升级模型为
+	// 手填 text，留空=不升级由服务端基类守卫短路）。
+	( function () {
+		var twoStage = document.getElementById( 'wk-openai-custom-two-stage' );
+		var upgradeRow = document.getElementById( 'wk-openai-custom-upgrade-model-row' );
+		if ( ! twoStage || ! upgradeRow ) {
+			return;
+		}
+		var syncUpgradeRow = function () {
+			upgradeRow.hidden = ! twoStage.checked;
+		};
+		twoStage.addEventListener( 'change', syncUpgradeRow );
+		syncUpgradeRow();
+	} )();
+
 	// 【M5·U4】Tab③ DeepSeek「测试凭据」（GET /models 探活三态——D5 零 token 成本）。
 	var deepseekProbeButton = document.getElementById( 'wk-deepseek-test-btn' );
 	if ( deepseekProbeButton ) {
@@ -317,6 +333,60 @@
 				}
 			} ).finally( function () {
 				deepseekProbeButton.disabled = false;
+			} );
+		} );
+	}
+
+	// 【M6·批E】Tab③ openai_custom「测试凭据」（GET /models 三态探活——泛端点无标准
+	// 余额 API，零 token 消耗；表单值覆盖=password 空串回落已存值语义；判定模型随表
+	// 提交供绿态列表校验）。
+	var openaiCustomProbeButton = document.getElementById( 'wk-openai-custom-test-btn' );
+	if ( openaiCustomProbeButton ) {
+		openaiCustomProbeButton.addEventListener( 'click', function () {
+			var result = document.getElementById( 'wk-openai-custom-test-result' );
+			openaiCustomProbeButton.disabled = true;
+			if ( result ) {
+				result.textContent = '测试中……';
+				result.className = '';
+			}
+			function ocFieldOrEmpty( id ) {
+				var el = document.getElementById( id );
+				return el ? el.value.trim() : '';
+			}
+			var body = new URLSearchParams();
+			body.append( 'action', 'wink_gatekeeper_test_credentials_openai_custom' );
+			body.append( 'nonce', openaiCustomProbeButton.getAttribute( 'data-nonce' ) || '' );
+			body.append( 'openai_custom_api_key', ocFieldOrEmpty( 'wk-field-review-cloud-openai-custom-api_key' ) );
+			body.append( 'openai_custom_base_url', ocFieldOrEmpty( 'wk-openai-custom-base-url' ) );
+			body.append( 'openai_custom_model', ocFieldOrEmpty( 'wk-openai-custom-model' ) );
+
+			window.fetch( window.ajaxurl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString()
+			} ).then( function ( response ) {
+				return response.json();
+			} ).then( function ( payload ) {
+				if ( ! result ) {
+					return;
+				}
+				var data = payload && payload.data ? payload.data : null;
+				if ( payload && payload.success && data ) {
+					result.textContent = data.message || '';
+					var ocStateClass = { green: 'wk-probe--green', yellow: 'wk-probe--yellow', red: 'wk-probe--red' };
+					result.className = 'wk-probe ' + ( ocStateClass[ data.state ] || 'wk-probe--gray' );
+				} else {
+					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).catch( function () {
+				if ( result ) {
+					result.textContent = '测试失败（网络错误）。';
+					result.className = 'wk-probe wk-probe--gray';
+				}
+			} ).finally( function () {
+				openaiCustomProbeButton.disabled = false;
 			} );
 		} );
 	}

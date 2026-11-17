@@ -54,7 +54,10 @@ final class UiM5Tab3DeepseekContractTest extends TestCase {
 	public function test_deepseek_leaves_future_review_drivers(): void {
 		$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'future_review_drivers' );
 		self::assertStringNotContainsString( "'deepseek'", $body, 'DeepSeek 已实装——脱离 future 占位段（UI 块 2-A）' );
-		self::assertStringContainsString( 'openai_custom', $body, 'openai_custom 仍为占位（F32 未实装）' );
+		// 【M6·批E 契约翻转】openai_custom 已实装——脱离 future 占位段（登记 registry，
+		// 下拉已实装驱动）；断言用带引号字面（退役注释裸词不含引号——deepseek 先例同法）。
+		self::assertStringNotContainsString( "'openai_custom'", $body, 'openai_custom 已于 M6E 实装——脱离 future 占位段' );
+		self::assertStringContainsString( "'moli'", $body, 'moli 仍为占位（M4 未实装）' );
 	}
 
 	public function test_deepseek_config_card_renders(): void {
@@ -89,8 +92,10 @@ final class UiM5Tab3DeepseekContractTest extends TestCase {
 
 	public function test_two_stage_note_once(): void {
 		// 说明段级一次：two_stage 说明只写开关行；升级模型行不重复解释。
+		// 【M6·批E 契约翻转】openai_custom 配置卡新增自身开关行说明一份（每卡段级一次
+		// 语义保持——deepseek 卡一份+openai_custom 卡一份=2；升级模型行零重复不变）。
 		$src = self::source( 'includes/settings/SettingsPage.php' );
-		self::assertSame( 1, substr_count( $src, '每条评论最多判两次' ), 'two_stage 说明段级一次' );
+		self::assertSame( 2, substr_count( $src, '每条评论最多判两次' ), 'two_stage 说明每配置卡段级一次（M6·批E 后两卡各一）' );
 	}
 
 	/* ===================================================================

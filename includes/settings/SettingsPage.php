@@ -80,6 +80,13 @@ final class SettingsPage {
 	const AJAX_TEST_CREDENTIALS_DEEPSEEK = 'wink_gatekeeper_test_credentials_deepseek';
 
 	/**
+	 * Tab③ openai_custom「测试凭据」AJAX action（【M6·批E】：GET {base_url}/models 探活
+	 * 三态——泛端点无标准余额 API，零 token 消耗；nonce + manage_options 双闸；结果
+	 * 不落库零计量；响应闭集不含提交值）。
+	 */
+	const AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM = 'wink_gatekeeper_test_credentials_openai_custom';
+
+	/**
 	 * 【M6·批B·B-3】网址核查独立凭证测试 AJAX action（provider custom——DeepSeek 协议族
 	 * 同用余额探测，base_url 跟随其配置）。
 	 */
@@ -1972,11 +1979,13 @@ final class SettingsPage {
 		$green    = is_array( $cloud['aliyun_green'] ?? null ) ? $cloud['aliyun_green'] : array();
 		$baidu    = is_array( $cloud['baidu'] ?? null ) ? $cloud['baidu'] : array(); // 【v1.5·B6】百度文本审核子树。
 		$deepseek = is_array( $cloud['deepseek'] ?? null ) ? $cloud['deepseek'] : array(); // 【M5·U4】DeepSeek 子树。
+		$openai_custom = is_array( $cloud['openai_custom'] ?? null ) ? $cloud['openai_custom'] : array(); // 【M6·批E】openai_custom 子树（8 键 schema 既有）。
 		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
 		$tms_in_chain   = in_array( 'tencent_tms', $chain, true );
 		$green_in_chain = in_array( 'aliyun_green', $chain, true );
 		$baidu_in_chain = in_array( 'baidu', $chain, true );
 		$deepseek_in_chain = in_array( 'deepseek', $chain, true ); // 【M5·U4】.
+		$openai_custom_in_chain = in_array( 'openai_custom', $chain, true ); // 【M6·批E】.
 
 		// 【v1.4·R4】DriverConfigSpec 通用件消费：registry 已实装 review 驱动（local_rules 剔除）
 		// + 运行时停转映射（下拉「配置错误」点）+ 链路汇总行素材。
@@ -1992,6 +2001,7 @@ final class SettingsPage {
 				AliyunGreenPlusDriver::DRIVER_ID   => AliyunGreenPlusDriver::registry_entry(),
 				BaiduTextModerationDriver::DRIVER_ID => BaiduTextModerationDriver::registry_entry(),
 				\WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DRIVER_ID => \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::registry_entry(), // 【M5·U4】.
+				\WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::DRIVER_ID => \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::registry_entry(), // 【M6·批E】.
 			);
 		}
 		$cloud_halted = array();
@@ -2008,10 +2018,11 @@ final class SettingsPage {
 			'aliyun_green' => $green,
 			'baidu'        => $baidu,
 			'deepseek'     => $deepseek, // 【M5·U4】.
+			'openai_custom' => $openai_custom, // 【M6·批E】.
 		);
 
 		// 当前选中驱动（下拉=chain[0] 可视面；未配置=''）。
-		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : ( $baidu_in_chain ? 'baidu' : ( $deepseek_in_chain ? 'deepseek' : '' ) ) );
+		$cloud_selected = $tms_in_chain ? 'tencent_tms' : ( $green_in_chain ? 'aliyun_green' : ( $baidu_in_chain ? 'baidu' : ( $deepseek_in_chain ? 'deepseek' : ( $openai_custom_in_chain ? 'openai_custom' : '' ) ) ) );
 
 		// 【M4UX UI-1-2·定稿 §3】页顶「云端审核未配置未开启」notice（判定法与 Tab① 引导
 		// 同源：enabled 关 + chain 空=未配置未开启；配好即消失。enabled 开但无可用驱动的
@@ -2576,6 +2587,118 @@ final class SettingsPage {
 				<span id="wk-deepseek-test-result" aria-live="polite"></span>
 			</p>
 			<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；黄 = 账户暂不可用（可能欠费）；红 = 密钥无效或连不上；黄 = API Key 未填。结果不落库。独立端点用模型列表探活（OpenAI 兼容、无标准余额 API）。', 'wink-gatekeeper' ); ?></p>
+		</section>
+
+		<?php
+		/* 【M6·批E】Tab③ openai_custom 配置卡（设计 §2.1——deepseek 卡形态参照，差异：
+		 * 接入地址空占位+路径前缀提示（站长全量配置无官方预填）；判定模型/升级用模型=
+		 * 手填 text（泛端点无静态模型集）；测试凭据=/models 探活（泛端点无标准余额 API）。
+		 * system_prompt/min_confidence 高级键不开 UI（deepseek 卡对称——两键保留
+		 * sanitize/schema 通道，未来「高级折叠区」统一开）。 */
+		$oc_meta    = isset( $cloud_registered['openai_custom'] ) ? $cloud_registered['openai_custom'] : \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::registry_entry();
+		$oc_privacy = DriverConfigSpec::privacy_notice( $oc_meta, '自定义 OpenAI 兼容端点' );
+		?>
+		<section class="wk-card" id="wk-review-openai-custom-card" data-wk-vendor="openai_custom"<?php echo ( 'openai_custom' === $cloud_selected ) ? '' : ' hidden'; ?>>
+			<h2><?php esc_html_e( '自定义 OpenAI 兼容端点（AI 判定） · 配置', 'wink-gatekeeper' ); ?></h2>
+
+			<?php if ( null !== $oc_privacy ) : ?>
+				<div class="notice <?php echo 'warn' === $oc_privacy['level'] ? 'notice-warning inline' : 'notice-info inline'; ?>">
+					<p><?php echo esc_html( $oc_privacy['text'] ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<details class="wk-guide">
+				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<ol>
+					<li><?php esc_html_e( '端点需提供 chat/completions（OpenAI 兼容）——中转站/自建网关（LiteLLM 类）/任意兼容厂商皆可。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '填接入地址（注意路径前缀：插件在所填地址后拼 /chat/completions——OpenAI 官方族需填到 …/v1 为止）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '填 API Key 与模型名 → 点「测试凭据」（模型列表探活，零 token 消耗——泛端点无标准余额 API，不显示余额）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '可达性与合规由站长自负：数据送你填的端点所在辖区（不支持内网地址——传输脊私网拒绝红线优先）。', 'wink-gatekeeper' ); ?></li>
+				</ol>
+			</details>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="wk-field-review-cloud-openai-custom-api_key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php self::password_field( array( 'review', 'cloud', 'openai_custom', 'api_key' ), '' !== (string) ( $openai_custom['api_key'] ?? '' ), 'API Key' ); ?>
+						<p class="description"><?php esc_html_e( '该端点签发的 API Key（中转站/网关各自发放）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-openai-custom-base-url"><?php esc_html_e( '接入地址', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="url" id="wk-openai-custom-base-url" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'base_url' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $openai_custom['base_url'] ?? '' ) ); ?>" class="regular-text code"
+							placeholder="https://你的端点/v1" />
+						<p class="description"><?php esc_html_e( '填你的 OpenAI 兼容端点根地址——插件在其后拼接 /chat/completions。OpenAI 官方族填到 https://…/v1 为止；DeepSeek 官方填 https://api.deepseek.com（不带 /v1）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wk-openai-custom-model"><?php esc_html_e( '判定模型', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<input type="text" id="wk-openai-custom-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'model' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $openai_custom['model'] ?? '' ) ); ?>" class="regular-text"
+							placeholder="<?php esc_attr_e( '填该端点支持的模型名', 'wink-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( '模型名须与端点一致——点「测试凭据」可校验是否在可用列表（列表不含也可能仍可用，部分端点列表不全）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr id="wk-openai-custom-two-stage-row">
+					<th scope="row"><?php esc_html_e( '低置信自动升级', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<label>
+							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="0" />
+							<input type="checkbox" id="wk-openai-custom-two-stage" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['two_stage'] ?? true ) ); ?>>
+							<?php esc_html_e( 'AI 拿不准的评论，自动换更强的模型再判一次，每条评论最多判两次', 'wink-gatekeeper' ); ?>
+						</label>
+					</td>
+				</tr>
+				<tr id="wk-openai-custom-upgrade-model-row"<?php echo ! empty( $cloud['two_stage'] ?? true ) ? '' : ' hidden'; ?>>
+					<th scope="row"><label for="wk-openai-custom-upgrade-model"><?php esc_html_e( '升级用模型', 'wink-gatekeeper' ); ?></label></th>
+					<td>
+						<?php /* 【M6·批E·R1 裁定】手填 text+留空短路（不走子树加键）：顶层
+							upgrade_model 为 deepseek/openai_custom 共用键——从 DeepSeek 切来
+							的残留值在此可见可清理（可见=可清理，不隐式吞）；留空=基类守卫
+							短路两段式（不发起 r2 调用）。 */ ?>
+						<input type="text" id="wk-openai-custom-upgrade-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'upgrade_model' ) ) ); ?>"
+							value="<?php echo esc_attr( (string) ( $cloud['upgrade_model'] ?? '' ) ); ?>" class="regular-text"
+							placeholder="<?php esc_attr_e( '填端点支持的更强模型名；留空=不升级', 'wink-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( '与 DeepSeek 共用同一键：在 DeepSeek 用过的升级模型名会残留在这里——不用升级就清空（留空=不发起第二次判定）。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( '降级方式', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<select name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'fail_mode' ) ) ); ?>">
+							<option value="review" <?php selected( (string) ( $openai_custom['fail_mode'] ?? 'review' ), 'review' ); ?>><?php esc_html_e( '出岔子时评论进待审区（推荐）', 'wink-gatekeeper' ); ?></option>
+							<option value="open" <?php selected( (string) ( $openai_custom['fail_mode'] ?? '' ), 'open' ); ?>><?php esc_html_e( '出岔子时照常放行（不推荐）', 'wink-gatekeeper' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( '超时默认 8 秒；AI 判定只放大严：判 pass 也不会替评论放行。', 'wink-gatekeeper' ); ?></p>
+					</td>
+				</tr>
+				<tr id="wk-openai-custom-quota-line">
+					<th scope="row"><?php esc_html_e( '今日判定额度', 'wink-gatekeeper' ); ?></th>
+					<td>
+						<?php
+						$oc_usage = \WinkGatekeeper\Stats\Usage::get();
+						$oc_used  = \WinkGatekeeper\Stats\Usage::daily_total_for( $oc_usage, 'openai_custom' );
+						$oc_quota = max( 0, (int) ( $openai_custom['daily_quota'] ?? 200 ) );
+						?>
+						<input type="number" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'daily_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) $oc_quota ); ?>" class="small-text" min="0">
+						<?php esc_html_e( '次（0=不限量）', 'wink-gatekeeper' ); ?>
+						<p class="description"><?php printf( esc_html__( '今日已判定 %1$d 次 · 额度剩 %2$s 次。', 'wink-gatekeeper' ), (int) $oc_used, 0 === $oc_quota ? '∞' : (string) max( 0, $oc_quota - $oc_used ) ); ?></p>
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				<button type="button" class="button" id="wk-openai-custom-test-btn"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM ) ); ?>">
+					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
+				</button>
+				<span id="wk-openai-custom-test-result" aria-live="polite"></span>
+			</p>
+			<p class="description"><?php esc_html_e( '模型列表探活（零 token）：绿 = 凭据可用（填了判定模型则顺带校验在不在列表）；黄 = 模型不在列表或必填缺；红 = 密钥被端点拒绝；灰 = 端点不提供 /models 或传输异常。泛端点无标准余额 API，不显示余额。结果不落库。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<?php self::render_url_audit_card( $settings ); ?>
@@ -3560,10 +3683,13 @@ final class SettingsPage {
 	}
 
 	/**
-	 * Tab③ 网址核查独立凭据「测试凭据」AJAX 处理器（【M6·批B·B-3】N4 范围边界）。
+	 * Tab③ 网址核查独立凭据「测试凭据」AJAX 处理器（【M6·批B·B-3】N4 范围边界；
+	 * 【M6·批E·E-4】按 base_url 分流）。
 	 *
-	 * provider custom 独立凭证为 DeepSeek 协议族→同用余额探测（base_url 跟随其配置，
-	 * 空回落官方地址——UrlAuditWorker::provider_config base_url 回落同源）。表单覆盖
+	 * provider custom 独立凭证：base_url host 为 DeepSeek 官方域（或空回落官方）→
+	 * 维持 /user/balance 余额探测（信息量优先）；非官方 base_url（中转站/自建网关）→
+	 * 切 openai_custom /models 探活（泛端点无标准余额 API——此前硬走余额探测必契约
+	 * 不符灰态）。分流点收敛 UrlAuditWorker::provider_probe_is_deepseek 一处；表单覆盖
 	 * （password 空串保留已存值语义）；响应闭集不含提交值；不计 usage 不落库。
 	 *
 	 * @return void
@@ -3592,13 +3718,67 @@ final class SettingsPage {
 			wp_send_json_success( $precheck );
 		}
 
-		$config = array(
-			'api_key'  => $api_key,
-			'base_url' => '' !== $base_url ? $base_url : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DEFAULT_BASE_URL,
+		if ( \WinkGatekeeper\UrlAudit\UrlAuditWorker::provider_probe_is_deepseek( $base_url ) ) {
+			// 官方域（或空回落官方）：DeepSeek 余额探测（零费用——信息量优先）。
+			$config = array(
+				'api_key'  => $api_key,
+				'base_url' => '' !== $base_url ? $base_url : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DEFAULT_BASE_URL,
+			);
+			$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver( $config, new RemoteClient() ); // 探测一次不计 usage。
+			wp_send_json_success( CredentialProbe::classify_deepseek_balance( $driver->probe_balance() ) );
+		}
+
+		// 非官方域：openai_custom /models 探活（模型列表三态——泛端点无标准余额 API）。
+		$driver = new \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver(
+			array( 'api_key' => $api_key, 'base_url' => $base_url ),
+			new RemoteClient() // 探测一次不计 usage。
 		);
-		$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver( $config, new RemoteClient() ); // 探测一次不计 usage。
-		$state  = CredentialProbe::classify_deepseek_balance( $driver->probe_balance() );
-		wp_send_json_success( $state );
+		wp_send_json_success( CredentialProbe::classify_openai_custom_models( $driver->probe_models() ) );
+	}
+
+	/**
+	 * Tab③ openai_custom「测试凭据」AJAX 处理器（【M6·批E】——/models 三态探活）。
+	 *
+	 * GET {base_url}/models（Bearer，零 token 消耗——泛端点无标准余额 API）。表单值
+	 * 覆盖（password 空串保留已存值语义）；本地预检三键缺=黄态零外呼；绿态含手填
+	 * 模型则顺带校验在不在列表；响应闭集 {state,message,missing,code} 不含提交值
+	 * （凭据零回显）；不计 usage 不落库。
+	 *
+	 * @return void
+	 */
+	public static function ajax_test_credentials_openai_custom(): void {
+		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM, 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
+		$post = isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array();
+
+		$stored  = get_option( self::OPTION_NAME, array() );
+		$stored  = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		$current = isset( $stored['review']['cloud']['openai_custom'] ) && is_array( $stored['review']['cloud']['openai_custom'] )
+			? $stored['review']['cloud']['openai_custom'] : array();
+
+		$sub = array(
+			'api_key'  => self::probe_field( $post, 'openai_custom_api_key', (string) ( $current['api_key'] ?? '' ) ),
+			'base_url' => isset( $post['openai_custom_base_url'] ) && is_scalar( $post['openai_custom_base_url'] )
+				? trim( (string) $post['openai_custom_base_url'] ) : (string) ( $current['base_url'] ?? '' ),
+			'model'    => isset( $post['openai_custom_model'] ) && is_scalar( $post['openai_custom_model'] )
+				? trim( (string) $post['openai_custom_model'] ) : (string) ( $current['model'] ?? '' ),
+		);
+
+		$precheck = CredentialProbe::local_precheck_openai_custom( $sub );
+		if ( null !== $precheck ) {
+			wp_send_json_success( $precheck );
+		}
+
+		$driver = new \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver(
+			array( 'api_key' => $sub['api_key'], 'base_url' => $sub['base_url'] ),
+			new RemoteClient() // 探测一次不计 usage。
+		);
+		wp_send_json_success( CredentialProbe::classify_openai_custom_models( $driver->probe_models(), $sub['model'] ) );
 	}
 
 	/**
@@ -3754,13 +3934,10 @@ final class SettingsPage {
 					/* 【M5 修复批·D4】网址核查判定凭证（独立/回落云审二态）：无 checkbox
 					 * 故 hidden 0 伴随域不适用；mode 显式枚举使「清空独立 key 回落」在 UI
 					 * 上可逆（D1 注）。条件显隐=custom_header 联动范式（PHP 初始 hidden +
-					 * admin-brand.js change 绑定；DOM 锚 wk-url-audit-provider-mode /
-					 * wk-url-audit-provider-rows）。独立凭证只用于网址核查（与评论云审
-					 * 配额/健康态互不影响）。 */
-					$ua_provider_model = (string) ( $ua_provider['model'] ?? '' );
-					if ( '' === $ua_provider_model ) {
-						$ua_provider_model = 'deepseek-flash'; // 空串=标准档（provider_config 回落同源——UI 选中态如实反映）。
-					}
+						 * admin-brand.js change 绑定；DOM 锚 wk-url-audit-provider-mode /
+						 * wk-url-audit-provider-rows）。独立凭证只用于网址核查（与评论云审
+						 * 配额/健康态互不影响）。【M6·批E】判定模型行改手填 text——空=标准档
+						 * 回落语义保留（provider_config 回落同源；行内注释同步改写）。 */
 					?>
 						<tr>
 							<!-- 【M6·批H·H-5】行标签改「LLM提供商」（用户 2026-11-16）；
@@ -3795,24 +3972,29 @@ final class SettingsPage {
 					<tr>
 						<th scope="row"><label for="wk-url-audit-provider-model"><?php esc_html_e( '独立凭证判定模型', 'wink-gatekeeper' ); ?></label></th>
 						<td>
-							<select id="wk-url-audit-provider-model" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'model' ) ) ); ?>">
-								<option value="deepseek-flash" <?php selected( $ua_provider_model, 'deepseek-flash' ); ?>><?php esc_html_e( '标准（deepseek-flash，便宜快）', 'wink-gatekeeper' ); ?></option>
-								<option value="deepseek-reasoner" <?php selected( $ua_provider_model, 'deepseek-reasoner' ); ?>><?php esc_html_e( '深思（deepseek-reasoner，更强慢）', 'wink-gatekeeper' ); ?></option>
-							</select>
-							<p class="description"><?php esc_html_e( '留空用标准档。', 'wink-gatekeeper' ); ?></p>
+							<?php /* 【M6·批E·E-4】改手填 text（原 DeepSeek 静态两选项 select 退役——
+								独立端点可为任意 OpenAI 兼容端点）；空=标准档回落语义保留
+								（provider_config 空 model 回落 deepseek-flash 同源——UI 如实
+								显示空值不虚构已存模型名）。 */ ?>
+							<input type="text" id="wk-url-audit-provider-model" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'model' ) ) ); ?>"
+								value="<?php echo esc_attr( (string) ( $ua_provider['model'] ?? '' ) ); ?>" class="regular-text"
+								placeholder="<?php esc_attr_e( '手填模型名（OpenAI 兼容端点填其支持的模型）', 'wink-gatekeeper' ); ?>" />
+							<p class="description"><?php esc_html_e( '模型名须与端点一致；留空=标准档（deepseek-flash 回落——DeepSeek 端点可直接留空）。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( '测试独立凭证', 'wink-gatekeeper' ); ?></th>
 						<td>
 							<?php /* 【M6·批B·B-3】独立凭据测试（N4 范围边界：DeepSeek 协议族同用
-							 * 余额探测，base_url 跟随其配置）。 */ ?>
+							 * 余额探测，base_url 跟随其配置）。【M6·批E·E-4】按 base_url 分流：
+							 * 官方地址=余额探测 / 其他地址（中转站/自建网关）=模型列表探活
+							 * （泛端点无标准余额 API）。 */ ?>
 							<button type="button" class="button" id="wk-url-audit-provider-test-btn"
 								data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_CREDENTIALS_URL_AUDIT ) ); ?>">
 								<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
 							</button>
 							<span id="wk-url-audit-provider-test-result" aria-live="polite"></span>
-							<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；红 = 密钥无效或连不上。结果不落库。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( '官方地址=余额探测（零费用，显示余额）；其他地址=模型列表探活（零 token）。绿 = 凭据可用；红 = 密钥被拒或连不上。结果不落库。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -4965,9 +5147,9 @@ final class SettingsPage {
 	 */
 	public static function future_review_drivers(): array {
 		return array(
-			'openai_custom' => array( 'label' => '自定义 OpenAI 兼容端点', 'milestone' => 'M3', 'required' => array( 'api_key', 'base_url', 'model' ) ),
-			'moli'          => array( 'label' => '模力 System One', 'milestone' => 'M4', 'required' => array( 'api_key' ) ),
-			// deepseek 已于 M5 U4 批实装——登记入 registry，脱离 future 段（下拉已实装驱动）。
+			'moli' => array( 'label' => '模力 System One', 'milestone' => 'M4', 'required' => array( 'api_key' ) ),
+			// openai_custom 已于 M6·批E 实装——登记入 registry，脱离 future 段（下拉已实装驱动）。
+			// deepseek 已于 M5 U4 批实装——同上。
 			// aliyun_green 已于 M3' 批次 3（B5）实装——同上。
 			// baidu 已于 M3' 轻量批（B6）实装——同上。
 		);

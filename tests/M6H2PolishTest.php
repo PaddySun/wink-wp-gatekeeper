@@ -484,7 +484,9 @@ namespace WinkGatekeeper\Tests {
 			self::assertTrue( $method->isStatic(), '静态规格表保持' );
 
 			$future = $method->invoke( null );
-			self::assertSame( '自定义 OpenAI 兼容端点', $future['openai_custom']['label'] ?? '', 'openai_custom 显示名规格在表（M6HU 钉语义不动）' );
+			// 【M6·批E 契约翻转】openai_custom 已实装——脱离 future 表（显示名单一来源
+			// 迁 registry_entry；本钉原断言 openai_custom label 在表，随退役翻转）。
+			self::assertArrayNotHasKey( 'openai_custom', $future, 'openai_custom 已于 M6E 实装——脱离 future 表' );
 			self::assertSame( '模力 System One', $future['moli']['label'] ?? '', 'moli 同表' );
 		}
 

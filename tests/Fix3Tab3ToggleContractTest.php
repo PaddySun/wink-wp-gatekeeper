@@ -114,10 +114,12 @@ final class Fix3Tab3ToggleContractTest extends TestCase {
 		$this->assertSame( 1, substr_count( $body, 'id="wk-baidu-test-credentials"' ) );
 		// 【M5·U4 契约翻转】DeepSeek 第四配置区（三区→四区）。
 		$this->assertSame( 1, substr_count( $body, 'id="wk-deepseek-test-btn"' ) );
-		// 逐驱动 PIPL 合规行（registry privacy 维渲染）四区各一。
-		$this->assertSame( 4, substr_count( $body, 'DriverConfigSpec::privacy_notice(' ), '合规行四区各一（v1.4·反馈9 迁入各配置栏不回退；M5·U4 加 deepseek 区）' );
-		// 接入指引折叠四区各一。
-		$this->assertSame( 4, substr_count( $body, '<details class="wk-guide">' ) );
+		// 【M6·批E 契约翻转】openai_custom 第五配置区（四区→五区——registry 渲染面自动长出）。
+		$this->assertSame( 1, substr_count( $body, 'id="wk-openai-custom-test-btn"' ) );
+		// 逐驱动 PIPL 合规行（registry privacy 维渲染）五区各一。
+		$this->assertSame( 5, substr_count( $body, 'DriverConfigSpec::privacy_notice(' ), '合规行五区各一（v1.4·反馈9 迁入各配置栏不回退；M5·U4 加 deepseek 区；M6·批E 加 openai_custom 区）' );
+		// 接入指引折叠五区各一。
+		$this->assertSame( 5, substr_count( $body, '<details class="wk-guide">' ) );
 		// 链路汇总行（v1.4 集中位降级形态）保留。
 		$this->assertStringContainsString( 'DriverConfigSpec::chain_summary( $chain', $body );
 		// 必填渲染面（registry settings.required 语义）：TMS CAM 对 / 阿里 AK 对 / 百度键对。
@@ -175,16 +177,16 @@ final class Fix3Tab3ToggleContractTest extends TestCase {
 		$this->assertStringContainsString( "querySelectorAll( '[data-wk-vendor]' )", $body, '作用域内取全部 vendor 区（M4 后续驱动自动入列不硬化）' );
 	}
 
-	/* ---------- ④ 版本钉随批次推进（当前 0.7.4=M6·批H3 UI 小批四件（A 未配置 notice+B 运行中黄条+C 明细去向+D 复核块）【0.7.3=M6·批H2 抛光小批两件【0.7.2=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）【0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」；0.6.6=批D；0.6.5=批C；0.6.4=批B；0.6.3=批A】；F1 P0 契约面在 B1a/B1b；FIX-3 锚点历史保留） ---------- */
+	/* ---------- ④ 版本钉随批次推进（当前 0.8.0=M6·批E openai_custom 自定义 OpenAI 兼容端点驱动实装（设计=M6E-openaicustom-实装-设计草案-2026-11-17+开放问题裁定 R1/Q1-Q6——Q6 版本位进位 0.8.0）【0.7.4=M6·批H3 UI 小批四件（A 未配置 notice+B 运行中黄条+C 明细去向+D 复核块）【0.7.3=M6·批H2 抛光小批两件【0.7.2=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）【0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」；0.6.6=批D；0.6.5=批C；0.6.4=批B；0.6.3=批A】；F1 P0 契约面在 B1a/B1b；FIX-3 锚点历史保留） ---------- */
 
 	public function test_version_bumped_to_0_3_5_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.4$/m', $entry, '插件头 Version 须为 0.7.4（版本断言随批次推进更新——当前契约面在 UiTab6StatsContractTest）' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.4' )", $entry, '版本常量须为 0.7.4' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.4$/m', $readme, 'readme Stable tag 须为 0.7.4' );
-		$this->assertStringContainsString( '= 0.7.4 =', $readme, 'Changelog 须有 0.7.4 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.0$/m', $entry, '插件头 Version 须为 0.8.0（版本断言随批次推进更新——当前契约面在 UiTab6StatsContractTest）' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.0' )", $entry, '版本常量须为 0.8.0' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.0$/m', $readme, 'readme Stable tag 须为 0.8.0' );
+		$this->assertStringContainsString( '= 0.8.0 =', $readme, 'Changelog 须有 0.8.0 条目' );
 		$this->assertStringContainsString( 'FIX-3', $readme, 'Changelog 须含 FIX-3 锚点' );
 	}
 }

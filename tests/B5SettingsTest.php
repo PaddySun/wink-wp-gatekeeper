@@ -163,8 +163,10 @@ final class B5SettingsTest extends TestCase {
 		$method->setAccessible( true );
 		$future = $method->invoke( null );
 		$this->assertArrayNotHasKey( 'aliyun_green', $future, 'M3 批次 3 已实装——脱离 future 下拉段' );
-		// 【M5·U4 契约翻转】deepseek 已实装——脱离 future 下拉段（openai_custom/moli 保留）。
+		// 【M5·U4 契约翻转】deepseek 已实装——脱离 future 下拉段。
 		$this->assertArrayNotHasKey( 'deepseek', $future );
-		$this->assertArrayHasKey( 'openai_custom', $future );
+		// 【M6·批E 契约翻转】openai_custom 已实装——脱离 future 下拉段（moli 保留）。
+		$this->assertArrayNotHasKey( 'openai_custom', $future );
+		$this->assertArrayHasKey( 'moli', $future, '其余 M4 驱动保留 future 段' );
 	}
 }

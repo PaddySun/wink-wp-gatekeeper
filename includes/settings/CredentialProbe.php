@@ -795,4 +795,98 @@ final class CredentialProbe {
 		}
 		return $line . '。';
 	}
+
+	/**
+	 * openai_custom /models 探活三态判定（【M6·批E·E-3】泛端点无标准余额 API——
+	 * GET {base_url}/models 零 token 消耗证 Bearer 鉴权通；classify_deepseek 同构
+	 * 泛化，文案中性化不点名厂商）。
+	 *
+	 * 三态口径（设计 §3.1）：
+	 *   - 红=401/403（密钥被端点拒绝）/402（归红但计费口径由服务方定义——中性文案）；
+	 *   - 绿=200 且 data[].id[] 可解析（OpenAI /models 契约形态）；含手填模型则绿态
+	 *     升级为「列表含该模型」；
+	 *   - 黄=列表不含手填模型（泛端点列表可能不全——列表缺失不等于不可用，黄不红）；
+	 *   - 灰=契约不符 / 404 形态（部分网关不提供 /models——凭据状态未知，可跳过测试
+	 *     直接启用观察首判）/ transport 终态。
+	 *
+	 * 响应闭集纪律：{state, message, missing, code}——不含提交值（凭据零回显）。
+	 *
+	 * @param RemoteResult $result GET {base_url}/models 结果。
+	 * @param string       $model  手填判定模型名（空=纯探活不校验列表）。
+	 * @return array{state: string, message: string, missing: array<string>, code: string}
+	 */
+	public static function classify_openai_custom_models( RemoteResult $result, string $model = '' ): array {
+		$payload = array( 'state' => 'gray', 'message' => '', 'missing' => array(), 'code' => '' );
+
+		// 语义/传输类（RemoteClient classify：4xx=semantic）。
+		if ( ! $result->is_ok() ) {
+			$status          = $result->status();
+			$payload['code'] = 'http=' . $status;
+			if ( 401 === $status || 403 === $status ) {
+				$payload['state']   = 'red';
+				$payload['message'] = '密钥被端点拒绝（HTTP ' . $status . '）——请核对 API Key 与该端点的访问权限后重试。';
+				return $payload;
+			}
+			if ( 402 === $status ) {
+				$payload['state']   = 'red';
+				$payload['message'] = '端点拒绝（402）——请核对 Key/账户状态（该端点的计费口径由服务方定义）。';
+				return $payload;
+			}
+			if ( 404 === $status ) {
+				$payload['message'] = '端点可能不提供 /models 列表（部分网关如此）——凭据状态未知，可跳过测试直接启用观察首判。';
+				return $payload;
+			}
+			$payload['message'] = '探活未成功（HTTP ' . $status . '，' . $result->category() . '）——稍后重试；持续失败请核对接入地址（注意路径前缀：插件在所填地址后拼 /chat/completions 与 /models）。';
+			return $payload;
+		}
+
+		// 2xx：绿态=JSON 可解析且 data[].id[] 模型列表在场（OpenAI /models 契约形态）。
+		$decoded = self::decoded( $result );
+		$ids     = array();
+		if ( is_array( $decoded ) && isset( $decoded['data'] ) && is_array( $decoded['data'] ) ) {
+			foreach ( $decoded['data'] as $item ) {
+				if ( is_array( $item ) && isset( $item['id'] ) && is_string( $item['id'] ) ) {
+					$ids[] = $item['id'];
+				}
+			}
+		}
+		if ( array() === $ids ) {
+			$payload['state']   = 'gray';
+			$payload['code']    = 'contract';
+			$payload['message'] = '响应不含模型列表（契约不符）——请核对接入地址是否为 OpenAI 兼容端点（注意路径前缀）。';
+			return $payload;
+		}
+		if ( '' !== $model && ! in_array( $model, $ids, true ) ) {
+			$payload['state']   = 'yellow';
+			$payload['code']    = 'model_missing';
+			$payload['message'] = '凭据可用，但模型「' . $model . '」不在可用列表（' . implode( ' / ', array_slice( $ids, 0, 6 ) ) . '）——请核对手填模型名（部分端点列表不全，列表缺失不等于不可用）。';
+			return $payload;
+		}
+		$payload['state']   = 'green';
+		$payload['code']    = 'models_ok';
+		$payload['message'] = '' !== $model
+			? '凭据可用（模型列表探活通过，「' . $model . '」在可用列表，零 token 消耗）。'
+			: '凭据可用（模型列表探活通过，零 token 消耗）。';
+		return $payload;
+	}
+
+	/**
+	 * openai_custom 本地预检（【M6·批E】api_key/base_url/model 三键任一空=黄态逐字段
+	 * 列缺——DriverConfigSpec::missing_fields 派生，aliyun_green 先例同款；零外呼）。
+	 *
+	 * @param array<string, mixed> $sub review.cloud.openai_custom 子树（表单覆盖后）。
+	 * @return array{state: string, message: string, missing: string[]}|null null=预检通过。
+	 */
+	public static function local_precheck_openai_custom( array $sub ): ?array {
+		$meta    = \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::registry_entry();
+		$missing = DriverConfigSpec::missing_fields( $meta, $sub );
+		if ( array() === $missing ) {
+			return null;
+		}
+		return array(
+			'state'   => 'yellow',
+			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'missing' => $missing,
+		);
+	}
 }

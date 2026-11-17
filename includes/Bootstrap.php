@@ -23,6 +23,7 @@ use WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver;
 use WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver;
 use WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver;
 use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
+use WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver;
 use WinkGatekeeper\Drivers\Review\TencentTmsDriver;
 use WinkGatekeeper\Gates\CommentGate;
 use WinkGatekeeper\Gates\CommentTrust;
@@ -196,6 +197,8 @@ final class Bootstrap {
 		// Tab③ 百度「测试凭据」（B6：同双闸；绿态 = 探测 conclusionType=1，顺带解除 baidu 停转——05 §2.4）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_BAIDU, array( SettingsPage::class, 'ajax_test_credentials_baidu' ) );
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_DEEPSEEK, array( SettingsPage::class, 'ajax_test_credentials_deepseek' ) ); // 【M6·批B·N4】余额端点探测（零费用——models 探活退役为泛端点备件）。
+		// 【M6·批E】Tab③ openai_custom「测试凭据」（/models 探活三态——泛端点无标准余额 API，零 token 消耗）。
+		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM, array( SettingsPage::class, 'ajax_test_credentials_openai_custom' ) );
 		// 【M6·批B·B-3】网址核查独立凭据「测试凭据」（N4 范围边界：DeepSeek 协议族同用余额探测，base_url 跟随其配置）。
 		add_action( 'wp_ajax_' . SettingsPage::AJAX_TEST_CREDENTIALS_URL_AUDIT, array( SettingsPage::class, 'ajax_test_credentials_url_audit' ) );
 		// Tab④ 诊断面板「手动聚合查询」（M3-IP 定稿 §5.1，I0 批：同双闸；零落库零缓存零统计红线）。
@@ -342,6 +345,7 @@ final class Bootstrap {
 		$registry->register( AliyunGreenPlusDriver::registry_entry() ); // B5：阿里文本审核增强版 PLUS（05 §2.5）。
 		$registry->register( BaiduTextModerationDriver::registry_entry() ); // B6：百度文本审核（05 §2.4——token 30 天缓存复用）。
 		$registry->register( DeepSeekReviewDriver::registry_entry() ); // 【M5·U4】DeepSeek LLM（05 §2.2 协议族+M5 定稿 §4 五件套）。
+		$registry->register( OpenAiCustomReviewDriver::registry_entry() ); // 【M6·批E】自定义 OpenAI 兼容端点（registry 第 10 条目——纯配置子类，四件套全继承基类）。
 		/* 【v1.7·M3-IP·定稿 §2 I2】abuseipdb 注册（type='ip'/billing='free_quota'/frontend=[]/
 		 * supports_report=true——O5-P3-3 三字段占位）：by_type('ip') 非空后 Tab① 点名册卡/
 		 * Tab⑥ IP 单列行/review_split 折减/Labels「信誉查询」自动生效（渲染侧既有逻辑零改动）。 */
@@ -388,6 +392,18 @@ final class Bootstrap {
 					);
 					if ( $deepseek_driver->is_configured() ) {
 						$cloud_chain['deepseek'] = $deepseek_driver;
+					}
+				} elseif ( 'openai_custom' === $chain_id ) {
+					// 【M6·批E】自定义 OpenAI 兼容端点（deepseek 分支形态照抄）：配置派生
+					// from_settings（8 键子树+顶层 two_stage/upgrade_model 透传——留空短路
+					// 两段式）；is_configured 覆写查三键（api_key+base_url+model），半配置
+					// 静默剔除不空烧日配额。
+					$openai_custom_driver = new OpenAiCustomReviewDriver(
+						OpenAiCustomReviewDriver::config_from_settings( $settings ),
+						$client
+					);
+					if ( $openai_custom_driver->is_configured() ) {
+						$cloud_chain['openai_custom'] = $openai_custom_driver;
 					}
 				}
 			}
@@ -1091,6 +1107,9 @@ final class Bootstrap {
 			'aliyun_green'     => (string) AliyunGreenPlusDriver::registry_entry()['label'],
 			'baidu'            => (string) BaiduTextModerationDriver::registry_entry()['label'],
 			'deepseek'         => (string) DeepSeekReviewDriver::registry_entry()['label'],
+			// 【M6·批E】openai_custom 补 registry label 静态行（future 循环同源注入随退役
+			// 消失——deepseek I-1 先例同款；单一来源=registry_entry 不硬抄字面）。
+			'openai_custom'    => (string) OpenAiCustomReviewDriver::registry_entry()['label'],
 			'abuseipdb'        => 'AbuseIPDB',
 			'abuseipdb_report' => 'AbuseIPDB（上报）',
 		);
