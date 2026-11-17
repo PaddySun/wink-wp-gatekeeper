@@ -111,6 +111,9 @@ $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_url_audit_backlog_record' ); // 【M6·批C·C-3】存量网址核查运行记录（UrlAuditWorker::OPTION_BACKLOG_RECORD）。
 } );
 $wink_guarded( static function (): void {
+	delete_option( 'wink_gatekeeper_url_audit_fetch_streak' ); // 【M6·批H2·H2-2】DeepSeek 抓取连续未成功计数（UrlAuditWorker::OPTION_FETCH_STREAK）。
+} );
+$wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_audit_existing_progress' );
 } );
 

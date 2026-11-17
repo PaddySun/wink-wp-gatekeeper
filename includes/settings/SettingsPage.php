@@ -3873,6 +3873,16 @@ final class SettingsPage {
 			</p></div>
 			<?php endif; ?>
 
+			<?php /* 【M6·批H2·H2-2】DeepSeek 抓取连续未成功风险黄条（fetch_streak_notice_data
+			 * 读取器三条件：enabled+达阈 5+48h 新鲜——陈旧静默；动态 N printf 注入=H-2
+			 * 动态文案先例。计数口径见 UrlAuditWorker::record_fetch_streak 头注）。 */ ?>
+			<?php $fetch_streak = \WinkGatekeeper\UrlAudit\UrlAuditWorker::fetch_streak_notice_data( $settings ); ?>
+			<?php if ( null !== $fetch_streak ) : ?>
+			<div class="notice notice-warning inline" id="wk-url-audit-fetch-streak-notice"><p>
+				<?php printf( esc_html__( 'DeepSeek 网页抓取已连续 %d 次未成功——网址核查可能无法正常判定，请检查凭据、余额与端点状态。', 'wink-gatekeeper' ), (int) $fetch_streak['n'] ); ?>
+			</p></div>
+			<?php endif; ?>
+
 			<?php /* 【M6·批B·B-4】网址核查未配置 notice（条件显隐——U-1 缺口）：enabled 且
 			 * AI 判定凭证链为空才渲染；配置齐不渲染（范式=UI-1-2 云审未配置 notice 同款）。 */ ?>
 			<?php if ( $enabled && $chain_empty ) : ?>
@@ -4916,9 +4926,13 @@ final class SettingsPage {
 	 * 未实装云端审核驱动（下拉可见但不可用——03 Tab③ v1.4：DeepSeek 等 M3/M4 驱动
 	 * 带里程碑后缀；required 字段名列表供状态点派生）。
 	 *
+	 * 【M6·批H2·H2-1】private→public：未来驱动显示名单一来源公开件（Bootstrap
+	 * $driver_labels 同源注入——Tab③ 下拉与仪表盘调用量卡行名同表；openai_custom
+	 * 无 registry_entry=实例态驱动，不发明第二映射源）。
+	 *
 	 * @return array<string, array{label: string, milestone: string, required: string[]}>
 	 */
-	private static function future_review_drivers(): array {
+	public static function future_review_drivers(): array {
 		return array(
 			'openai_custom' => array( 'label' => '自定义 OpenAI 兼容端点', 'milestone' => 'M3', 'required' => array( 'api_key', 'base_url', 'model' ) ),
 			'moli'          => array( 'label' => '模力 System One', 'milestone' => 'M4', 'required' => array( 'api_key' ) ),

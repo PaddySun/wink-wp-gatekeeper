@@ -368,16 +368,16 @@ final class UiM4UxF3ContractTest extends TestCase {
 	}
 
 	/* ===================================================================
-	 * 版本 0.7.2（四处钉 + Changelog——【M6·批I】版本钉翻转 0.7.1→0.7.2（本批=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）——上批 H 翻转=0.7.0→0.7.1）——【M6·批H】版本钉翻转 0.7.0→0.7.1（本批=UI 与语义小批九件 H——上批 G 翻转=0.6.9→0.7.0）——【M6·批G】版本钉翻转 0.6.9→0.7.0（本批=文档收口批 G——上批 F-b 翻转=0.6.8→0.6.9）（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16））
+	 * 版本 0.7.3（四处钉 + Changelog——【M6·批H2】版本钉翻转 0.7.2→0.7.3（本批=M6·批H2 抛光小批两件（H2-1 未来驱动显示名映射源统一+H2-2 DeepSeek 抓取连续未成功风险标记）——上批 I 翻转=0.7.1→0.7.2）——【M6·批I】版本钉翻转 0.7.1→0.7.2（本批=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）——上批 H 翻转=0.7.0→0.7.1）——【M6·批H】版本钉翻转 0.7.0→0.7.1（本批=UI 与语义小批九件 H——上批 G 翻转=0.6.9→0.7.0）——【M6·批G】版本钉翻转 0.6.9→0.7.0（本批=文档收口批 G——上批 F-b 翻转=0.6.8→0.6.9）（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16））
 	 * =================================================================== */
 
 	public function test_version_bumped_to_0_5_4_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.2$/m', $entry, '插件头 Version 0.7.2' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.2' )", $entry, '版本常量 0.7.2' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.2$/m', $readme, 'readme Stable tag 0.7.2' );
-		$this->assertStringContainsString( '= 0.7.2 =', $readme, 'Changelog 0.7.2 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.3$/m', $entry, '插件头 Version 0.7.3' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.3' )", $entry, '版本常量 0.7.3' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.3$/m', $readme, 'readme Stable tag 0.7.3' );
+		$this->assertStringContainsString( '= 0.7.3 =', $readme, 'Changelog 0.7.3 条目' );
 	}
 }

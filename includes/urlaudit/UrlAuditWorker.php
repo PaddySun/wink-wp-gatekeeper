@@ -100,6 +100,25 @@ final class UrlAuditWorker {
 	public const OPTION_PAUSE_EDGE = 'wink_gatekeeper_url_audit_pause_edge';
 
 	/**
+	 * 【M6·批H2·H2-2】DeepSeek 抓取连续未成功计数 option（非 settings 树）：
+	 * {n: int, last_class: string, last_at: int, alerted: bool}——fetch_provider=deepseek
+	 * 且 fetch_class≠ok 计数+1、ok 清零；正常混队个案失败被成功自愈，只有系统性故障
+	 * （端点故障/网络断/key 失效）攒得满阈值（低误报口径）；N 达阈落边沿事件+Tab③ 黄条
+	 * （48h 新鲜窗——修复后无新流量不永久挂条）。
+	 */
+	public const OPTION_FETCH_STREAK = 'wink_gatekeeper_url_audit_fetch_streak';
+
+	/**
+	 * 【M6·批H2·H2-2】起报阈值（连续未成功次数；达到即一条事件+黄条——alerted 边沿去重）。
+	 */
+	public const FETCH_STREAK_ALERT_AT = 5;
+
+	/**
+	 * 【M6·批H2·H2-2】黄条新鲜窗（秒；48h——陈旧静默）。
+	 */
+	public const FETCH_STREAK_FRESH_SECONDS = 172800;
+
+	/**
 	 * @var array<string, mixed> 设置树。
 	 */
 	private $settings;
@@ -155,6 +174,20 @@ final class UrlAuditWorker {
 	private $event_recorder;
 
 	/**
+	 * 【M6·批H2·H2-2】streak 计数读取闭包（fn(): array——缺省 WP option 通道）。
+	 *
+	 * @var callable|null
+	 */
+	private $streak_get;
+
+	/**
+	 * 【M6·批H2·H2-2】streak 计数写回闭包（fn(array $value): void——缺省 WP option 通道）。
+	 *
+	 * @var callable|null
+	 */
+	private $streak_set;
+
+	/**
 	 * @param array<string, mixed> $settings 设置树。
 	 * @param array<string, callable> $hooks 全部可注入（默认 WP 通道——见 defaults）。
 	 */
@@ -174,6 +207,11 @@ final class UrlAuditWorker {
 		$this->batch_queue_set    = $hooks['batch_queue_set'] ?? null;
 		$this->clock              = $hooks['clock'] ?? static fn(): float => microtime( true );
 		$this->event_recorder     = $hooks['event_recorder'] ?? null; // 【M6·批B·B-5】缺省=EventsTable 直插（见属性注）。
+		// 【M6·批H2·H2-2】缺省 WP option 通道（autoload=false）；单测注入闭包对（EventSampling 注入范式同款）。
+		$this->streak_get         = $hooks['streak_get'] ?? static fn(): array => (array) get_option( self::OPTION_FETCH_STREAK, array() );
+		$this->streak_set         = $hooks['streak_set'] ?? static function ( array $value ): void {
+			update_option( self::OPTION_FETCH_STREAK, $value, false );
+		};
 	}
 
 	/**
@@ -364,6 +402,7 @@ final class UrlAuditWorker {
 
 			$fetcher = $fetcher_f();
 			$fetched = $fetcher->fetch( $url, ! empty( $this->settings['url_audit']['robots_comply'] ) );
+			$this->record_fetch_streak( $fetched, $lane ); // 【M6·批H2·H2-2】连续未成功计数（deepseek provider 限定——self 业务常态豁免；缓存命中分支不经过=无新尝试不计不清）。
 			$fetch_meta = array(
 				'cache'       => 'miss',
 				'fetch_class' => $fetched['fetch_class'],
@@ -682,6 +721,85 @@ final class UrlAuditWorker {
 			'lane'      => $lane,
 			'http_code' => 0,
 		) );
+	}
+
+	/**
+	 * 【M6·批H2·H2-2】抓取连续未成功计数（风险标记本体—— HANDOVER §七.1 抛光件）。
+	 *
+	 * 口径（不猜类别，连续未成功）：fetch_provider=deepseek 且 fetch_class≠ok → n+1；
+	 * =ok → 清零（n=0+alerted 复位——正常混队个案失败被成功自愈，只有系统性故障攒得
+	 * 满阈值）。self/unconfigured 不计数（self 失败=目标站业务常态 §0-7；unconfigured
+	 * 短路分支不经过本点）。达阈（FETCH_STREAK_ALERT_AT）落恰一条边沿事件（alerted
+	 * 去重；record_event 脊→报错历史/今日故障卡自动可见）；计数与去重独立（计数如实，
+	 * 事件每连续段一条——防写放大 P1-4 同族纪律）。
+	 *
+	 * @param array<string, mixed> $fetched fetcher 返回（fetch_class/fetch_provider）。
+	 * @param string               $lane    车道（incr|batch——事件 meta 溯源）。
+	 * @return void
+	 */
+	private function record_fetch_streak( array $fetched, string $lane ): void {
+		if ( 'deepseek' !== (string) ( $fetched['fetch_provider'] ?? 'self' ) ) {
+			return; // 本站直抓/未配置不计数（provider 限定——DeepSeek 付费外呼持续零产出才是风险面）。
+		}
+		$class = (string) ( $fetched['fetch_class'] ?? '' );
+		if ( 'ok' === $class ) {
+			( $this->streak_set )( self::normalize_streak( array() ) ); // 清零+alerted 复位。
+			return;
+		}
+		$st = self::normalize_streak( ( $this->streak_get )() );
+		$st['n']++;
+		$st['last_class'] = $class;
+		$st['last_at']    = (int) ( $this->clock )();
+		if ( $st['n'] >= self::FETCH_STREAK_ALERT_AT && ! $st['alerted'] ) {
+			$st['alerted'] = true;
+			$this->record_event( 'url_audit fetch streak ' . (string) $st['n'] . ' consecutive failures', array( 'fetch_streak_alert' ), array(
+				'n'          => $st['n'],
+				'last_class' => $st['last_class'],
+				'lane'       => $lane,
+			) );
+		}
+		( $this->streak_set )( $st );
+	}
+
+	/**
+	 * 【M6·批H2·H2-2】streak option 归一（脏数据/Redis 对象缓存跨进程 int→string 同型
+	 * ——I-2 纪律推广：is_numeric+(int)，非数值视为 0）。
+	 *
+	 * @param mixed $raw 原值。
+	 * @return array{n: int, last_class: string, last_at: int, alerted: bool}
+	 */
+	public static function normalize_streak( $raw ): array {
+		$raw = is_array( $raw ) ? $raw : array();
+		return array(
+			'n'          => isset( $raw['n'] ) && is_numeric( $raw['n'] ) ? (int) $raw['n'] : 0,
+			'last_class' => isset( $raw['last_class'] ) && is_string( $raw['last_class'] ) ? $raw['last_class'] : '',
+			'last_at'    => isset( $raw['last_at'] ) && is_numeric( $raw['last_at'] ) ? (int) $raw['last_at'] : 0,
+			'alerted'    => ! empty( $raw['alerted'] ),
+		);
+	}
+
+	/**
+	 * 【M6·批H2·H2-2】Tab③ 黄条数据读取器（render_url_audit_card 消费）：达阈+新鲜
+	 * 才返回（null=不渲染）；48h 新鲜窗=陈旧静默（修复后无新流量不永久挂条——如实：
+	 * 零新成功也不谎报恢复）。
+	 *
+	 * @param array<string, mixed> $settings 设置树。
+	 * @param int|null             $now      当前时刻（null=time()——测试注入）。
+	 * @return array{n: int}|null
+	 */
+	public static function fetch_streak_notice_data( array $settings, ?int $now = null ): ?array {
+		if ( empty( $settings['url_audit']['enabled'] ) ) {
+			return null;
+		}
+		$st = self::normalize_streak( get_option( self::OPTION_FETCH_STREAK, array() ) );
+		if ( $st['n'] < self::FETCH_STREAK_ALERT_AT ) {
+			return null;
+		}
+		$now = $now ?? time();
+		if ( $st['last_at'] <= 0 || $st['last_at'] < $now - self::FETCH_STREAK_FRESH_SECONDS ) {
+			return null; // 陈旧静默。
+		}
+		return array( 'n' => $st['n'] );
 	}
 
 	/**

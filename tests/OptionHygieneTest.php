@@ -61,6 +61,7 @@ final class OptionHygieneTest extends TestCase {
 			UrlAuditWorker::OPTION_BATCH_QUEUE,
 			UrlAuditWorker::OPTION_PAUSE_EDGE,
 			UrlAuditWorker::OPTION_BACKLOG_RECORD,
+			UrlAuditWorker::OPTION_FETCH_STREAK, // 【M6·批H2·H2-2】抓取连续未成功计数扩钉（同上，非断言翻转）。
 			ExistingAuditTask::OPTION_PROGRESS,
 		) ) );
 		sort( $expected );

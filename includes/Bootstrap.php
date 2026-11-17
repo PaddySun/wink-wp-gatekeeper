@@ -1094,6 +1094,13 @@ final class Bootstrap {
 			'abuseipdb'        => 'AbuseIPDB',
 			'abuseipdb_report' => 'AbuseIPDB（上报）',
 		);
+		// 【M6·批H2·H2-1】未来驱动显示名同源注入（future_review_drivers 公开件单一来源
+		// ——不硬抄字面；openai_custom/moli 未实装无计量=当前零可见效果的一致性/防御面，
+		// 未来实装批计量行自动人话——审计 BC-8 留白销账）。
+		foreach ( SettingsPage::future_review_drivers() as $future_id => $future_meta ) {
+			$driver_labels[ (string) $future_id ] = isset( $future_meta['label'] ) && is_string( $future_meta['label'] )
+				? $future_meta['label'] : (string) $future_id;
+		}
 
 		$health_tree = get_option( DriverHealth::OPTION_NAME, array() );
 

@@ -1086,7 +1086,9 @@ namespace WinkGatekeeper\Tests {
 		 * =============================================================== */
 
 		public function test_h9_today_disposal_line_counts_spam_and_hold(): void {
-			$today = strtotime( '2026-11-16 12:00:00' );
+			// 今日/昨日按当前日期动态构造（批 H2 施工时〔2026-11-17〕发现原写死 2026-11-16
+			// 的日期敏感形态——跨日跑「今日口径」恒空 total=0 假红；语义不变）。
+			$today = strtotime( gmdate( 'Y-m-d' ) . ' 12:00:00' );
 			$GLOBALS['wk_ua_comment_meta_store'] = array(
 				701 => array( UrlAuditWorker::META_KEY => array( 'verdict' => 'reject', 'disposed_to' => 'spam', 'judged_at' => $today ) ),
 				702 => array( UrlAuditWorker::META_KEY => array( 'verdict' => 'inconclusive', 'disposed_to' => 'hold', 'judged_at' => $today ) ),
