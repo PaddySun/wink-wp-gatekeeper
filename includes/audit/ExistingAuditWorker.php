@@ -434,16 +434,25 @@ final class ExistingAuditWorker {
 					$driver = new \WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver( $this->settings, $this->default_client() );
 				} elseif ( 'baidu' === $chain_id ) {
 					$driver = new \WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver( $this->settings, $this->default_client() );
-				} elseif ( 'deepseek' === $chain_id ) {
-					// 【M5 修复批·C2】DeepSeek LLM 驱动补口（M5·U4 实装后 U3 工厂漏登记——
-					// chain=['deepseek'] 时恒解析 null，start/run 全瘫）。形态对照
-					// Bootstrap.php 同名分支：config_from_settings 派生（含 review.cloud
-					// 顶层 two_stage/upgrade_model）+ default_client 传输脊。
-					$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver(
-						\WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::config_from_settings( $this->settings ),
-						$this->default_client()
-					);
-				}
+			} elseif ( 'deepseek' === $chain_id ) {
+				// 【M5 修复批·C2】DeepSeek LLM 驱动补口（M5·U4 实装后 U3 工厂漏登记——
+				// chain=['deepseek'] 时恒解析 null，start/run 全瘫）。形态对照
+				// Bootstrap.php 同名分支：config_from_settings 派生（含 review.cloud
+				// 顶层 two_stage/upgrade_model）+ default_client 传输脊。
+				$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver(
+					\WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::config_from_settings( $this->settings ),
+					$this->default_client()
+				);
+			} elseif ( 'openai_custom' === $chain_id ) {
+				/* 【M6·批H4·补钉】openai_custom 补口（E 批漏配面——同型二犯对照 M5·C2：实装
+				 * 驱动未登记体检工厂，chain=['openai_custom'] 恒解析 null → has_driver false
+				 * → Tab⑦ 误报「云端审核还没配置」+无开始钮。手测二轮实测抓获。形态对照
+				 * Bootstrap E 批同名分支：config_from_settings 8 键派生+default_client 传输脊。 */
+				$driver = new \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver(
+					\WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::config_from_settings( $this->settings ),
+					$this->default_client()
+				);
+			}
 			if ( null !== $driver && $driver->is_configured() ) {
 				return array( 'driver' => $driver, 'id' => (string) $chain_id );
 			}

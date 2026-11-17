@@ -1,94 +1,14 @@
 /**
- * Wink 门口保安 · 设置页页头 logo 眨眼动效（03 §4 / wink brand system v1.0）
+ * Wink 门口保安 · 设置页后台交互集（03 §1/§4/§6；03 §6 后台操作安全约定）
  *
- * 节奏接近真人：慢、短、不规律感。
- *   - 空闲：每 4.2s 自主眨眼一次；
- *   - 悬停：立即眨一次，作为回应；
- *   - 有输入/聚焦：停止眨眼，先处理人；
- *   - prefers-reduced-motion：始终睁眼，不播放动画。
- * 帧参数：闭眼 130ms（切换 logo-wink-blink.svg + CSS .is-blinking 纵向压缩 8%），
- *         睁眼 120ms；曲线 cubic-bezier(.4,0,.2,1)（CSS 侧）。
- * M0 只服务设置页页头；拦截页 130ms 单次眨眼为 M1（F07）。
+ * 【M6·批H4·H4-5】页头 logo 眨眼动效退役（用户拍板「使用静态版」——手测二轮 F1：
+ * 4.2s 周期切帧+压缩在工作界面语境被感受为「一抖一抖」干扰；src 本就是静态版
+ * logo-wink.svg，眨眼源属性已随本批移除。拦截页 130ms 单次眨眼为 M1 独立面不受
+ * 影响）。本文件其余功能照旧：统计重置/文案工坊恢复默认/驱动下拉联动/各测试凭据
+ * 探活/诊断面板/滑杆随动等。
  */
 ( function () {
 	'use strict';
-
-	var IDLE_MS = 4200; // 空闲自主眨眼间隔。
-	var CLOSE_MS = 130; // 闭眼帧时长。
-	var OPEN_MS = 120;  // 睁眼恢复时长。
-
-	var logo = document.getElementById( 'wk-brand-logo' );
-	if ( ! logo ) {
-		return;
-	}
-
-	var blinkSrc = logo.getAttribute( 'data-blink-src' );
-	var openSrc = logo.getAttribute( 'src' );
-	if ( ! blinkSrc || ! openSrc ) {
-		return;
-	}
-
-	// 减少动效：始终睁眼，不播放任何动画（可访问性底线）。
-	var reducedMotion = window.matchMedia ? window.matchMedia( '(prefers-reduced-motion: reduce)' ) : null;
-	if ( reducedMotion && reducedMotion.matches ) {
-		return;
-	}
-
-	var idleTimer = null;
-	var animating = false;
-
-	function playBlink() {
-		if ( animating ) {
-			return;
-		}
-		animating = true;
-		logo.classList.add( 'is-blinking' );
-		logo.src = blinkSrc; // 闭眼帧。
-
-		window.setTimeout( function () {
-			logo.classList.remove( 'is-blinking' );
-			logo.src = openSrc; // 睁眼帧。
-			window.setTimeout( function () {
-				animating = false;
-			}, OPEN_MS );
-		}, CLOSE_MS );
-	}
-
-	function startIdle() {
-		stopIdle();
-		idleTimer = window.setInterval( playBlink, IDLE_MS );
-	}
-
-	function stopIdle() {
-		if ( idleTimer !== null ) {
-			window.clearInterval( idleTimer );
-			idleTimer = null;
-		}
-	}
-
-	// 悬停：立即眨一次作为回应，并重排空闲节奏。
-	logo.addEventListener( 'mouseenter', function () {
-		playBlink();
-		startIdle();
-	} );
-
-	// 键盘可达性：聚焦等同悬停回应。
-	logo.addEventListener( 'focus', function () {
-		playBlink();
-	} );
-
-	// 有输入/聚焦：停止眨眼，先处理人（表单控件 focusin/focusout 冒泡）。
-	document.addEventListener( 'focusin', function ( event ) {
-		var target = event.target;
-		if ( target && target.matches && target.matches( 'input, textarea, select, button' ) ) {
-			stopIdle();
-		}
-	} );
-	document.addEventListener( 'focusout', function () {
-		startIdle();
-	} );
-
-	startIdle();
 
 	/* -----------------------------------------------------------------
 	 * M1 · Tab⑥ 统计重置（AJAX + nonce + confirm；03 §6 后台操作安全约定）

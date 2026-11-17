@@ -295,6 +295,7 @@ namespace WinkGatekeeper\Tests {
 	use WinkGatekeeper\Settings\DriverPrivacy;
 	use WinkGatekeeper\Settings\Sanitize;
 	use WinkGatekeeper\Settings\SettingsPage;
+	use WinkGatekeeper\Audit\ExistingAuditWorker;
 	use WinkGatekeeper\Settings\SettingsSchema;
 	use WinkGatekeeper\UrlAudit\UrlAuditWorker;
 
@@ -883,12 +884,30 @@ namespace WinkGatekeeper\Tests {
 		 * ⑨ 版本钉（Q6 裁定：0.7.4→0.8.0——功能面扩容按里程碑位进位）
 		 * =============================================================== */
 
+		/* 【M6·批H4·补钉】体检工厂 openai_custom 解析钉（E 批漏配面——手测二轮实测抓获：
+		 * Tab⑦ 误报「云端审核还没配置」+无开始钮；同型二犯对照 M5·C2 deepseek 漏登记）。 */
+		public function test_h4_existing_audit_factory_resolves_openai_custom(): void {
+			$settings = SettingsSchema::defaults();
+			$settings['review']['cloud']['enabled'] = true;
+			$settings['review']['cloud']['chain']   = array( 'openai_custom' );
+			$settings['review']['cloud']['openai_custom'] = array_merge(
+				is_array( $settings['review']['cloud']['openai_custom'] ?? null ) ? $settings['review']['cloud']['openai_custom'] : array(),
+				array( 'api_key' => 'sk-x', 'base_url' => 'https://ep.example.com/v1', 'model' => 'gpt-6' )
+			);
+
+			$resolved = ( new ExistingAuditWorker( $settings ) )->default_driver_factory();
+			$this->assertNotNull( $resolved, '【H4 补钉】chain=openai_custom 解析出驱动（原恒 null 误报未配置）' );
+			$this->assertSame( 'openai_custom', $resolved['id'] );
+			$this->assertInstanceOf( OpenAiCustomReviewDriver::class, $resolved['driver'] );
+			$this->assertTrue( ExistingAuditWorker::has_driver( $settings ), 'has_driver=真（开始体检钮前置闸开）' );
+		}
+
 		public function test_version_four_spot_sync(): void {
 			$entry = self::source( 'wink-wp-gatekeeper.php' );
-			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.0$/m', $entry, '插件头 Version 须为 0.8.0' );
-			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.0' )", $entry, '版本常量须为 0.8.0' );
+			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.1$/m', $entry, '插件头 Version 须为 0.8.0' );
+			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.1' )", $entry, '版本常量须为 0.8.0' );
 			$readme = self::source( 'readme.txt' );
-			self::assertMatchesRegularExpression( '/^Stable tag: 0\.8\.0$/m', $readme, 'readme Stable tag 须为 0.8.0' );
+			self::assertMatchesRegularExpression( '/^Stable tag: 0\.8\.1$/m', $readme, 'readme Stable tag 须为 0.8.0' );
 			self::assertStringContainsString( '= 0.8.0 =', $readme, 'Changelog 须有 0.8.0 条目' );
 		}
 	}

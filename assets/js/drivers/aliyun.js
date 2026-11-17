@@ -285,7 +285,18 @@
 					slideStyle: { width: 320, height: 40 }, // 官方最小 320px（05 §1.2）。
 					language: 'cn',
 					getInstance: function ( instance ) {
-						// captcha.show()/hide() 编程控制预留（当前流程 SDK 自管）。
+						/* 【M6·批H4·H4-1】popup 形态初始化不自动开层（SDK 等 button 下一次点击）
+						 * ——而首次点击已被适配器 show() 消费于 SDK 加载+初始化，用户须再点
+						 * 一次才弹层（手测二轮 F2 两步点击根因）。此处主动开层补足一步到位；
+						 * embed 形态无层可开不适用。instance.show() 为静态推断 API——try 防御，
+						 * 真机复验挂手测卡。 */
+						if ( 'popup' === mode && instance && 'function' === typeof instance.show ) {
+							try {
+								instance.show();
+							} catch ( e ) {
+								/* 开层失败不阻塞：SDK 自管路径仍在（button 再点可弹）。 */
+							}
+						}
 					},
 					success: function ( captchaVerifyParam ) {
 						onParam( captchaVerifyParam );

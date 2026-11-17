@@ -97,15 +97,15 @@ final class B1bContractTest extends TestCase {
 		$this->assertMatchesRegularExpression( "/return date\( 'Y-m-d H:i:s', \\\$timestamp \);/", $src );
 	}
 
-	/* ---------- 版本三处同步（R1 G7）——【M6·批E】版本钉翻转 0.7.4→0.8.0（本批=M6·批E openai_custom 自定义 OpenAI 兼容端点驱动实装〔设计=M6E-openaicustom-实装-设计草案-2026-11-17+开放问题裁定 R1/Q1-Q6——Q6 版本位进位 0.8.0〕——上批 H3 翻转=0.7.3→0.7.4）——【M6·批H3】版本钉翻转 0.7.3→0.7.4（本批=M6·批H3 UI 小批四件（A Tab② 未配置 notice+B 体检运行中黄条+C 原因明细去向+D 谁拦的复核块）——上批 H2 翻转=0.7.2→0.7.3）——【M6·批I】版本钉翻转 0.7.1→0.7.2（本批=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）——上批 H 翻转=0.7.0→0.7.1）——【M6·批H】版本钉翻转 0.7.0→0.7.1（本批=UI 与语义小批九件 H——上批 G 翻转=0.6.9→0.7.0）——【M6·批G】版本钉翻转 0.6.9→0.7.0（本批=文档收口批 G——上批 F-b 翻转=0.6.8→0.6.9）（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16） ---------- */
+	/* ---------- 版本三处同步（R1 G7）——【M6·批H4】版本钉翻转 0.8.0→0.8.1（本批=M6·批H4 手测二轮修正五件——上批 E 翻转=0.7.4→0.8.0）——【M6·批E】版本钉翻转 0.7.4→0.8.0（本批=M6·批E openai_custom 自定义 OpenAI 兼容端点驱动实装〔设计=M6E-openaicustom-实装-设计草案-2026-11-17+开放问题裁定 R1/Q1-Q6——Q6 版本位进位 0.8.0〕——上批 H3 翻转=0.7.3→0.7.4）——【M6·批H3】版本钉翻转 0.7.3→0.7.4（本批=M6·批H3 UI 小批四件（A Tab② 未配置 notice+B 体检运行中黄条+C 原因明细去向+D 谁拦的复核块）——上批 H2 翻转=0.7.2→0.7.3）——【M6·批I】版本钉翻转 0.7.1→0.7.2（本批=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）——上批 H 翻转=0.7.0→0.7.1）——【M6·批H】版本钉翻转 0.7.0→0.7.1（本批=UI 与语义小批九件 H——上批 G 翻转=0.6.9→0.7.0）——【M6·批G】版本钉翻转 0.6.9→0.7.0（本批=文档收口批 G——上批 F-b 翻转=0.6.8→0.6.9）（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16） ---------- */
 
 	public function test_version_is_bumped_to_0_2_4_in_three_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.0$/m', $entry, '插件头 Version 须为 0.8.0' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.0' )", $entry, '版本常量须为 0.8.0' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.0$/m', $readme, 'readme Stable tag 须为 0.8.0' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.1$/m', $entry, '插件头 Version 须为 0.8.1' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.1' )", $entry, '版本常量须为 0.8.1' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.1$/m', $readme, 'readme Stable tag 须为 0.8.1' );
 		$this->assertStringContainsString( '= 0.3.0 =', $readme, 'Changelog 须有 0.3.0 条目' );
 		$this->assertStringContainsString( 'F4-4', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-6', $readme, 'Changelog 须含设计锚点' );

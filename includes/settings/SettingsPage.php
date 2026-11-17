@@ -4,7 +4,7 @@
  *
  * - register_setting 的 sanitize 回调桥到纯逻辑层 Sanitize::clean()，
  *   再经 SettingsSchema::merge_defaults() 补全默认树（schema_version 收口）；
- * - 渲染：Night #111114 品牌页头 + 眨眼 logo + 七 Tab 骨架（M0：区块占位，
+ * - 渲染：Night #111114 品牌页头 + 静态 logo【M6·批H4·H4-5 眨眼动效退役】+ 七 Tab 骨架（M0：区块占位，
  *   总览放「今日拦截」静态占位卡）；
  * - 安全线：settings_fields（nonce）、manage_options、esc_html/esc_attr 全覆盖。
  *
@@ -445,11 +445,11 @@ final class SettingsPage {
 		<div class="wrap wk-wrap">
 			<header class="wk-header">
 				<div class="wk-header-brand">
+					<?php /* 【M6·批H4·H4-5】眨眼源属性退役（静态版 logo——用户拍板，手测二轮 F1）。 */ ?>
 					<img
 						id="wk-brand-logo"
 						class="wk-logo"
 						src="<?php echo esc_url( WINK_GATEKEEPER_URL . 'assets/brand/logo-wink.svg' ); ?>"
-						data-blink-src="<?php echo esc_url( WINK_GATEKEEPER_URL . 'assets/brand/logo-wink-blink.svg' ); ?>"
 						alt="<?php esc_attr_e( 'Wink 门口保安', 'wink-gatekeeper' ); ?>"
 						width="40" height="45" decoding="async"
 					/>
@@ -4556,6 +4556,9 @@ final class SettingsPage {
 			 * 上面四道同步防线）。 */
 			if ( $url_disposal['total'] > 0 ) :
 				?>
+			<?php /* 【M6·批H4·H4-4】复核块套防线组标题（手测二轮⑭打回：裸卡与四道防线
+			 * 「h4 分组+卡」节奏不齐观感诡异——对齐组结构）。 */ ?>
+			<h4 class="wk-defense-group"><?php esc_html_e( '发布后复核防线（网址核查）', 'wink-gatekeeper' ); ?></h4>
 			<div class="wk-driver-card" id="wk-stats-url-intercept-block">
 				<p><strong><?php echo esc_html__( '网址核查（复核处置）', 'wink-gatekeeper' ); // phpcs:ignore WordPress.Security.EscapeOutput -- esc_html__ 已转义。 ?></strong> <span class="wk-muted"><?php esc_html_e( '——评论发布后复核网址；判违规与没看清都拦下等你复核', 'wink-gatekeeper' ); ?></span></p>
 				<p><?php
@@ -5159,9 +5162,9 @@ final class SettingsPage {
 		?>
 		<section class="wk-card" id="wk-tools-existing-audit-card">
 			<h2><?php esc_html_e( '历史评论体检', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '把站里已有的评论整体交服务商再查一遍：判违规的进垃圾箱、没看清的进待审，都能手动恢复；没问题的不动。报告就展示在本卡下方。', 'wink-gatekeeper' ); ?></p>
-			<p class="wk-muted"><?php esc_html_e( '红线注：体检只按「昵称+正文」送审，邮箱与网址不进入送审内容（邮箱剔除纪律；网址核查是另一条线）。', 'wink-gatekeeper' ); ?></p>
 			<?php
+			/* 【M6·批H4·H4-2】状态取值+运行中黄条上移卡顶（h2 后第一元素——与网址核查
+			 * 黄条同位；手测二轮⑫打回：原在中部状态行位观感割裂）。 */
 			$worker  = self::audit_worker();
 			$prog    = $worker->status();
 			$st      = $prog['status'] ?? 'idle';
@@ -5209,8 +5212,7 @@ final class SettingsPage {
 					$actions['start'] = __( '开始体检', 'wink-gatekeeper' );
 				}
 			}
-			?>
-			<?php /* 【M6·批H3·H3-B】运行中黄条统一（手测反馈 B）：running/quota_paused 态
+			/* 【M6·批H3·H3-B】运行中黄条统一（手测反馈 B）：running/quota_paused 态
 			 * 升级 notice-warning（与网址核查运行中黄条同形态）；paused/completed/idle
 			 * 保持文本行（非运行态）。 */ ?>
 			<?php if ( 'running' === $st || 'quota_paused' === $st ) : ?>
@@ -5223,6 +5225,8 @@ final class SettingsPage {
 				<?php esc_html_e( '云端审核还没配置——先到 Tab③ 配置并启用服务商，再发起体检。', 'wink-gatekeeper' ); ?>
 			</p></div>
 			<?php endif; ?>
+			<p class="wk-muted"><?php esc_html_e( '把站里已有的评论整体交服务商再查一遍：判违规的进垃圾箱、没看清的进待审，都能手动恢复；没问题的不动。报告就展示在本卡下方。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( '红线注：体检只按「昵称+正文」送审，邮箱与网址不进入送审内容（邮箱剔除纪律；网址核查是另一条线）。', 'wink-gatekeeper' ); ?></p>
 			<p>
 			<?php foreach ( $actions as $op => $label ) : ?>
 				<?php
@@ -5388,9 +5392,16 @@ final class SettingsPage {
 			<?php endif; ?>
 			<p class="wk-muted"><?php esc_html_e( '把站里已有评论中的网站地址交「网址核查」全部重查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。', 'wink-gatekeeper' ); ?></p>
 			<p class="wk-muted"><?php esc_html_e( '每日额度用完自动暂停（次日自动接着查）：判违规的进垃圾箱、没看清的进待审，都能手动恢复。', 'wink-gatekeeper' ); ?></p>
+			<?php /* 【M6·批H4·H4-3】未开启态抽独立黄条（手测二轮⑦附：提示族统一黄条形态）；
+			 * 排队/空闲两态保留文本行。 */ ?>
+			<?php if ( ! $url_audit_on ) : ?>
+			<div class="notice notice-warning inline" id="wk-tools-url-audit-off-notice"><p>
+				<?php esc_html_e( '网址核查未开启——先到「云端审核」页开启「网址核查」，再回来发起存量核查。', 'wink-gatekeeper' ); ?>
+			</p></div>
+			<?php endif; ?>
 			<p id="wk-tools-url-audit-state-line" class="wk-muted">
 				<?php if ( ! $url_audit_on ) : ?>
-					<?php esc_html_e( '网址核查未开启——先到「云端审核」页开启「网址核查」，再回来发起存量核查。', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( '（开启后这里可发起存量核查。）', 'wink-gatekeeper' ); ?>
 				<?php elseif ( $backlog_count > 0 ) : ?>
 					<?php
 					printf(
