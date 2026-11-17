@@ -1097,11 +1097,15 @@ final class UrlAuditWorker {
 			// 归堆先于渲染截断，聚合侧同规约全消费面生效）。
 			$reason = \WinkGatekeeper\Stats\InterceptDigest::truncate_reason( $reason );
 			$ev     = 'search' === (string) ( $meta['evidence'] ?? '' ) ? 'search' : '';
-			$key    = $reason . '|' . $ev;
+			/* 【M6·批H3·H3-C】归堆键扩处置去向维度（行尾「→ 垃圾箱/→ 待审核」）：reject→
+			 * spam、review+inconclusive→hold（disposal_existing 矩阵一致）；同原因不同
+			 * 去向拆行。 */
+			$disposal = 'reject' === $verdict ? 'spam' : 'hold';
+			$key    = $reason . '|' . $ev . '|' . $disposal;
 			if ( isset( $reasons[ $key ] ) ) {
 				++$reasons[ $key ]['n'];
 			} else {
-				$reasons[ $key ] = array( 'reason' => $reason, 'n' => 1, 'evidence' => $ev );
+				$reasons[ $key ] = array( 'reason' => $reason, 'n' => 1, 'evidence' => $ev, 'disposal' => $disposal );
 			}
 		}
 		uasort( $reasons, static fn( $a, $b ) => $b['n'] <=> $a['n'] );

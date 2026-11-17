@@ -633,13 +633,22 @@ final class ExistingAuditWorker {
 				if ( '' === $reason ) {
 					$reason = '（无原因说明）';
 				}
-				$reasons[ $reason ] = ( $reasons[ $reason ] ?? 0 ) + 1;
+				/* 【M6·批H3·H3-C】归堆键扩处置去向维度（手测反馈 C：行尾「→ 垃圾箱/
+				 * → 待审核」）：同原因不同去向拆行——去向如实（reject→spam/review→hold
+				 * 与 disposal_for_verdict 矩阵一致）。 */
+				$disposal = 'reject' === $verdict ? 'spam' : 'hold';
+				$key      = $reason . '|' . $disposal;
+				if ( isset( $reasons[ $key ] ) ) {
+					++$reasons[ $key ]['n'];
+				} else {
+					$reasons[ $key ] = array( 'reason' => $reason, 'n' => 1, 'disposal' => $disposal );
+				}
 			}
 		}
-		arsort( $reasons );
+		uasort( $reasons, static fn( $a, $b ) => $b['n'] <=> $a['n'] );
 		$out = array();
-		foreach ( array_slice( $reasons, 0, 10, true ) as $reason => $n ) {
-			$out[] = array( 'reason' => $reason, 'n' => $n );
+		foreach ( array_slice( $reasons, 0, 10, true ) as $row ) {
+			$out[] = $row;
 		}
 		return array( 'counts' => $counts, 'reasons' => $out );
 	}

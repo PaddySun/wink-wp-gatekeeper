@@ -1137,6 +1137,16 @@ final class SettingsPage {
 			echo '<div class="notice notice-warning inline"><p><strong>' . esc_html( $notice ) . '</strong></p></div>';
 		}
 
+		/* 【M6·批H3·H3-A】驱动未配置 notice 补位（手测反馈 A：Tab② 顶部也提示——此前
+		 * 仅 Tab① 总览兜底；U-1 式形态，文案与 Tab① 同义）。 */
+		if ( '' === $active ) {
+			echo '<div class="notice notice-warning inline" id="wk-captcha-unconfigured-notice"><p><strong>'
+				. esc_html__( '人机验证还没选服务商', 'wink-gatekeeper' )
+				. '</strong>——'
+				. esc_html__( '机器人不会被出题拦住；评论仍受站内规矩把关，请在下方「驱动选择」中挑选。', 'wink-gatekeeper' )
+				. '</p></div>';
+		}
+
 		$area     = CaptchaTabSpec::config_area_state( $active );
 		$dots     = CaptchaTabSpec::dot_labels();
 		$options  = CaptchaTabSpec::driver_options(
@@ -4354,12 +4364,33 @@ final class SettingsPage {
 			<?php endforeach; ?>
 			<p class="wk-muted"><?php esc_html_e( '放行=推算值（今日动作数−拦下−转人工−出错）。', 'wink-gatekeeper' ); ?></p>
 
+			<?php
+			/* 【M6·批H·H-9】网址核查今日处置数据源（meta 反查——零新事件零写放大，事件表
+			 * 拦截口径保持纯净 P1-4 不稀释）；【M6·批H3·H3-D】取值上移一次反查两处消费
+			 * （H-9 头部行+H3-D「谁拦的」复核块）；零处置=两处均不渲染（K 系纪律）。 */
+			$url_disposal = ( new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $settings ?? array() ) )->today_disposal_line();
+			/* 【M6·批H3·H3-D】网址核查复核处置块（手测反馈 D；用户拍板口径：转待审也算拦）
+			 * ——「谁拦的（按拦截链顺序）」区尾殿后块（复核处置不在同步链上故殿后，区别于
+			 * 上面四道同步防线）。 */
+			if ( $url_disposal['total'] > 0 ) :
+				?>
+			<div class="wk-driver-card" id="wk-stats-url-intercept-block">
+				<p><strong><?php echo esc_html__( '网址核查（复核处置）', 'wink-gatekeeper' ); // phpcs:ignore WordPress.Security.EscapeOutput -- esc_html__ 已转义。 ?></strong> <span class="wk-muted"><?php esc_html_e( '——评论发布后复核网址；判违规与没看清都拦下等你复核', 'wink-gatekeeper' ); ?></span></p>
+				<p><?php
+					printf(
+						/* translators: 1: spam 2: hold */
+						esc_html__( '今日判进垃圾箱 %1$d 条 · 转待审 %2$d 条', 'wink-gatekeeper' ),
+						(int) $url_disposal['spam'],
+						(int) $url_disposal['hold']
+					);
+				?></p>
+			</div>
+			<?php endif; ?>
+
 			<h3 class="wk-sub-title"><?php esc_html_e( '最近拦下的评论（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
 			<?php
 			/* 【M6·批H·H-9】网址核查今日处置汇总行（区头部——「网址核查今日处置 N 条
-			 * （垃圾箱 X·待审 Y）→ 查看详情」深链工具页报告锚）。数据源=meta 反查（零新事件
-			 * 零写放大——事件表拦截口径保持纯净 P1-4 不稀释）；零处置=整行不显（K 系纪律）。 */
-			$url_disposal = ( new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $settings ?? array() ) )->today_disposal_line();
+			 * （垃圾箱 X·待审 Y）→ 查看详情」深链工具页报告锚）。 */
 			if ( $url_disposal['total'] > 0 ) :
 				?>
 			<p id="wk-stats-url-disposal-line" class="wk-muted"><?php
@@ -4997,7 +5028,14 @@ final class SettingsPage {
 				}
 			}
 			?>
+			<?php /* 【M6·批H3·H3-B】运行中黄条统一（手测反馈 B）：running/quota_paused 态
+			 * 升级 notice-warning（与网址核查运行中黄条同形态）；paused/completed/idle
+			 * 保持文本行（非运行态）。 */ ?>
+			<?php if ( 'running' === $st || 'quota_paused' === $st ) : ?>
+			<div class="notice notice-warning inline" id="wk-tools-audit-running-bar"><p><?php echo esc_html( $line ); ?></p></div>
+			<?php else : ?>
 			<p id="wk-tools-audit-state-line" class="wk-muted"><?php echo esc_html( $line ); ?></p>
+			<?php endif; ?>
 			<?php if ( 'idle' === $st && ! $has_driver ) : ?>
 			<div class="notice notice-warning inline" id="wk-tools-audit-no-driver-notice"><p>
 				<?php esc_html_e( '云端审核还没配置——先到 Tab③ 配置并启用服务商，再发起体检。', 'wink-gatekeeper' ); ?>
@@ -5124,8 +5162,14 @@ final class SettingsPage {
 						<p><?php
 							$parts = array();
 							foreach ( $rep_data['reasons'] as $row ) {
-								// 【M6·批H·H-8】截断展示补「…」省略号（单点件全消费面生效）。
-								$parts[] = sprintf( '「%s」%d 条', esc_html( self::truncate_reason( (string) $row['reason'] ) ), (int) $row['n'] );
+								// 【M6·批H·H-8】截断展示补「…」省略号（单点件全消费面生效）；
+								// 【M6·批H3·H3-C】行尾补处置去向（→ 垃圾箱/→ 待审核——去向词常量安全）。
+								$parts[] = sprintf(
+									'「%s」%d 条 → %s',
+									esc_html( self::truncate_reason( (string) $row['reason'] ) ),
+									(int) $row['n'],
+									'spam' === (string) ( $row['disposal'] ?? 'hold' ) ? '垃圾箱' : '待审核'
+								);
 							}
 							echo esc_html( implode( ' · ', $parts ) ); // XSS 红线：原因=攻击者可控（AI 原文/驱动透传）——转义+截断。
 						?></p>
@@ -5290,12 +5334,13 @@ final class SettingsPage {
 								$url_prefix = 'search' === (string) ( $url_reason_row['evidence'] ?? '' )
 									? __( '网址打不开，依据搜索线索判定', 'wink-gatekeeper' )
 									: '';
-								$url_parts[] = sprintf(
-									'%2$s「%1$s」%3$d 条',
-									self::truncate_reason( (string) ( $url_reason_row['reason'] ?? '' ) ), // 【M6·批H·H-8】截断补「…」（单点件）。
-									'' !== $url_prefix ? '【' . $url_prefix . '】' : '',
-									(int) ( $url_reason_row['n'] ?? 0 )
-								);
+							$url_parts[] = sprintf(
+								'%2$s「%1$s」%3$d 条 → %4$s',
+								self::truncate_reason( (string) ( $url_reason_row['reason'] ?? '' ) ), // 【M6·批H·H-8】截断补「…」（单点件）。
+								'' !== $url_prefix ? '【' . $url_prefix . '】' : '',
+								(int) ( $url_reason_row['n'] ?? 0 ),
+								'spam' === (string) ( $url_reason_row['disposal'] ?? 'hold' ) ? '垃圾箱' : '待审核' // 【M6·批H3·H3-C】行尾处置去向。
+							);
 							}
 							echo esc_html( implode( ' · ', $url_parts ) ); // XSS 红线：单次转义收口。
 						?></p>

@@ -259,14 +259,14 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringNotContainsString( '本地规则无外部故障面', $bodies, '恒正常黑话退役（对照表 B-7）' );
 	}
 
-	/* ---------- 版本 0.7.3（随批次推进同步——当前 0.7.3=M6·批H2 抛光小批两件（H2-1 未来驱动显示名映射源统一+H2-2 DeepSeek 抓取连续未成功风险标记）【0.7.2=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）【0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」】；F2·M4UX UI 收官批 定稿 §3 历史面） ---------- */
+	/* ---------- 版本 0.7.4（随批次推进同步——当前 0.7.4=M6·批H3 UI 小批四件（A 未配置 notice+B 运行中黄条+C 明细去向+D 复核块）【0.7.3=M6·批H2 抛光小批两件【0.7.2=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）【0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」】；F2·M4UX UI 收官批 定稿 §3 历史面） ---------- */
 
 	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.3$/m', $entry, '插件头 Version 0.7.3' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.3' )", $entry, '版本常量 0.7.3' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.3$/m', $readme, 'readme Stable tag 0.7.3' );
-		$this->assertStringContainsString( '= 0.7.3 =', $readme, 'Changelog 0.7.3 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.4$/m', $entry, '插件头 Version 0.7.4' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.4' )", $entry, '版本常量 0.7.4' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.4$/m', $readme, 'readme Stable tag 0.7.4' );
+		$this->assertStringContainsString( '= 0.7.4 =', $readme, 'Changelog 0.7.4 条目' );
 	}
 }

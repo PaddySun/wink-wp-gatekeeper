@@ -97,15 +97,15 @@ final class B1bContractTest extends TestCase {
 		$this->assertMatchesRegularExpression( "/return date\( 'Y-m-d H:i:s', \\\$timestamp \);/", $src );
 	}
 
-	/* ---------- 版本三处同步（R1 G7）——【M6·批H2】版本钉翻转 0.7.2→0.7.3（本批=M6·批H2 抛光小批两件（H2-1 未来驱动显示名映射源统一+H2-2 DeepSeek 抓取连续未成功风险标记）——上批 I 翻转=0.7.1→0.7.2）——【M6·批I】版本钉翻转 0.7.1→0.7.2（本批=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）——上批 H 翻转=0.7.0→0.7.1）——【M6·批H】版本钉翻转 0.7.0→0.7.1（本批=UI 与语义小批九件 H——上批 G 翻转=0.6.9→0.7.0）——【M6·批G】版本钉翻转 0.6.9→0.7.0（本批=文档收口批 G——上批 F-b 翻转=0.6.8→0.6.9）（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16） ---------- */
+	/* ---------- 版本三处同步（R1 G7）——【M6·批H3】版本钉翻转 0.7.3→0.7.4（本批=M6·批H3 UI 小批四件（A Tab② 未配置 notice+B 体检运行中黄条+C 原因明细去向+D 谁拦的复核块）——上批 H2 翻转=0.7.2→0.7.3）——【M6·批I】版本钉翻转 0.7.1→0.7.2（本批=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）——上批 H 翻转=0.7.0→0.7.1）——【M6·批H】版本钉翻转 0.7.0→0.7.1（本批=UI 与语义小批九件 H——上批 G 翻转=0.6.9→0.7.0）——【M6·批G】版本钉翻转 0.6.9→0.7.0（本批=文档收口批 G——上批 F-b 翻转=0.6.8→0.6.9）（版本断言随批次推进更新——施工图 §1 每批一升，2026-11-16） ---------- */
 
 	public function test_version_is_bumped_to_0_2_4_in_three_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.3$/m', $entry, '插件头 Version 须为 0.7.3' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.3' )", $entry, '版本常量须为 0.7.3' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.3$/m', $readme, 'readme Stable tag 须为 0.7.3' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0.7.4$/m', $entry, '插件头 Version 须为 0.7.4' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.7.4' )", $entry, '版本常量须为 0.7.4' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0.7.4$/m', $readme, 'readme Stable tag 须为 0.7.4' );
 		$this->assertStringContainsString( '= 0.3.0 =', $readme, 'Changelog 须有 0.3.0 条目' );
 		$this->assertStringContainsString( 'F4-4', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-6', $readme, 'Changelog 须含设计锚点' );
