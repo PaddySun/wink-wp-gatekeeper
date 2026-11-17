@@ -28,8 +28,14 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( '您的评论正在接收检查', $js, '【H5-a】提交等待期提示文案在场' );
 			self::assertStringContainsString( "addEventListener( 'submit'", $js, 'submit 监听（真实提交触发）' );
 			self::assertStringContainsString( 'data-wk-submitting', $js, 'form 级防重复标志（双容器幂等）' );
-			// 提示走既有 wk-gate-msg 通道（textContent 注入——XSS 红线继承）。
-			self::assertStringContainsString( 'showMsgBar', $js, '复用 wk-gate-msg 条（渐进增强通道）' );
+			// 【0.8.3 形态翻转】Toast 气泡（用户反馈弃评论区下方内联条）——showToast 单例
+			// +textContent 注入（XSS 红线）；不再消费 showMsgBar 内联条。
+			self::assertStringContainsString( 'function showToast', $js, 'Toast 函数（body 级单例）' );
+			$hint_block = substr( $js, (int) strpos( $js, "addEventListener( 'submit'" ), 700 );
+			self::assertStringContainsString( 'showToast(', $hint_block, '提交监听消费 Toast（非内联条）' );
+			$css = self::source( 'assets/css/front-gate.css' );
+			self::assertStringContainsString( '.wk-gate-toast', $css, 'Toast 样式（顶部居中浮层）' );
+			self::assertStringContainsString( 'position: fixed', $css, '浮层定位' );
 		}
 
 		public function test_h5b_admin_submit_floats(): void {

@@ -206,6 +206,23 @@
 		}
 	}
 
+	/* 【M6·批H5·H5-a】Toast 气泡（0.8.3 形态）：body 级单例——已存在即只更新文案
+	 * （双容器幂等）；textContent 注入（XSS 红线）；fixed 顶部居中淡入（样式在
+	 * front-gate.css .wk-gate-toast）；页面跳转自然带走，无清除逻辑。 */
+	function showToast( text ) {
+		var toast = document.getElementById( 'wk-gate-toast' );
+		if ( ! toast ) {
+			toast = document.createElement( 'div' );
+			toast.id = 'wk-gate-toast';
+			toast.className = 'wk-gate-toast';
+			toast.setAttribute( 'role', 'status' );
+			toast.setAttribute( 'aria-live', 'polite' );
+			( document.body || document.documentElement ).appendChild( toast );
+		}
+		toast.textContent = text;
+		toast.classList.add( 'wk-gate-toast--show' );
+	}
+
 	/* 【v1.5·F4-2】内联错误条清除调度（03 §2.1 v1.5 三清除时机——互不替代、全部实施）：
 	 *   ① 重新预检通过时清除（onTrustPass / releaseToAdapter 两成功分支）；
 	 *   ② 评论框/昵称/邮箱 input 事件防抖 MSG_CLEAR_MS=300ms 清除（内容变了旧错误无意义）；
@@ -539,15 +556,17 @@
 			markToken( container, false );
 		} );
 
-		/* 【M6·批H5·H5-a】真实提交等待期提示：表单原生 POST 发生（验证已过/预检放行）
-		 * 即为同步闸判定等待期（访客视角"转圈"）——内联提示条告知检查进行中+提交控件
-		 * 禁用防重复提交。form 级标志防双容器重复执行；服务端完成即自然跳转（结果页/
-		 * 拦截页），无需清除逻辑；无 JS/无验证码容器面不提示（渐进增强哲学）。 */
+		/* 【M6·批H5·H5-a】真实提交等待期提示（0.8.3 改 Toast 气泡形态——用户反馈不要
+		 * 评论区下方内联条）：表单原生 POST 发生（验证已过/预检放行）即为同步闸判定
+		 * 等待期（访客视角"转圈"）——页面顶部 Toast 气泡告知检查进行中+提交控件禁用
+		 * 防重复提交。form 级标志防双容器重复执行；Toast body 级单例幂等；服务端完成
+		 * 即自然跳转（结果页/拦截页），无需清除逻辑；无 JS/无验证码容器面不提示
+		 * （渐进增强哲学）。 */
 		var submitForm = container.closest ? ( container.closest( 'form' ) || null ) : null;
 		if ( submitForm && submitForm.getAttribute( 'data-wk-submitting' ) !== '1' ) {
 			submitForm.setAttribute( 'data-wk-submitting', '1' );
 			submitForm.addEventListener( 'submit', function () {
-				showMsgBar( container, window.wkGateL10n && window.wkGateL10n.checking_submit
+				showToast( window.wkGateL10n && window.wkGateL10n.checking_submit
 					? window.wkGateL10n.checking_submit
 					: '您的评论正在接收检查，请稍候……' );
 				submitControls( submitForm ).forEach( function ( control ) {

@@ -904,10 +904,10 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_version_four_spot_sync(): void {
 			$entry = self::source( 'wink-wp-gatekeeper.php' );
-			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.2$/m', $entry, '插件头 Version 须为 0.8.2' );
-			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.2' )", $entry, '版本常量须为 0.8.2' );
+			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.3$/m', $entry, '插件头 Version 须为 0.8.3' );
+			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.3' )", $entry, '版本常量须为 0.8.3' );
 			$readme = self::source( 'readme.txt' );
-			self::assertMatchesRegularExpression( '/^Stable tag: 0.8.2$/m', $readme, 'readme Stable tag 须为 0.8.2' );
+			self::assertMatchesRegularExpression( '/^Stable tag: 0\.8\.3$/m', $readme, 'readme Stable tag 须为 0.8.3' );
 			self::assertStringContainsString( '= 0.8.0 =', $readme, 'Changelog 须有 0.8.0 条目' );
 		}
 	}

@@ -234,3 +234,29 @@
 	width: 100%;
 	max-width: none;
 }
+
+/* 【M6·批H5·H5-a】提交等待期 Toast 气泡（0.8.3 形态——用户反馈弃评论区下方内联条）：
+ * 顶部居中浮层、深底白字、淡入上浮动画；页面跳转自然带走（无淡出清除——提交在途）。 */
+.wk-gate-toast {
+	position: fixed;
+	top: 24px;
+	left: 50%;
+	transform: translateX(-50%) translateY(-12px);
+	z-index: 99999;
+	max-width: min(92vw, 420px);
+	padding: 10px 20px;
+	border-radius: 8px;
+	background: rgba(17, 17, 20, 0.92);
+	color: #fff;
+	font-size: 14px;
+	line-height: 1.5;
+	text-align: center;
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+}
+.wk-gate-toast--show {
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
+}
