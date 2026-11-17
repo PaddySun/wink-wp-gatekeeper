@@ -26,11 +26,10 @@ jobs:
       - name: Validate composer.json
         run: composer validate --strict
 
-      # 【M6·批I·I-3】phpunit 版本钉注记：composer.lock 未入库（本机无 composer，生成
-      # 留档 Backlog）——composer.json 的 phpunit/phpunit 约束钉精确版 12.5.43（=本机
-      # phar 基线，2026-11-17 批 I），本步安装确定性不受浮动解析影响；其余 dev 依赖
-      # （phpcs/wpcs/phpstan）不涉 phpunit 步维持 ^ 浮动。lock 策略待有 composer 环境
-      # 时生成入库后本注记退役。
+      # 【W1·composer.lock 入库】2026-11-18 本机 composer.phar 2.11.1 + PHP 8.3.36 生成
+      # （`composer update --no-install`；phpunit/phpunit 钉 12.5.43 与批 I 约束一致，78 包，
+      # validate --strict 锁定新鲜度）。本步 composer install 走 lock 确定性安装——
+      # I-3 注记「lock 未入库浮动解析」前提退役；精确钉版语义不变。
       - name: Install dev dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 

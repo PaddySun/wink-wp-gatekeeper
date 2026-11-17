@@ -5,6 +5,7 @@
 #   sed -i 's/<TEST_HOST>/真实IP/g; s/<SSH_PORT>/真实端口/g; s#<SSH_KEY_PATH>#真实密钥路径#g' wpsh.sh
 # 详见同目录 README-SANITIZED.md。
 # wpsh.sh — 厦门测试站远程 wp-cli / shell 包装（06-真机测试计划 §5；沉淀：U2 agent）
+# ⚠ 目标站=厦门 wpclean-wp，非 B 机；B 机用 bsh.sh（paddy-tool/wordpress/bsh.sh）
 #
 # SSH 纪律（运维手册坑 4/5）：
 #   - 每次调用前从 /tmp/agent.env 恢复 SSH_AUTH_SOCK（agent 套接字失效会静默失败）

@@ -4,6 +4,8 @@
 
 位置：内层仓库 `tests/e2e/testkit/`（本目录）。规则（06 §3）：先复用后造轮；新工具必登记；工具只读厦门机；输出永不打印密钥值。
 
+【目标站声明（2026-11-18 勘误）】本表登记的 wpsh.sh/cfg.sh/events.sh/usage.sh/target-setup.sh 等工具全部只作用于**厦门测试站 wpclean-wp**（干净最小站）；**非 B 机**——B 机（Tailscale 别名 + 云 WAF 前置 + 独立 WP 容器）通道见 `paddy-tool/wordpress/bsh.sh`（本机工作副本 `testkit-local/bsh.sh`），两套通道目标站不同勿混用。
+
 ## 站点切换注记（2026-11-10，全工具生效）
 
 - **目标站不变**：`https://test.paddysun.top`（--resolve <TEST_HOST>，.env 域名未动）。

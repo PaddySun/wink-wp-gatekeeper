@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # cfg.sh — wink_gatekeeper_settings 配置读写/快照/恢复 + WP 核心 option 读写（沉淀：U2 agent）
+# ⚠ 目标站=厦门 wpclean-wp（经同目录 wpsh.sh 通道），非 B 机；B 机用 paddy-tool/wordpress/bsh.sh + wp-eval-verify.sh
 #
 # 设计：变量一律 base64 载荷注入 PHP（只插值 base64 字符集，零引号风险）。
 # 输出永不出现密钥明文（get 自动打码 secret/key/token/password/app_id；set 只回显路径）。
