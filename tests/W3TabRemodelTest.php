@@ -276,7 +276,8 @@ final class W3TabRemodelTest extends TestCase {
 		$missing  = array_diff( $baseline, $current );
 		self::assertSame( array(), array_values( $missing ), '字段 name 零减员（重组不得丢字段=保存静默丢键）。缺失：' . implode( ', ', $missing ) );
 		// 逆向也断言：不得出现基线与显式登记两新键之外的新 name（防顺手加未登记键）。
-		$allowed_new = array( 'coexist.hcaptcha_yield_comment', 'coexist.hcaptcha_yield_login', 'captcha.error_policy' );
+		// 【W3·批C】+ captcha.aliyun.region（N2 实键 radio——schema v3 新键登记入列）。
+		$allowed_new = array( 'coexist.hcaptcha_yield_comment', 'coexist.hcaptcha_yield_login', 'captcha.error_policy', 'captcha.aliyun.region' );
 		$unexpected  = array_diff( $current, $baseline, $allowed_new );
 		self::assertSame( array(), array_values( $unexpected ), '未登记新 name（须走 schema 评审）：' . implode( ', ', $unexpected ) );
 	}
@@ -317,10 +318,12 @@ final class W3TabRemodelTest extends TestCase {
 		// 折叠壳退役：原「高级：阈值/窗口/IP 信誉联动/XML-RPC」summary 文案退役。
 		self::assertStringNotContainsString( '高级：阈值 / 窗口 / IP 信誉联动 / XML-RPC', $captcha, '登录高级折叠 summary 退役（升独立卡）' );
 
-		// 阿里卡 ⚙ 折叠（error_policy 实键新接线 + region 现状说明）。
+		// 阿里卡 ⚙ 折叠（error_policy 实键新接线 + region 实键 radio【W3·批C·N2 落位】）。
 		self::assertStringContainsString( 'id="wk-aliyun-advanced"', $captcha, '阿里卡 ⚙ 高级配置折叠锚' );
 		self::assertStringContainsString( "'captcha', 'error_policy'", $captcha, 'error_policy 实键渲染（schema+sanitize 既有通道——coexist 同类新接线）' );
-		self::assertStringContainsString( 'region 恒 cn', $captcha, 'region 现状口径说明（显式选择=批 C 实装）' );
+		// 【W3·批C·N2 翻转】region 现状口径行 → 实键 radio（cn 默认/sgp 海外，ENDPOINT_MAP 双端联动）。
+		self::assertStringContainsString( "'captcha', 'aliyun', 'region'", $captcha, 'region 实键 radio（cn|sgp 默认 cn——规划位退役）' );
+		self::assertStringContainsString( '切换后建议点测试凭据', $captcha, 'region 变更提示（须与服务端一致）' );
 
 		// 演练模式黄条+二次确认迁驱动卡区顶部常显位（原在天御卡内=选中才显）。
 		$pos_tm   = strpos( $captcha, 'id="wk-test-mode"' );

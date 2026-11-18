@@ -214,6 +214,11 @@ final class Bootstrap {
 		add_action( 'admin_post_' . SettingsPage::ACTION_AUDIT_RESUME, array( SettingsPage::class, 'handle_audit_action' ) );
 		add_action( 'admin_post_' . SettingsPage::ACTION_AUDIT_RESET, array( SettingsPage::class, 'handle_audit_action' ) );
 
+		// 【W3·批C·R5】首启向导完成/跳过出口（GET 链接 wp_nonce_url——manage_options+nonce
+		// 双闸在 handler；完成置 done / 跳过置 skipped，均不可逆——R5）。
+		add_action( 'admin_post_' . SettingsPage::ACTION_WIZARD_DONE, array( SettingsPage::class, 'handle_wizard_finish' ) );
+		add_action( 'admin_post_' . SettingsPage::ACTION_WIZARD_SKIP, array( SettingsPage::class, 'handle_wizard_skip' ) );
+
 		// 【M5·U3】存量审核 cron 面：自定义 interval + tick worker（发起/继续时由
 		// SettingsPage::audit_schedule_tick 排期；CLI 通道为主、cron 为站长侧补充）。
 		add_filter(
@@ -1298,7 +1303,10 @@ final class Bootstrap {
 			// 施工图 §5 风险 3 / R9 口径——M5FixAssetVerTest CSS 形态钉同步）。
 			// 【W3·批B】本批 JS 内容变化（八 Tab 重组绑定面注记——M5Fix 纪律批内递进）
 			// → -w3b1。
-			WINK_GATEKEEPER_VERSION . '-w3b1',
+			// 【W3·批C】本批 JS 内容变化（首启向导交互模块——stepper 显隐/radio-card .on
+			// 同步/下一步 referer 改写/驱动·云审卡面显隐）→ -w3c1（M5Fix 纪律批内递进；
+			// 0.8.5 进位一次击穿在批 D 收口）。
+			WINK_GATEKEEPER_VERSION . '-w3c1',
 			true
 		);
 	}

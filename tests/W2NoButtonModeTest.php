@@ -167,9 +167,12 @@ final class W2NoButtonModeTest extends TestCase {
 
 	public function test_aliyun_render_button_flow_is_byte_identical_classic(): void {
 		// 经典形态（button）产物与 0.8.3 逐字节同构——经典回归锚（含 embed 挂载点尾段）。
+		// 【W3·批C·N2 翻转注记】+ data-wk-region="cn"（region 双端联动面——非经典行为面
+		// 变化：缺键渲染回落 cn=现行前端 region 参数同值；其余字节与 0.8.3 同构）。
 		$expected = '<span class="wk-gate" data-gate="comment" data-driver="aliyun"'
 			. ' data-interaction="click"'
 			. ' data-mode="embed"'
+			. ' data-wk-region="cn"'
 			. ' data-token-fields="wk_captcha_verify_param"'
 			. ' data-scene-id="scene-9"'
 			. ' data-prefix="wkpre">'
@@ -182,7 +185,7 @@ final class W2NoButtonModeTest extends TestCase {
 			. '<noscript>需要启用 JavaScript 完成人机验证。</noscript>'
 			. '</span>'
 			. '<div class="wk-gate-embed" hidden><div id="wk-captcha-element-comment"></div></div>';
-		$this->assertSame( $expected, self::aliyun( 'button' )->render( array( 'gate' => 'comment', 'stub' => 'STUBSIG' ) ), 'button 形态产物与 0.8.3 逐字节同构（经典回归锚）' );
+		$this->assertSame( $expected, self::aliyun( 'button' )->render( array( 'gate' => 'comment', 'stub' => 'STUBSIG' ) ), 'button 形态产物与 0.8.3 同构 + region 属性新增（N2——经典回归锚其余字节不变）' );
 	}
 
 	/* ---------- ③b render 契约：Q6 腾讯同批 ---------- */
@@ -222,6 +225,12 @@ final class W2NoButtonModeTest extends TestCase {
 			substr_count( $body, "'captcha', 'submit_flow'" ),
 			'radio 组恰好一组（两选项共用同名 name——不多不少）'
 		);
+
+		// 【W3·批C·R5 锚加宽】首启向导步二（人机验证面板）第二 radio 位——向导字段名
+		// 与 Tab② 同名同键（N5 红线；同一保存通道）。
+		$wiz = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_wizard' );
+		$this->assertStringContainsString( "'captcha', 'submit_flow'", $wiz, '向导步二提交触发形态 radio（Tab② 同名同键第二位）' );
+		$this->assertStringContainsString( '无按钮模式', $wiz, '向导 on_submit 选项文案（推荐 · 默认）' );
 	}
 
 	/* ---------- ⑤ front-gate.css hidden 补丁 ---------- */

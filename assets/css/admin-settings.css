@@ -1286,3 +1286,52 @@ details.adv .gsteps {
 .wk-flow-demo .wk-flow-step.on {
 	opacity: 1;
 }
+
+/* ---------- 向导步面支持样式（【W3·批C】radio-card/骨架类族的消费配套——批 D 0.8.5
+ * 进位一次击穿，本批不 bump） ----------
+ * radio-card 原生 radio 视觉隐藏（rc-dot 承载视觉——label 包裹保键盘可切换，
+ * focus-within 显环）；wizard-foot/frow/head 为步面布局钩子。 */
+.radio-card input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.radio-card:focus-within {
+	border-color: var(--gold-line);
+	outline: 1px solid var(--gold-line);
+}
+
+.wk-wizard .wizard-head {
+	text-align: center;
+	margin: 0 0 0.8rem;
+}
+
+.wk-wizard .wizard-foot {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	margin-top: 1.2rem;
+	padding-top: 1rem;
+	border-top: 1px dashed var(--line);
+}
+
+.wk-wizard .wizard-foot .button {
+	vertical-align: middle;
+}
+
+.wk-wizard .wizard-frow {
+	margin-top: 1rem;
+	padding-top: 0.5rem;
+}
+
+.wk-wizard .wizard-exit {
+	margin-top: 0.8rem;
+	text-align: right;
+}
+
+.wk-wizard .wk-flow-note {
+	margin: 0.4rem 0.8rem 0.6rem;
+}

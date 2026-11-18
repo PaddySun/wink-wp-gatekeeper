@@ -26,7 +26,7 @@ final class SettingsSchemaTest extends TestCase {
 		$d = SettingsSchema::defaults();
 
 		$checks = array(
-			array( array( 'schema_version' ), 2 ),
+			array( array( 'schema_version' ), 3 ), // 【W3·批C】v3（region 新键/mode 平移/N6 双额度平移）。
 
 			array( array( 'gates', 'comment', 'enabled' ), true ),
 			array( array( 'gates', 'comment', 'render_mode' ), 'always' ),
@@ -95,8 +95,9 @@ final class SettingsSchemaTest extends TestCase {
 			array( array( 'iprep', 'abuseipdb', 'suspect_score' ), 60 ),
 			array( array( 'iprep', 'abuseipdb', 'malicious_score' ), 85 ),
 			array( array( 'iprep', 'abuseipdb', 'cache_minutes' ), 1440 ),
-			array( array( 'iprep', 'abuseipdb', 'soft_quota' ), 3000 ),
-			array( array( 'iprep', 'abuseipdb', 'daily_quota' ), 4750 ),
+			// 【W3·批C·N6 翻转注记】双额度默认 3000/4750→900/950（免费档 1000/天留 5%——拍板统一口径；存量特征值平移 migrate ⑧）。
+			array( array( 'iprep', 'abuseipdb', 'soft_quota' ), 900 ),
+			array( array( 'iprep', 'abuseipdb', 'daily_quota' ), 950 ),
 			array( array( 'iprep', 'abuseipdb', 'timeout' ), 3 ), // 【P0-9·F1】默认 1→3（M4UX 定稿 §2——P95 1.99s 数据支撑；多跳链路建议 5s 注记 Changelog）。
 			// 【I3·定稿 §4.3】总开关默认 true→**false**（拍板 0.4：涉数据出境与隐私，默认从关开始
 			// ——T1 触发面默认开但子系统关=完全静默；存量不迁移 P0-B 先例——存储值原样保留）。
@@ -149,9 +150,9 @@ final class SettingsSchemaTest extends TestCase {
 		}
 	}
 
-	public function test_schema_version_constant_is_two(): void {
-		// 【v1.4·R4-G】v2 = 04 §2 v1.4 迁移段（threshold 平移/max_user_keys 与 fail_mode 丢弃/chain 默认空/新键整树）。
-		$this->assertSame( 2, SettingsSchema::SCHEMA_VERSION );
+	public function test_schema_version_constant_is_three(): void {
+		// 【v1.4·R4-G】v2 = 04 §2 v1.4 迁移段；【W3·批C】v3 = region 新键 + mode 平移 popup + N6 双额度平移（migrate_fields ⑦⑧ 段）。
+		$this->assertSame( 3, SettingsSchema::SCHEMA_VERSION );
 	}
 
 	public function test_top_level_keys_match_design(): void {
@@ -390,14 +391,14 @@ final class SettingsSchemaTest extends TestCase {
 	}
 
 	public function test_merge_defaults_backfills_soft_quota_for_old_options(): void {
-		// soft_quota 新键（定稿 §3.1 步 4——软顶 3000 先行于 daily_quota 4750）由整树合并补齐。
+		// soft_quota 新键（定稿 §3.1 步 4）由整树合并补齐；【W3·批C·N6 翻转注记】默认值已平移 900/950。
 		$merged = SettingsSchema::merge_defaults( array(
 			'iprep' => array( 'enabled' => true, 'abuseipdb' => array( 'api_key' => 'k' ) ),
 		) );
-		$this->assertSame( 3000, $merged['iprep']['abuseipdb']['soft_quota'] );
+		$this->assertSame( 900, $merged['iprep']['abuseipdb']['soft_quota'] );
 		$this->assertSame( 1440, $merged['iprep']['abuseipdb']['cache_minutes'] );
 		$this->assertSame( 60, $merged['iprep']['negative_cache_minutes'] );
-		$this->assertSame( 4750, $merged['iprep']['abuseipdb']['daily_quota'], '软顶 3000 < 硬停转 4750——两道额度闸' );
+		$this->assertSame( 950, $merged['iprep']['abuseipdb']['daily_quota'], '软顶 900 < 硬停转 950——两道额度闸' );
 	}
 
 	/* ---------- C4：review.cloud.tencent_tms 新键（biz_type / reject_score） ---------- */

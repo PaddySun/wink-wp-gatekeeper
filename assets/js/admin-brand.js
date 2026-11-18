@@ -10,8 +10,13 @@
  * 文案工坊恢复默认/驱动下拉联动/各测试凭据探活/诊断面板/滑杆随动等。
  * 【W3·批B】八 Tab 渲染面重组绑定面注记：八驱动测试凭据钮/头像测试钮 id 锚零变化
  * （PHP 侧迁 test_credential_btn 五态徽标初态统一——JS 探活响应通道不变）；Tab②③
- * 驱动下拉 bindVendorSwitcher 现机制保持；本批零新交互行为（纯渲染重组+改名显示层）。
- * 本文件内容变化 → Bootstrap 注册行版本参数后缀递进（-m6b1 → -w3a1 → -w3b1）。
+ * 驱动下拉 bindVendorSwitcher 现机制保持。
+ * 【W3·批C】新增向导交互模块（R5 附案——stepper/面板切换纯显隐零提交语义+radio-card
+ * .on 视觉同步+「下一步」提交前改写 _wp_http_referer 指向下一步；驱动/云审 radio 卡
+ * 显隐联动；动图内联时序脚本随 PHP 步二面板自带、不在本文件）；region radio 零 JS
+ * 联动面（前端容器 data-wk-region 由 PHP 渲染定型，保存后下次前台渲染生效——施工图
+ * 批 C admin-brand.js 行的 region 联动项据此落空，偏差已登记）。
+ * 本文件内容变化 → Bootstrap 注册行版本参数后缀递进（-m6b1 → -w3a1 → -w3b1 → -w3c1）。
  */
 ( function () {
 	'use strict';
@@ -1070,4 +1075,106 @@
 			} );
 		}
 	);
+
+	/* -----------------------------------------------------------------
+	 * 【W3·批C·R5】首启向导交互模块（纯显隐零提交语义——保存仍走 wk-form 主通道）：
+	 *   ① stepper 点击/面板切换（li[data-wk-goto] ↔ section[data-wk-step]）；
+	 *   ② radio-card 视觉 .on 同步（checked 变化时组内互斥重绘）；
+	 *   ③ 驱动/云审 radio 卡 → 对应凭据面 .wizard-frow 显隐（data-wk-driver-toggle /
+	 *      data-wk-chain-toggle ↔ data-wk-driver-face / data-wk-chain-face）；
+	 *   ④ 「下一步」提交前改写 #wk-wizard-referer（_wp_http_referer）指向目标步——
+	 *      每步落盘、保存后落在下一步（options.php 按 _wp_http_referer 回跳）。
+	 * 无 JS 降级：非当前步面板由 PHP 侧 hidden，步进钮照常提交保存（落在当前步）。
+	 * ----------------------------------------------------------------- */
+	( function () {
+		var wizard = document.getElementById( 'wk-wizard' );
+		if ( ! wizard ) {
+			return;
+		}
+
+		function showStep( n ) {
+			wizard.setAttribute( 'data-wk-current', String( n ) );
+			wizard.querySelectorAll( '[data-wk-step]' ).forEach( function ( panel ) {
+				panel.hidden = panel.getAttribute( 'data-wk-step' ) !== String( n );
+			} );
+			wizard.querySelectorAll( '.wk-stepper [data-wk-goto]' ).forEach( function ( li ) {
+				li.classList.toggle( 'on', li.getAttribute( 'data-wk-goto' ) === String( n ) );
+			} );
+			if ( wizard.scrollIntoView ) {
+				try { wizard.scrollIntoView( { block: 'start', behavior: 'smooth' } ); } catch ( err ) {}
+			}
+		}
+
+		// ① stepper 点击（纯显隐——不提交；未保存的表单输入保留在 DOM 中）。
+		wizard.querySelectorAll( '.wk-stepper [data-wk-goto]' ).forEach( function ( li ) {
+			li.addEventListener( 'click', function () {
+				showStep( parseInt( li.getAttribute( 'data-wk-goto' ), 10 ) || 1 );
+			} );
+		} );
+
+		// ② radio-card .on 视觉同步（组内互斥——checked 变化重绘组内全部卡）。
+		wizard.querySelectorAll( '[data-wk-radio-group]' ).forEach( function ( group ) {
+			group.addEventListener( 'change', function ( event ) {
+				if ( ! event.target || ! event.target.checked ) {
+					return;
+				}
+				group.querySelectorAll( '.radio-card' ).forEach( function ( card ) {
+					card.classList.remove( 'on' );
+				} );
+				var card = event.target.closest( '.radio-card' );
+				if ( card ) {
+					card.classList.add( 'on' );
+				}
+			} );
+		} );
+
+		// ③ 驱动/云审 radio 卡 → 凭据面显隐（face 全 hidden，再显当前选中项；none/'tencent' 说明行同理）。
+		function bindFaceToggles( toggleAttr, faceAttr, noneKey ) {
+			var toggles = wizard.querySelectorAll( '[data-' + toggleAttr + ']' );
+			if ( toggles.length === 0 ) {
+				return;
+			}
+			var faces = wizard.querySelectorAll( '[data-' + faceAttr + ']' );
+			toggles.forEach( function ( radio ) {
+				radio.addEventListener( 'change', function () {
+					if ( ! radio.checked ) {
+						return;
+					}
+					var key = radio.getAttribute( 'data-' + toggleAttr );
+					faces.forEach( function ( face ) {
+						face.hidden = face.getAttribute( 'data-' + faceAttr ) !== key;
+					} );
+				} );
+			} );
+			// 初始态按 checked 归一（PHP 已带 hidden——防御性同步）。
+			toggles.forEach( function ( radio ) {
+				if ( radio.checked ) {
+					var key = radio.getAttribute( 'data-' + toggleAttr );
+					faces.forEach( function ( face ) {
+						face.hidden = face.getAttribute( 'data-' + faceAttr ) !== key;
+					} );
+				}
+			} );
+		}
+		bindFaceToggles( 'wk-driver-toggle', 'wk-driver-face', 'none' );
+		bindFaceToggles( 'wk-chain-toggle', 'wk-chain-face', 'none' );
+
+		// ④ 「下一步」提交前改写 referer（options.php 保存后回跳目标步）。
+		var referer = document.getElementById( 'wk-wizard-referer' );
+		if ( referer ) {
+			wizard.querySelectorAll( 'button[data-wk-wizard-next]' ).forEach( function ( btn ) {
+				btn.addEventListener( 'click', function () {
+					var step = parseInt( btn.getAttribute( 'data-wk-wizard-next' ), 10 );
+					var base = wizard_url_base();
+					if ( base ) {
+						referer.value = base + '&step=' + ( step || 1 );
+					}
+				} );
+			} );
+		}
+		function wizard_url_base() {
+			// 由当前 URL 派生：去掉旧 step 参数（保留 wizard=1 与 page 等其余参数）。
+			return window.location.href.split( '#' )[ 0 ].replace( /([?&])step=\d+/, '$1' );
+		}
+	}() );
 }() );

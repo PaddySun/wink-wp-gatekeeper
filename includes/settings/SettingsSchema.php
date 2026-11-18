@@ -23,8 +23,14 @@ final class SettingsSchema {
 	 * max_user_keys 丢弃 / iprep.abuseipdb.fail_mode 丢弃（澄清 A）/ chain 默认 []
 	 * / 新键整树补齐（gates.register+lostpassword、captcha.trust 六键、
 	 * iprep.negative_cache_minutes、iprep.abuseipdb.timeout、stats.raw_*）。
+	 *
+	 * v3 = 【W3·批C】三变更（施工图 §2 批 C SettingsSchema 行；迁移段见 migrate_fields
+	 * ⑦v3 段头注）：captcha.aliyun 新键 region（cn|sgp 默认 cn——N2，merge_defaults 整树
+	 * 补齐零迁移代码）/ captcha.aliyun.mode 出厂默认 embed→popup（N3·breaking，撞车守卫
+	 * 平移存量特征值）/ iprep.abuseipdb 双额度默认 soft_quota 3000→900、daily_quota
+	 * 4750→950（N6·breaking，独立特征值平移——免费档 1000/天留 5%，用户 2026-11-18 拍板）。
 	 */
-	public const SCHEMA_VERSION = 2;
+	public const SCHEMA_VERSION = 3;
 
 	/**
 	 * LLM 审核驱动默认系统提示词（05 §2.2 骨架 + D10 JSON 输出约定）。
@@ -141,9 +147,18 @@ final class SettingsSchema {
 					'access_key_secret' => '',
 					'scene_id'          => '',
 					'prefix'            => '',
-					// 【v1.5·B3】前端形态（04 §2 v1.5）：embed（默认，页内触发条+SDK 自管弹层）
-					// | popup（零占位弹层）——非法值 Sanitize 归 embed。
-					'mode'              => 'embed',
+					// 【W3·批C·N3·breaking】前端形态出厂默认 embed→**popup**（用户 2026-11-18
+					// 拍板——批 B 卡面「推荐·默认」记号本批落地）：popup=零占位弹层（点提交即验，
+					// W2 无按钮模式主形态）；embed=页内触发条（Tab② mode radio 一键回退——radio
+					// 显式保存后不再平移）。存量特征值平移见 migrate_fields 撞车守卫：凭据已配=
+					// 站长显式选择保留 embed；embed+四凭据全空=出厂特征值平移 popup。
+					'mode'              => 'popup',
+					// 【W3·批C·N2】服务区域新键（枚举 cn|sgp 默认 cn——现行行为零变化）：region
+					// 决定服务端 endpoint（AliyunCaptchaDriver::ENDPOINT_MAP）与前端 SDK region
+					// 参数（容器 data-wk-region，双端联动）；非法值 Sanitize 归 cn。sgp 档端点
+					// 值为静态推断（R7：captcha.ap-southeast-1.aliyuncs.com——未实机验证，发布
+					// 时若真机复验不过则 sgp 档 disabled，挂手测卡 MANUAL-CARD-W3-C）。
+					'region'            => 'cn',
 				),
 				'hcaptcha'  => array(
 					'site_key'   => '',
@@ -366,11 +381,13 @@ final class SettingsSchema {
 					// 【v1.7·M3-IP 定稿 §3.3】pass 缓存 TTL 默认 60→**1440**（24h，migrate 平移
 					// 存量——WF V5 变体「干净 IP 不重复查」省配额）。
 					'cache_minutes'   => 1440,
-					// 【v1.7·M3-IP 定稿 §3.1 步 4】软顶新键默认 **3000**/日：当日 abuseipdb 计数
-					// ≥3000 → 不再外呼按 fail 处理（宁可从严不可静默放行，02 §2.3b②）——
-					// < daily_quota 硬停转 4750，两道额度闸；AbuseIpdbService 统一消费。
-					'soft_quota'      => 3000,
-					'daily_quota'     => 4750, // 账户实配 5000/天（贡献者+认证站长档，2026-11-09 确认）留 5% 缓冲。
+					// 【v1.7·M3-IP 定稿 §3.1 步 4】【W3·批C·N6·breaking】软顶默认 3000→**900**/日：
+					// 当日 abuseipdb 计数 ≥软顶 → 不再外呼按 fail 处理（宁可从严不可静默放行，
+					// 02 §2.3b②）——免费档统一口径 1000 次/天留 5% 缓冲（用户 2026-11-18 拍板，
+					// 退役原「贡献者 5000/天」个人账户口径）；< daily_quota 硬停转，两道额度闸；
+					// AbuseIpdbService 统一消费。存量特征值平移见 migrate_fields（双键独立可各自命中）。
+					'soft_quota'      => 900,
+					'daily_quota'     => 950, // 【W3·批C·N6·breaking】4750→**950**——免费档 1000/天留 5% 缓冲（拍板统一口径；特征值平移同上）。
 					'timeout'         => 3,    // 【P0-9·F1 批】查询超时秒默认 1→**3**（M4UX 定稿 §2——B 机实测 P95 1.99s 数据支撑：多跳链路（CDN/反代）1s 窗外幽灵到达；存量特征值 1 由 migrate_fields 平移，站长显式值原样保留；范围 1-5 防呆不变，多跳链路建议 5s——readme Changelog 注记）。【v1.4·澄清A】无重试短超时档；R2/R3 超时键合并裁决=驱动级一键，登录/评论预检/提交期三处消费。【v1.4 作废】fail_mode 键删除（三态语义定死强制验证码，02 §2.3b）。
 				),
 				'report'    => array( // 验证失败上报（D12），独立于 iprep.enabled.
@@ -469,6 +486,10 @@ final class SettingsSchema {
 	 *   ⑤ 新键（gates.register/lostpassword、captcha.trust 六键、iprep.negative_cache_minutes、
 	 *     iprep.abuseipdb.timeout、stats.raw_*、【v1.7】iprep.abuseipdb.soft_quota）由随后的
 	 *     merge_defaults 补齐整树；
+	 *   ⑦【W3·批C·N3】captcha.aliyun.mode 出厂特征值 embed+零凭据 平移新默认 popup
+	 *     （撞车守卫：四凭据已配=显式选择原样保留；region 新键由 merge_defaults 整树补齐）；
+	 *   ⑧【W3·批C·N6】iprep.abuseipdb.soft_quota 特征值 3000 / daily_quota 特征值 4750
+	 *     各自独立平移新默认 900/950（双键不强制配对；显式其他值原样保留）；
 	 *   ⑥ schema_version 收口为当前常量。
 	 *
 	 * 旧登录 transient（组合键 wk_lf_* 非 ip/flag 形态、wk_lf_idx_*）零迁移——TTL 15min
@@ -588,6 +609,43 @@ final class SettingsSchema {
 			&& array( 'deepseek' ) === array_values( $existing['review']['cloud']['chain'] )
 			&& '' === trim( (string) ( $existing['review']['cloud']['deepseek']['api_key'] ?? '' ) ) ) {
 			$existing['review']['cloud']['chain'] = array();
+		}
+
+		// ⑦【W3·批C·N3·breaking】captcha.aliyun.mode 出厂默认 embed→popup 平移（v3 头条）。
+		// 撞车守卫（H-3 captcha.driver 同款）：mode==='embed' 且 aliyun 四凭据全空=出厂
+		// 特征值（站长从未动过）→ 移除键由随后 merge_defaults 补新默认 popup；凭据已配=
+		// 站长显式选择的铁证 → 原样保留 embed（保守正确——显式铁证判据宁可漏平移不误迁，
+		// 施工图 §5 风险 5 已接受残余：显式选 embed 且未配凭据的站会被平移一次，Tab②
+		// mode radio 一键回退、显式保存后不再平移）。region 新键零迁移（merge_defaults
+		// 整树补齐默认 cn=现行行为零变化）。
+		if ( isset( $existing['captcha'] ) && is_array( $existing['captcha'] )
+			&& isset( $existing['captcha']['aliyun'] ) && is_array( $existing['captcha']['aliyun'] )
+			&& array_key_exists( 'mode', $existing['captcha']['aliyun'] )
+			&& 'embed' === $existing['captcha']['aliyun']['mode'] ) {
+			$ali       = $existing['captcha']['aliyun'];
+			$has_creds = '' !== trim( (string) ( $ali['access_key_id'] ?? '' ) )
+				|| '' !== trim( (string) ( $ali['access_key_secret'] ?? '' ) )
+				|| '' !== trim( (string) ( $ali['scene_id'] ?? '' ) )
+				|| '' !== trim( (string) ( $ali['prefix'] ?? '' ) );
+			if ( ! $has_creds ) {
+				unset( $existing['captcha']['aliyun']['mode'] );
+			}
+		}
+
+		// ⑧【W3·批C·N6·breaking】iprep.abuseipdb 双额度默认平移（soft_quota 3000→900 /
+		// daily_quota 4750→950——免费档 1000/天留 5%，用户拍板）：两键**独立可各自命中**
+		// （不强制配对——防站长只改过其一的特征值误伤另一键；timeout/cache_minutes 平移
+		// 先例同法）。特征值撞车固有残余（施工图 §5 风险 6 已接受）：站长显式把 soft_quota
+		// 设回 3000（或 daily_quota 4750）会被平移一次——changelog 如实注。
+		if ( isset( $existing['iprep']['abuseipdb'] ) && is_array( $existing['iprep']['abuseipdb'] ) ) {
+			if ( array_key_exists( 'soft_quota', $existing['iprep']['abuseipdb'] )
+				&& 3000 === (int) $existing['iprep']['abuseipdb']['soft_quota'] ) {
+				unset( $existing['iprep']['abuseipdb']['soft_quota'] );
+			}
+			if ( array_key_exists( 'daily_quota', $existing['iprep']['abuseipdb'] )
+				&& 4750 === (int) $existing['iprep']['abuseipdb']['daily_quota'] ) {
+				unset( $existing['iprep']['abuseipdb']['daily_quota'] );
+			}
 		}
 
 		return $existing;

@@ -66,6 +66,19 @@ register_activation_hook(
 			false
 		);
 
+		// 【W3·批C·R5】首启向导状态写 'pending'——**只由 activation hook 写**（WP 唯一
+		// 可靠的「新装」信号）：新装激活写 pending → 首次进入设置页自动弹向导；存量站
+		// 升级（上传 zip 不触发 activation）该 option 恒缺失 = **永不自动弹**（R5 差分
+		// 天然成立、零 migrate 扫描）；done/skipped 由向导出口 handler 写入（不可逆，
+		// 无重置 UI）。add_option 不覆盖：已存在（done/skipped/pending 在册）时原样保留
+		// ——「删除重装=弹一次」语义成立（重装者需要引导）。
+		add_option(
+			\WinkGatekeeper\Settings\SettingsPage::OPTION_WIZARD_STATE,
+			\WinkGatekeeper\Settings\SettingsPage::WIZARD_STATE_PENDING,
+			'',
+			false
+		);
+
 		// 每日维护（90 天清理 + 1 万行滚动上限，04 §3）。
 		\WinkGatekeeper\Stats\EventsTable::register_cron();
 	}

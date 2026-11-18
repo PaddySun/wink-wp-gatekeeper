@@ -7,7 +7,8 @@
  *   - 适配器注册：window.wkGateDrivers.aliyun = {interaction:'click', tokenFields:[
  *     'wk_captcha_verify_param'], init}（gatekeeper.js frontend 元数据分派——不认驱动 id）；
  *   - 动态引入 JS 红线：createElement('script') + 官方 CDN URL（静态/本地部署致对抗失效）；
- *   - 全局配置先行：window.AliyunCaptchaConfig = {region:'cn', prefix}（须在引入 JS 之前）；
+	 *   - 全局配置先行：window.AliyunCaptchaConfig = {region, prefix}（须在引入 JS 之前
+	 *     ——【W3·批C·N2】region 从容器 data-wk-region 读实键值，恒 cn 硬编码退役）；
  *   - initAliyunCaptcha 形态：SceneId/mode/element/button/success/fail/getInstance/onError；
  *   - captchaVerifyParam 禁止任何修改——success 回调原文写隐藏域 + 派发 wk-gate-token；
  *   - CaptchaVerifyParam 90 秒时效（F019）——到期作废回退（wk-gate-expire）；
@@ -71,7 +72,10 @@ final class AliyunFrontendJsContractTest extends TestCase {
 	public function test_adapter_global_config_before_script(): void {
 		$src = self::adapter();
 		$this->assertStringContainsString( 'AliyunCaptchaConfig', $src, '三步①全局配置' );
-		$this->assertMatchesRegularExpression( "/region:\s*'cn'/", $src, 'region 恒 cn（sgp 变体不启用）' );
+		// 【W3·批C·N2 翻转】region 实键值：容器 data-wk-region 读取（闭集归一非 sgp 一律
+		// cn）——恒 cn 硬编码退役（sgp 档静态推断 R7 未实机验证，与 ENDPOINT_MAP 双端联动）。
+		$this->assertStringContainsString( 'data-wk-region', $src, 'region 从容器 data 属性读实键值' );
+		$this->assertDoesNotMatchRegularExpression( "/region:\s*'cn'/", $src, '恒 cn 硬编码退役（data-wk-region 实键）' );
 		$this->assertStringContainsString( 'prefix', $src, '身份标入全局配置' );
 	}
 

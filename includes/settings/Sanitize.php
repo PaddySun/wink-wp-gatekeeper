@@ -78,6 +78,9 @@ final class Sanitize {
 			'captcha.aliyun.scene_id'                   => 'text',
 			'captcha.aliyun.prefix'                     => 'text',
 			'captcha.aliyun.mode'                       => 'aliyun_mode', // 【v1.5·B3】embed|popup 白名单（非法值归 embed）。
+			// 【W3·批C·N2】服务区域白名单（captcha.aliyun.region）：cn（默认）| sgp——非法值
+			// 归 cn（region 消费面在渲染与双端联动，非法值必须闭集；submit_flow 同族新类型）。
+			'captcha.aliyun.region'                     => 'aliyun_region',
 			'captcha.hcaptcha.site_key'                 => 'text',
 			'captcha.hcaptcha.secret_key'               => 'password',
 			'captcha.turnstile.site_key'                => 'text',
@@ -305,9 +308,14 @@ final class Sanitize {
 				// 白名单枚举（04 §2 captcha.tencent.disaster_pass）：非 block 一律归 allow（默认档）。
 				return ( is_scalar( $value ) && 'block' === (string) $value ) ? 'block' : 'allow';
 			case 'aliyun_mode':
-				// 【v1.5·B3】白名单枚举（04 §2 captcha.aliyun.mode）：embed（默认）| popup，
-				// 非法值归 embed（fail-safe——页内触发条形态是规格默认）。
+				// 【v1.5·B3】【W3·批C·N3 平移注】白名单枚举（04 §2 captcha.aliyun.mode）：
+				// embed | popup——非法值归 embed（fail-safe；出厂默认已平移 popup——平移
+				// 语义在 SettingsSchema::migrate_fields，本白名单只管闭集归一不动默认面）。
 				return ( is_scalar( $value ) && 'popup' === (string) $value ) ? 'popup' : 'embed';
+			case 'aliyun_region':
+				// 【W3·批C·N2】服务区域白名单（captcha.aliyun.region）：cn（默认）| sgp，
+				// 非法值归 cn（fail-safe——cn=现行端点行为保底；sgp 档静态推断 R7）。
+				return ( is_scalar( $value ) && 'sgp' === (string) $value ) ? 'sgp' : 'cn';
 			case 'submit_flow':
 				// 【W2·无按钮模式】提交触发形态白名单（captcha.submit_flow）：on_submit（默认，
 				// Q2=①一刀切）| button（经典），非法值归 on_submit。

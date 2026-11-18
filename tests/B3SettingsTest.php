@@ -30,7 +30,8 @@ final class B3SettingsTest extends TestCase {
 	public function test_schema_defaults_include_aliyun_mode(): void {
 		$defaults = SettingsSchema::defaults();
 		$this->assertArrayHasKey( 'mode', $defaults['captcha']['aliyun'] );
-		$this->assertSame( 'embed', $defaults['captcha']['aliyun']['mode'], 'embed 默认（页内触发条+SDK 自管弹层）' );
+		// 【W3·批C·N3 翻转注记】出厂默认 embed→popup（用户拍板——撞车守卫平移见 migrate_fields ⑦）。
+		$this->assertSame( 'popup', $defaults['captcha']['aliyun']['mode'], 'popup 默认（零占位弹层——无按钮模式主形态）' );
 		$this->assertSame( '', $defaults['captcha']['aliyun']['access_key_id'] );
 		$this->assertSame( '', $defaults['captcha']['aliyun']['access_key_secret'] );
 		$this->assertSame( '', $defaults['captcha']['aliyun']['scene_id'] );
@@ -44,7 +45,9 @@ final class B3SettingsTest extends TestCase {
 			),
 		);
 		$merged = SettingsSchema::merge_defaults( $old );
-		$this->assertSame( 'embed', $merged['captcha']['aliyun']['mode'], '存量站点 merge_defaults 补齐 v1.5 新键' );
+		// 【W3·批C·N3 翻转注记】旧树缺 mode 键 → 补当前默认 popup（缺键树无显式选择——
+		// 撞车守卫只对「存储了显式 embed」的树保留 embed）。
+		$this->assertSame( 'popup', $merged['captcha']['aliyun']['mode'], '存量站点 merge_defaults 补齐当前默认 popup' );
 		$this->assertSame( 'LTAIold', $merged['captcha']['aliyun']['access_key_id'], '已有值不被覆盖' );
 	}
 

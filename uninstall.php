@@ -21,7 +21,7 @@
  *   同族指引：docs 06 真机计划顶部接续横幅「勘误」行已按此口径（`wp plugin uninstall`）。
  *
  * 数据红线（只碰 wink 自有数据，绝不删坏）：
- *   - 删 10 个 option：wink_gatekeeper_settings / stats / usage / health
+ *   - 删 12 个 option：wink_gatekeeper_settings / stats / usage / health
  *     【v1.9·M5 回写·审计 C2】+ wink_gatekeeper_llm_usage（LLM 消耗统计，
  *     LlmUsage::OPTION_NAME）+ wink_gatekeeper_url_audit_incr_queue（网址核查增量
  *     队列，UrlAuditWorker::OPTION_INCR_QUEUE）+ wink_gatekeeper_url_audit_batch_queue
@@ -29,8 +29,14 @@
  *     + wink_gatekeeper_url_audit_pause_edge（配额暂停边沿标记【M6·批B·B-5】，
  *     UrlAuditWorker::OPTION_PAUSE_EDGE）+ wink_gatekeeper_url_audit_backlog_record
  *     （存量网址核查运行记录【M6·批C·C-3】，UrlAuditWorker::OPTION_BACKLOG_RECORD）
+ *     + wink_gatekeeper_url_audit_fetch_streak（DeepSeek 抓取连续未成功计数
+ *     【M6·批H2·H2-2】，UrlAuditWorker::OPTION_FETCH_STREAK）
  *     + wink_gatekeeper_audit_existing_progress
- *     （存量审核进度，ExistingAuditTask::OPTION_PROGRESS）（键名全等，逐个精确）；
+ *     （存量审核进度，ExistingAuditTask::OPTION_PROGRESS）
+ *     + wink_gatekeeper_probe_log（测试凭据最近一次测试状态与时间【W3·批C·N1】，
+ *     SettingsPage::OPTION_PROBE_LOG——state 枚举+时间戳，message 不入库）
+ *     + wink_gatekeeper_wizard_state（首启向导状态【W3·批C·R5】，
+ *     SettingsPage::OPTION_WIZARD_STATE）（键名全等，逐个精确）；
  *   - DROP 仅 wink 自建事件表（{prefix}wink_gatekeeper_events——先 SHOW TABLES 探测后
  *     PHP 侧严格全等比对，防 LIKE 下划线通配的相似表名误伤）；
  *   - 清 wink 自有 transient 前缀（wk_lf_ / wk_ip_ / wk_rp_ / wk_cv_ / wk_pk_ / wk_tc_ /
@@ -77,12 +83,14 @@ $wink_guarded = static function ( callable $wink_step ): void {
 	}
 };
 
-/* 1. 删 10 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留；
+/* 1. 删 12 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留；
  * 【v1.9·M5 回写·审计 C2】M5 三 option 补录：LlmUsage::OPTION_NAME /
  * UrlAuditWorker::OPTION_INCR_QUEUE / ExistingAuditTask::OPTION_PROGRESS；
  * 【M6·批A·P1-3】批量回捞显式队列 UrlAuditWorker::OPTION_BATCH_QUEUE 补录；
  * 【M6·批B·B-5】配额暂停边沿标记 UrlAuditWorker::OPTION_PAUSE_EDGE 补录；
- * 【M6·批C·C-3】存量网址核查运行记录 UrlAuditWorker::OPTION_BACKLOG_RECORD 补录）。 */
+ * 【M6·批C·C-3】存量网址核查运行记录 UrlAuditWorker::OPTION_BACKLOG_RECORD 补录；
+ * 【W3·批C】N1 probe log（SettingsPage::OPTION_PROBE_LOG）+ R5 向导状态
+ * （SettingsPage::OPTION_WIZARD_STATE）补录——OptionHygieneTest 键集契约同步）。 */
 $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_settings' );
 } );
@@ -115,6 +123,12 @@ $wink_guarded( static function (): void {
 } );
 $wink_guarded( static function (): void {
 	delete_option( 'wink_gatekeeper_audit_existing_progress' );
+} );
+$wink_guarded( static function (): void {
+	delete_option( 'wink_gatekeeper_probe_log' ); // 【W3·批C·N1】测试凭据最近一次测试态（SettingsPage::OPTION_PROBE_LOG）。
+} );
+$wink_guarded( static function (): void {
+	delete_option( 'wink_gatekeeper_wizard_state' ); // 【W3·批C·R5】首启向导状态（SettingsPage::OPTION_WIZARD_STATE）。
 } );
 
 /* 2. DROP events 表（仅 wink 自建表——SHOW TABLES 探测 + PHP 严格全等比对：

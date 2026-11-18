@@ -41,6 +41,58 @@ final class SettingsPage {
 	const OPTION_GROUP = 'wink_gatekeeper';
 
 	/**
+	 * 【W3·批C·N1】测试凭据持久化单 option（R4：per 驱动一槽覆盖写，键=驱动 id 闭集
+	 * PROBE_LOG_DRIVERS，值=array(state, tested_at)——message 不入库红线）。卸载清单
+	 * 与 OptionHygieneTest 键集契约同步登记（uninstall.php delete_option）。
+	 */
+	const OPTION_PROBE_LOG = 'wink_gatekeeper_probe_log';
+
+	/**
+	 * 【W3·批C·R5】首启向导状态 option（枚举 pending|done|skipped，缺省=无记录）。
+	 * **只由 register_activation_hook 写 'pending'**（wink-wp-gatekeeper.php 激活回调）——
+	 * 存量站升级不触发 activation → option 恒缺失 → 永不自动弹（零 migrate 扫描差分，
+	 * R5）；done/skipped 由向导出口两 handler 写入（不可逆，无重置 UI）。
+	 */
+	const OPTION_WIZARD_STATE = 'wink_gatekeeper_wizard_state';
+
+	/** 【W3·批C·R5】向导状态三态闭集（缺省=无记录）。 */
+	const WIZARD_STATE_PENDING = 'pending';
+	const WIZARD_STATE_DONE    = 'done';
+	const WIZARD_STATE_SKIPPED = 'skipped';
+
+	/**
+	 * @var string[] 向导状态闭集（wizard_state 读件白名单）。
+	 */
+	const WIZARD_STATES = array( 'pending', 'done', 'skipped' );
+
+	/**
+	 * 【W3·批C·N1】probe log 驱动键闭集（R4——九凭据测试位；avatar 头像探测非凭据
+	 * 语境不入集，结果照旧不落库）。
+	 *
+	 * @var string[]
+	 */
+	const PROBE_LOG_DRIVERS = array(
+		'tencent',
+		'aliyun',
+		'tencent_tms',
+		'aliyun_green',
+		'baidu',
+		'deepseek',
+		'openai_custom',
+		'url_audit_provider',
+		'abuseipdb',
+	);
+
+	/**
+	 * 【W3·批C·R5】向导完成出口 admin action（manage_options + nonce 双闸在 handler；
+	 * GET 链接形态——wp_nonce_url，reactivate_cron 先例）。
+	 */
+	const ACTION_WIZARD_DONE = 'wink_gatekeeper_wizard_done';
+
+	/** 【W3·批C·R5】向导跳过出口 admin action（跳过=不提交表单直接置 skipped）。 */
+	const ACTION_WIZARD_SKIP = 'wink_gatekeeper_wizard_skip';
+
+	/**
 	 * 【W3·批A·N7】深色 admin color scheme 集合（R1 明度二分的成员表形态）——
 	 * WP「管理配色方案」基色明度 L<0.5 的深底系（Midnight/Coffee/Ectoplasm/Ocean）。
 	 * 集合成员为静态推断（凭 WP 通用认知，未实机核 get_admin_color_schemes() 基色
@@ -82,49 +134,50 @@ final class SettingsPage {
 	const AJAX_RESET_STATS = 'wink_gatekeeper_reset_stats';
 
 	/**
-	 * Tab②「测试凭据」AJAX action（03 §1 契约④：nonce + manage_options 双闸；结果不落库）。
+	 * Tab②「测试凭据」AJAX action（03 §1 契约④：nonce + manage_options 双闸；结果记录最近一次测试状态与时间——probe log option，N1；message 不入库）。
 	 */
 	const AJAX_TEST_CREDENTIALS = 'wink_gatekeeper_test_credentials';
 
 	/**
-	 * Tab② 阿里「测试凭据」AJAX action（【v1.5·B3】：nonce + manage_options 双闸；结果不落库）。
+	 * Tab② 阿里「测试凭据」AJAX action（【v1.5·B3】：nonce + manage_options 双闸；结果记录最近一次测试状态与时间——probe log option，N1；message 不入库）。
 	 */
 	const AJAX_TEST_CREDENTIALS_ALIYUN = 'wink_gatekeeper_test_credentials_aliyun';
 
 	/**
-	 * Tab③ TMS「测试凭据」AJAX action（C4：nonce + manage_options 双闸；结果不落库；
+	 * Tab③ TMS「测试凭据」AJAX action（C4：nonce + manage_options 双闸；结果记录最近一次测试状态与时间——probe log option，N1；message 不入库；
 	 * 绿态顺带解除 tencent_tms 当日停转——02 §5「自检通过」解除条件）。
 	 */
 	const AJAX_TEST_CREDENTIALS_TMS = 'wink_gatekeeper_test_credentials_tms';
 
 	/**
 	 * Tab③ 阿里 PLUS「测试凭据」AJAX action（【v1.5·B5】：nonce + manage_options 双闸；
-	 * 结果不落库；绿态顺带解除 aliyun_green 当日停转——05 §2.5 凭据自检三态/TMS 先例同款）。
+	 * 结果记录最近一次测试状态与时间——probe log option，N1；message 不入库；绿态顺带解除 aliyun_green 当日停转——05 §2.5 凭据自检三态/TMS 先例同款）。
 	 */
 	const AJAX_TEST_CREDENTIALS_ALIYUN_GREEN = 'wink_gatekeeper_test_credentials_aliyun_green';
 
 	/**
 	 * Tab③ 百度「测试凭据」AJAX action（【v1.5·B6】：nonce + manage_options 双闸；
-	 * 结果不落库；绿态顺带解除 baidu 当日停转——05 §2.4 凭据自检三态/TMS 先例同款）。
+	 * 结果记录最近一次测试状态与时间——probe log option，N1；message 不入库；绿态顺带解除 baidu 当日停转——05 §2.4 凭据自检三态/TMS 先例同款）。
 	 */
 	const AJAX_TEST_CREDENTIALS_BAIDU = 'wink_gatekeeper_test_credentials_baidu';
 
 	/**
 	 * Tab③ DeepSeek「测试凭据」AJAX action（【M5·U4】D5 裁决：GET /models 探活——
-	 * 零 token 成本证 Bearer 鉴权通；nonce + manage_options 双闸；结果不落库零计量）。
+	 * 零 token 成本证 Bearer 鉴权通；nonce + manage_options 双闸；结果记录最近一次测试状态与时间——probe log option，N1；message 不入库；零计量）。
 	 */
 	const AJAX_TEST_CREDENTIALS_DEEPSEEK = 'wink_gatekeeper_test_credentials_deepseek';
 
 	/**
 	 * Tab③ openai_custom「测试凭据」AJAX action（【M6·批E】：GET {base_url}/models 探活
 	 * 三态——泛端点无标准余额 API，零 token 消耗；nonce + manage_options 双闸；结果
-	 * 不落库零计量；响应闭集不含提交值）。
+	 * 记录最近一次测试状态与时间——probe log option，N1；message 不入库；零计量；响应闭集不含提交值）。
 	 */
 	const AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM = 'wink_gatekeeper_test_credentials_openai_custom';
 
 	/**
 	 * 【M6·批B·B-3】网址核查独立凭证测试 AJAX action（provider custom——DeepSeek 协议族
-	 * 同用余额探测，base_url 跟随其配置）。
+	 * 同用余额探测，base_url 跟随其配置）；【W3·批C·N1】结果记录最近一次测试状态与时间
+	 * （probe log option；message 不入库）。
 	 */
 	const AJAX_TEST_CREDENTIALS_URL_AUDIT = 'wink_gatekeeper_test_credentials_url_audit';
 
@@ -139,7 +192,8 @@ final class SettingsPage {
 	 * Tab④ 分区②「测试凭据」AJAX action（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批）：
 	 * nonce + manage_options 双闸（B4 声明式纪律）；最小 check 查询（127.0.0.2 保留地址+
 	 * maxAgeInDays=1 省配额）三态——绿=HTTP 200 且 JSON 可解析（isPublic:false 亦绿——验证的
-	 * 是凭据不是 IP）/黄=缺参（API Key 空）/红=401/402 错钥；结果不落库（零计量零写）。
+	 * 是凭据不是 IP）/黄=缺参（API Key 空）/红=401/402 错钥；结果记录最近一次测试状态与时间
+	 * （probe log option，N1；message 不入库）——零计量零写。
 	 */
 	const AJAX_TEST_IPREP = 'wink_gatekeeper_test_iprep';
 
@@ -155,8 +209,9 @@ final class SettingsPage {
 	 * Tab⑧ 卡二「测试当前头像来源」AJAX action（【M5·U2】UI 设计块 1 卡二三态按钮）：
 	 * nonce + manage_options 双闸；对当前表单所选头像源发一次固定 email hash 探测
 	 * （每源 1 请求——UI 设计块 1.3），三态=绿（200+图片）/黄（>3s 能用但慢）/
-	 * 红（连不上或非图片）；**测的是镜像通不通非密钥**（与凭据测试不同语境）；结果
-	 * 不落库零计量零事件（RemoteClient 传输脊，不带 usage_key——诊断查询同口径）。
+	 * 红（连不上或非图片）；**测的是镜像通不通非密钥**（与凭据测试不同语境）；结果不落库
+	 * 零计量零事件（RemoteClient 传输脊，不带 usage_key——诊断查询同口径；N1 probe log
+	 * 不覆盖本位——avatar 不入 PROBE_LOG_DRIVERS 闭集）。
 	 */
 	const AJAX_TEST_AVATAR = 'wink_gatekeeper_test_avatar_source';
 
@@ -523,6 +578,9 @@ final class SettingsPage {
 				</div>
 			</header>
 
+			<?php if ( self::wizard_mode_active() ) : ?>
+				<?php self::render_wizard(); // 【W3·批C·R5】向导模式：四步全屏面板替代 Tab 面（pending 自动 / wizard=1 手动）。 ?>
+			<?php else : ?>
 			<nav class="nav-tab-wrapper wk-tabs" aria-label="<?php esc_attr_e( 'Wink WP 保安设置分区', 'wink-gatekeeper' ); ?>">
 				<?php foreach ( self::TABS as $tab_key => $tab_def ) : ?>
 					<a
@@ -544,6 +602,7 @@ final class SettingsPage {
 				</div>
 				<?php submit_button( __( '保存设置', 'wink-gatekeeper' ) ); ?>
 			</form>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -610,9 +669,10 @@ final class SettingsPage {
 
 	/**
 	 * 测试凭据钮渲染件（W3 批 A 建件；design-system §04 cred-test 新形态=单按钮 +
-	 * 徽标五态 + 「上次测试」等宽小字位）。现行契约「结果不落库刷新即失」不变——
-	 * $state/$last_tested 批 A 迁段恒空串（渲染=未测试中性灰初始态）；N1 持久化
-	 * （probe log option 读写）随批 C 接线读取本参数位。
+	 * 徽标五态 + 「上次测试」等宽小字位）。【W3·批C·N1】读真值：$state/$last_tested
+	 * 传空且 $driver_key 在 PROBE_LOG_DRIVERS 闭集内时改读 probe log option 真值
+	 * （有记录显真实态+等宽小字时间「m月d日 H:i · 状态词」；无记录=未测试中性灰初态）。
+	 * 显式传 $state（测试桩/未来覆写位）优先于 option。
 	 *
 	 * $button_attrs/$result_attrs 为调用方常量字面量（'id="…"' 形态——各驱动按钮/
 	 * 结果位 id 锚是 admin-brand.js 探活绑定与 source-scan 契约的定位面，不迁位）。
@@ -621,13 +681,15 @@ final class SettingsPage {
 	 * @param string $result_attrs 结果位 span 属性片段（含 id 锚；aria-live 由本件补）。
 	 * @param string $nonce        wp_create_nonce 产物（调用方生成——nonce action 字面量留编排位）。
 	 * @param string $label        按钮文案（本件 esc_html）。
-	 * @param string $driver_key   驱动 id（批 C probe log 读取键；批 A 仅登记未消费）。
-	 * @param string $state        五态闭集 ''|green|yellow|red|gray（空=未测试）。
-	 * @param string $last_tested  上次测试时间文案（date_i18n 预格式化；空=「--」占位）。
+	 * @param string $driver_key   驱动 id（probe log 读取键——PROBE_LOG_DRIVERS 闭集内生效）。
+	 * @param string $state        五态闭集 ''|green|yellow|red|gray（空=读 probe log）。
+	 * @param string $last_tested  上次测试时间文案（date_i18n 预格式化；空=随 state 解析）。
 	 * @return void
 	 */
 	private static function test_credential_btn( string $button_attrs, string $result_attrs, string $nonce, string $label, string $driver_key = '', string $state = '', string $last_tested = '' ): void {
-		unset( $driver_key ); // 批 C 接线位（N1 probe log 读取键）——批 A 登记 NotUsed。
+		if ( '' === $state && '' !== $driver_key && in_array( $driver_key, self::PROBE_LOG_DRIVERS, true ) ) {
+			list( $state, $last_tested ) = self::probe_log_badge( $driver_key ); // N1：option 真值（无记录=未测试）。
+		}
 		?>
 		<p class="cred-test">
 			<button type="button" class="button" <?php echo $button_attrs; // 调用方常量（id 锚，非用户输入）。 ?> data-nonce="<?php echo esc_attr( $nonce ); ?>"><?php echo esc_html( $label ); ?></button>
@@ -640,7 +702,7 @@ final class SettingsPage {
 	/**
 	 * 测试凭据五态徽标（design-system §04 cred-test 样张闭集）：未测试（中性灰初始态）/
 	 * 绿贯通/黄缺字/红被拒/灰契约不符 + 「上次测试：时间 · 状态」等宽小字位。
-	 * 状态词为五态闭集初稿——批 C 接线 N1 时按 CredentialProbe 分类词表校准。
+	 * 状态词表已按 CredentialProbe 分类三态（绿贯通/黄缺字/红被拒）+ 契约灰档定稿（N1）。
 	 *
 	 * @param string $state       ''|green|yellow|red|gray（闭集外回落未测试）。
 	 * @param string $last_tested 预格式化时间文案（空=「--」）。
@@ -658,6 +720,86 @@ final class SettingsPage {
 		$last = '' !== $last_tested ? $last_tested : '--';
 		return '<span class="test-state"><span class="badge ' . esc_attr( $conf[0] ) . '">' . esc_html( $conf[1] ) . '</span>'
 			. '<span class="last-test">' . esc_html( sprintf( __( '上次测试：%s', 'wink-gatekeeper' ), $last ) ) . '</span></span>';
+	}
+
+	/* -------------------------------------------------------------------
+	 * N1 · 测试凭据持久化（probe log——R4 单 option 数组形态，本类内私有方法对，
+	 * 不建新类；写入点=各 AJAX 测试凭据 handler 分类完成后、wp_send_json 前；
+	 * message 不入库红线=落库面只有 state 枚举+tested_at 时间戳两键）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * probe log 读件（option 数组；非数组防御回落空——「未测试」缺席态语义）。
+	 *
+	 * @return array<string, array{state: string, tested_at: int}>
+	 */
+	private static function probe_log_get(): array {
+		$raw = get_option( self::OPTION_PROBE_LOG, array() );
+		return is_array( $raw ) ? $raw : array();
+	}
+
+	/**
+	 * 五态归一（纯函数，公开件——闭集纪律测试面）：green|yellow|red|gray 原样；
+	 * 其余（含 ''/闭集外/非标量）一律归 ''（未测试缺席态，不落脏数据）。
+	 *
+	 * @param mixed $state 原始状态值。
+	 * @return string ''|green|yellow|red|gray。
+	 */
+	public static function probe_log_normalize_state( $state ): string {
+		return is_string( $state ) && in_array( $state, array( 'green', 'yellow', 'red', 'gray' ), true ) ? $state : '';
+	}
+
+	/**
+	 * probe log 写件（per 驱动一槽覆盖写——每驱动一槽自限量、零 retention/清理口需求；
+	 * message 不入库：只存 state 枚举+时间戳。闭集外驱动键/状态拒绝落库 fail-safe）。
+	 *
+	 * @param string $driver_key 驱动 id（PROBE_LOG_DRIVERS 闭集）。
+	 * @param string $state      分类态（probe_log_normalize_state 归一）。
+	 * @return void
+	 */
+	private static function probe_log_record( string $driver_key, string $state ): void {
+		if ( ! in_array( $driver_key, self::PROBE_LOG_DRIVERS, true ) ) {
+			return;
+		}
+		$state = self::probe_log_normalize_state( $state );
+		if ( '' === $state ) {
+			return; // 未测试缺席态不落库（空态不覆盖既有记录）。
+		}
+		$log                = self::probe_log_get();
+		$log[ $driver_key ] = array(
+			'state'     => $state,
+			'tested_at' => time(), // WP 边界时钟。
+		);
+		update_option( self::OPTION_PROBE_LOG, $log );
+	}
+
+	/**
+	 * probe log 徽标读值（test_credential_btn 消费）：返回五态 state + 「上次测试：
+	 * m月d日 H:i · 状态词」文案（date_i18n；无记录=未测试「--」）。
+	 *
+	 * @param string $driver_key 驱动 id（闭集内）。
+	 * @return array{0: string, 1: string} [state, last_tested]。
+	 */
+	private static function probe_log_badge( string $driver_key ): array {
+		$entry = self::probe_log_get()[ $driver_key ] ?? null;
+		if ( ! is_array( $entry ) || ! isset( $entry['state'] ) ) {
+			return array( '', '' ); // 无记录=未测试中性灰（缺席态）。
+		}
+		$state = self::probe_log_normalize_state( $entry['state'] );
+		if ( '' === $state ) {
+			return array( '', '' );
+		}
+		$words = array(
+			'green'  => '贯通',
+			'yellow' => '缺字',
+			'red'    => '被拒',
+			'gray'   => '契约不符',
+		);
+		$ts    = isset( $entry['tested_at'] ) && is_numeric( $entry['tested_at'] ) ? (int) $entry['tested_at'] : 0;
+		$last  = $ts > 0
+			? date_i18n( 'm月d日 H:i', $ts ) . ' · ' . ( $words[ $state ] ?? $state )
+			: ( $words[ $state ] ?? $state ); // 时间戳缺失防御：只显状态词。
+		return array( $state, $last );
 	}
 
 	/**
@@ -910,9 +1052,9 @@ final class SettingsPage {
 	 *
 	 * 两态（同一卡槽 id="wk-overview-entry-card"）：
 	 *   - 未配置（===0）：三步引导黄条形态（配好任意一家自动消失——原 onboarding
-	 *     语义原样保留，判定复用 overview_configured_count）；
-	 *   - 已配置：ghost 弱化形态常驻（P6 常驻入口·R5——批 C 向导实装后本入口改指向
-	 *     wizard，当前先渲染静态入口指向 Tab②）。
+	 *     语义原样保留，判定复用 overview_configured_count）；【W3·批C】入口改指首启向导；
+	 *   - 已配置：ghost 弱化形态常驻（P6 常驻入口·R5——【W3·批C】向导已实装，本入口
+	 *     改指向 wizard 重进入口（state=done/skipped 也可再进）。
 	 *
 	 * @return void
 	 */
@@ -924,7 +1066,7 @@ final class SettingsPage {
 			<?php if ( ! $configured ) : ?>
 				<?php
 				// 【W3·批A 迁段→批B 翻转】classes 兼容位退役，回落 warn 级插件级黄条类；
-				// 文案/esc/链接组装留在编排位（等价迁移）。
+				// 文案/esc/链接组装留在编排位（等价迁移）；【W3·批C】入口改指向导。
 				self::notice_yellow_bar(
 					'warn',
 					'<strong>' . esc_html__( '三步开始防护', 'wink-gatekeeper' ) . '</strong>',
@@ -932,14 +1074,616 @@ final class SettingsPage {
 						. ' → ② ' . esc_html__( '配云审 / IP 信誉（Tab③ 内容审核 / Tab④ IP 信誉）', 'wink-gatekeeper' )
 						. ' → ③ ' . esc_html__( '在各配置卡点「测试凭据」实测连通。', 'wink-gatekeeper' )
 						. esc_html__( '配好任意一家后本提示自动消失。', 'wink-gatekeeper' ),
-					' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( '从第一步开始 →', 'wink-gatekeeper' ) . '</a>'
+					' <a href="' . esc_url( self::wizard_url() ) . '">' . esc_html__( '从第一步开始 →', 'wink-gatekeeper' ) . '</a>'
 				);
 				?>
 			<?php else : ?>
-				<p class="wk-muted"><?php esc_html_e( '防护已上岗。想补齐验证码 / 云端审核 / IP 信誉，随时可继续配置（首启向导随批 C 实装，本入口届时改指向向导）。', 'wink-gatekeeper' ); ?>
-					<a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '继续配置 →', 'wink-gatekeeper' ); ?></a></p>
+				<p class="wk-muted"><?php esc_html_e( '防护已上岗。想补齐验证码 / 云端审核 / IP 信誉，随时重走一遍首启向导（也可在各 Tab 直接细配）。', 'wink-gatekeeper' ); ?>
+					<a href="<?php echo esc_url( self::wizard_url() ); ?>"><?php esc_html_e( '继续配置（向导）→', 'wink-gatekeeper' ); ?></a></p>
 			<?php endif; ?>
 		</section>
+		<?php
+	}
+
+	/**
+	 * 【W3·批C·R5】向导重进入口 URL（纯件）：page=设置页 + wizard=1 + step（白名单
+	 * 1–4 越界回落 1）。wizard=1 手动入口不受向导状态限制（done/skipped 也可再进——
+	 * proto-wizard 步四「重新走一遍向导」佐证）。
+	 *
+	 * @param int $step 步序（1–4）。
+	 * @return string
+	 */
+	public static function wizard_url( int $step = 1 ): string {
+		$step = ( $step >= 1 && $step <= 4 ) ? $step : 1;
+		return add_query_arg(
+			array(
+				'page'   => self::PAGE_SLUG,
+				'wizard' => '1',
+				'step'   => (string) $step,
+			),
+			admin_url( 'options-general.php' )
+		);
+	}
+
+	/**
+	 * 向导状态读件（WP 边界）：option 三态白名单，缺失/闭集外归一无记录 ''
+	 * （存量升级站 option 恒缺失=永不自动弹——R5 差分语义的读取面）。
+	 *
+	 * @return string ''|pending|done|skipped。
+	 */
+	public static function wizard_state(): string {
+		$raw = get_option( self::OPTION_WIZARD_STATE, '' );
+		return is_string( $raw ) && in_array( $raw, self::WIZARD_STATES, true ) ? $raw : '';
+	}
+
+	/**
+	 * auto-open 纯判定件（R5 差分语义——单测面）：state==='pending' 且无显式 tab 参数
+	 * 才自动弹；done/skipped/无记录（存量站）恒不弹。
+	 *
+	 * @param string $state             向导状态（wizard_state 读值）。
+	 * @param bool   $tab_param_present GET 是否携带显式 tab 参数。
+	 * @return bool
+	 */
+	public static function wizard_should_auto_open( string $state, bool $tab_param_present ): bool {
+		return self::WIZARD_STATE_PENDING === $state && ! $tab_param_present;
+	}
+
+	/**
+	 * 向导出口动作 → 状态映射（纯件）：done→done / skip→skipped；闭集外拒绝（不可逆
+	 * 态只认两个闭集入口）。
+	 *
+	 * @param string $action 出口动作（done|skip）。
+	 * @return string ''|done|skipped（''=不写）。
+	 */
+	public static function wizard_state_for_action( string $action ): string {
+		if ( 'done' === $action ) {
+			return self::WIZARD_STATE_DONE;
+		}
+		if ( 'skip' === $action ) {
+			return self::WIZARD_STATE_SKIPPED;
+		}
+		return '';
+	}
+
+	/**
+	 * 向导模式判定（render 入口；active_tab 旁 wizard 分流）：
+	 *   ① manual：GET wizard=1（Tab① 常驻入口卡/步四「重新走一遍」——done/skipped 也可再进）；
+	 *   ② auto：wizard_should_auto_open（pending + 无显式 tab——新装激活后首次进入）。
+	 *
+	 * @return bool
+	 */
+	private static function wizard_mode_active(): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读导航展示参数，无写操作。
+		$manual = isset( $_GET['wizard'] ) && '1' === sanitize_key( wp_unslash( (string) $_GET['wizard'] ) );
+		if ( $manual ) {
+			return true;
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读导航展示参数，无写操作。
+		$has_tab = isset( $_GET['tab'] );
+		return self::wizard_should_auto_open( self::wizard_state(), $has_tab );
+	}
+
+	/**
+	 * 【W3·批C·R5】向导完成出口处理器（admin_post_{ACTION_WIZARD_DONE}）：
+	 * manage_options + check_admin_referer 双闸（GET 链接 wp_nonce_url 形态——
+	 * reactivate_cron 先例）；置 done（不可逆——无重置 UI，R5）+ 重定向回设置页 Tab①。
+	 *
+	 * @return void
+	 */
+	public static function handle_wizard_finish(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( self::ACTION_WIZARD_DONE );
+		update_option( self::OPTION_WIZARD_STATE, self::WIZARD_STATE_DONE, false );
+		// 出口去向白名单（步四双出口：进入总览=主 / 去文案工坊=品牌彩蛋位——proto-wizard 步四）。
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce 已上行 check_admin_referer 校验。
+		$to = isset( $_GET['to'] ) ? sanitize_key( wp_unslash( (string) $_GET['to'] ) ) : 'overview';
+		wp_safe_redirect( self::tab_url( array_key_exists( $to, self::TABS ) ? $to : 'overview' ) );
+		exit;
+	}
+
+	/**
+	 * 向导跳过出口（admin_post_{ACTION_WIZARD_SKIP}）：跳过=不提交表单、直接置 skipped
+	 * + 跳 Tab①（R5 附案——跳过的域保持未配置，Tab① 兜底黄条照常）。
+	 *
+	 * @return void
+	 */
+	public static function handle_wizard_skip(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( self::ACTION_WIZARD_SKIP );
+		update_option( self::OPTION_WIZARD_STATE, self::WIZARD_STATE_SKIPPED, false );
+		wp_safe_redirect( self::tab_url( 'overview' ) );
+		exit;
+	}
+
+	/* ===================================================================
+	 * 【W3·批C·R5/N5/P5/P6】首启向导（4 步：欢迎/人机验证/内容审核/完成）。
+	 * 同页渲染模式（R5 附案）：向导=SettingsPage.php 内 render 分组（单文件口径），
+	 * 复用 wk-form 主保存通道（settings_fields + options.php）——「下一步/完成」=
+	 * submit 变体（提交→sanitize→_wp_http_referer 指向下一步——每步落盘、中途关闭
+	 * 不丢已填）；「跳过全部」=不提交表单、直接置 skipped（handle_wizard_skip）。
+	 * 向导内字段名与 Tab②③④ 完全同名同键（N5 红线：零新 schema 键）；WP 原生两
+	 * 开关只读黄条=真值展示零本插件表单字段（:2131 红线照守）。stepper/面板切换=
+	 * 纯显隐零提交语义（admin-brand.js 向导模块）；无 JS=仅当前步可见+步进钮照常
+	 * 工作（渐进增强）。向导页无前台验证码容器，不受 gatekeeper.js submit-gate 影响。
+	 * =================================================================== */
+
+	/**
+	 * 向导渲染分组（wizard_mode_active() 为真时由 render() 调用；步序 GET step 白名单
+	 * 1–4 越界回落 1——面板服务端 hidden 定当前步，JS stepper 点击纯显隐切换）。
+	 *
+	 * @return void
+	 */
+	private static function render_wizard(): void {
+		$settings = self::settings();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读步进展示参数，无写操作。
+		$step = isset( $_GET['step'] ) ? absint( $_GET['step'] ) : 1;
+		$step = ( $step >= 1 && $step <= 4 ) ? $step : 1;
+
+		$aliyun   = is_array( $settings['captcha']['aliyun'] ?? null ) ? $settings['captcha']['aliyun'] : array();
+		$cloud    = is_array( $settings['review']['cloud'] ?? null ) ? $settings['review']['cloud'] : array();
+		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
+		$selected = in_array( 'baidu', $chain, true ) ? 'baidu'
+			: ( in_array( 'deepseek', $chain, true ) ? 'deepseek'
+			: ( in_array( 'aliyun_green', $chain, true ) ? 'aliyun_green'
+			: ( in_array( 'tencent_tms', $chain, true ) ? 'tencent_tms'
+			: ( in_array( 'openai_custom', $chain, true ) ? 'openai_custom' : '' ) ) ) );
+		$captcha_driver = is_string( $settings['captcha']['driver'] ?? null ) ? $settings['captcha']['driver'] : '';
+		?>
+		<div class="wk-wizard" id="wk-wizard" data-wk-current="<?php echo esc_attr( (string) $step ); ?>">
+			<p class="wizard-head">
+				<span class="wk-wordmark">Wink <em>WP</em> 保安</span>
+				<span class="wk-muted">· 首次上岗</span>
+			</p>
+
+			<ol class="wk-stepper">
+				<li data-wk-goto="1"<?php echo 1 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '欢迎', 'wink-gatekeeper' ); ?></li>
+				<li data-wk-goto="2"<?php echo 2 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '人机验证', 'wink-gatekeeper' ); ?></li>
+				<li data-wk-goto="3"<?php echo 3 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '内容审核', 'wink-gatekeeper' ); ?></li>
+				<li data-wk-goto="4"<?php echo 4 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '完成', 'wink-gatekeeper' ); ?></li>
+			</ol>
+
+			<form method="post" action="options.php" class="wk-form" id="wk-wizard-form">
+				<?php settings_fields( self::OPTION_GROUP ); ?>
+				<input type="hidden" name="_wp_http_referer" id="wk-wizard-referer" value="<?php echo esc_url( self::wizard_url( $step ) ); ?>" />
+
+				<?php /* ---------- 步 1 · 欢迎（零字段——纯引导+跳过承诺） ---------- */ ?>
+				<section class="wk-step-panel" data-wk-step="1"<?php echo 1 !== $step ? ' hidden' : ''; ?>>
+					<h2><?php esc_html_e( '三步上岗，五分钟搞定', 'wink-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( 'Wink WP 保安是站在你的博客门口的保安：拦垃圾评论、防撞库登录、可疑内容转人工。接下来带你配好两把最关键的钥匙——配到哪一步都可以随时跳过，跳过的部分会有兜底防护，不会裸奔。', 'wink-gatekeeper' ); ?></p>
+					<ul class="wk-checklist">
+						<li><?php esc_html_e( 'STEP 1 人机验证——选一家验证码服务商，把机器人挡在门外。真实访客正常时零感知。', 'wink-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( 'STEP 2 内容审核——站内规矩免费在场；再配一家云端审核，机器措辞也逃不掉。', 'wink-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( 'STEP 3 测一测凭据——每配好一家点一次「测试凭据」，绿了才算上岗。', 'wink-gatekeeper' ); ?></li>
+					</ul>
+					<?php
+					self::notice_yellow_bar(
+						'info',
+						'',
+						esc_html__( '只配站内规矩也能用——云端审核是增强层，不配不影响基本防护；配了会把站内规矩拦不住的评论再送审一遍。', 'wink-gatekeeper' )
+					);
+					?>
+					<div class="wizard-foot">
+						<span class="wk-muted"><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '先不配置，直接去设置页（跳过全部）→', 'wink-gatekeeper' ); ?></a></span>
+						<a class="button button-primary" href="<?php echo esc_url( self::wizard_url( 2 ) ); ?>"><?php esc_html_e( '开始第一步 →', 'wink-gatekeeper' ); ?></a>
+					</div>
+				</section>
+
+				<?php /* ---------- 步 2 · 人机验证（驱动 radio 三卡 + 阿里四键 + AbuseIPDB 折叠卡 + submit_flow radio + 动图） ---------- */ ?>
+				<section class="wk-step-panel" data-wk-step="2"<?php echo 2 !== $step ? ' hidden' : ''; ?>>
+					<h2><?php esc_html_e( '第一步 · 人机验证', 'wink-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( '选一家验证码服务商。境内站推荐默认那家——访客在境内加载快。', 'wink-gatekeeper' ); ?></p>
+					<div class="radio-cards" data-wk-radio-group="captcha-driver">
+						<label class="radio-card<?php echo 'aliyun' === $captcha_driver ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'driver' ) ) ); ?>" value="aliyun" data-wk-driver-toggle="aliyun" <?php checked( 'aliyun', $captcha_driver ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '阿里云验证码 2.0', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-tag"><?php esc_html_e( '推荐 · 默认', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '境内直连快 · 免费额度充足 · 智能验证不打扰真人。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo 'tencent' === $captcha_driver ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'driver' ) ) ); ?>" value="tencent" data-wk-driver-toggle="tencent" <?php checked( 'tencent', $captcha_driver ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '腾讯天御 2.0', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '默认退役：账号套餐停止，不再默认推荐——存量已配置的站点仍可用。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo '' === $captcha_driver ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'driver' ) ) ); ?>" value="" data-wk-driver-toggle="none" <?php checked( '', $captcha_driver ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '暂不配置', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '评论闸仍保留站内规矩四道防线；之后随时可在「② 验证码」页配置。', 'wink-gatekeeper' ); ?></span>
+						</label>
+					</div>
+
+					<div class="wizard-frow" data-wk-driver-face="aliyun"<?php echo 'aliyun' === $captcha_driver ? '' : ' hidden'; ?>>
+						<?php /* 阿里四键最小面——字段 id 与 Tab② 同名（admin-brand.js 阿里探活绑定面复用）。 */ ?>
+						<p><strong><?php esc_html_e( 'AccessKeyId / AccessKeySecret（阿里 RAM）', 'wink-gatekeeper' ); ?></strong></p>
+						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_id' ), '' !== (string) ( $aliyun['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
+						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_secret' ), '' !== (string) ( $aliyun['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
+						<p><label for="wk-aliyun-scene-id"><strong><?php esc_html_e( 'SceneId（场景 ID · 必填）', 'wink-gatekeeper' ); ?></strong></label></p>
+						<input type="text" id="wk-aliyun-scene-id" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'scene_id' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $aliyun['scene_id'] ?? '' ) ); ?>" class="regular-text" data-wk-required="1" data-wk-label="SceneId" />
+						<p><label for="wk-aliyun-prefix"><strong><?php esc_html_e( 'prefix（前端身份标 · 必填）', 'wink-gatekeeper' ); ?></strong></label></p>
+						<input type="text" id="wk-aliyun-prefix" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'prefix' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $aliyun['prefix'] ?? '' ) ); ?>" class="regular-text" data-wk-required="1" data-wk-label="prefix" />
+						<p class="description"><?php esc_html_e( '去哪拿：阿里云控制台 → 验证码 2.0 → 场景管理，创建场景后把 SceneId 与 prefix 一起复制过来；RAM 密钥需授权 AliyunYundunAFSFullAccess。粘贴后点下方「测试凭据」，绿 = 凭据通，黄 = 有字段漏填，红 = 密钥被拒。', 'wink-gatekeeper' ); ?></p>
+						<?php
+						self::test_credential_btn(
+							'id="wk-aliyun-test-credentials"',
+							'id="wk-aliyun-test-result"',
+							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN ),
+							__( '测试凭据', 'wink-gatekeeper' ),
+							'aliyun'
+						);
+						?>
+					</div>
+					<div class="wizard-frow" data-wk-driver-face="tencent"<?php echo 'tencent' === $captcha_driver ? '' : ' hidden'; ?>>
+						<?php
+						self::notice_yellow_bar(
+							'info',
+							'',
+							esc_html__( '天御已默认退役（存量可用）——配置面在「② 验证码」页，此处只作选择保留。', 'wink-gatekeeper' )
+						);
+						?>
+					</div>
+					<div class="wizard-frow" data-wk-driver-face="none"<?php echo '' === $captcha_driver ? '' : ' hidden'; ?>>
+						<?php
+						self::notice_yellow_bar(
+							'warn',
+							'',
+							esc_html__( '已选择「暂不配置」——评论闸只靠站内规矩把关，验证码阶段整体跳过。总览页会持续亮黄条提醒你回来补配。', 'wink-gatekeeper' )
+						);
+						?>
+					</div>
+
+					<?php /* AbuseIPDB 可选折叠卡（第三稿——「配好验证码后顺手接上」；实况键最小面）。 */ ?>
+					<?php
+					self::advanced_fold(
+						'id="wk-wizard-abuseipdb"',
+						__( 'IP 信誉（AbuseIPDB）· 可选——配好验证码后顺手接上', 'wink-gatekeeper' ),
+						static function () use ( $settings ): void {
+							$iprep = is_array( $settings['iprep'] ?? null ) ? $settings['iprep'] : array();
+							$abuse = is_array( $iprep['abuseipdb'] ?? null ) ? $iprep['abuseipdb'] : array();
+							?>
+							<p class="description"><?php esc_html_e( '按 IP 前科对可疑访客从严（强制先过人机验证再放行）——评论与登录两闸共用；不接也不影响上面任何防护，之后随时可在「④ IP 信誉」页细配（阈值/软顶/日配额都在该页 ⚙ 高级配置）。', 'wink-gatekeeper' ); ?></p>
+							<div class="switch-row">
+								<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="0" />
+								<label>
+									<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $iprep['enabled'] ) ); ?> />
+									<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '开启 IP 信誉查询', 'wink-gatekeeper' ); ?></b></span>
+										<span class="why"><?php esc_html_e( '填了 Key 才真正生效；关闭或未填 Key 时信任链跳过该项。启用后访客 IP 会送境外服务查询——出境提示见 Tab④。', 'wink-gatekeeper' ); ?></span></span>
+								</label>
+							</div>
+							<p><label for="wk-field-iprep-abuseipdb-api_key"><strong><?php esc_html_e( 'AbuseIPDB API Key', 'wink-gatekeeper' ); ?></strong></label></p>
+							<?php self::password_field( array( 'iprep', 'abuseipdb', 'api_key' ), '' !== (string) ( $abuse['api_key'] ?? '' ), 'API Key' ); ?>
+							<p class="description"><?php esc_html_e( '免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取；查询按次计额度，软顶/日配额两道闸在 Tab④ ⚙ 高级配置里调。', 'wink-gatekeeper' ); ?></p>
+							<?php
+							self::test_credential_btn(
+								'id="wk-iprep-test-credentials"',
+								'id="wk-iprep-test-result"',
+								wp_create_nonce( self::AJAX_TEST_IPREP ),
+								__( '测试凭据', 'wink-gatekeeper' ),
+								'abuseipdb'
+							);
+							?>
+							<?php
+						}
+					);
+					?>
+
+					<h3><?php esc_html_e( '提交触发形态', 'wink-gatekeeper' ); ?></h3>
+					<p class="wk-muted"><?php esc_html_e( '访客过码的方式怎么触发——两种形态，下方动图直观对比（效果示意非实录）。', 'wink-gatekeeper' ); ?></p>
+					<div class="radio-cards" data-wk-radio-group="submit-flow">
+						<?php $submit_flow = 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? 'button' : 'on_submit'; ?>
+						<label class="radio-card<?php echo 'on_submit' === $submit_flow ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="on_submit" <?php checked( 'on_submit', $submit_flow ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '无按钮模式', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-tag"><?php esc_html_e( '推荐 · 默认', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '不渲染独立验证按钮——点原生「发表评论 / 登录」即验证，过码后自动续提。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo 'button' === $submit_flow ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="button" <?php checked( 'button', $submit_flow ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '独立验证按钮（经典）', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '先点表单内「完成人机验证」按钮过码，再点提交——0.8.3 及以前形态。', 'wink-gatekeeper' ); ?></span>
+						</label>
+					</div>
+
+					<?php /* 两形态循环动图（R8：CSS 动画+少量演示 JS 循环时序内联——纯展示零状态零提交语义；prefers-reduced-motion 降级静态帧）。 */ ?>
+					<div class="wk-flow-demo" id="wk-flow-demo">
+						<div class="wk-flow-frame">
+							<div class="wk-flow-step on"><?php esc_html_e( '① 点提交——访客点「发表评论」（无按钮模式：提交被截住，验证弹层自动弹出）', 'wink-gatekeeper' ); ?></div>
+							<div class="wk-flow-step"><?php esc_html_e( '② 过码——滑块/智能验证在弹层内完成', 'wink-gatekeeper' ); ?></div>
+							<div class="wk-flow-step"><?php esc_html_e( '③ 自动续提——过码后无需再点一次，Toast「正在接收检查」', 'wink-gatekeeper' ); ?></div>
+							<div class="wk-flow-step"><?php esc_html_e( '④ 落地——评论进入站内规矩 → 云审 → IP 信誉链路', 'wink-gatekeeper' ); ?></div>
+						</div>
+						<p class="description wk-flow-note" id="wk-flow-note"><?php esc_html_e( '循环演示：无按钮模式 ↔ 经典按钮（经典=先点「完成人机验证」再提交，多第一步）· 效果示意非实录。', 'wink-gatekeeper' ); ?></p>
+					</div>
+					<script>
+						( function () {
+							var demo = document.getElementById( 'wk-flow-demo' );
+							if ( ! demo ) { return; }
+							var frames = demo.querySelectorAll( '.wk-flow-step' );
+							if ( window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) {
+								for ( var i = 1; i < frames.length; i++ ) { frames[ i ].classList.remove( 'on' ); } // 降级静态首帧。
+								return;
+							}
+							var idx = 0;
+							setInterval( function () {
+								frames[ idx ].classList.remove( 'on' );
+								idx = ( idx + 1 ) % frames.length;
+								frames[ idx ].classList.add( 'on' );
+							}, 1900 );
+						} )();
+					</script>
+
+					<div class="wizard-foot">
+						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 3 ) ); ?>"><?php esc_html_e( '先跳过这步 →', 'wink-gatekeeper' ); ?></a></span>
+						<span>
+							<a class="button" href="<?php echo esc_url( self::wizard_url( 1 ) ); ?>"><?php esc_html_e( '← 上一步', 'wink-gatekeeper' ); ?></a>
+							<button type="submit" class="button button-primary" data-wk-wizard-next="3"><?php esc_html_e( '下一步 · 内容审核 →', 'wink-gatekeeper' ); ?></button>
+						</span>
+					</div>
+				</section>
+
+				<?php /* ---------- 步 3 · 内容审核（WP 两开关只读黄条 + 云审推荐序 radio 六卡 + 最小凭据面） ---------- */ ?>
+				<section class="wk-step-panel" data-wk-step="3"<?php echo 3 !== $step ? ' hidden' : ''; ?>>
+					<h2><?php esc_html_e( '第二步 · 内容审核', 'wink-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( '站内规矩（字数 / 无中文 / 关键词）已经免费在场。想再强一点，配一家云端审核——由它把关措辞与变体广告。选「暂不配置」完全不影响已有防护。', 'wink-gatekeeper' ); ?></p>
+					<?php self::render_wizard_wp_switches_bar(); ?>
+					<div class="switch-row">
+						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'enabled' ) ) ); ?>" value="0" />
+						<label>
+							<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['enabled'] ) ); ?> />
+							<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '启用云端审核', 'wink-gatekeeper' ); ?></b></span>
+								<span class="why"><?php esc_html_e( '开启后按「本地规则 → 已选云端驱动」串联送审；本地规则恒在链首不可关闭。', 'wink-gatekeeper' ); ?></span></span>
+						</label>
+					</div>
+					<div class="radio-cards" data-wk-radio-group="cloud-chain">
+						<?php /* 云审推荐序（2026-11-18 拍板）：百度推荐·默认 → DeepSeek 次选 → 阿里 Green → 腾讯 TMS → openai_custom → 暂不配置。radio 同名 []（text_list 单值数组——checked 一项 + hidden '' 伴随域，与 Tab③ checkbox 组同一保存通道）。 */ ?>
+						<label class="radio-card<?php echo 'baidu' === $selected ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="baidu" data-wk-chain-toggle="baidu" <?php checked( 'baidu', $selected ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '百度文本审核', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-tag"><?php esc_html_e( '推荐 · 默认', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '推荐 · 国内直连 / 按量计费——开通门槛最低的一家。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo 'deepseek' === $selected ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="deepseek" data-wk-chain-toggle="deepseek" <?php checked( 'deepseek', $selected ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'DeepSeek（LLM 审核）', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '次选——会「读懂人话」的审核，判定更强；送审出境。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo 'aliyun_green' === $selected ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="aliyun_green" data-wk-chain-toggle="aliyun_green" <?php checked( 'aliyun_green', $selected ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '阿里文本审核增强版 PLUS', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '境内 · 双通道分送（昵称/正文分开送）· 与阿里验证码同账号顺路。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo 'tencent_tms' === $selected ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="tencent_tms" data-wk-chain-toggle="tencent_tms" <?php checked( 'tencent_tms', $selected ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '腾讯 TMS 文本审核', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '境内 · 与腾讯云生态顺路（已有腾讯云密钥就选它）。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo 'openai_custom' === $selected ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="openai_custom" data-wk-chain-toggle="openai_custom" <?php checked( 'openai_custom', $selected ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '自定义 OpenAI 兼容端点', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '中转 / 自建网关场景——端点与模型名手填。', 'wink-gatekeeper' ); ?></span>
+						</label>
+						<label class="radio-card<?php echo '' === $selected ? ' on' : ''; ?>">
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="" data-wk-chain-toggle="none" <?php checked( '', $selected ); ?> />
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '暂不配置', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( '只用站内规矩——完全够用，之后随时在「③ 内容审核」页补配。', 'wink-gatekeeper' ); ?></span>
+						</label>
+					</div>
+					<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="" />
+
+					<?php /* 各驱动最小凭据面（实况键+JS 探活绑定 id 与 Tab③ 同名——password_field 路径即 id）。 */ ?>
+					<div class="wizard-frow" data-wk-chain-face="baidu"<?php echo 'baidu' === $selected ? '' : ' hidden'; ?>>
+						<p><strong><?php esc_html_e( 'API Key / Secret Key（百度智能云应用）', 'wink-gatekeeper' ); ?></strong></p>
+						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'api_key' ), '' !== (string) ( $cloud['baidu']['api_key'] ?? '' ), 'API Key' ); ?>
+						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'secret_key' ), '' !== (string) ( $cloud['baidu']['secret_key'] ?? '' ), 'Secret Key' ); ?>
+						<p class="description"><?php esc_html_e( '选它当默认推荐的理由＝开通门槛最低：百度智能云免费开通、按量计费、境内直连不出境，两把钥匙拿到就能用。粘贴后点「测试凭据」（良性样本真调用）：绿 = 凭据通，黄 = 必填缺（逐字段列出），红 = 密钥被拒。', 'wink-gatekeeper' ); ?></p>
+						<?php
+						self::test_credential_btn(
+							'id="wk-baidu-test-credentials"',
+							'id="wk-baidu-test-result"',
+							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_BAIDU ),
+							__( '测试凭据', 'wink-gatekeeper' ),
+							'baidu'
+						);
+						?>
+					</div>
+					<div class="wizard-frow" data-wk-chain-face="deepseek"<?php echo 'deepseek' === $selected ? '' : ' hidden'; ?>>
+						<p><strong><?php esc_html_e( 'API Key（DeepSeek 开放平台）', 'wink-gatekeeper' ); ?></strong></p>
+						<?php self::password_field( array( 'review', 'cloud', 'deepseek', 'api_key' ), '' !== (string) ( $cloud['deepseek']['api_key'] ?? '' ), 'API Key' ); ?>
+						<p class="description"><?php esc_html_e( '注意：LLM 审核会把评论正文送出境（DeepSeek 开放平台）；评论 IP 不送审。按量计费——超日配额自动先进待审区，不会爆账单。', 'wink-gatekeeper' ); ?></p>
+						<?php
+						self::test_credential_btn(
+							'id="wk-deepseek-test-btn"',
+							'id="wk-deepseek-test-result"',
+							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_DEEPSEEK ),
+							__( '测试凭据', 'wink-gatekeeper' ),
+							'deepseek'
+						);
+						?>
+					</div>
+					<div class="wizard-frow" data-wk-chain-face="aliyun_green"<?php echo 'aliyun_green' === $selected ? '' : ' hidden'; ?>>
+						<p><strong><?php esc_html_e( 'AccessKeyId / AccessKeySecret（阿里 RAM）', 'wink-gatekeeper' ); ?></strong></p>
+						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_id' ), '' !== (string) ( $cloud['aliyun_green']['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
+						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_secret' ), '' !== (string) ( $cloud['aliyun_green']['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
+						<p class="description"><?php esc_html_e( '已在第一步选了阿里云验证码？可与它共用同一 RAM 用户（同账号双产品线）。双 Service 分送：昵称、邮箱+正文各走各的通道（OR 取严）。需补授内容安全增强版权限。', 'wink-gatekeeper' ); ?></p>
+						<?php
+						self::test_credential_btn(
+							'id="wk-green-test-credentials"',
+							'id="wk-green-test-result"',
+							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN ),
+							__( '测试凭据', 'wink-gatekeeper' ),
+							'aliyun_green'
+						);
+						?>
+					</div>
+					<div class="wizard-frow" data-wk-chain-face="tencent_tms"<?php echo 'tencent_tms' === $selected ? '' : ' hidden'; ?>>
+						<p><strong><?php esc_html_e( 'SecretId / SecretKey（腾讯云 CAM）', 'wink-gatekeeper' ); ?></strong></p>
+						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_id' ), '' !== (string) ( $cloud['tencent_tms']['secret_id'] ?? '' ), 'SecretId' ); ?>
+						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_key' ), '' !== (string) ( $cloud['tencent_tms']['secret_key'] ?? '' ), 'SecretKey' ); ?>
+						<p class="description"><?php esc_html_e( '境内、按次计费有免费额度；与腾讯云生态顺路。启用后评论的昵称、邮箱、正文会送审至第三方（腾讯云，境内）——此提示常驻。', 'wink-gatekeeper' ); ?></p>
+						<?php
+						self::test_credential_btn(
+							'id="wk-tms-test-credentials"',
+							'id="wk-tms-test-result"',
+							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_TMS ),
+							__( '测试凭据', 'wink-gatekeeper' ),
+							'tencent_tms'
+						);
+						?>
+					</div>
+					<div class="wizard-frow" data-wk-chain-face="openai_custom"<?php echo 'openai_custom' === $selected ? '' : ' hidden'; ?>>
+						<p><strong><?php esc_html_e( '接入地址 / API Key / 模型名（手填）', 'wink-gatekeeper' ); ?></strong></p>
+						<p><input type="url" id="wk-openai-custom-base-url" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'base_url' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $cloud['openai_custom']['base_url'] ?? '' ) ); ?>" class="regular-text code" placeholder="https://api.example.com/v1" /></p>
+						<?php self::password_field( array( 'review', 'cloud', 'openai_custom', 'api_key' ), '' !== (string) ( $cloud['openai_custom']['api_key'] ?? '' ), 'API Key' ); ?>
+						<p><input type="text" id="wk-openai-custom-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'model' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $cloud['openai_custom']['model'] ?? '' ) ); ?>" class="regular-text" placeholder="<?php esc_attr_e( '模型名须与端点一致（测试凭据可校验 /models 列表）', 'wink-gatekeeper' ); ?>" /></p>
+						<p class="description"><?php esc_html_e( '端点所在司法辖区未知——通用出境提示常驻，请自行评估合规。路径前缀陷阱：OpenAI 官方族填到 …/v1（本插件在其后拼 /chat/completions）。', 'wink-gatekeeper' ); ?></p>
+						<?php
+						self::test_credential_btn(
+							'id="wk-openai-custom-test-btn"',
+							'id="wk-openai-custom-test-result"',
+							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM ),
+							__( '测试凭据', 'wink-gatekeeper' ),
+							'openai_custom'
+						);
+						?>
+					</div>
+					<div class="wizard-frow" data-wk-chain-face="none"<?php echo '' === $selected ? '' : ' hidden'; ?>>
+						<?php
+						self::notice_yellow_bar(
+							'ok',
+							'',
+							esc_html__( '好选择——站内规矩始终在岗，零成本零外呼。总览页不会为这一项亮黄条。', 'wink-gatekeeper' )
+						);
+						?>
+					</div>
+
+					<div class="wizard-foot">
+						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 4 ) ); ?>"><?php esc_html_e( '先跳过这步 →', 'wink-gatekeeper' ); ?></a></span>
+						<span>
+							<a class="button" href="<?php echo esc_url( self::wizard_url( 2 ) ); ?>"><?php esc_html_e( '← 上一步', 'wink-gatekeeper' ); ?></a>
+							<button type="submit" class="button button-primary" data-wk-wizard-next="4"><?php esc_html_e( '完成配置 →', 'wink-gatekeeper' ); ?></button>
+						</span>
+					</div>
+				</section>
+
+				<?php /* ---------- 步 4 · 完成（上岗确认单=真值核对清单 + 测试凭据引导 + 出口两枚） ---------- */ ?>
+				<section class="wk-step-panel" data-wk-step="4"<?php echo 4 !== $step ? ' hidden' : ''; ?>>
+					<h2><?php esc_html_e( '上岗确认单', 'wink-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( '配好几步算几步——下面是你当前的防护清单，缺的项随时可在设置页补。', 'wink-gatekeeper' ); ?></p>
+					<?php self::render_wizard_checklist( $settings ); ?>
+					<div class="wizard-foot">
+						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 1 ) ); ?>"><?php esc_html_e( '重新走一遍向导', 'wink-gatekeeper' ); ?></a></span>
+						<span>
+							<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_DONE . '&to=copy' ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '去文案工坊，把拦截页的话改成你的味儿', 'wink-gatekeeper' ); ?></a>
+							<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_DONE ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '进入总览 →', 'wink-gatekeeper' ); ?></a>
+						</span>
+					</div>
+				</section>
+			</form>
+
+			<p class="wizard-exit wk-muted"><?php esc_html_e( '每一步的「下一步」都会保存当前已填内容；', 'wink-gatekeeper' ); ?><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '跳过全部，直接进设置页 →', 'wink-gatekeeper' ); ?></a></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * 向导步 3 · WP 原生两开关联动只读黄条（真值展示零本插件表单字段——SettingsPage
+	 * 「不进本插件表单字段」红线照守；与 Tab③ 同数据源 comment_moderation /
+	 * comment_whitelist，两开关任一为是才渲染=F3-5 三态守卫；原型「演示开关」落施工态
+	 * 改真值展示——演示开关不落库仅原型，施工不虚构交互）。
+	 *
+	 * @return void
+	 */
+	private static function render_wizard_wp_switches_bar(): void {
+		$wp_moderation = (bool) get_option( 'comment_moderation', 0 );
+		$wp_whitelist  = (bool) get_option( 'comment_whitelist', 0 );
+		if ( ! $wp_moderation && ! $wp_whitelist ) {
+			return; // 两开关都为否：整行不渲染（零 DOM——F3-5 同口径）。
+		}
+		$state_word = static function ( bool $on ): string {
+			return $on ? __( '已开启', 'wink-gatekeeper' ) : __( '未开启', 'wink-gatekeeper' );
+		};
+		self::notice_yellow_bar(
+			'warn',
+			'<strong>' . esc_html__( 'WordPress 原生审核开关已开启', 'wink-gatekeeper' ) . '</strong>',
+			esc_html__( '——评论过码后仍需人工批准（这不是故障）。', 'wink-gatekeeper' )
+				. esc_html( sprintf(
+					/* translators: 1: 手动批准状态 2: 先前已批准状态 */
+					__( '「评论必须手动批准」：%1$s；「作者须有先前已批准的评论」：%2$s。', 'wink-gatekeeper' ),
+					$state_word( $wp_moderation ),
+					$state_word( $wp_whitelist )
+				) )
+				. ' <a href="' . esc_url( admin_url( 'options-discussion.php' ) ) . '">' . esc_html__( '去讨论设置调整', 'wink-gatekeeper' ) . '</a>'
+		);
+	}
+
+	/**
+	 * 向导步 4 · 上岗确认单核对清单（真值态——配几步算几步，未配项灰字不责备）+
+	 * 测试凭据引导（复用 test_credential_btn 新形态——对当前所选验证码驱动实测一次）。
+	 *
+	 * @param array<string, mixed> $settings 设置树。
+	 * @return void
+	 */
+	private static function render_wizard_checklist( array $settings ): void {
+		$captcha_driver = is_string( $settings['captcha']['driver'] ?? null ) ? $settings['captcha']['driver'] : '';
+		$captcha_ok     = false;
+		$captcha_word   = __( '未配置——评论验证码阶段跳过', 'wink-gatekeeper' );
+		if ( 'aliyun' === $captcha_driver ) {
+			$aliyun = is_array( $settings['captcha']['aliyun'] ?? null ) ? $settings['captcha']['aliyun'] : array();
+			$captcha_ok = '' !== trim( (string) ( $aliyun['access_key_id'] ?? '' ) )
+				&& '' !== trim( (string) ( $aliyun['access_key_secret'] ?? '' ) )
+				&& '' !== trim( (string) ( $aliyun['scene_id'] ?? '' ) )
+				&& '' !== trim( (string) ( $aliyun['prefix'] ?? '' ) );
+		} elseif ( 'tencent' === $captcha_driver ) {
+			$tencent = is_array( $settings['captcha']['tencent'] ?? null ) ? $settings['captcha']['tencent'] : array();
+			$captcha_ok = '' !== trim( (string) ( $tencent['app_id'] ?? '' ) )
+				&& '' !== trim( (string) ( $tencent['secret_id'] ?? '' ) )
+				&& '' !== trim( (string) ( $tencent['secret_key'] ?? '' ) );
+		}
+		if ( 'aliyun' === $captcha_driver ) {
+			$captcha_word = $captcha_ok ? __( '阿里云验证码 2.0 · 四键已配（提交触发形态=' ) . ( 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? __( '经典按钮', 'wink-gatekeeper' ) : __( '无按钮模式', 'wink-gatekeeper' ) ) . '）' : __( '阿里云验证码 2.0 · 四键未配齐', 'wink-gatekeeper' );
+		} elseif ( 'tencent' === $captcha_driver ) {
+			$captcha_word = $captcha_ok ? __( '腾讯天御 2.0 · 凭据已配（存量可用）', 'wink-gatekeeper' ) : __( '腾讯天御 2.0 · 凭据未配齐', 'wink-gatekeeper' );
+		}
+		$cloud    = is_array( $settings['review']['cloud'] ?? null ) ? $settings['review']['cloud'] : array();
+		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
+		$selected = in_array( 'baidu', $chain, true ) ? 'baidu'
+			: ( in_array( 'deepseek', $chain, true ) ? 'deepseek'
+			: ( in_array( 'aliyun_green', $chain, true ) ? 'aliyun_green'
+			: ( in_array( 'tencent_tms', $chain, true ) ? 'tencent_tms'
+			: ( in_array( 'openai_custom', $chain, true ) ? 'openai_custom' : '' ) ) ) );
+		$iprep = is_array( $settings['iprep'] ?? null ) ? $settings['iprep'] : array();
+		?>
+		<ul class="wk-checklist">
+			<li>✓ <?php esc_html_e( '站内规矩四道防线 · 已在岗（字数 / 无中文 / 关键词 / 正则——免费、零外呼、永远开着）', 'wink-gatekeeper' ); ?></li>
+			<li><?php echo '' !== $captcha_driver ? '✓' : '·'; ?> <?php echo esc_html( __( '人机验证 · ', 'wink-gatekeeper' ) . $captcha_word ); ?></li>
+			<li><?php echo ! empty( $cloud['enabled'] ) && '' !== $selected ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $cloud['enabled'] ) && '' !== $selected ? __( '云端审核 · 已启用（所选服务商凭据以「测试凭据」绿态为准）', 'wink-gatekeeper' ) : __( '云端审核 · 未启用（站内规矩照常把关）', 'wink-gatekeeper' ) ); ?></li>
+			<li><?php echo ! empty( $iprep['enabled'] ) ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $iprep['enabled'] ) ? __( 'IP 信誉（AbuseIPDB）· 已启用（凭据以「测试凭据」绿态为准）', 'wink-gatekeeper' ) : __( 'IP 信誉（AbuseIPDB）· 可选增强——不配不影响以上防护', 'wink-gatekeeper' ) ); ?></li>
+		</ul>
+		<?php if ( '' !== $captcha_driver ) : ?>
+			<p><strong><?php esc_html_e( '最后一步：点「测试凭据」，绿了才算上岗。', 'wink-gatekeeper' ); ?></strong></p>
+			<?php
+			if ( 'aliyun' === $captcha_driver ) {
+				self::test_credential_btn(
+					'id="wk-aliyun-test-credentials"',
+					'id="wk-aliyun-test-result"',
+					wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN ),
+					__( '测试凭据', 'wink-gatekeeper' ),
+					'aliyun'
+				);
+			} elseif ( 'tencent' === $captcha_driver ) {
+				self::test_credential_btn(
+					'id="wk-tencent-test-credentials"',
+					'id="wk-tencent-test-result"',
+					wp_create_nonce( self::AJAX_TEST_CREDENTIALS ),
+					__( '测试凭据', 'wink-gatekeeper' ),
+					'tencent'
+				);
+			}
+			?>
+			<p class="description wk-muted"><?php esc_html_e( '云审与 IP 信誉的「测试凭据」在对应折叠卡/「③ 内容审核」「④ IP 信誉」页；各按钮的状态徽标与「上次测试」时间已持久化（N1）。', 'wink-gatekeeper' ); ?></p>
+		<?php endif; ?>
 		<?php
 	}
 
@@ -1848,13 +2592,14 @@ final class SettingsPage {
 				'tencent'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次全参假票核验：绿 = 凭据可用；红 = CAM 密钥（SecretId/SecretKey）错；黄 = 必填参数缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '发一次全参假票核验：绿 = 凭据可用；红 = CAM 密钥（SecretId/SecretKey）错；黄 = 必填参数缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<?php
 		/* ---------- 【v1.5·B3】阿里云验证码 2.0 配置区（03 Tab②【v1.5】/05 §1.2/DESIGN-D2 §1.4）----------
 		 * 【W3·批B】⚙ 高级配置折叠新落位：error_policy 实键渲染（schema+sanitize 既有通道
-		 * 无渲染面——coexist 同类新接线）+ region 现状口径行（显式选择档=批 C 实装位）。
+		 * 无渲染面——coexist 同类新接线）；【W3·批C·N2】region 实键 radio（cn|sgp 默认 cn，
+		 * ENDPOINT_MAP 双端联动——规划位退役）+【N3】mode「默认」角标换位 popup。
 		 * ---------- */
 		$aliyun_guide = CaptchaTabSpec::aliyun_guide();
 		?>
@@ -1919,16 +2664,17 @@ final class SettingsPage {
 				<tr>
 					<th scope="row"><?php esc_html_e( '前端形态（mode）', 'wink-gatekeeper' ); ?></th>
 					<td>
-						<?php $aliyun_mode = 'popup' === ( $aliyun['mode'] ?? 'embed' ) ? 'popup' : 'embed'; ?>
+						<?php /* 【W3·批C·N3·breaking】出厂默认 embed→popup 平移（schema migrate 撞车守卫：凭据已配=显式选择保留 embed）；「默认」角标换位 popup。 */ ?>
+						<?php $aliyun_mode = 'popup' === ( $aliyun['mode'] ?? 'popup' ) ? 'popup' : 'embed'; ?>
 						<label style="display:block;margin-bottom:6px;">
-							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="embed" <?php checked( 'embed', $aliyun_mode ); ?> />
-							<?php esc_html_e( '嵌入触发条（默认）——页内渲染「点击开始验证」触发条，点击后弹出拼图/图像复原交互弹层（SDK 自管）', 'wink-gatekeeper' ); ?>
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="popup" <?php checked( 'popup', $aliyun_mode ); ?> />
+							<?php esc_html_e( '弹层（默认）——零占位：访客点「发表评论 / 登录」直接弹出交互弹层（无按钮模式主形态）', 'wink-gatekeeper' ); ?>
 						</label>
 						<label style="display:block;">
-							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="popup" <?php checked( 'popup', $aliyun_mode ); ?> />
-							<?php esc_html_e( '弹层（零占位）——页内无组件，点击验证按钮直接弹出交互弹层', 'wink-gatekeeper' ); ?>
+							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="embed" <?php checked( 'embed', $aliyun_mode ); ?> />
+							<?php esc_html_e( '嵌入触发条——页内渲染「点击开始验证」触发条，点击后弹出拼图/图像复原交互弹层（0.8.4 及以前默认形态）', 'wink-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '滑块宽度按官方最小 320px 传参；mode 切换不影响服务端核验链路（票据核验同一接口）。推荐档位平移（embed→popup）随批 C 落地。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( '滑块宽度按官方最小 320px 传参；mode 切换不影响服务端核验链路（票据核验同一接口）。推荐档已平移（embed→popup）——升级站点凭据已配=保留嵌入形态显式选择；未配凭据=按新默认弹层。选回嵌入触发条并保存后不再平移。', 'wink-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -1958,7 +2704,17 @@ final class SettingsPage {
 						<tr>
 							<th scope="row"><?php esc_html_e( '服务区域（region）', 'wink-gatekeeper' ); ?></th>
 							<td>
-								<p class="description"><?php esc_html_e( 'region 恒 cn（前端与服务端 endpoint 映射须一致，错配即报错）；显式选择档（cn/sgp）随批 C 实装——本行为规划位，当前零控件。', 'wink-gatekeeper' ); ?></p>
+								<?php /* 【W3·批C·N2】region 实键 radio（schema captcha.aliyun.region cn|sgp 默认 cn——ENDPOINT_MAP 双端联动；规划位退役）。 */ ?>
+								<?php $aliyun_region = 'sgp' === ( $settings['captcha']['aliyun']['region'] ?? 'cn' ) ? 'sgp' : 'cn'; ?>
+								<label style="display:block;margin-bottom:6px;">
+									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'region' ) ) ); ?>" value="cn" <?php checked( 'cn', $aliyun_region ); ?> />
+									<?php esc_html_e( '中国大陆（cn · 默认）——端点 captcha.cn-shanghai.aliyuncs.com', 'wink-gatekeeper' ); ?>
+								</label>
+								<label style="display:block;">
+									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'region' ) ) ); ?>" value="sgp" <?php checked( 'sgp', $aliyun_region ); ?> />
+									<?php esc_html_e( '海外（sgp）——端点 captcha.ap-southeast-1.aliyuncs.com（未实机验证）', 'wink-gatekeeper' ); ?>
+								</label>
+								<p class="description"><?php esc_html_e( 'region 须与服务端一致——前端 SDK 与服务端 endpoint 双端联动，错配即报错；切换后建议点测试凭据实测一次。sgp 档端点为静态推断（未实机验证；若真机复验不过则该档停用）。', 'wink-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 					</table>
@@ -1977,7 +2733,7 @@ final class SettingsPage {
 				'aliyun'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次假参实调（VerifyIntelligentCaptcha）：绿 = 凭据可用；红 = AccessKey/签名/权限错（含 RAM 未授权提示）；黄 = 必填参数缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '发一次假参实调（VerifyIntelligentCaptcha）：绿 = 凭据可用；红 = AccessKey/签名/权限错（含 RAM 未授权提示）；黄 = 必填参数缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<?php
@@ -2053,7 +2809,7 @@ final class SettingsPage {
 	}
 
 	/**
-	 * Tab②「测试凭据」AJAX 端点（03 §1 契约④：nonce + manage_options 双闸；结果不落库）。
+	 * Tab②「测试凭据」AJAX 端点（03 §1 契约④：nonce + manage_options 双闸；结果记录最近一次测试状态与时间——probe log，N1）。
 	 *
 	 * 表单值（password 空串 = 回落已存值）+ 全参假票核验 → 三态呈现（L0-tencent 判定法）。
 	 *
@@ -2084,6 +2840,7 @@ final class SettingsPage {
 
 		$precheck = CredentialProbe::local_precheck( $tencent );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'tencent', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态（必填缺）同落最近一次测试态。
 			wp_send_json_success( $precheck );
 		}
 
@@ -2094,12 +2851,13 @@ final class SettingsPage {
 			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
 		);
 		$state = CredentialProbe::classify( $driver->probe_credentials() );
+		self::probe_log_record( 'tencent', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
 		wp_send_json_success( $state );
 	}
 
 	/**
 	 * Tab② 阿里「测试凭据」AJAX 端点（【v1.5·B3】：03 §1 契约④同款——nonce +
-	 * manage_options 双闸；结果不落库）。
+	 * manage_options 双闸；结果记录最近一次测试状态与时间——probe log，N1）。
 	 *
 	 * 表单值（password 空串 = 回落已存值）+ 假参实调（VerifyIntelligentCaptcha 全参假票）
 	 * → 三态呈现（CredentialProbe::classify_aliyun，DESIGN-D2 §1.4 判定法）。
@@ -2131,6 +2889,7 @@ final class SettingsPage {
 
 		$precheck = CredentialProbe::local_precheck_aliyun( $aliyun );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'aliyun', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态同落最近一次测试态。
 			wp_send_json_success( $precheck );
 		}
 
@@ -2141,6 +2900,7 @@ final class SettingsPage {
 			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
 		);
 		$state = CredentialProbe::classify_aliyun( $driver->probe_credentials() );
+		self::probe_log_record( 'aliyun', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
 		wp_send_json_success( $state );
 	}
 
@@ -2199,6 +2959,7 @@ final class SettingsPage {
 			if ( '' === $tms['secret_key'] ) {
 				$missing[] = 'SecretKey';
 			}
+			self::probe_log_record( 'tencent_tms', 'yellow' ); // W3-C N1 黄态（必填缺）同落最近一次测试态。
 			wp_send_json_success( array(
 				'state'   => 'yellow',
 				'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
@@ -2215,6 +2976,7 @@ final class SettingsPage {
 			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
 		);
 		$state = CredentialProbe::classify_tms( $driver->probe_credentials() );
+		self::probe_log_record( 'tencent_tms', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
 
 		// 绿态解除当日停转（02 §5 解除条件：自检通过；probe 不计 usage）。
 		if ( 'green' === $state['state'] ) {
@@ -2262,6 +3024,7 @@ final class SettingsPage {
 		// 本地预检（黄态）：必填缺逐字段列出，不发远端调用（05 §2.5 黄态条款）。
 		$precheck = CredentialProbe::local_precheck_aliyun_green( $green );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'aliyun_green', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态同落最近一次测试态。
 			wp_send_json_success( array(
 				'state'   => $precheck['state'],
 				'message' => $precheck['message'],
@@ -2278,6 +3041,7 @@ final class SettingsPage {
 			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
 		);
 		$state = CredentialProbe::classify_aliyun_green( $driver->probe_credentials() );
+		self::probe_log_record( 'aliyun_green', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
 
 		// 绿态解除当日停转（02 §5 解除条件：自检通过；probe 不计 usage）。
 		if ( 'green' === $state['state'] ) {
@@ -2323,6 +3087,7 @@ final class SettingsPage {
 		// 本地预检（黄态）：必填缺逐字段列出，不发远端调用（05 §2.4 黄态条款）。
 		$precheck = CredentialProbe::local_precheck_baidu( $baidu );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'baidu', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态同落最近一次测试态。
 			wp_send_json_success( array(
 				'state'   => $precheck['state'],
 				'message' => $precheck['message'],
@@ -2339,6 +3104,7 @@ final class SettingsPage {
 			new RemoteClient() // WP 边界：默认 wp_remote_post 传输（探测一次，不计 usage）。
 		);
 		$state = CredentialProbe::classify_baidu( $driver->probe_credentials() );
+		self::probe_log_record( 'baidu', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
 
 		// 绿态解除当日停转（02 §5 解除条件：自检通过；probe 不计 usage）。
 		if ( 'green' === $state['state'] ) {
@@ -2770,7 +3536,7 @@ final class SettingsPage {
 				'tencent_tms'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<section class="wk-card" id="wk-green-config-area" data-wk-vendor="aliyun_green"<?php echo ( 'aliyun_green' === $cloud_selected ) ? '' : ' hidden'; ?>>
@@ -2892,7 +3658,7 @@ final class SettingsPage {
 				'aliyun_green'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<section class="wk-card" id="wk-baidu-config-area" data-wk-vendor="baidu"<?php echo ( 'baidu' === $cloud_selected ) ? '' : ' hidden'; ?>>
 			<h2><?php esc_html_e( '百度文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
@@ -2986,7 +3752,7 @@ final class SettingsPage {
 				'baidu'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<section class="wk-card" id="wk-review-deepseek-card" data-wk-vendor="deepseek"<?php echo ( 'deepseek' === $cloud_selected ) ? '' : ' hidden'; ?>>
@@ -3103,7 +3869,7 @@ final class SettingsPage {
 				'deepseek'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；黄 = 账户暂不可用（可能欠费）；红 = 密钥无效或连不上；黄 = API Key 未填。结果不落库。独立端点用模型列表探活（OpenAI 兼容、无标准余额 API）。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；黄 = 账户暂不可用（可能欠费）；红 = 密钥无效或连不上；黄 = API Key 未填。结果记录最近一次测试状态与时间。独立端点用模型列表探活（OpenAI 兼容、无标准余额 API）。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<?php
@@ -3232,7 +3998,7 @@ final class SettingsPage {
 				'openai_custom'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '模型列表探活（零 token）：绿 = 凭据可用（填了判定模型则顺带校验在不在列表）；黄 = 模型不在列表或必填缺；红 = 密钥被端点拒绝；灰 = 端点不提供 /models 或传输异常。泛端点无标准余额 API，不显示余额。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '模型列表探活（零 token）：绿 = 凭据可用（填了判定模型则顺带校验在不在列表）；黄 = 模型不在列表或必填缺；红 = 密钥被端点拒绝；灰 = 端点不提供 /models 或传输异常。泛端点无标准余额 API，不显示余额。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 		</section>
 
 		<?php self::render_url_audit_card( $settings ); ?>
@@ -3421,7 +4187,7 @@ final class SettingsPage {
 	/**
 	 * 分区② IP 信誉查询（03 Tab④【v1.7·M3-IP】——三态语义权威=02 §2.3b 澄清 A）：
 	 * enabled 开关+驱动下拉+api_key（password 型——P0-α 丢键教训）+阈值双滑杆（85/60）+
-	 * 软顶 3000+日配额 4750+缓存双键（cache_minutes 在 abuseipdb 子树、negative_cache_minutes
+	 * 软顶 900+日配额 950（【W3·批C·N6】默认平移——免费档 1000/天留 5%）+缓存双键（cache_minutes 在 abuseipdb 子树、negative_cache_minutes
 	 * 在 iprep 顶层——实况键名，渲染读实况）+timeout（1–5s 防呆范围）+「测试凭据」按钮
 	 * （AJAX 三态，O5-P2-6 判定法）+健康行（state_label 三态+DriverHealth 停转态）+
 	 * 软顶命中黄条（【O5 回写·P2-4】）。
@@ -3432,7 +4198,7 @@ final class SettingsPage {
 	private static function render_iprep_zone_check( array $settings ): void {
 		$iprep      = isset( $settings['iprep'] ) && is_array( $settings['iprep'] ) ? $settings['iprep'] : array();
 		$abuse      = isset( $iprep['abuseipdb'] ) && is_array( $iprep['abuseipdb'] ) ? $iprep['abuseipdb'] : array();
-		$soft_quota = max( 0, (int) ( $abuse['soft_quota'] ?? 3000 ) );
+		$soft_quota = max( 0, (int) ( $abuse['soft_quota'] ?? 900 ) ); // 【W3·批C·N6】软顶出厂平移（免费档 1000/天留 5%——拍板统一口径）。
 		$soft_hit   = $soft_quota > 0 && Usage::daily_total_for( Usage::get(), 'abuseipdb' ) >= $soft_quota;
 		$halt       = DriverHealth::state_today( AbuseIpdbService::DRIVER_ID );
 		$health     = null !== $halt
@@ -3482,7 +4248,7 @@ final class SettingsPage {
 					<td>
 						<?php self::password_field( array( 'iprep', 'abuseipdb', 'api_key' ), '' !== (string) ( $abuse['api_key'] ?? '' ), 'API Key' ); ?>
 						<p class="description">
-							<?php esc_html_e( 'AbuseIPDB 免费档（贡献者 5000 次/天）在 abuseipdb.com 注册获取。仅服务端使用，不回显已存值。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'AbuseIPDB 免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取。仅服务端使用，不回显已存值。默认软顶 900 / 日配额 950（各留 5% 缓冲）。', 'wink-gatekeeper' ); ?>
 							<a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '获取 API Key', 'wink-gatekeeper' ); ?></a>
 						</p>
 					</td>
@@ -3545,8 +4311,8 @@ final class SettingsPage {
 					<td>
 						<input type="number" id="wk-iprep-soft-quota" min="0" class="small-text"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'soft_quota' ) ) ); ?>"
-							value="<?php echo esc_attr( (string) ( $abuse['soft_quota'] ?? 3000 ) ); ?>" />
-						<span class="wk-muted"><?php esc_html_e( '次/天（默认 3000；0=不限）——当日达到后不再外呼、一律按「不通过」从严处理（宁可从严不可静默放行）。', 'wink-gatekeeper' ); ?></span>
+							value="<?php echo esc_attr( (string) ( $abuse['soft_quota'] ?? 900 ) ); ?>" />
+						<span class="wk-muted"><?php esc_html_e( '次/天（默认 900；0=不限）——当日达到后不再外呼、一律按「不通过」从严处理（宁可从严不可静默放行）。免费档 1000/天（拍板统一口径）留 5% 缓冲。', 'wink-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
@@ -3554,8 +4320,8 @@ final class SettingsPage {
 					<td>
 						<input type="number" id="wk-iprep-daily-quota" min="0" class="small-text"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'daily_quota' ) ) ); ?>"
-							value="<?php echo esc_attr( (string) ( $abuse['daily_quota'] ?? 4750 ) ); ?>" />
-						<span class="wk-muted"><?php esc_html_e( '次/天（默认 4750）——账户实配 5000/天留 5% 缓冲；达到后当日停转（429 触发，次日自愈）。', 'wink-gatekeeper' ); ?></span>
+							value="<?php echo esc_attr( (string) ( $abuse['daily_quota'] ?? 950 ) ); ?>" />
+						<span class="wk-muted"><?php esc_html_e( '次/天（默认 950）——免费档 1000/天（拍板统一口径）留 5% 缓冲；达到后当日停转（429 触发，次日自愈）。', 'wink-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
@@ -3602,7 +4368,7 @@ final class SettingsPage {
 				'abuseipdb'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次最小查询实测（查询保留地址 127.0.0.2，几乎不耗配额）：绿 = HTTP 200 且响应 JSON 可解析（凭据可用——保留地址返回 isPublic:false 亦绿，验证的是凭据不是 IP）；红 = 401/402 密钥被拒；黄 = API Key 未填。结果不落库。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( '发一次最小查询实测（查询保留地址 127.0.0.2，几乎不耗配额）：绿 = HTTP 200 且响应 JSON 可解析（凭据可用——保留地址返回 isPublic:false 亦绿，验证的是凭据不是 IP）；红 = 401/402 密钥被拒；黄 = API Key 未填。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
@@ -4080,7 +4846,7 @@ final class SettingsPage {
 
 	/**
 	 * Tab④ 分区②「测试凭据」AJAX 端点（M3-IP 定稿 §6【O5 回写·P2-6】，I4 收官批；
-	 * 03 §1 契约④：nonce + manage_options 双闸；结果不落库）。
+	 * 03 §1 契约④：nonce + manage_options 双闸；结果记录最近一次测试状态与时间——probe log，N1；message 不入库）。
 	 *
 	 * 表单值（password 空串 = 回落已存值——与保存契约同语义，Tab② 先例）→ 本地预检
 	 * （API Key 空=黄态不发远端）→ AbuseIpdbService::probe_credentials 最小 check 查询
@@ -4110,6 +4876,7 @@ final class SettingsPage {
 
 		$precheck = CredentialProbe::local_precheck_abuseipdb( $api_key );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'abuseipdb', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态（Key 空）同落最近一次测试态。
 			wp_send_json_success( $precheck );
 		}
 
@@ -4121,6 +4888,7 @@ final class SettingsPage {
 			new RemoteClient() // WP 边界：默认传输（探测一次——probe_credentials 零计量零写零事件）。
 		);
 		$state = CredentialProbe::classify_abuseipdb( $service->probe_credentials() );
+		self::probe_log_record( 'abuseipdb', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库——state 枚举+时间戳两键）。
 		wp_send_json_success( $state );
 	}
 
@@ -4240,6 +5008,7 @@ final class SettingsPage {
 
 		$precheck = CredentialProbe::local_precheck_deepseek( $api_key );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'deepseek', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态（Key 空）同落最近一次测试态。
 			wp_send_json_success( $precheck );
 		}
 
@@ -4249,6 +5018,7 @@ final class SettingsPage {
 		);
 		$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver( $config, new RemoteClient() ); // 探测一次不计 usage。
 		$state  = CredentialProbe::classify_deepseek_balance( $driver->probe_balance() );
+		self::probe_log_record( 'deepseek', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
 		wp_send_json_success( $state );
 	}
 
@@ -4285,6 +5055,7 @@ final class SettingsPage {
 
 		$precheck = CredentialProbe::local_precheck_deepseek( $api_key );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'url_audit_provider', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态（Key 空）同落最近一次测试态。
 			wp_send_json_success( $precheck );
 		}
 
@@ -4295,7 +5066,9 @@ final class SettingsPage {
 				'base_url' => '' !== $base_url ? $base_url : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::DEFAULT_BASE_URL,
 			);
 			$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver( $config, new RemoteClient() ); // 探测一次不计 usage。
-			wp_send_json_success( CredentialProbe::classify_deepseek_balance( $driver->probe_balance() ) );
+			$state  = CredentialProbe::classify_deepseek_balance( $driver->probe_balance() );
+			self::probe_log_record( 'url_audit_provider', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
+			wp_send_json_success( $state );
 		}
 
 		// 非官方域：openai_custom /models 探活（模型列表三态——泛端点无标准余额 API）。
@@ -4303,7 +5076,9 @@ final class SettingsPage {
 			array( 'api_key' => $api_key, 'base_url' => $base_url ),
 			new RemoteClient() // 探测一次不计 usage。
 		);
-		wp_send_json_success( CredentialProbe::classify_openai_custom_models( $driver->probe_models() ) );
+		$state = CredentialProbe::classify_openai_custom_models( $driver->probe_models() );
+		self::probe_log_record( 'url_audit_provider', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
+		wp_send_json_success( $state );
 	}
 
 	/**
@@ -4341,6 +5116,7 @@ final class SettingsPage {
 
 		$precheck = CredentialProbe::local_precheck_openai_custom( $sub );
 		if ( null !== $precheck ) {
+			self::probe_log_record( 'openai_custom', (string) ( $precheck['state'] ?? '' ) ); // W3-C N1 黄态（必填缺）同落最近一次测试态。
 			wp_send_json_success( $precheck );
 		}
 
@@ -4348,7 +5124,9 @@ final class SettingsPage {
 			array( 'api_key' => $sub['api_key'], 'base_url' => $sub['base_url'] ),
 			new RemoteClient() // 探测一次不计 usage。
 		);
-		wp_send_json_success( CredentialProbe::classify_openai_custom_models( $driver->probe_models(), $sub['model'] ) );
+		$state = CredentialProbe::classify_openai_custom_models( $driver->probe_models(), $sub['model'] );
+		self::probe_log_record( 'openai_custom', (string) ( $state['state'] ?? '' ) ); // W3-C N1 分类完成后落库（message 不入库）。
+		wp_send_json_success( $state );
 	}
 
 	/**
@@ -4575,7 +5353,7 @@ final class SettingsPage {
 								'url_audit_provider'
 							);
 							?>
-							<p class="description"><?php esc_html_e( '官方地址=余额探测（零费用，显示余额）；其他地址=模型列表探活（零 token）。绿 = 凭据可用；红 = 密钥被拒或连不上。结果不落库。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( '官方地址=余额探测（零费用，显示余额）；其他地址=模型列表探活（零 token）。绿 = 凭据可用；红 = 密钥被拒或连不上。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>

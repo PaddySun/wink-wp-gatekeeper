@@ -19,6 +19,11 @@
  * 注册行断言（admin-settings.css 版本参数=WINK_GATEKEEPER_VERSION 裸值形态钉——
  * CSS 内容变化不批内加缀，0.8.5 进位一次击穿〔施工图 §5 风险 3 口径〕）。
  *
+ * 【W3·批C 后缀翻转注记】本批 admin-brand.js 内容变化（首启向导交互模块——stepper
+ * 显隐/radio-card .on 同步/下一步 referer 改写/驱动·云审卡面显隐）→ 后缀 -w3b1 →
+ * **-w3c1**（断言翻转非语义变化——「本文件内容变化必须伴随版本参数变化」纪律本体
+ * 不变；0.8.5 进位一次击穿仍在批 D 收口）。
+ *
  * @package WinkGatekeeper\Tests
  */
 
@@ -34,13 +39,13 @@ final class M5FixAssetVerTest extends TestCase {
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 
-		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3b1'
-		// （窗幅 1200 字节——M5FIX/M6B/W3A/W3B 击穿语义注记累加后注册行注释段加长）。
-		// 【W3·批B 后缀翻转】-w3a1→-w3b1（非语义变化——八 Tab 重组绑定面注记，M5Fix 纪律批内递进）。
+		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3c1'
+		// （窗幅 1600 字节——M5FIX/M6B/W3A/W3B/W3C 击穿语义注记累加后注册行注释段加长）。
+		// 【W3·批C 后缀翻转】-w3b1→-w3c1（非语义变化——首启向导交互模块注记，M5Fix 纪律批内递进）。
 		self::assertMatchesRegularExpression(
-			"/wink-gatekeeper-admin-brand[\s\S]{0,1200}WINK_GATEKEEPER_VERSION \. '-w3b1'/",
+			"/wink-gatekeeper-admin-brand[\s\S]{0,1600}WINK_GATEKEEPER_VERSION \. '-w3c1'/",
 			$src,
-			'admin-brand.js 注册行版本参数必须带 -w3b1 击穿后缀（【W3·批B 后缀翻转】-w3a1→-w3b1）'
+			'admin-brand.js 注册行版本参数必须带 -w3c1 击穿后缀（【W3·批C 后缀翻转】-w3b1→-w3c1）'
 		);
 		// 【M5FIX】CDN 击穿语义注记在场（纪律传承——下次改 JS 必须再动版本参数）。
 		self::assertStringContainsString( 'M5FIX', $src, 'CDN 击穿语义注记' );
@@ -48,13 +53,14 @@ final class M5FixAssetVerTest extends TestCase {
 
 	public function test_front_assets_version_untouched(): void {
 		// 击穿面最小化：front 注册行（gatekeeper.js / tencent.js）不带后缀——
-		// front 资产零内容变化（改了反而全量击穿缓存徒增流量）。
+		// front 资产版本进位随 0.8.5 一次收口（【W3·批C】aliyun.js region 变化由批 D
+		// bump 击穿——R9 口径）。
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 		self::assertSame(
 			1,
-			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3b1'/", $src ),
-			'-w3b1 全文恰出现一次（仅 admin-brand 注册行）'
+			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3c1'/", $src ),
+			'-w3c1 全文恰出现一次（仅 admin-brand 注册行）'
 		);
 	}
 

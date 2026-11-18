@@ -106,7 +106,9 @@ final class UiM4UxF2ContractTest extends TestCase {
 		foreach ( array( '选验证码', '云审', 'IP 信誉', '测试凭据' ) as $step ) {
 			$this->assertStringContainsString( $step, $body, "三步引导须含「{$step}」" );
 		}
-		$this->assertStringContainsString( "tab_url( 'captcha' )", $body, '行动链接=从第一步（Tab② 验证码）开始' );
+		// 【W3·批C·R5 翻转注记】行动链接改指首启向导重进入口（wizard_url——批 C 向导实装，
+		// Tab① 入口改指向导；Tab② 直达由「选验证码（Tab② 验证码）」三步文案承载）。
+		$this->assertStringContainsString( 'wizard_url(', $body, '行动链接=首启向导重进入口（wizard=1）' );
 		$this->assertStringContainsString( '自动消失', $body, '配好即消失承诺写进文案' );
 		$this->assertStringNotContainsString( 'style="', $body, '样式全走类（FIX-B 纪律：禁内联）' );
 	}

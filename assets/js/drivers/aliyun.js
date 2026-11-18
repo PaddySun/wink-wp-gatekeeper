@@ -2,8 +2,10 @@
  * 阿里云验证码 2.0 前端适配器（05 §1.2 V3 三步形态【v1.5·DESIGN-D2 定稿】；B3）。
  *
  * 官方三步接入（业务客户端零 SDK、纯 JS）：
- *   ① 全局配置（须在引入 JS 之前）：window.AliyunCaptchaConfig = {region:'cn', prefix}
- *      ——region 必须与服务端 endpoint 映射一致（恒 cn，sgp 变体不启用），错配即报错；
+ *   ① 全局配置（须在引入 JS 之前）：window.AliyunCaptchaConfig = {region, prefix}
+ *      ——region 必须与服务端 endpoint 映射一致（错配即报错）【W3·批C·N2】region 从
+ *      容器 data-wk-region 读实键值（PHP render 输出，缺省 cn；sgp 档静态推断 R7
+ *      未实机验证），恒 cn 硬编码退役；
  *   ② 动态引入 JS：https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js
  *      ——官方硬性红线：本地部署/静态拉取会导致对抗失效/误拦（与天御 TJCaptcha.js 同款）；
  *   ③ window.initAliyunCaptcha({SceneId, mode, element, button, success, fail, getInstance,
@@ -19,10 +21,11 @@
  * 清写域、回退未验证态、派发 wk-gate-expire（gatekeeper.js 重新禁用提交）。
  *
  * 形态（04 §2 captcha.aliyun.mode，站长可配）：
- *   - embed（默认）：页内渲染「点击开始验证」触发条进 .wk-gate-embed 挂载点内的
+ *   - popup（默认【W3·批C·N3 平移——出厂默认 embed→popup，存量显式值保留】）：页内
+ *     无组件，SDK 绑定 button（本适配器的三态按钮）点击直接弹层（零占位）。
+ *   - embed：页内渲染「点击开始验证」触发条进 .wk-gate-embed 挂载点内的
  *     #wk-captcha-element-<gate>（与天御同一锚点机制，提交按钮正下方）；点击触发条后
  *     仍弹出拼图/图像复原交互弹层（SDK 自管：fixed 居中+蒙层，插件侧无需也不可定位）。
- *   - popup：页内无组件，SDK 绑定 button（本适配器的三态按钮）点击直接弹层（零占位）。
  *   - 挂载点缺失（主题改写 DOM 等）→ 运行时降级 popup，不冻结。element/button 选择器
  *     必须真实存在否则 console 报错不渲染——初始化前自查容器存在（03 §2.1 挂载点缺失
  *     降级逻辑照用）。slideStyle 宽度恒 320（官方最小 320px，F4-5 通用条款特例值）。
@@ -97,8 +100,10 @@
 	/**
 	 * 确保 AliyunCaptcha.js 就绪（FIX-γ：回调只经脚本事件/看门狗定时器异步触发；
 	 * 全局配置①须在脚本注入前落位——本函数内先写 config 再建节点）。
+	 * 【W3·批C·N2】region 参数入列（容器 data-wk-region 归一值——同页多容器同站设置，
+	 * 共享加载一次即全局一致）。
 	 */
-	function ensureSdk( sceneId, prefix, onReady, onFail ) {
+	function ensureSdk( sceneId, prefix, region, onReady, onFail ) {
 		if ( 'ready' === state ) {
 			return; // 调用方已先行短路——防御性兜底，不回调。
 		}
@@ -109,8 +114,11 @@
 		state = 'loading';
 
 		// 三步①：全局配置先于 JS 引入（官方：引入之前或 <head> 最前）。
+		// 【W3·批C·N2】region 从容器 data-wk-region 读实键值（PHP render 输出，闭集归一
+		// 非法值回落 cn）——与服务端 ENDPOINT_MAP 双端联动；恒 cn 硬编码退役
+		// （sgp 档静态推断 R7 未实机验证，复验不过则 sgp 档 disabled）。
 		window.AliyunCaptchaConfig = {
-			region: 'cn', // region 恒 cn（服务端 endpoint captcha.cn-shanghai 映射一致）。
+			region: region,
 			prefix: prefix
 		};
 
@@ -157,6 +165,8 @@
 	function initContainer( container ) {
 		var sceneId = String( container.getAttribute( 'data-scene-id' ) || '' ).trim();
 		var prefix = String( container.getAttribute( 'data-prefix' ) || '' ).trim();
+		// 【W3·批C·N2】region 实键值（闭集归一：非 sgp 一律 cn——与服务端 endpoint_for_region 同口径）。
+		var region = 'sgp' === container.getAttribute( 'data-wk-region' ) ? 'sgp' : 'cn';
 		var mode = 'popup' === container.getAttribute( 'data-mode' ) ? 'popup' : 'embed';
 		var button = container.querySelector( '.wk-captcha-btn' );
 		var form = container.closest ? ( container.closest( 'form' ) || null ) : null;
@@ -359,6 +369,7 @@
 			ensureSdk(
 				sceneId,
 				prefix,
+				region,
 				function () {
 					loading = false;
 					initCaptcha();

@@ -25,9 +25,10 @@ use WinkGatekeeper\Settings\SettingsSchema;
 final class TencentSecretIdSchemaTest extends TestCase {
 
 	public function test_schema_version_stays_one(): void {
-		// 【v1.4·R4-G 修订】secret_id 落键当年不动版本（05 §1.1④），但 v1.4 迁移段已整体
-		// bump 至 2（threshold 平移/弃键丢弃/新键整树——04 §2 v1.4）；本断言随之对齐当前常量。
-		$this->assertSame( 2, SettingsSchema::SCHEMA_VERSION );
+		// 【v1.4·R4-G 修订】secret_id 落键当年不动版本（05 §1.1④），但迁移段已随版本
+		// 演进整体 bump（v1.4→2；【W3·批C】→3——region 新键/mode 平移/N6 双额度平移）；
+		// 本断言随之对齐当前常量。
+		$this->assertSame( 3, SettingsSchema::SCHEMA_VERSION );
 	}
 
 	public function test_default_tree_contains_empty_tencent_secret_id(): void {

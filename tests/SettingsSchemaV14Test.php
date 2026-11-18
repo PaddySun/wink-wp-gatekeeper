@@ -26,9 +26,10 @@ use WinkGatekeeper\Settings\SettingsSchema;
 
 final class SettingsSchemaV14Test extends TestCase {
 
-	public function test_schema_version_bumped_to_2(): void {
-		$this->assertSame( 2, SettingsSchema::SCHEMA_VERSION );
-		$this->assertSame( 2, SettingsSchema::defaults()['schema_version'] );
+	public function test_schema_version_tracks_current_constant(): void {
+		// 【W3·批C 翻转注记】2→3（region 新键/mode 平移/N6 双额度平移——migrate_fields ⑦⑧）。
+		$this->assertSame( 3, SettingsSchema::SCHEMA_VERSION );
+		$this->assertSame( 3, SettingsSchema::defaults()['schema_version'] );
 	}
 
 	public function test_defaults_chain_is_empty_array(): void {

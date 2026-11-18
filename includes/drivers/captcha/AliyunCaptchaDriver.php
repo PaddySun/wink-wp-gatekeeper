@@ -12,7 +12,9 @@
  * 与天御同一锚点机制），仅含 SceneId/prefix（前端公开级参数）——AccessKey 系字段
  * 绝不出前端（02 §7.4 红线）。
  *
- * 服务端：POST https://captcha.cn-shanghai.aliyuncs.com/（region=cn 恒定）·
+ * 服务端：POST captcha.<region>.aliyuncs.com/（【W3·批C·N2】region→endpoint 映射
+ * ENDPOINT_MAP——cn=captcha.cn-shanghai〔现行/默认〕、sgp=captcha.ap-southeast-1
+ * 〔静态推断 R7 未实机验证〕；缺键/非法值回落 cn）·
  * Action=VerifyIntelligentCaptcha · Version=2023-03-05（真机定论，见 VERSION 注）· ACS3-HMAC-SHA256 V3
  * 签名（includes/http/AliyunV3Signer.php，金测试=官方测试向量）· 业务参数走 form body
  * （官方不建议 JSON）——全部经传输脊 RemoteClient 发出（重试/分类/计量/脱敏统一）。
@@ -47,6 +49,23 @@ use WinkGatekeeper\Settings\DriverPrivacy;
 final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 
 	public const DRIVER_ID  = 'aliyun';
+	// 【W3·批C·N2】region→endpoint 映射（ENDPOINT 单常量组化——双端联动：服务端核验
+	// 与前端 SDK region 参数同键，错配即报错）。cn=captcha.cn-shanghai.aliyuncs.com
+	// （现行端点，L0/真机定论）；sgp=captcha.ap-southeast-1.aliyuncs.com——**静态推断，
+	// 未实机验证**（R7：阿里云新加坡 region slug ap-southeast-1 × 验证码 2.0 endpoint
+	// 命名式 captcha.<region>.aliyuncs.com，cn 形态为命名式唯一实证）。真机复验挂手测
+	// 卡 MANUAL-CARD-W3-C：官方对照表核对 sgp 值 + sgp 场景出码一次；复验不过则 sgp 档
+	// disabled 不发布（批 D 前回退决策点）。缺键/非法值经 endpoint_for_region 回落 cn
+	// =现行行为保底。
+	public const ENDPOINT_MAP = array(
+		'cn'  => 'https://captcha.cn-shanghai.aliyuncs.com/',
+		'sgp' => 'https://captcha.ap-southeast-1.aliyuncs.com/', // 静态推断（R7）。
+	);
+	public const HOST_MAP     = array(
+		'cn'  => 'captcha.cn-shanghai.aliyuncs.com',
+		'sgp' => 'captcha.ap-southeast-1.aliyuncs.com', // 静态推断（R7）。
+	);
+	/** cn 档现值别名（现行常量名退役前兼容——缺省行为单一来源仍走 ENDPOINT_MAP）。 */
 	public const ENDPOINT   = 'https://captcha.cn-shanghai.aliyuncs.com/';
 	public const HOST       = 'captcha.cn-shanghai.aliyuncs.com';
 	public const ACTION     = 'VerifyIntelligentCaptcha';
@@ -69,7 +88,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 	private const MSG_CONFIG = '验证码服务配置有误（请联系站长处理）。';
 
 	/**
-	 * @var array{access_key_id: string, access_key_secret: string, scene_id: string, prefix: string, mode: string, submit_flow: string}
+	 * @var array{access_key_id: string, access_key_secret: string, scene_id: string, prefix: string, mode: string, region: string, submit_flow: string}
 	 */
 	private $credentials;
 
@@ -109,8 +128,12 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			'access_key_secret' => trim( is_string( $aliyun['access_key_secret'] ?? null ) ? $aliyun['access_key_secret'] : '' ),
 			'scene_id'          => trim( is_string( $aliyun['scene_id'] ?? null ) ? $aliyun['scene_id'] : '' ),
 			'prefix'            => trim( is_string( $aliyun['prefix'] ?? null ) ? $aliyun['prefix'] : '' ),
-			// 前端形态（04 §2 captcha.aliyun.mode）：embed（默认）| popup——非法值归 embed。
+			// 前端形态（04 §2 captcha.aliyun.mode）：embed | popup——非法值归 embed
+			// 【W3·批C·N3】出厂默认平移 popup（migrate 撞车守卫在 schema 层）。
 			'mode'              => 'popup' === ( $aliyun['mode'] ?? '' ) ? 'popup' : 'embed',
+			// 【W3·批C·N2】服务区域（captcha.aliyun.region）：cn（默认）| sgp——非法值归 cn
+			// （endpoint_for_region 缺键/非法值同此回落=现行行为保底）。
+			'region'            => self::normalize_region( $aliyun['region'] ?? null ),
 			// 【W2·无按钮模式】提交触发形态（captcha.submit_flow）：on_submit（默认，Q2=①
 			// 一刀切）| button（经典）——非法值归 on_submit；render() 按此分支（W-7）。
 			'submit_flow'       => 'button' === ( $settings['captcha']['submit_flow'] ?? '' ) ? 'button' : 'on_submit',
@@ -264,13 +287,16 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 
 		// 业务参数走 form body（官方不建议 JSON）；CaptchaVerifyParam 透传禁改 + SceneId 服务端
 		// 补传（多场景防前端被篡改，错配返回 F012——05 §1.2 v1.5 必填化）。
+		// 【W3·批C·N2】endpoint/host 走 region→endpoint 映射（双端联动——前端 SDK region
+		// 同键 data-wk-region，错配即报错）。
+		$target = self::endpoint_for_region( array( 'captcha' => array( 'aliyun' => array( 'region' => $this->credentials['region'] ) ) ) );
 		$body   = http_build_query( array(
 			'CaptchaVerifyParam' => $param,
 			'SceneId'            => $this->credentials['scene_id'],
 		) );
 		$signed = AliyunV3Signer::sign(
 			'POST',
-			self::HOST,
+			$target['host'],
 			'/',
 			array(),
 			array( 'content-type' => 'application/x-www-form-urlencoded' ),
@@ -281,7 +307,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			self::VERSION
 		);
 
-		$result = $this->client->post( self::ENDPOINT, array(
+		$result = $this->client->post( $target['endpoint'], array(
 			'headers'    => $signed['headers'],
 			'body'       => $body,
 			'timeout'    => RemoteClient::DEFAULT_TIMEOUT,
@@ -304,13 +330,16 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 	 * @return RemoteResult
 	 */
 	public function probe_credentials(): RemoteResult {
+		// 【W3·批C·N2】探测同走 region→endpoint 映射（与 verify 同源——Tab② 测的就是
+		// 实际生效端点的凭据链）。
+		$target = self::endpoint_for_region( array( 'captcha' => array( 'aliyun' => array( 'region' => $this->credentials['region'] ) ) ) );
 		$body   = http_build_query( array(
 			'CaptchaVerifyParam' => self::PROBE_PARAM,
 			'SceneId'            => $this->credentials['scene_id'],
 		) );
 		$signed = AliyunV3Signer::sign(
 			'POST',
-			self::HOST,
+			$target['host'],
 			'/',
 			array(),
 			array( 'content-type' => 'application/x-www-form-urlencoded' ),
@@ -321,7 +350,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			self::VERSION
 		);
 
-		return $this->client->post( self::ENDPOINT, array(
+		return $this->client->post( $target['endpoint'], array(
 			'headers'   => $signed['headers'],
 			'body'      => $body,
 			'timeout'   => RemoteClient::DEFAULT_TIMEOUT,
@@ -362,6 +391,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			. ' data-interaction="click"'
 			. ( $submit_gate ? ' data-submit-gate="1"' : '' )
 			. ' data-mode="' . $esc( $this->credentials['mode'] ) . '"'
+			. ' data-wk-region="' . $esc( $this->credentials['region'] ) . '"' // 【W3·批C·N2】前端 SDK region 参数（aliyun.js 读——与 ENDPOINT_MAP 双端联动）.
 			. ' data-token-fields="' . self::TOKEN_FIELD . '"'
 			. ' data-scene-id="' . $esc( $this->credentials['scene_id'] ) . '"'
 			. ' data-prefix="' . $esc( $this->credentials['prefix'] ) . '">'
@@ -388,6 +418,36 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 	 */
 	public function enqueue_assets(): void {
 		wp_enqueue_script( 'wink-gatekeeper-driver-aliyun' );
+	}
+
+	/* -------------------------------------------------------------------
+	 * region→endpoint 双端联动（纯函数，【W3·批C·N2】）
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * region 归一（纯函数）：cn（默认）| sgp 闭集，缺键/非法值回落 cn=现行行为保底。
+	 *
+	 * @param mixed $region captcha.aliyun.region 原始值。
+	 * @return string 'cn'|'sgp'。
+	 */
+	public static function normalize_region( $region ): string {
+		return 'sgp' === ( is_scalar( $region ) ? (string) $region : '' ) ? 'sgp' : 'cn';
+	}
+
+	/**
+	 * 服务端 endpoint/host 取件（纯函数；verify_tri 与 probe_credentials 双调用点共用——
+	 * 双端联动单一来源。$settings 为完整设置树，region 键缺/非法回落 cn 现值）。
+	 *
+	 * @param array<string, mixed> $settings 完整设置树（读 captcha.aliyun.region）。
+	 * @return array{endpoint: string, host: string}
+	 */
+	public static function endpoint_for_region( array $settings ): array {
+		$region  = self::normalize_region( $settings['captcha']['aliyun']['region'] ?? null );
+		$region  = isset( self::ENDPOINT_MAP[ $region ] ) ? $region : 'cn';
+		return array(
+			'endpoint' => self::ENDPOINT_MAP[ $region ],
+			'host'     => self::HOST_MAP[ $region ],
+		);
 	}
 
 	/* -------------------------------------------------------------------

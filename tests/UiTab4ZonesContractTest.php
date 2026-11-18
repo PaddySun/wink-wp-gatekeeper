@@ -9,7 +9,8 @@
  *     自定义头名 + Cloudflare 预设选择器（EdgeOne 隐藏保持——I0 行为）+ 受信网段 textarea +
  *     CIDR 前端校验按钮 + 诊断面板嵌入位（I0 件原样挪入——行为零改动只挪渲染位置）；
  *   ② 分区二 IP 信誉查询——enabled + 驱动下拉 + api_key password 型（P0-α 教训）+ 阈值双滑杆
- *     （85/60）+ 软顶 3000 + 日配额 4750 + 缓存双键（cache_minutes 在 abuseipdb 子树 /
+ *     （85/60）+ 软顶 900 + 日配额 950（【W3·批C·N6】默认平移——免费档 1000/天留 5%）+
+ *     缓存双键（cache_minutes 在 abuseipdb 子树 /
  *     negative_cache_minutes 在 iprep 顶层——实况键名，渲染读实况）+ timeout 1–5s +
  *     「测试凭据」按钮 + 健康行（state_label 三态）+ 软顶命中黄条；
  *   ③ 分区三 上报——report.enabled 总开关 + 出境黄条（PIPL）+ T1–T4 勾选组（每面开关+
@@ -89,14 +90,17 @@ final class UiTab4ZonesContractTest extends TestCase {
 		}
 	}
 
-	/** 占位文案漂移全修（SURVEY §6：950/fail_mode/上报占位文案——占位三卡整体退役）。 */
+	/** 占位文案漂移全修（SURVEY §6：fail_mode/上报占位文案——占位三卡整体退役）。 */
 	public function test_placeholder_drift_copy_retired(): void {
 		$bodies = self::body( 'render_tab_iprep' )
 			. self::body( 'render_iprep_zone_source' )
 			. self::body( 'render_iprep_zone_check' )
 			. self::body( 'render_iprep_zone_report' )
 			. self::body( 'render_iprep_zone_notes' );
-		$this->assertStringNotContainsString( '950', $bodies, '日配额 950 漂移文案退役（实况 4750）' );
+		// 【W3·批C·N6 翻转注记】「950 漂移文案」禁令退役——950 现为 N6 拍板新默认
+		// （免费档 1000/天留 5%）；占位漂移禁令只保留 fail_mode/M3 实装/旧上报文案面。
+		$this->assertStringContainsString( '免费档 1000', $bodies, '免费档统一口径文案在场（N6 拍板——退役「贡献者 5000 次/天」个人账户口径）' );
+		$this->assertStringNotContainsString( '贡献者 5000', $bodies, '「贡献者 5000 次/天」旧口径退役（N6 拍板统一免费档口径）' );
 		$this->assertStringNotContainsString( 'fail_mode', $bodies, 'fail_mode 降级开关文案退役（键已废弃）' );
 		$this->assertStringNotContainsString( 'M3 实装', $bodies, '「M3 实装」占位句退役' );
 		$this->assertStringNotContainsString( 'M3）：', $bodies, '「AbuseIPDB（M3）」占位句退役' );
@@ -159,11 +163,11 @@ final class UiTab4ZonesContractTest extends TestCase {
 		$this->assertStringContainsString( "array( 'iprep', 'abuseipdb', 'malicious_score' )", $body, '恶意阈值控件' );
 		$this->assertStringContainsString( "array( 'iprep', 'abuseipdb', 'suspect_score' )", $body, '疑似阈值控件' );
 		$this->assertSame( 2, substr_count( $body, 'type="range"' ), '阈值双滑杆=range 控件×2' );
-		// 软顶 + 日配额。
+		// 软顶 + 日配额。【W3·批C·N6 翻转注记】默认 3000/4750→900/950（免费档 1000/天留 5%——拍板统一口径）。
 		$this->assertStringContainsString( "array( 'iprep', 'abuseipdb', 'soft_quota' )", $body, '软顶控件' );
-		$this->assertStringContainsString( '3000', $body, '软顶默认 3000' );
+		$this->assertStringContainsString( '900', $body, '软顶默认 900（N6 平移后）' );
 		$this->assertStringContainsString( "array( 'iprep', 'abuseipdb', 'daily_quota' )", $body, '日配额控件' );
-		$this->assertStringContainsString( '4750', $body, '日配额 4750（950 漂移修正后的实况值）' );
+		$this->assertStringContainsString( '950', $body, '日配额 950（N6 拍板新默认）' );
 		// 缓存双键——cache_minutes 在 abuseipdb 子树 / negative_cache_minutes 在 iprep 顶层（实况键名）。
 		$this->assertStringContainsString( "array( 'iprep', 'abuseipdb', 'cache_minutes' )", $body, 'pass 缓存键（abuseipdb 子树）' );
 		$this->assertStringContainsString( "array( 'iprep', 'negative_cache_minutes' )", $body, '负缓存键（iprep 顶层——实况键名非 abuseipdb 子树）' );
@@ -286,13 +290,18 @@ final class UiTab4ZonesContractTest extends TestCase {
 		$this->assertStringContainsString( 'probe_field( $post, \'api_key\'', $body, '表单值覆盖（password 空串保留已存值——Tab② 先例语义）' );
 	}
 
-	public function test_ajax_handler_zero_persistence(): void {
+	public function test_ajax_handler_probe_log_record_state_only(): void {
+		// 【W3·批C·N1 契约翻转】零落库红线 → 「最小落库」契约：AJAX 分类完成后经
+		// probe_log_record 写最近一次测试态（state 枚举+时间戳两键；message 不入库——
+		// 服务商响应摘要不落库面最小化；零计量零 usage_key 红线不变）。
 		$body = self::functionBody( self::settings_src(), 'ajax_test_iprep' );
 
-		foreach ( array( 'set_transient', 'update_option', 'add_option', 'bump_option', 'mark_report_at' ) as $bad ) {
-			$this->assertStringNotContainsString( $bad, $body, "零落库红线：函数体禁 {$bad}" );
+		foreach ( array( 'set_transient', 'add_option', 'bump_option', 'mark_report_at' ) as $bad ) {
+			$this->assertStringNotContainsString( $bad, $body, "零散写面红线：函数体禁 {$bad}（probe log 走 probe_log_record 单点件）" );
 		}
 		$this->assertStringNotContainsString( 'usage_key', $body, '零统计红线：探测调用不带 usage_key' );
+		$this->assertStringContainsString( "probe_log_record( 'abuseipdb'", $body, 'N1 写入桥在场（per 驱动一槽覆盖写）' );
+		$this->assertStringContainsString( 'self::probe_log_record(', $body, '写入走 SettingsPage 单点件（update_option 不在编排位直呼）' );
 	}
 
 	/** 最小查询形态：127.0.0.2 保留地址 + maxAgeInDays=1 省配额（任务书 B 节）。 */
