@@ -251,7 +251,7 @@ final class W3BatchCTest extends TestCase {
 		$this->assertSame( 'https://captcha.ap-southeast-1.aliyuncs.com/', $cn['sgp'], 'sgp 档=ap-southeast-1（静态推断 R7——未实机验证，复验不过则 sgp 档 disabled）' );
 		$this->assertSame( 'captcha.cn-shanghai.aliyuncs.com', $host['cn'] );
 		$this->assertSame( 'captcha.ap-southeast-1.aliyuncs.com', $host['sgp'] );
-		$src = self::src( 'includes/Drivers/captcha/AliyunCaptchaDriver.php' );
+		$src = self::src( 'includes/drivers/captcha/AliyunCaptchaDriver.php' );
 		$this->assertStringContainsString( '静态推断', $src, 'sgp 档静态推断注记在场（R7 纪律）' );
 	}
 

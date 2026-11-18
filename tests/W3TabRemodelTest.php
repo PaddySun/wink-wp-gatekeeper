@@ -101,7 +101,7 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> 保安</span>', $sp, '改名⑥：wordmark 字面（Q1=WP 金高亮 <em> 形态）' );
 		self::assertStringContainsString( "esc_attr_e( 'Wink WP 保安设置分区', 'wink-gatekeeper' )", $sp, '改名⑦：nav aria-label' );
 
-		$die = self::src( 'includes/Intercept/DiePage.php' );
+		$die = self::src( 'includes/intercept/DiePage.php' );
 		self::assertStringContainsString( 'alt="Wink WP 保安"', $die, '改名⑧a：拦截页 logo alt 改名（原 alt="wink"）' );
 		self::assertStringContainsString( 'wk-sign', $die, '改名⑧b：正文末常驻品牌署名行（R3·Q6——前台页补署名）' );
 		self::assertStringContainsString( 'Wink WP 保安', $die, '署名行文案=新名' );
@@ -384,7 +384,7 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringContainsString( '署名', $copy, '拦截页卡加「正文末品牌署名行」预览对应注记（R3）' );
 
 		// DiePage::build 署名行实装（前台单页——本批落位）。
-		$die = self::src( 'includes/Intercept/DiePage.php' );
+		$die = self::src( 'includes/intercept/DiePage.php' );
 		$sign_pos  = strpos( $die, 'wk-sign' );
 		$contact_pos = strpos( $die, 'wk-contact' );
 		self::assertGreaterThan( 0, $sign_pos, 'DiePage 署名行 class 在场' );
@@ -393,7 +393,7 @@ final class W3TabRemodelTest extends TestCase {
 	/** Tab⑥：reason-tag 着色纪律 + 登录流水列面（Q3=现数据面）+ CSV 钮不渲染。 */
 	public function test_tab6_reason_tag_and_login_table_columns(): void {
 		// ① reason-tag：severity 映射纯函数件（闭集）+ 报错历史着色消费。
-		$labels = self::src( 'includes/Stats/Labels.php' );
+		$labels = self::src( 'includes/stats/Labels.php' );
 		self::assertStringContainsString( 'function fault_reason_severity', $labels, 'severity 映射纯函数（Labels 承载——可测）' );
 		$sev_body = self::functionBody( $labels, 'fault_reason_severity' );
 		foreach ( array( "'red'", "'amber'", "'green'", "'dim'" ) as $level ) {
@@ -418,7 +418,7 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringNotContainsString( '用户名', $table, '原型「用户名」列不落（现数据面无此列——PIPL 红线）' );
 		self::assertStringNotContainsString( 'IP 打码', $table, '原型「IP 打码」列不落（现数据面无此列——PIPL 红线）' );
 		self::assertStringContainsString( '不显示账号与 IP', $table, 'PIPL 最小化注保留' );
-		self::assertStringContainsString( 'function account_result_word', self::src( 'includes/Stats/Labels.php' ), '结果三态映射纯函数（出码·拦下/未过码·拦下——rejects 无放行行不虚构）' );
+		self::assertStringContainsString( 'function account_result_word', self::src( 'includes/stats/Labels.php' ), '结果三态映射纯函数（出码·拦下/未过码·拦下——rejects 无放行行不虚构）' );
 		// ④ CSV 导出钮本批不渲染（钮+端点同批 C 落地=无空接线）。
 		self::assertStringNotContainsString( '导出 CSV', self::body( 'render_stats_records_card' ), 'CSV 钮不渲染（批 C/D 同 commit 接线）' );
 	}
