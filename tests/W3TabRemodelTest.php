@@ -134,10 +134,13 @@ final class W3TabRemodelTest extends TestCase {
 		// readme.txt 显示层必改（readme 品牌名 6 处替换为「Wink WP 保安」）——品牌键面零残留。
 		// 注：readme 描述行「面向中文独立博客的 WordPress 门口保安」为品类泛称非品牌名，
 		// 不属改名 6 处（§5 风险 10：文案改动只允许改名替换——顺手润色禁改），白名单保留。
+		// 【W3·批D 翻转】白名单 1→2：breaking 注（0.8.5 起）④ 改名条目如实提及旧名
+		// 「门口保安」（任务口径 breaking 注汇总含改名显示层——历史性提及非显示层
+		// 品牌键使用；「Wink 门口保安」完整品牌串仍零残留，:138 反钉不放宽）。
 		$readme = self::src( 'readme.txt' );
 		self::assertStringNotContainsString( 'Wink 门口保安', $readme, 'readme 品牌名「Wink 门口保安」零残留（6 处全改）' );
 		self::assertStringNotContainsString( 'wink 门口保安', $readme, 'readme 品牌名「wink 门口保安」零残留' );
-		self::assertSame( 1, substr_count( $readme, '门口保安' ), 'readme 门口保安 残留恰一处=品类泛称白名单' );
+		self::assertSame( 2, substr_count( $readme, '门口保安' ), 'readme 门口保安 残留恰两处=品类泛称白名单+breaking 注④改名条目历史性提及（批 D 翻转）' );
 		self::assertStringContainsString( 'Wink WP 保安', $readme, 'readme 新名在场' );
 
 		// 白名单恰六处：五个 CSS/JS/主文件文件头注释 + Bootstrap docblock（注释层）。
@@ -162,8 +165,8 @@ final class W3TabRemodelTest extends TestCase {
 
 	public function test_tech_layer_untouched_anti_pins(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
-		self::assertMatchesRegularExpression( "/Version:\s+[0-9]+\.[0-9]+\.[0-9]+/", $plugin, '插件头 Version 在场（批 D 才进位 0.8.5）' );
-		self::assertStringContainsString( '0.8.4', $plugin, '版本不 bump（本批不动版本四点）' );
+		self::assertMatchesRegularExpression( "/Version:\s+[0-9]+\.[0-9]+\.[0-9]+/", $plugin, '插件头 Version 在场（批 D 已进位 0.8.5——W3BatchDTest 钉四点）' );
+		self::assertStringContainsString( '0.8.5', $plugin, '版本四点已批 D 进位 0.8.5（批 C no-bump 钉翻转——R9 版本收口批 D）' );
 
 		$sp = self::sp();
 		// slug / option 前缀 / 事件编号 / text domain / action 常量面原样。

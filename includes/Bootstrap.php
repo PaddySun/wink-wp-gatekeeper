@@ -219,6 +219,11 @@ final class Bootstrap {
 		add_action( 'admin_post_' . SettingsPage::ACTION_WIZARD_DONE, array( SettingsPage::class, 'handle_wizard_finish' ) );
 		add_action( 'admin_post_' . SettingsPage::ACTION_WIZARD_SKIP, array( SettingsPage::class, 'handle_wizard_skip' ) );
 
+		// 【W3·批D·N8】Tab⑥ 拦截记录流水「导出 CSV」（GET 链接 wp_nonce_url——die_preview
+		// 同形态；manage_options+check_admin_referer 双闸在 handler；导出当日拦截流水五列
+		// 闭集零 PIPL 项，当日零记录回页黄条提示不输出空文件——R6）。
+		add_action( 'admin_post_' . SettingsPage::ACTION_EXPORT_CSV, array( SettingsPage::class, 'handle_export_csv' ) );
+
 		// 【M5·U3】存量审核 cron 面：自定义 interval + tick worker（发起/继续时由
 		// SettingsPage::audit_schedule_tick 排期；CLI 通道为主、cron 为站长侧补充）。
 		add_filter(

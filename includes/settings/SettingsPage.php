@@ -206,6 +206,17 @@ final class SettingsPage {
 	const ACTION_DIE_PREVIEW = 'wink_gatekeeper_die_preview';
 
 	/**
+	 * Tab⑥ 拦截记录流水「导出 CSV」admin action（【W3·批D·N8】施工图 R6——全图唯一
+	 * 实锤空接线收口，钮与端点同 commit）：admin_post GET 形态（die_preview 先例同款
+	 * wp_nonce_url 链接）+ manage_options + check_admin_referer 双闸；导出**当日**拦截
+	 * 流水（EventsTable::today_intercept_rows——recent_* 同族当日窗体），五列闭集
+	 * （时间/结果/哪张门/原因/事件编号——InterceptDigest::EXPORT_CSV_COLUMNS，零明文
+	 * 账号/邮箱/评论正文/零 IP——PIPL 最小化与登录流水表 Q3 同口径）；当日零记录=
+	 * 黄条提示不输出文件（回 Tab⑥ 带 wk-export-empty 标志）。**零计量零写**。
+	 */
+	const ACTION_EXPORT_CSV = 'wink_gatekeeper_export_csv';
+
+	/**
 	 * Tab⑧ 卡二「测试当前头像来源」AJAX action（【M5·U2】UI 设计块 1 卡二三态按钮）：
 	 * nonce + manage_options 双闸；对当前表单所选头像源发一次固定 email hash 探测
 	 * （每源 1 请求——UI 设计块 1.3），三态=绿（200+图片）/黄（>3s 能用但慢）/
@@ -2718,6 +2729,18 @@ final class SettingsPage {
 							</td>
 						</tr>
 					</table>
+
+					<?php
+					/* ---------- 【W3·批D·N4】阿里「每日验证额度」规划壳（判定=规划位定稿）：
+					 * 现码 captcha 子树无日额度等价键（SettingsSchema captcha 全键面行为级走树
+					 * 核对——W3BatchDTest 钉）；usage 计数在 Stats 面无额度闸语义。落地形态
+					 * =ghost 规划行+口径注（原型文案「额度用完当日停转、次日自愈」），**零新键
+					 * 零控件**——实装后转实线卡。 ---------- */
+					?>
+					<div class="wk-card--ghost" style="padding:12px 16px;margin-top:8px;">
+						<p><b><?php esc_html_e( '每日验证额度', 'wink-gatekeeper' ); ?></b> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></p>
+						<p class="description"><?php esc_html_e( '规划口径：额度用完当日停转、次日自愈。当前验证码服务未设每日上限（本行暂无任何设置项）——实装后转实线卡。', 'wink-gatekeeper' ); ?></p>
+					</div>
 					<?php
 				}
 			);
@@ -6235,10 +6258,21 @@ final class SettingsPage {
 	 * @return void
 	 */
 	private static function render_stats_records_card(): void {
+		// 【W3·批D·N8】空数据回跳标志（handle_export_csv 当日零记录时带此参数回来——
+		// 黄条「有话才出现」；只读展示无写操作，nonce 校验在导出端点内）。
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 只读黄条标志展示。
+		$export_empty = isset( $_GET['wk-export-empty'] ) && '1' === sanitize_key( wp_unslash( (string) $_GET['wk-export-empty'] ) );
 		?>
 		<section class="wk-card" id="wk-stats-records">
 			<h2 class="wk-sec-title"><?php esc_html_e( '拦截记录流水（查全部记录 / 导出）', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '每一条拦下、转人工复核、报错都有编号（如 WK-20261112-0042）。访客报障时报编号即可精确定位；按门/服务商/结果筛选与导出表格接入后启用。', 'wink-gatekeeper' ); ?></p>
+			<?php if ( $export_empty ) : ?>
+				<?php self::notice_yellow_bar( 'warn', '', esc_html__( '今天还没有拦截记录——没有生成导出文件；有拦下记录后再来导出当日流水。', 'wink-gatekeeper' ) ); ?>
+			<?php endif; ?>
+			<p class="wk-muted"><?php esc_html_e( '每一条拦下、转人工复核、报错都有编号（如 WK-20261112-0042）。访客报障时报编号即可精确定位。', 'wink-gatekeeper' ); ?></p>
+			<p>
+				<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_EXPORT_CSV ), self::ACTION_EXPORT_CSV ) ); ?>"><?php esc_html_e( '导出当日拦截流水（CSV）', 'wink-gatekeeper' ); ?></a>
+			</p>
+			<p class="description"><?php esc_html_e( '导出只含当天的拦下记录：时间 / 结果 / 哪张门 / 原因 / 事件编号——不含账号、邮箱、评论正文与 IP（隐私最小化，与登录流水同一口径）。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
@@ -6283,6 +6317,59 @@ final class SettingsPage {
 			<span id="wk-stats-reset-result" aria-live="polite"></span>
 		</section>
 		<?php
+	}
+
+	/**
+	 * Tab⑥ 拦截记录流水「导出 CSV」处理器（admin_post_{self::ACTION_EXPORT_CSV}；
+	 * 【W3·批D·N8】施工图 R6——全图唯一实锤空接线收口，钮与端点同 commit）。
+	 *
+	 * manage_options + check_admin_referer 双闸（GET 链接 wp_nonce_url——die_preview/
+	 * wizard 出口同形态，03 §1 契约④全件）。数据=**当日**拦截记录（只读 SELECT，
+	 * EventsTable::today_intercept_rows——recent_* 同族当日窗体），行组装
+	 * InterceptDigest::export_csv_rows 纯逻辑层五列闭集（时间/结果/哪张门/原因/
+	 * 事件编号——零明文账号/邮箱/评论正文/零 IP，与登录流水表 Q3 同口径 PIPL 红线，
+	 * 复核注记在按钮侧 description）。fputcsv 流式输出 text/csv attachment
+	 * （filename=wink-intercepts-YYYY-MM-DD.csv——InterceptDigest::export_csv_filename
+	 * 纯函数件；UTF-8 BOM 供 Excel 打开中文表头不乱码）；当日零记录=黄条提示不输出
+	 * 文件（wp_safe_redirect 回 Tab⑥ 带 wk-export-empty 标志）。**零计量零写**。
+	 *
+	 * @return void
+	 */
+	public static function handle_export_csv(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+		}
+		check_admin_referer( self::ACTION_EXPORT_CSV );
+
+		$today = current_time( 'Y-m-d' );
+		$rows  = \WinkGatekeeper\Stats\EventsTable::today_intercept_rows( $today );
+
+		if ( 0 === count( $rows ) ) {
+			// 当日零记录：不输出空文件，回 Tab⑥ 黄条提示（有话才出现——notice 纪律）。
+			wp_safe_redirect(
+				add_query_arg(
+					array( 'page' => self::PAGE_SLUG, 'tab' => 'stats', 'wk-export-empty' => '1' ),
+					admin_url( 'options-general.php' )
+				)
+			);
+			exit;
+		}
+
+		// 流式输出（逐行 fputcsv——零全量驻留；表头闭集 InterceptDigest::EXPORT_CSV_COLUMNS）。
+		$filename = \WinkGatekeeper\Stats\InterceptDigest::export_csv_filename( $today );
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename=' . $filename );
+		$out = fopen( 'php://output', 'w' );
+		if ( false === $out ) {
+			wp_die( esc_html__( '导出流打开失败。', 'wink-gatekeeper' ), 500 );
+		}
+		fwrite( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM（Excel 中文表头兼容）。
+		fputcsv( $out, \WinkGatekeeper\Stats\InterceptDigest::EXPORT_CSV_COLUMNS );
+		foreach ( \WinkGatekeeper\Stats\InterceptDigest::export_csv_rows( $rows ) as $row ) {
+			fputcsv( $out, $row );
+		}
+		fclose( $out );
+		exit;
 	}
 
 	/* -------------------------------------------------------------------

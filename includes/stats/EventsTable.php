@@ -580,6 +580,74 @@ DDL;
 		return $dist;
 	}
 
+	/* -------------------------------------------------------------------
+	 * 【W3·批D·N8】CSV 导出数据源（施工图 R6：当日拦截流水导出——admin_post GET
+	 * 双闸端点 SettingsPage::handle_export_csv 专用只读查询；recent_* 同族当日窗体）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 导出单次行数上限（日流水面——明细卡 50 档不适用；公开供单测钉界）。
+	 */
+	public const EXPORT_MAX_ROWS = 1000;
+
+	/**
+	 * LIMIT 钳制（1–EXPORT_MAX_ROWS；公开供单测钉界）。
+	 *
+	 * @param int $limit 请求行数。
+	 * @return int
+	 */
+	public static function export_limit_clamped( int $limit ): int {
+		return max( 1, min( self::EXPORT_MAX_ROWS, $limit ) );
+	}
+
+	/**
+	 * N8 纯 SQL 模板：当日全闸拦截流水（CSV 导出数据源——R6）。
+	 *
+	 * 列闭集六列（meta 仅为 trigger_source 归因读件）——零账号/零邮箱/零评论正文/
+	 * 零 IP 列（PIPL 最小化红线：导出文件离开 DB 的字段面与登录流水表 Q3 同口径）；
+	 * 全闸不滤门（「哪张门」列数据面）；verdict='reject' 拒绝流水（放行/报错不入）。
+	 *
+	 * @param string $table 完整表名。
+	 * @return string 含 %s（当日零点）+ LIMIT %d 占位符的只读 SELECT（prepare 由边界方法执行）。
+	 */
+	public static function today_intercept_rows_sql( string $table ): string {
+		return 'SELECT event_no, created_at, gate, stage, rule_hit, meta FROM ' . $table . ' '
+			. "WHERE verdict = 'reject' AND created_at >= %s "
+			. 'ORDER BY id DESC LIMIT %d';
+	}
+
+	/**
+	 * N8 边界查询：当日拦截记录（Tab⑥「导出 CSV」数据源——03 Tab⑥ 段六；
+	 * recent_comment_rejects 同族当日窗体——窗体口径=created_at >= 当日零点
+	 * （站点时区 current_time 产物），today_fault_distribution 同款）。
+	 *
+	 * @param string $today 当日日期串（current_time( 'Y-m-d' )——调用方传参，本层零 WP 依赖）。
+	 * @param int    $limit 行数上限（默认 EXPORT_MAX_ROWS；钳 1–1000）。
+	 * @return array<int, array<string, mixed>> 事件行（meta 解码为数组）。
+	 */
+	public static function today_intercept_rows( string $today, int $limit = self::EXPORT_MAX_ROWS ): array {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				self::today_intercept_rows_sql( self::table_name( $wpdb->prefix ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$today,
+				self::export_limit_clamped( $limit )
+			),
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+		foreach ( $rows as $index => $row ) {
+			$rows[ $index ]['meta'] = isset( $row['meta'] ) && is_string( $row['meta'] )
+				? json_decode( $row['meta'], true )
+				: array();
+		}
+		return $rows;
+	}
+
 	/**
 	 * Tab① 驱动健康行「最近错误摘要」数据源（02 §5 v1.4·R4 §D.2——读模型，不新增健康计数器）：
 	 * 该驱动最新一条故障行（is_fault 口径）。

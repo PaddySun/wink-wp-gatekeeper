@@ -379,9 +379,9 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.4$/m', $entry, '插件头 Version 0.8.4' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.4' )", $entry, '版本常量 0.8.4' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.4$/m', $readme, 'readme Stable tag 0.8.4' );
-		$this->assertStringContainsString( '= 0.8.1 =', $readme, 'Changelog 0.8.4 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.5$/m', $entry, '插件头 Version 0.8.5' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.5' )", $entry, '版本常量 0.8.5' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.5$/m', $readme, 'readme Stable tag 0.8.5' );
+		$this->assertStringContainsString( '= 0.8.5 =', $readme, 'Changelog 0.8.5 条目' );
 	}
 }

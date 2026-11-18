@@ -254,6 +254,24 @@ final class Labels {
 	}
 
 	/**
+	 * 【W3·批D·N8】导出「结果」列映射（Tab⑥ 拦截流水 CSV——全闸拒绝行推广面）：
+	 * 出码语汇只对真实经过码关的阶段使用——captcha 阶段=出码 · 拦下（account_result_word
+	 * 同源）；码前阶段（stub 预检/ip 信誉）=未过码 · 拦下（同源两态如实）；码后/免验
+	 * 不可分阶段（review 等）=如实「拦下」——免验与已过码两实态在拒绝行数据面不可分，
+	 * 不冒充码语汇（放行不在拒绝数据面，三态之「出码 · 放行」永不出现）。
+	 *
+	 * @param string $stage 事件 stage 键。
+	 * @return string 出码 · 拦下｜未过码 · 拦下｜拦下。
+	 */
+	public static function export_result_word( string $stage ): string {
+		return match ( $stage ) {
+			'captcha'    => self::account_result_word( 'captcha' ),
+			'stub', 'ip' => self::account_result_word( 'stub' ),
+			default      => '拦下',
+		};
+	}
+
+	/**
 	 * meta.raw/脱敏快照 → 服务商原始回复（对照表 18——设置项与展开行共用）。
 	 */
 	public static function snapshot_word(): string {

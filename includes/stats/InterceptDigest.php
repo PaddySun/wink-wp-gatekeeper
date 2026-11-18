@@ -222,6 +222,66 @@ final class InterceptDigest {
 		return $rows;
 	}
 
+	/* -------------------------------------------------------------------
+	 * 【W3·批D·N8】CSV 导出行组装（施工图 R6——Tab⑥ 拦截记录流水「导出 CSV」）：
+	 * 字段最小化五列闭集（时间/结果/哪张门/原因/事件编号——与登录流水表 Q3 同口径
+	 * PIPL 红线：零明文账号/邮箱/评论正文/零 IP 列——meta 只取 trigger_source 归因，
+	 * 「导出文件离开 DB」的面与登录流水表同一最小化纪律；PIPL 复核注记在导出按钮侧
+	 * description 文案如实标注）。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 导出列头闭集（五列——fputcsv 表头行直喂；与登录流水表列面同词汇族）。
+	 */
+	public const EXPORT_CSV_COLUMNS = array( '时间', '结果', '哪张门', '原因', '事件编号' );
+
+	/**
+	 * 导出文件名（纯函数件——wink-intercepts-YYYY-MM-DD.csv；日期=current_time 当日）。
+	 *
+	 * @param string $ymd 当日日期串（Y-m-d）。
+	 * @return string
+	 */
+	public static function export_csv_filename( string $ymd ): string {
+		return 'wink-intercepts-' . $ymd . '.csv';
+	}
+
+	/**
+	 * N8 导出行组装（纯逻辑：events 行〔meta 已解码〕→ 五列字符串行闭集——fputcsv 直喂）。
+	 *
+	 * 列面：时间（created_at 原样）/ 结果（Labels::export_result_word——出码·拦下｜
+	 * 未过码·拦下｜码后阶段如实「拦下」，放行不在拒绝数据面不虚构）/ 哪张门
+	 * （Labels::gate_word）/ 原因（trigger_source 归因人话优先，缺省回落 rule_hit
+	 * 人话——account_reject_rows 同口径）/ 事件编号（WK- 原样——访客报障对账面）。
+	 *
+	 * @param array<int, array<string, mixed>> $events 事件行（event_no/created_at/gate/
+	 *                                                 stage/rule_hit/meta[decoded]；EventsTable::today_intercept_rows 查回）。
+	 * @return array<int, array<int, string>> 五列字符串行列表（零关联键——序列化面无
+	 *                                        author/email/content/ip 键名残留）。
+	 */
+	public static function export_csv_rows( array $events ): array {
+		$rows = array();
+		foreach ( $events as $event ) {
+			$gate     = isset( $event['gate'] ) && is_string( $event['gate'] ) ? $event['gate'] : '';
+			$stage    = isset( $event['stage'] ) && is_string( $event['stage'] ) ? $event['stage'] : '';
+			$rule_hit = isset( $event['rule_hit'] ) && is_string( $event['rule_hit'] ) ? $event['rule_hit'] : '';
+			$meta     = isset( $event['meta'] ) && is_array( $event['meta'] ) ? $event['meta'] : array();
+			$source   = isset( $meta['trigger_source'] ) && is_string( $meta['trigger_source'] ) ? $meta['trigger_source'] : '';
+
+			$reason = '' !== $source
+				? Labels::trigger_word( $source )
+				: ( '' !== $rule_hit ? Labels::rule_hit_word( $rule_hit ) : '' );
+
+			$rows[] = array(
+				isset( $event['created_at'] ) && is_string( $event['created_at'] ) ? $event['created_at'] : '',
+				'' !== $stage ? Labels::export_result_word( $stage ) : '',
+				'' !== $gate ? Labels::gate_word( $gate ) : '',
+				$reason,
+				isset( $event['event_no'] ) && is_string( $event['event_no'] ) ? $event['event_no'] : '',
+			);
+		}
+		return $rows;
+	}
+
 	/**
 	 * N2+N3 全闸故障 ∪ 停转解除合并时间线行组装（Tab⑥「三、报错历史②最近报错」；
 	 * Tab① 块 D「最近岔子」同源消费——批 3）。
