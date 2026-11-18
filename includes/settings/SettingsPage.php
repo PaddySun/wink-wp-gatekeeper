@@ -41,6 +41,40 @@ final class SettingsPage {
 	const OPTION_GROUP = 'wink_gatekeeper';
 
 	/**
+	 * 【W3·批A·N7】深色 admin color scheme 集合（R1 明度二分的成员表形态）——
+	 * WP「管理配色方案」基色明度 L<0.5 的深底系（Midnight/Coffee/Ectoplasm/Ocean）。
+	 * 集合成员为静态推断（凭 WP 通用认知，未实机核 get_admin_color_schemes() 基色
+	 * 结构——施工批真机核安排挂手测卡 MANUAL-CARD-W3-A）；未知/自定义 scheme 不入
+	 * 两集合=恒暗色保底（design-system §02·P4 兜底条款）。
+	 *
+	 * @var string[]
+	 */
+	const ADMIN_COLOR_DEEP_SCHEMES = array( 'midnight', 'coffee', 'ectoplasm', 'ocean' );
+
+	/**
+	 * 【W3·批A·N7】浅色 admin color scheme 集合——出厂默认 Fresh + Light/Blue/Modern
+	 * （R1）；Sunrise 为施工批裁定归浅色（原 3.0 浅色系之一——基色红橙但页底为浅色的
+	 * 静态推断，未实机核；翻案只动本单数组，W3SchemeTokensTest 同步翻转）。
+	 *
+	 * @var string[]
+	 */
+	const ADMIN_COLOR_LIGHT_SCHEMES = array( 'fresh', 'light', 'blue', 'modern', 'sunrise' );
+
+	/**
+	 * 【W3·批A】notice_yellow_bar 四级 → WP 原生 class 映射（闭集）：黄=要留意/
+	 * 红=已出事/绿=报平安/蓝=中性说明。CSS 侧四级族=.wk-notice--{warn|danger|ok|info}
+	 * （批 B 八 Tab 重组时黄条壳翻转为插件级类；现迁段=WP 原生 notice 等价形态）。
+	 *
+	 * @var array<string, string>
+	 */
+	const NOTICE_LEVEL_CLASSES = array(
+		'warn'   => 'notice notice-warning inline',
+		'danger' => 'notice notice-error inline',
+		'ok'     => 'notice notice-success inline',
+		'info'   => 'notice notice-info inline',
+	);
+
+	/**
 	 * 统计重置 AJAX action（03 Tab⑥；manage_options + check_ajax_referer）。
 	 */
 	const AJAX_RESET_STATS = 'wink_gatekeeper_reset_stats';
@@ -425,6 +459,30 @@ final class SettingsPage {
 	}
 
 	/**
+	 * 【W3·批A·N7】admin color scheme 明暗定型（纯函数，design-system §02·P4 双路径
+	 * 之 PHP 主路径）：scheme slug → 容器根 class。明度阈值二分以集合成员表承载
+	 * （ADMIN_COLOR_DEEP_SCHEMES / ADMIN_COLOR_LIGHT_SCHEMES——优先明度阈值而非逐
+	 * scheme 白名单选择器，规避 WP 版本增删 scheme 漂移）；两集合皆外的 slug（未知/
+	 * 自定义 scheme）与空串（侦测失败）恒落暗色组=品牌语言现行态保底。
+	 *
+	 * 前端兜底=assets/js/admin-brand.js 首段按 body.admin-color-{scheme} 校验纠正
+	 * （同集合表双写——两集合改动须同批同步 JS 与 W3SchemeTokensTest）。
+	 *
+	 * @param string $scheme wp_get_user_admin_color() 返回的 scheme slug（可空串）。
+	 * @return string 'wk-scheme-dark'|'wk-scheme-light'。
+	 */
+	public static function admin_color_scheme_class( string $scheme ): string {
+		$slug = (string) preg_replace( '/[^a-z0-9_\-]/', '', strtolower( trim( $scheme ) ) );
+		if ( '' === $slug ) {
+			return 'wk-scheme-dark'; // 兜底条款：侦测失败恒暗色组（不出现无样式裸态）。
+		}
+		if ( in_array( $slug, self::ADMIN_COLOR_LIGHT_SCHEMES, true ) ) {
+			return 'wk-scheme-light';
+		}
+		return 'wk-scheme-dark'; // deep 集合与其余未知 scheme 同落暗色组。
+	}
+
+	/**
 	 * 设置页渲染入口（add_options_page 回调）。
 	 *
 	 * @return void
@@ -434,7 +492,8 @@ final class SettingsPage {
 			wp_die( esc_html__( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) );
 		}
 
-		$active_tab = self::active_tab();
+		$scheme_class = self::admin_color_scheme_class( function_exists( 'wp_get_user_admin_color' ) ? (string) wp_get_user_admin_color() : '' );
+		$active_tab   = self::active_tab();
 		$version    = WINK_GATEKEEPER_VERSION;
 		$stats      = \WinkGatekeeper\Stats\StatsCache::get();
 		$today_rejects = 0;
@@ -442,7 +501,7 @@ final class SettingsPage {
 			$today_rejects += (int) ( $counts['reject'] ?? 0 );
 		}
 		?>
-		<div class="wrap wk-wrap">
+		<div class="wrap wk-wrap <?php echo esc_attr( $scheme_class ); ?>">
 			<header class="wk-header">
 				<div class="wk-header-brand">
 					<?php /* 【M6·批H4·H4-5】眨眼源属性退役（静态版 logo——用户拍板，手测二轮 F1）。 */ ?>
@@ -484,6 +543,232 @@ final class SettingsPage {
 				<?php submit_button( __( '保存设置', 'wink-gatekeeper' ) ); ?>
 			</form>
 		</div>
+		<?php
+	}
+
+	/* ===================================================================
+	 * W3 批 A · render helper 区（施工图 §2 批 A「helper 公用化第一批」——
+	 * 同文件私有方法，单文件口径不拆新 PHP 文件；既有 8 件私有 helper
+	 * （password_field/field_name/truncate_reason/render_roster_card 等）先例续建。
+	 * 纪律：建件必配迁段消费（无空接线）；迁段=一次等价改写，DOM 锚不变，
+	 * 既有契约测试零翻转；其余消费面随批 B 各 Tab 重组迁完。
+	 * =================================================================== */
+
+	/**
+	 * 黄条四级渲染件（W3 批 A 建件）。语义：黄=要留意、红=已出事、绿=报平安、
+	 * 蓝=中性说明；「有话才出现」纪律由调用方判定（本件只负责形态）。
+	 *
+	 * 迁段等价口径：输出与现行 `<div class="notice notice-* inline">…</div>` 逐锚
+	 * 同构（M6H3/M6C 等 source-scan 契约零翻转）——$hd/$p/$act 为**调用方已转义**
+	 * 的原样 HTML 片段（本件不二次转义；字面文案与 esc/拼接留在编排位=锚字面量
+	 * 不迁位）。$p 支持 string|string[]（数组=逐段一 <p>，hd 拼首段、act 拼末段）。
+	 *
+	 * @param string          $level   四级闭集 warn|danger|ok|info（NOTICE_LEVEL_CLASSES）。
+	 * @param string          $hd      标题 HTML（含 <strong>/状态点 span，已转义）。
+	 * @param string|string[] $p       正文 HTML（已转义；数组=多个 <p> 段）。
+	 * @param string          $act     动作出口 HTML（<a> 链接，已转义）。
+	 * @param string          $classes 迁段兼容位：显式 class 字面量（现网 source-scan
+	 *                                 契约钉住 'notice notice-warning inline' 等字面量
+	 *                                 ——批 B 契约翻转后可去，回落 $level 映射）。
+	 * @param string          $id      可选 DOM 锚 id（如 wk-overview-existing-bar）。
+	 * @return void
+	 */
+	private static function notice_yellow_bar( string $level, string $hd = '', $p = '', string $act = '', string $classes = '', string $id = '' ): void {
+		$cls   = isset( self::NOTICE_LEVEL_CLASSES[ $level ] ) ? self::NOTICE_LEVEL_CLASSES[ $level ] : self::NOTICE_LEVEL_CLASSES['warn'];
+		$cls   = '' !== $classes ? $classes : $cls;
+		$paras = is_array( $p ) ? $p : array( $p );
+		$n     = count( $paras );
+		echo '<div class="' . esc_attr( $cls ) . '"' . ( '' !== $id ? ' id="' . esc_attr( $id ) . '"' : '' ) . '>';
+		foreach ( array_values( $paras ) as $i => $text ) {
+			$piece = ( 0 === $i ? $hd : '' ) . $text . ( $n - 1 === $i ? $act : '' );
+			echo '<p>' . $piece . '</p>';
+		}
+		echo '</div>';
+	}
+
+	/**
+	 * 高级配置折叠渲染件（W3 批 A 建件；design-system §04 adv-fold——「⚙ 高级配置」
+	 * 统一命名）。迁段等价口径：现行折叠壳 `<details class="wk-guide" {attrs}>` 形态
+	 * 原样保留（css 类 details.adv 为批 B 重组目标形态）；$inner 用闭包承载，折叠内
+	 * 标记文本留在编排函数体内（source-scan 锚/字段 name 路径不迁位）。
+	 *
+	 * @param string   $attrs 开标签属性片段（调用方常量，如 'id="wk-url-audit-advanced"'——
+	 *                        含 id= 引号形态的原样字面量，M6B 系 blockBetween 起标记）。
+	 * @param string   $title summary 标题纯文本（本件 esc_html）。
+	 * @param callable $inner 折叠内标记渲染闭包（无参）。
+	 * @return void
+	 */
+	private static function advanced_fold( string $attrs, string $title, callable $inner ): void {
+		echo '<details class="wk-guide" ' . $attrs . '><summary>' . esc_html( $title ) . '</summary>';
+		$inner();
+		echo "</details>\n";
+	}
+
+	/**
+	 * 测试凭据钮渲染件（W3 批 A 建件；design-system §04 cred-test 新形态=单按钮 +
+	 * 徽标五态 + 「上次测试」等宽小字位）。现行契约「结果不落库刷新即失」不变——
+	 * $state/$last_tested 批 A 迁段恒空串（渲染=未测试中性灰初始态）；N1 持久化
+	 * （probe log option 读写）随批 C 接线读取本参数位。
+	 *
+	 * $button_attrs/$result_attrs 为调用方常量字面量（'id="…"' 形态——各驱动按钮/
+	 * 结果位 id 锚是 admin-brand.js 探活绑定与 source-scan 契约的定位面，不迁位）。
+	 *
+	 * @param string $button_attrs 按钮属性片段（含 id 锚）。
+	 * @param string $result_attrs 结果位 span 属性片段（含 id 锚；aria-live 由本件补）。
+	 * @param string $nonce        wp_create_nonce 产物（调用方生成——nonce action 字面量留编排位）。
+	 * @param string $label        按钮文案（本件 esc_html）。
+	 * @param string $driver_key   驱动 id（批 C probe log 读取键；批 A 仅登记未消费）。
+	 * @param string $state        五态闭集 ''|green|yellow|red|gray（空=未测试）。
+	 * @param string $last_tested  上次测试时间文案（date_i18n 预格式化；空=「--」占位）。
+	 * @return void
+	 */
+	private static function test_credential_btn( string $button_attrs, string $result_attrs, string $nonce, string $label, string $driver_key = '', string $state = '', string $last_tested = '' ): void {
+		unset( $driver_key ); // 批 C 接线位（N1 probe log 读取键）——批 A 登记 NotUsed。
+		?>
+		<p class="cred-test">
+			<button type="button" class="button" <?php echo $button_attrs; // 调用方常量（id 锚，非用户输入）。 ?> data-nonce="<?php echo esc_attr( $nonce ); ?>"><?php echo esc_html( $label ); ?></button>
+			<span <?php echo $result_attrs; // 调用方常量（id 锚）。 ?> aria-live="polite"></span>
+			<?php echo self::probe_state_badge( $state, $last_tested ); // 五态徽标闭集（本件转义）。 ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * 测试凭据五态徽标（design-system §04 cred-test 样张闭集）：未测试（中性灰初始态）/
+	 * 绿贯通/黄缺字/红被拒/灰契约不符 + 「上次测试：时间 · 状态」等宽小字位。
+	 * 状态词为五态闭集初稿——批 C 接线 N1 时按 CredentialProbe 分类词表校准。
+	 *
+	 * @param string $state       ''|green|yellow|red|gray（闭集外回落未测试）。
+	 * @param string $last_tested 预格式化时间文案（空=「--」）。
+	 * @return string HTML。
+	 */
+	private static function probe_state_badge( string $state, string $last_tested ): string {
+		$states = array(
+			''       => array( 'b-dim', '未测试' ),
+			'green'  => array( 'b-ok', '贯通 · 凭据可用' ),
+			'yellow' => array( 'b-warn', '缺字 · 必填缺失' ),
+			'red'    => array( 'b-err', '被拒 · 密钥错' ),
+			'gray'   => array( 'b-dim', '契约不符 · 状态未知' ),
+		);
+		$conf = isset( $states[ $state ] ) ? $states[ $state ] : $states[''];
+		$last = '' !== $last_tested ? $last_tested : '--';
+		return '<span class="test-state"><span class="badge ' . esc_attr( $conf[0] ) . '">' . esc_html( $conf[1] ) . '</span>'
+			. '<span class="last-test">' . esc_html( sprintf( __( '上次测试：%s', 'wink-gatekeeper' ), $last ) ) . '</span></span>';
+	}
+
+	/**
+	 * 调用量卡渲染件（W3 批 A 建件；design-system §04 usage-card 五域样张）。
+	 * 视图模型=DashboardDigest::widget_overview()['usage']（includes/Stats/
+	 * DashboardDigest.php——纯逻辑零新查询；本件只管 echo 形态）。渲染纪律：
+	 * 五域固定顺序、每域只列实际启用驱动行、零数据域不渲染（空态显式「今日无
+	 * 外呼」）、bill_free 声明行无次数（M6·批H·H-4 口径同源）。
+	 *
+	 * @param array<string, mixed> $usage {domains: [{id,label,rows:[{driver_id,label,used,quota,quota_reached,bill_free}]}], site_total: int, disaster_pass: int}。
+	 * @return void
+	 */
+	private static function usage_card_html( array $usage ): void {
+		$domains   = isset( $usage['domains'] ) && is_array( $usage['domains'] ) ? $usage['domains'] : array();
+		$site_total = isset( $usage['site_total'] ) && is_numeric( $usage['site_total'] ) ? (int) $usage['site_total'] : 0;
+		$disaster   = isset( $usage['disaster_pass'] ) && is_numeric( $usage['disaster_pass'] ) ? (int) $usage['disaster_pass'] : 0;
+		?>
+		<section class="usage-card" id="wk-overview-usage">
+			<div class="usage-hd"><?php esc_html_e( '今日调用量', 'wink-gatekeeper' ); ?><span class="sum"><?php echo esc_html( sprintf( /* translators: %d: 站点今日总外呼次数 */ __( '站点总外呼 %d 次', 'wink-gatekeeper' ), $site_total ) ); ?></span></div>
+			<?php if ( array() === $domains ) : ?>
+				<div class="usage-row free"><?php esc_html_e( '今日无外呼。', 'wink-gatekeeper' ); ?></div>
+			<?php else : ?>
+				<?php foreach ( $domains as $domain ) : ?>
+					<?php
+					if ( ! is_array( $domain ) || ! isset( $domain['rows'] ) || ! is_array( $domain['rows'] ) ) {
+						continue;
+					}
+					?>
+					<div class="usage-domain"><?php echo esc_html( (string) ( $domain['label'] ?? '' ) ); ?></div>
+					<?php foreach ( $domain['rows'] as $row ) : ?>
+						<?php
+						if ( ! is_array( $row ) ) {
+							continue;
+						}
+						$used    = isset( $row['used'] ) && is_numeric( $row['used'] ) ? (int) $row['used'] : 0;
+						$quota   = isset( $row['quota'] ) && is_numeric( $row['quota'] ) ? (int) $row['quota'] : 0;
+						$reached = ! empty( $row['quota_reached'] );
+						?>
+						<?php if ( ! empty( $row['bill_free'] ) ) : ?>
+							<div class="usage-row free"><?php echo esc_html( (string) ( $row['label'] ?? '' ) ); ?></div>
+						<?php else : ?>
+							<div class="usage-row">
+								<span class="nm"><b><?php echo esc_html( (string) ( $row['label'] ?? '' ) ); ?></b></span>
+								<?php if ( $quota > 0 ) : ?>
+									<span class="num"><?php echo esc_html( sprintf( '%d', $used ) ); ?></span>
+									<span class="prog" aria-hidden="true"><i style="width:<?php echo esc_attr( (string) self::usage_pct( $used, $quota ) ); ?>%"></i></span>
+									<span class="quota"><?php echo esc_html( sprintf( '%d / %d', $used, $quota ) ); ?><?php echo $reached ? esc_html__( '——已达限，当日暂停', 'wink-gatekeeper' ) : ''; ?></span>
+								<?php else : ?>
+									<span class="num"><?php echo esc_html( sprintf( /* translators: %d: 调用次数 */ __( '%d 次', 'wink-gatekeeper' ), $used ) ); ?></span>
+								<?php endif; ?>
+							</div>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				<?php endforeach; ?>
+			<?php endif; ?>
+			<div class="usage-row free"><?php echo esc_html( __( '今日容灾放行', 'wink-gatekeeper' ) ); ?> <?php echo esc_html( sprintf( '%d', $disaster ) ); ?><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?><?php echo $disaster > 0 ? esc_html__( '——验证码服务不稳的晴雨表', 'wink-gatekeeper' ) : ''; ?></div>
+		</section>
+		<?php
+	}
+
+	/**
+	 * 进度百分比纯函数（usage-card prog 位——quota>0 才调；上限 100 防溢出）。
+	 *
+	 * @param int $used  已用计数。
+	 * @param int $quota 配额（>0）。
+	 * @return int 0–100。
+	 */
+	private static function usage_pct( int $used, int $quota ): int {
+		if ( $quota <= 0 ) {
+			return 0;
+		}
+		return (int) min( 100, round( ( $used / $quota ) * 100 ) );
+	}
+
+	/**
+	 * 报告卡渲染件（W3 批 A 建件；Tab⑦ 存量审核报告卡等价收口——三票面 wk-report-ticket
+	 * + 原因明细折叠既有结构）。迁段等价口径：全部文案/锚 id/票面词/动作链接/原因行
+	 * 由调用方组装传入（XSS 红线=原因攻击者可控，esc_html+截断留在编排位），本件只
+	 * 负责结构形态与既有 DOM 逐锚同构。
+	 *
+	 * @param array<string, mixed> $view {
+	 *   state           'empty'|其他（空态只渲染 empty 行）。
+	 *   section_id/title/empty_id/empty_text/meta_id/meta_text/tickets_class/caliber_id
+	 *   tickets         array<{name,main,sub}>（纯文本，本件 esc_html）。
+	 *   actions_html    动作行 HTML（调用方已 esc_url/esc_html 组装，原样输出）。
+	 *   recovery_text   恢复口径行纯文本（本件 esc_html）。
+	 *   reasons_id/reasons_summary/reasons_html 原因折叠（HTML 调用方组装，原样输出）。
+	 * }
+	 * @return void
+	 */
+	private static function report_card( array $view ): void {
+		?>
+		<section class="wk-card" id="<?php echo esc_attr( (string) $view['section_id'] ); ?>">
+			<h2><?php echo esc_html( (string) $view['title'] ); ?></h2>
+			<?php if ( 'empty' === (string) $view['state'] ) : ?>
+				<p id="<?php echo esc_attr( (string) $view['empty_id'] ); ?>" class="wk-muted"><?php echo esc_html( (string) $view['empty_text'] ); ?></p>
+			<?php else : ?>
+				<p id="<?php echo esc_attr( (string) $view['meta_id'] ); ?>" class="wk-muted"><?php echo esc_html( (string) $view['meta_text'] ); ?></p>
+				<div class="<?php echo esc_attr( (string) $view['tickets_class'] ); ?>" id="<?php echo esc_attr( (string) $view['caliber_id'] ); ?>">
+					<?php foreach ( (array) $view['tickets'] as $ticket ) : ?>
+						<div class="wk-report-ticket">
+							<p class="wk-report-ticket__name"><strong><?php echo esc_html( (string) $ticket['name'] ); ?></strong></p>
+							<p class="wk-report-ticket__main"><?php echo esc_html( (string) $ticket['main'] ); ?></p>
+							<p class="wk-muted"><?php echo esc_html( (string) $ticket['sub'] ); ?></p>
+						</div>
+					<?php endforeach; ?>
+				</div>
+				<p class="wk-overview-actions"><?php echo (string) $view['actions_html']; // 调用方已转义组装。 ?></p>
+				<p class="wk-muted"><?php echo esc_html( (string) $view['recovery_text'] ); ?></p>
+				<details id="<?php echo esc_attr( (string) $view['reasons_id'] ); ?>">
+					<summary><?php echo esc_html( (string) $view['reasons_summary'] ); ?></summary>
+					<?php echo (string) $view['reasons_html']; // 调用方已转义组装（esc_html+截断）。 ?>
+				</details>
+			<?php endif; ?>
+		</section>
 		<?php
 	}
 
@@ -560,9 +845,59 @@ final class SettingsPage {
 		self::render_overview_onboarding();
 		self::render_overview_alerts();
 		self::render_overview_report();
+		self::render_overview_usage(); // 【W3·批A】调用量卡新落位（原型 Tab① 六块序=战报→调用量→点名册）。
 		self::render_overview_roster();
 		self::render_overview_incidents();
 		self::render_overview_footer();
+	}
+
+	/**
+	 * 块 B'·调用量卡（W3 批 A 新落位——原型 Tab① 调用量卡五域；现码 Tab① 原无此卡）。
+	 * 渲染薄委托：视图模型=DashboardDigest::widget_overview()['usage']（纯逻辑零新
+	 * 查询——只读 option 计数器，不变式见 DashboardDigest 类头注）；形态=usage_card_html
+	 * helper（usage-card 组件族）。Widget 侧 Bootstrap::render_dashboard_widget 形态为
+	 * 参照不迁（跨文件口径——widget 保持自渲染）。
+	 *
+	 * @return void
+	 */
+	private static function render_overview_usage(): void {
+		$settings       = self::settings();
+		$captcha_driver = is_string( $settings['captcha']['driver'] ?? null ) && '' !== $settings['captcha']['driver']
+			? $settings['captcha']['driver'] : 'aliyun'; // 【M6·批H·H-3】防御回落同款（usage 行驱动 id）。
+
+		// 用量行人话名（registry_entry label 单一来源——Bootstrap widget 装配同款映射，
+		// 不硬抄字面；未注册 id 经 DashboardDigest 回落原名不虚构）。
+		$driver_labels = array(
+			'tencent'          => (string) TencentCaptchaDriver::registry_entry()['label'],
+			'aliyun'           => (string) AliyunCaptchaDriver::registry_entry()['label'],
+			'tencent_tms'      => (string) TencentTmsDriver::registry_entry()['label'],
+			'aliyun_green'     => (string) AliyunGreenPlusDriver::registry_entry()['label'],
+			'baidu'            => (string) BaiduTextModerationDriver::registry_entry()['label'],
+			'deepseek'         => (string) \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::registry_entry()['label'],
+			'openai_custom'    => (string) \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::registry_entry()['label'],
+			'abuseipdb'        => 'AbuseIPDB',
+			'abuseipdb_report' => 'AbuseIPDB（上报）',
+		);
+		foreach ( self::future_review_drivers() as $future_id => $future_meta ) {
+			$driver_labels[ (string) $future_id ] = isset( $future_meta['label'] ) && is_string( $future_meta['label'] )
+				? $future_meta['label'] : (string) $future_id;
+		}
+
+		$view = \WinkGatekeeper\Stats\DashboardDigest::widget_overview( array(
+			'settings'             => $settings,
+			'stats'                => \WinkGatekeeper\Stats\StatsCache::get(),
+			'usage'                => \WinkGatekeeper\Stats\Usage::get(),
+			'health'               => array(), // 本块只消费 usage 视图（health 卡归 Widget）。
+			'today_ymd'            => current_time( 'Ymd' ),
+			'today_dash'           => current_time( 'Y-m-d' ),
+			'captcha_configured'   => false,
+			'captcha_driver'       => $captcha_driver,
+			'captcha_driver_label' => isset( $driver_labels[ $captcha_driver ] ) ? $driver_labels[ $captcha_driver ] : $captcha_driver,
+			'driver_labels'        => $driver_labels,
+			'cron_alive'           => true,
+			'debug'                => false,
+		) );
+		self::usage_card_html( $view['usage'] );
 	}
 
 	/**
@@ -580,14 +915,20 @@ final class SettingsPage {
 		}
 		?>
 		<section id="wk-overview-onboarding">
-			<div class="notice notice-warning inline"><p>
-				<strong><?php esc_html_e( '三步开始防护', 'wink-gatekeeper' ); ?></strong>
-				——① <?php esc_html_e( '选验证码（Tab② 验证码）', 'wink-gatekeeper' ); ?>
-				→ ② <?php esc_html_e( '配云审 / IP 信誉（Tab③ 内容审核 / Tab④ IP 信誉）', 'wink-gatekeeper' ); ?>
-				→ ③ <?php esc_html_e( '在各配置卡点「测试凭据」实测连通。', 'wink-gatekeeper' ); ?>
-				<?php esc_html_e( '配好任意一家后本提示自动消失。', 'wink-gatekeeper' ); ?>
-				<a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '从第一步开始 →', 'wink-gatekeeper' ); ?></a>
-			</p></div>
+			<?php
+			// 【W3·批A】迁段 notice_yellow_bar（classes 显式位=UiM4UxF2 契约字面量钉，
+			// 批 B 契约翻转后回落 level 映射）；文案/esc/链接组装留在编排位（等价迁移）。
+			self::notice_yellow_bar(
+				'warn',
+				'<strong>' . esc_html__( '三步开始防护', 'wink-gatekeeper' ) . '</strong>',
+				'——① ' . esc_html__( '选验证码（Tab② 验证码）', 'wink-gatekeeper' )
+					. ' → ② ' . esc_html__( '配云审 / IP 信誉（Tab③ 内容审核 / Tab④ IP 信誉）', 'wink-gatekeeper' )
+					. ' → ③ ' . esc_html__( '在各配置卡点「测试凭据」实测连通。', 'wink-gatekeeper' )
+					. esc_html__( '配好任意一家后本提示自动消失。', 'wink-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( '从第一步开始 →', 'wink-gatekeeper' ) . '</a>',
+				'notice notice-warning inline'
+			);
+			?>
 		</section>
 		<?php
 	}
@@ -611,30 +952,36 @@ final class SettingsPage {
 		$audit_prog = self::audit_worker()->status();
 		$audit_st   = $audit_prog['status'] ?? 'idle';
 		if ( 'running' === $audit_st || 'quota_paused' === $audit_st ) {
-			?>
-			<div class="notice notice-warning inline" id="wk-overview-existing-bar"><p>
-				<?php
-				printf(
+			// 【W3·批A】迁段 notice_yellow_bar（文案/esc/链接组装留编排位——等价迁移）。
+			self::notice_yellow_bar(
+				'warn',
+				'',
+				sprintf(
 					/* translators: 1: processed 2: total */
 					esc_html__( '历史评论体检进行中（已处理 %1$d / 共 %2$d）', 'wink-gatekeeper' ),
 					(int) ( $audit_prog['processed'] ?? 0 ),
 					(int) ( $audit_prog['total'] ?? 0 )
-				);
-				?>
-				——<a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '暂停', 'wink-gatekeeper' ); ?></a>
-				· <a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '看报告 →', 'wink-gatekeeper' ); ?></a>
-			</p></div>
-			<?php
+				)
+				. ' ——<a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( '暂停', 'wink-gatekeeper' ) . '</a>'
+				. ' · <a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( '看报告 →', 'wink-gatekeeper' ) . '</a>',
+				'',
+				'',
+				'wk-overview-existing-bar'
+			);
 		}
 		// ⓪'【M6·批H·H-7】存量网址核查运行中黄条（对齐 A-U3 先例——运行记录未完成或
 		// 队列非空才出现；完成/空队列熄灭）。每日额度推进消耗外呼——总览页可见性兜底。
 		if ( 'running' === ( new \WinkGatekeeper\UrlAudit\UrlAuditWorker( $settings ) )->backlog_report_data()['state'] ) {
-			?>
-			<div class="notice notice-warning inline" id="wk-overview-url-backlog-bar"><p>
-				<?php esc_html_e( '存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）。', 'wink-gatekeeper' ); ?>
-				——<a href="<?php echo esc_url( self::tab_url( 'tools' ) ); ?>"><?php esc_html_e( '看报告 →', 'wink-gatekeeper' ); ?></a>
-			</p></div>
-			<?php
+			// 【W3·批A】迁段 notice_yellow_bar。
+			self::notice_yellow_bar(
+				'warn',
+				'',
+				esc_html__( '存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）。', 'wink-gatekeeper' )
+				. ' ——<a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( '看报告 →', 'wink-gatekeeper' ) . '</a>',
+				'',
+				'',
+				'wk-overview-url-backlog-bar'
+			);
 		}
 		// ① 演练模式（wp_active 含 24h 懒过期判定——过期不显示）。
 		if ( \WinkGatekeeper\Gates\TestMode::wp_active() ) {
@@ -642,63 +989,65 @@ final class SettingsPage {
 			$tm_time  = $tm_since > 0 ? date_i18n( 'H:i', $tm_since ) : '—'; // WP 边界（站点时区）。
 			$tm_left  = $tm_since > 0 ? max( 1, (int) ceil( ( $tm_since + \WinkGatekeeper\Gates\TestMode::TTL_SECONDS - time() ) / HOUR_IN_SECONDS ) ) : 24;
 			?>
-			<div class="notice notice-warning inline"><p>
-				<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
-				<strong><?php echo esc_html( \WinkGatekeeper\Stats\Labels::test_mode_word() . '进行中（今天 ' . $tm_time . ' 开启，还剩约 ' . $tm_left . ' 小时）' ); ?></strong>
-				——<?php esc_html_e( '全站人机验证暂时被跳过，仅用于链路演练；24 小时后自动结束（旁路事件标注 drill，不进统计）。', 'wink-gatekeeper' ); ?>
-				<a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '现在去关闭', 'wink-gatekeeper' ); ?></a>
-			</p></div>
+			<?php
+			// 【W3·批A】迁段 notice_yellow_bar（演练模式通栏——Labels::test_mode_word 映射词留编排位）。
+			self::notice_yellow_bar(
+				'warn',
+				'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html( \WinkGatekeeper\Stats\Labels::test_mode_word() . '进行中（今天 ' . $tm_time . ' 开启，还剩约 ' . $tm_left . ' 小时）' ) . '</strong>',
+				'——' . esc_html__( '全站人机验证暂时被跳过，仅用于链路演练；24 小时后自动结束（旁路事件标注 drill，不进统计）。', 'wink-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( '现在去关闭', 'wink-gatekeeper' ) . '</a>'
+			);
+			?>
 			<?php
 		}
 
 		// ② 统计停用（FIX-δ 从「今日拦截」卡内迁出为通栏）。
 		if ( empty( $settings['stats']['enabled'] ) ) {
-			?>
-			<div class="notice notice-warning inline"><p>
-				<strong><?php esc_html_e( '统计计数已停用', 'wink-gatekeeper' ); ?></strong>
-				——<?php esc_html_e( '下方战报不记账；事件记录照常落库（以 Tab⑥ 为准）。', 'wink-gatekeeper' ); ?>
-				<a href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '去开启', 'wink-gatekeeper' ); ?></a>
-			</p></div>
-			<?php
+			// 【W3·批A】迁段 notice_yellow_bar。
+			self::notice_yellow_bar(
+				'warn',
+				'<strong>' . esc_html__( '统计计数已停用', 'wink-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( '下方战报不记账；事件记录照常落库（以 Tab⑥ 为准）。', 'wink-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'stats' ) ) . '">' . esc_html__( '去开启', 'wink-gatekeeper' ) . '</a>'
+			);
 		}
 
 		// ③ 验证码域兜底（新增——验证码没选服务商时的可见性兜底）。
 		$captcha_driver = isset( $settings['captcha']['driver'] ) && is_string( $settings['captcha']['driver'] ) ? $settings['captcha']['driver'] : '';
 		if ( '' === $captcha_driver ) {
-			?>
-			<div class="notice notice-warning inline"><p>
-				<strong><?php esc_html_e( '人机验证还没选服务商', 'wink-gatekeeper' ); ?></strong>
-				——<?php esc_html_e( '机器人不会被出题拦住；评论仍受站内规矩把关。', 'wink-gatekeeper' ); ?>
-				<a href="<?php echo esc_url( self::tab_url( 'captcha' ) ); ?>"><?php esc_html_e( '去配置', 'wink-gatekeeper' ); ?></a>
-			</p></div>
-			<?php
+			// 【W3·批A】迁段 notice_yellow_bar。
+			self::notice_yellow_bar(
+				'warn',
+				'<strong>' . esc_html__( '人机验证还没选服务商', 'wink-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( '机器人不会被出题拦住；评论仍受站内规矩把关。', 'wink-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( '去配置', 'wink-gatekeeper' ) . '</a>'
+			);
 		}
 
 		// ④ 内容审核域兜底（「云端审核已启用但无可用驱动」黄条迁位，文案人话化）。
 		$cloud = isset( $settings['review']['cloud'] ) && is_array( $settings['review']['cloud'] ) ? $settings['review']['cloud'] : array();
 		$chain = isset( $cloud['chain'] ) && is_array( $cloud['chain'] ) ? $cloud['chain'] : array();
 		if ( ! empty( $cloud['enabled'] ) && array() !== $chain && 0 === self::chain_usable_count( $chain ) ) {
-			?>
-			<div class="notice notice-warning inline"><p>
-				<strong><?php esc_html_e( '内容审核已启用，但还没配好任何一家审核服务商', 'wink-gatekeeper' ); ?></strong>
-				——<?php esc_html_e( '评论目前全靠站内规矩把关。', 'wink-gatekeeper' ); ?>
-				<a href="<?php echo esc_url( self::tab_url( 'review' ) ); ?>"><?php esc_html_e( '去配置', 'wink-gatekeeper' ); ?></a>
-			</p></div>
-			<?php
+			// 【W3·批A】迁段 notice_yellow_bar。
+			self::notice_yellow_bar(
+				'warn',
+				'<strong>' . esc_html__( '内容审核已启用，但还没配好任何一家审核服务商', 'wink-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( '评论目前全靠站内规矩把关。', 'wink-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'review' ) ) . '">' . esc_html__( '去配置', 'wink-gatekeeper' ) . '</a>'
+			);
 		}
 
 		// ⑤ 上报突增告警（【I3·定稿 §4.5/§9】usage_spike 当日事件消费——诬报/攻击感知黄条；
 		// 事件由 AbuseIpdbService report 面在 10min 原始触发 >20 时落库，gate=system/stage=ip）。
 		$spike_rows = \WinkGatekeeper\Stats\EventsTable::today_rule_count( \WinkGatekeeper\Ip\AbuseIpdbService::RULE_USAGE_SPIKE );
 		if ( $spike_rows > 0 ) {
-			?>
-			<div class="notice notice-warning inline"><p>
-				<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
-				<strong><?php esc_html_e( '可疑：IP 上报请求今天突然增多', 'wink-gatekeeper' ); ?></strong>
-				——<?php esc_html_e( '可能有伪造验证码的脚本在批量触发上报，或有人试图把你的站点当枪使（诬报）。拦截照常有效、上报有冷却与限额兜底；若持续出现，可在 IP 信誉 → 上报分区临时关闭对应触发面。', 'wink-gatekeeper' ); ?>
-				<a href="<?php echo esc_url( self::tab_url( 'iprep' ) ); ?>"><?php esc_html_e( '去看上报设置', 'wink-gatekeeper' ); ?></a>
-			</p></div>
-			<?php
+			// 【W3·批A】迁段 notice_yellow_bar（上报突增告警——usage_spike 只读计数判定留编排位）。
+			self::notice_yellow_bar(
+				'warn',
+				'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html__( '可疑：IP 上报请求今天突然增多', 'wink-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( '可能有伪造验证码的脚本在批量触发上报，或有人试图把你的站点当枪使（诬报）。拦截照常有效、上报有冷却与限额兜底；若持续出现，可在 IP 信誉 → 上报分区临时关闭对应触发面。', 'wink-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '去看上报设置', 'wink-gatekeeper' ) . '</a>'
+			);
 		}
 		?>
 		</section>
@@ -1141,17 +1490,28 @@ final class SettingsPage {
 		// 服务端黄条（双层校验第二层）：选了厂商但必填空 → 驱动视为未配置（设置仍保存）。
 		$notice = CaptchaTabSpec::server_notice( $active, $tencent, $aliyun );
 		if ( null !== $notice ) {
-			echo '<div class="notice notice-warning inline"><p><strong>' . esc_html( $notice ) . '</strong></p></div>';
+			// 【W3·批A】迁段 notice_yellow_bar（classes 显式位=M6H3 U-1 形态字面量钉）。
+			self::notice_yellow_bar(
+				'warn',
+				'<strong>' . esc_html( $notice ) . '</strong>',
+				'',
+				'',
+				'notice notice-warning inline'
+			);
 		}
 
 		/* 【M6·批H3·H3-A】驱动未配置 notice 补位（手测反馈 A：Tab② 顶部也提示——此前
 		 * 仅 Tab① 总览兜底；U-1 式形态，文案与 Tab① 同义）。 */
 		if ( '' === $active ) {
-			echo '<div class="notice notice-warning inline" id="wk-captcha-unconfigured-notice"><p><strong>'
-				. esc_html__( '人机验证还没选服务商', 'wink-gatekeeper' )
-				. '</strong>——'
-				. esc_html__( '机器人不会被出题拦住；评论仍受站内规矩把关，请在下方「驱动选择」中挑选。', 'wink-gatekeeper' )
-				. '</p></div>';
+			// 【W3·批A】迁段 notice_yellow_bar（id 锚/classes 字面量留编排位——M6H3 契约钉）。
+			self::notice_yellow_bar(
+				'warn',
+				'<strong>' . esc_html__( '人机验证还没选服务商', 'wink-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( '机器人不会被出题拦住；评论仍受站内规矩把关，请在下方「驱动选择」中挑选。', 'wink-gatekeeper' ),
+				'',
+				'notice notice-warning inline',
+				'wk-captcha-unconfigured-notice'
+			);
 		}
 
 		$area     = CaptchaTabSpec::config_area_state( $active );
@@ -1226,10 +1586,17 @@ final class SettingsPage {
 								</tr>
 							</table>
 							<!-- IP 信誉三态说明块（澄清 A 强制；03 Tab② 与登录高级区同文）+ 跳 Tab④ 引导。 -->
-							<div class="notice notice-info inline">
-								<p><strong><?php esc_html_e( 'IP 信誉三态：', 'wink-gatekeeper' ); ?></strong><?php esc_html_e( '未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。', 'wink-gatekeeper' ); ?></p>
-								<p><a href="<?php echo esc_url( self::tab_url( 'iprep' ) ); ?>"><?php esc_html_e( '→ 去配置 IP 信誉（Tab④）', 'wink-gatekeeper' ); ?></a></p>
-							</div>
+							<?php
+							// 【W3·批A】迁段 notice_yellow_bar（info 级——双 <p> 形态）。
+							self::notice_yellow_bar(
+								'info',
+								'<strong>' . esc_html__( 'IP 信誉三态：', 'wink-gatekeeper' ) . '</strong>',
+								array(
+									esc_html__( '未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。', 'wink-gatekeeper' ),
+									'<a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '→ 去配置 IP 信誉（Tab④）', 'wink-gatekeeper' ) . '</a>',
+								)
+							);
+							?>
 							<p class="description"><?php esc_html_e( '整页缓存提示：启用整页缓存的站点建议缓存周期 <12 小时——nonce 陈旧会使免验静默退化为恒出码（fail-safe，不伤提交）。', 'wink-gatekeeper' ); ?></p>
 						</details>
 					</td>
@@ -1317,10 +1684,17 @@ final class SettingsPage {
 									</tr>
 								</table>
 								<!-- IP 信誉三态说明块（澄清 A 强制；03 Tab② 登录高级区）+ 跳 Tab④ 引导。 -->
-								<div class="notice notice-info inline">
-									<p><strong><?php esc_html_e( 'IP 信誉三态：', 'wink-gatekeeper' ); ?></strong><?php esc_html_e( '未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。', 'wink-gatekeeper' ); ?></p>
-									<p><a href="<?php echo esc_url( self::tab_url( 'iprep' ) ); ?>"><?php esc_html_e( '→ 去配置 IP 信誉（Tab④）', 'wink-gatekeeper' ); ?></a></p>
-								</div>
+								<?php
+								// 【W3·批A】迁段 notice_yellow_bar（info 级——双 <p> 形态）。
+								self::notice_yellow_bar(
+									'info',
+									'<strong>' . esc_html__( 'IP 信誉三态：', 'wink-gatekeeper' ) . '</strong>',
+									array(
+										esc_html__( '未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。', 'wink-gatekeeper' ),
+										'<a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '→ 去配置 IP 信誉（Tab④）', 'wink-gatekeeper' ) . '</a>',
+									)
+								);
+								?>
 							</details>
 						</td>
 					</tr>
@@ -3054,13 +3428,18 @@ final class SettingsPage {
 				</tr>
 				</table>
 			</details>
-			<p>
-				<button type="button" class="button" id="wk-iprep-test-credentials"
-					data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_TEST_IPREP ) ); ?>">
-					<?php esc_html_e( '测试凭据', 'wink-gatekeeper' ); ?>
-				</button>
-				<span id="wk-iprep-test-result" aria-live="polite"></span>
-			</p>
+			<?php
+			// 【W3·批A】迁段 test_credential_btn（按钮/结果位 id 锚与 nonce action 字面量
+			// 留编排位——UiTab4Zones 契约钉；state 恒「未测试」=现行不落库态，N1 持久化
+			// 批 C 接线读取。五态徽标/上次测试位=helper 闭集输出）。
+			self::test_credential_btn(
+				'id="wk-iprep-test-credentials"',
+				'id="wk-iprep-test-result"',
+				wp_create_nonce( self::AJAX_TEST_IPREP ),
+				__( '测试凭据', 'wink-gatekeeper' ),
+				'abuseipdb'
+			);
+			?>
 			<p class="description"><?php esc_html_e( '发一次最小查询实测（查询保留地址 127.0.0.2，几乎不耗配额）：绿 = HTTP 200 且响应 JSON 可解析（凭据可用——保留地址返回 isPublic:false 亦绿，验证的是凭据不是 IP）；红 = 401/402 密钥被拒；黄 = API Key 未填。结果不落库。', 'wink-gatekeeper' ); ?></p>
 		</section>
 		<?php
@@ -3920,9 +4299,16 @@ final class SettingsPage {
 				</tr>
 			</table>
 
-			<details class="wk-guide" id="wk-url-audit-advanced">
-				<summary><?php esc_html_e( '高级（默认收起）', 'wink-gatekeeper' ); ?></summary>
-				<table class="form-table" role="presentation">
+			<?php
+			// 【W3·批A】迁段 advanced_fold（折叠壳=既有 details.wk-guide 形态原样保留——
+			// 等价迁移；折叠内标记/字段 name 留闭包=编排函数体内，source-scan 锚不迁位；
+			// id= 起标记字面量留本位——M6B 系 blockBetween 契约）。
+			self::advanced_fold(
+				'id="wk-url-audit-advanced"',
+				__( '高级（默认收起）', 'wink-gatekeeper' ),
+				static function () use ( $ua, $ua_provider, $ua_provider_mode ): void {
+					?>
+					<table class="form-table" role="presentation">
 					<?php /* 【M6·批B·B-1】「核查前先搜一搜」整行自主体 form-table 迁入本折叠
 					 * （N2：搜索属高级配置；字段 name 零变化=schema 零变化；bocha.enabled
 					 * hidden 0 伴随域照查）。 */ ?>
@@ -4069,9 +4455,10 @@ final class SettingsPage {
 						</td>
 					</tr>
 				</table>
-			</details>
+					<?php },
+			);
 
-			<?php /* 【M6·批H·H-1】网页抓取未配置黄条（U-1 式——§0-1 用户拍板「本站直抓永不
+			/* 【M6·批H·H-1】网页抓取未配置黄条（U-1 式——§0-1 用户拍板「本站直抓永不
 			 * 自动启用」配套可见性）：enabled 且 fetcher.mode 解析=unconfigured（inherit+
 			 * 云端审核非 DeepSeek/未配置）才渲染；显式 self/inherit+DS/功能关不渲染
 			 * （范式=B-4 notice 同款，折叠区外常显+深链高级区）。 */ ?>
@@ -5274,115 +5661,114 @@ final class SettingsPage {
 		$rep_prog   = $rep_worker->status();
 		$rep_data   = $rep_worker->report_data();
 		$rep_view   = \WinkGatekeeper\Audit\ExistingAuditTask::report_view( is_array( $rep_prog ) ? $rep_prog : array(), is_array( $rep_data['counts'] ?? null ) ? $rep_data['counts'] : null );
-		?>
-		<section class="wk-card" id="wk-tools-existing-audit-report">
-			<h2><?php esc_html_e( '存量审核报告（历史评论体检）', 'wink-gatekeeper' ); ?></h2>
-			<?php if ( 'empty' === $rep_view['state'] ) : ?>
-				<p id="wk-tools-existing-report-empty" class="wk-muted"><?php esc_html_e( '还没体检过历史评论——点上方「开始体检」发起，报告会展示在这里。', 'wink-gatekeeper' ); ?></p>
-			<?php else : ?>
-				<p id="wk-tools-existing-report-meta" class="wk-muted"><?php
-					$st_words = array(
-						'running'      => __( '进行中', 'wink-gatekeeper' ),
-						'paused'       => __( '已暂停', 'wink-gatekeeper' ),
-						'quota_paused' => __( '今日额度用完已暂停（次日自动恢复）', 'wink-gatekeeper' ),
-						'completed'    => __( '已完成', 'wink-gatekeeper' ),
-					);
-					$st_word      = $st_words[ (string) ( $rep_prog['status'] ?? 'idle' ) ] ?? (string) ( $rep_prog['status'] ?? 'idle' );
-					$driver_label = '' !== $rep_view['driver'] ? $rep_view['driver'] : __( '未配置', 'wink-gatekeeper' );
-					$meta_line    = sprintf(
-						/* translators: 1: 服务商 2: 发起时间 3: 状态词 */
-						__( '服务商：%1$s · 发起：%2$s · %3$s', 'wink-gatekeeper' ),
-						$driver_label,
-						$rep_view['started_at'] > 0 ? date_i18n( 'Y-m-d H:i', $rep_view['started_at'] ) : '—',
-						$st_word
-					);
-					if ( 'completed' === $rep_view['state'] && $rep_view['finished_at'] > 0 ) {
-						$meta_line .= ' · ' . sprintf(
-							/* translators: %s: 完成时间 */
-							__( '完成：%s', 'wink-gatekeeper' ),
-							date_i18n( 'Y-m-d H:i', $rep_view['finished_at'] )
-						);
-					} elseif ( 'running' === $rep_view['state'] && $rep_view['total'] > 0 ) {
-						$meta_line .= ' · ' . sprintf(
-							/* translators: 1: processed 2: total */
-							__( '已体检 %1$d / %2$d 条', 'wink-gatekeeper' ),
-							$rep_view['processed'],
-							$rep_view['total']
-						);
-					}
-					echo esc_html( $meta_line );
-				?></p>
-				<div class="wk-report-tickets" id="wk-tools-existing-audit-caliber">
-					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '没问题（pass）', 'wink-gatekeeper' ); ?></strong></p>
-						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pass'] ) ) ); ?></p>
-						<p class="wk-muted"><?php esc_html_e( '已核无问题——评论状态不动', 'wink-gatekeeper' ); ?></p>
-					</div>
-					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '待审核（没看清，不下结论）', 'wink-gatekeeper' ); ?></strong></p>
-						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pending'] ) ) ); ?></p>
-						<p class="wk-muted"><?php esc_html_e( '已进待审队列等你过目', 'wink-gatekeeper' ); ?></p>
-					</div>
-					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '垃圾箱（判违规）', 'wink-gatekeeper' ); ?></strong></p>
-						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['spam'] ) ) ); ?></p>
-						<p class="wk-muted"><?php esc_html_e( '已进垃圾箱', 'wink-gatekeeper' ); ?></p>
-					</div>
-				</div>
-				<p class="wk-overview-actions">
-					<a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ); ?>"><?php
-						echo esc_html( sprintf(
-							/* translators: %d: 待审核条数 */
-							__( '去待审队列处理（%d 条）→', 'wink-gatekeeper' ),
-							$rep_view['caliber']['pending']
-						) );
-					?></a>
-					· <a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php
-						echo esc_html( sprintf(
-							/* translators: %d: 垃圾箱条数 */
-							__( '去垃圾箱查看（%d 条）→', 'wink-gatekeeper' ),
-							$rep_view['caliber']['spam']
-						) );
-					?></a>
-				</p>
-				<p class="wk-muted"><?php esc_html_e( '判违规进垃圾箱、没看清进待审，都能手动恢复。', 'wink-gatekeeper' ); ?><?php
-					if ( $rep_view['caliber']['gone'] > 0 || $rep_view['caliber']['error'] > 0 ) {
-						echo ' ' . esc_html( sprintf(
-							/* translators: 1: 评论已删条数 2: 出错条数 */
-							__( '另：评论已删除 %1$d 条 · 出错 %2$d 条。', 'wink-gatekeeper' ),
-							$rep_view['caliber']['gone'],
-							$rep_view['caliber']['error']
-						) );
-					}
-				?></p>
-				<details id="wk-tools-existing-audit-reasons">
-					<summary><?php echo esc_html( sprintf(
-						/* translators: %d: 原因类数 */
-						__( '原因明细（%d 类）', 'wink-gatekeeper' ),
-						count( is_array( $rep_data['reasons'] ?? null ) ? $rep_data['reasons'] : array() )
-					) ); ?></summary>
-					<?php if ( array() !== ( $rep_data['reasons'] ?? array() ) ) : ?>
-						<p><?php
-							$parts = array();
-							foreach ( $rep_data['reasons'] as $row ) {
-								// 【M6·批H·H-8】截断展示补「…」省略号（单点件全消费面生效）；
-								// 【M6·批H3·H3-C】行尾补处置去向（→ 垃圾箱/→ 待审核——去向词常量安全）。
-								$parts[] = sprintf(
-									'「%s」%d 条 → %s',
-									esc_html( self::truncate_reason( (string) $row['reason'] ) ),
-									(int) $row['n'],
-									'spam' === (string) ( $row['disposal'] ?? 'hold' ) ? '垃圾箱' : '待审核'
-								);
-							}
-							echo esc_html( implode( ' · ', $parts ) ); // XSS 红线：原因=攻击者可控（AI 原文/驱动透传）——转义+截断。
-						?></p>
-					<?php else : ?>
-						<p class="wk-muted"><?php esc_html_e( '暂无命中', 'wink-gatekeeper' ); ?></p>
-					<?php endif; ?>
-				</details>
-			<?php endif; ?>
-		</section>
-		<?php
+
+		// 【W3·批A】迁段 report_card（视图组装留编排位——文案/锚 id/票面词/动作链接/
+		// 原因行的 esc+截断全部不迁位，XSS 红线面照旧；helper 只负责结构形态）。
+		$st_words = array(
+			'running'      => __( '进行中', 'wink-gatekeeper' ),
+			'paused'       => __( '已暂停', 'wink-gatekeeper' ),
+			'quota_paused' => __( '今日额度用完已暂停（次日自动恢复）', 'wink-gatekeeper' ),
+			'completed'    => __( '已完成', 'wink-gatekeeper' ),
+		);
+		$st_word      = $st_words[ (string) ( $rep_prog['status'] ?? 'idle' ) ] ?? (string) ( $rep_prog['status'] ?? 'idle' );
+		$driver_label = '' !== $rep_view['driver'] ? $rep_view['driver'] : __( '未配置', 'wink-gatekeeper' );
+		$meta_line    = sprintf(
+			/* translators: 1: 服务商 2: 发起时间 3: 状态词 */
+			__( '服务商：%1$s · 发起：%2$s · %3$s', 'wink-gatekeeper' ),
+			$driver_label,
+			$rep_view['started_at'] > 0 ? date_i18n( 'Y-m-d H:i', $rep_view['started_at'] ) : '—',
+			$st_word
+		);
+		if ( 'completed' === $rep_view['state'] && $rep_view['finished_at'] > 0 ) {
+			$meta_line .= ' · ' . sprintf(
+				/* translators: %s: 完成时间 */
+				__( '完成：%s', 'wink-gatekeeper' ),
+				date_i18n( 'Y-m-d H:i', $rep_view['finished_at'] )
+			);
+		} elseif ( 'running' === $rep_view['state'] && $rep_view['total'] > 0 ) {
+			$meta_line .= ' · ' . sprintf(
+				/* translators: 1: processed 2: total */
+				__( '已体检 %1$d / %2$d 条', 'wink-gatekeeper' ),
+				$rep_view['processed'],
+				$rep_view['total']
+			);
+		}
+		$recovery_line = esc_html__( '判违规进垃圾箱、没看清进待审，都能手动恢复。', 'wink-gatekeeper' );
+		if ( $rep_view['caliber']['gone'] > 0 || $rep_view['caliber']['error'] > 0 ) {
+			$recovery_line .= ' ' . esc_html( sprintf(
+				/* translators: 1: 评论已删条数 2: 出错条数 */
+				__( '另：评论已删除 %1$d 条 · 出错 %2$d 条。', 'wink-gatekeeper' ),
+				$rep_view['caliber']['gone'],
+				$rep_view['caliber']['error']
+			) );
+		}
+		$reasons = is_array( $rep_data['reasons'] ?? null ) ? $rep_data['reasons'] : array();
+		if ( array() !== $reasons ) {
+			$parts = array();
+			foreach ( $reasons as $row ) {
+				// 【M6·批H·H-8】截断展示补「…」省略号（单点件全消费面生效）；
+				// 【M6·批H3·H3-C】行尾补处置去向（→ 垃圾箱/→ 待审核——去向词常量安全）。
+				$parts[] = sprintf(
+					'「%s」%d 条 → %s',
+					esc_html( self::truncate_reason( (string) $row['reason'] ) ),
+					(int) $row['n'],
+					'spam' === (string) ( $row['disposal'] ?? 'hold' ) ? '垃圾箱' : '待审核'
+				);
+			}
+			// XSS 红线：原因=攻击者可控（AI 原文/驱动透传）——转义+截断（编排在位）。
+			$reasons_html = '<p>' . esc_html( implode( ' · ', $parts ) ) . '</p>';
+		} else {
+			$reasons_html = '<p class="wk-muted">' . esc_html__( '暂无命中', 'wink-gatekeeper' ) . '</p>';
+		}
+		self::report_card( array(
+			'state'           => (string) $rep_view['state'],
+			'section_id'      => 'wk-tools-existing-audit-report',
+			'title'           => __( '存量审核报告（历史评论体检）', 'wink-gatekeeper' ),
+			'empty_id'        => 'wk-tools-existing-report-empty',
+			'empty_text'      => __( '还没体检过历史评论——点上方「开始体检」发起，报告会展示在这里。', 'wink-gatekeeper' ),
+			'meta_id'         => 'wk-tools-existing-report-meta',
+			'meta_text'       => $meta_line,
+			'tickets_class'   => 'wk-report-tickets',
+			'caliber_id'      => 'wk-tools-existing-audit-caliber',
+			'tickets'         => array(
+				array(
+					'name' => __( '没问题（pass）', 'wink-gatekeeper' ),
+					'main' => sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pass'] ) ),
+					'sub'  => __( '已核无问题——评论状态不动', 'wink-gatekeeper' ),
+				),
+				array(
+					'name' => __( '待审核（没看清，不下结论）', 'wink-gatekeeper' ),
+					'main' => sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pending'] ) ),
+					'sub'  => __( '已进待审队列等你过目', 'wink-gatekeeper' ),
+				),
+				array(
+					'name' => __( '垃圾箱（判违规）', 'wink-gatekeeper' ),
+					'main' => sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['spam'] ) ),
+					'sub'  => __( '已进垃圾箱', 'wink-gatekeeper' ),
+				),
+			),
+			'actions_html'    => '<a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ) . '">'
+				. esc_html( sprintf(
+					/* translators: %d: 待审核条数 */
+					__( '去待审队列处理（%d 条）→', 'wink-gatekeeper' ),
+					$rep_view['caliber']['pending']
+				) )
+				. '</a> · <a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ) . '">'
+				. esc_html( sprintf(
+					/* translators: %d: 垃圾箱条数 */
+					__( '去垃圾箱查看（%d 条）→', 'wink-gatekeeper' ),
+					$rep_view['caliber']['spam']
+				) )
+				. '</a>',
+			'recovery_text'   => $recovery_line,
+			'reasons_id'      => 'wk-tools-existing-audit-reasons',
+			'reasons_summary' => sprintf(
+				/* translators: %d: 原因类数 */
+				__( '原因明细（%d 类）', 'wink-gatekeeper' ),
+				count( $reasons )
+			),
+			'reasons_html'    => $reasons_html,
+		) );
 		/* 【M6·P1-3】存量网址核查操作卡（显式触发语义：开启网址核查本身**不**回捞历史
 		 * ——站长点按钮才一次性入队，批量车道按日额度 50 自动推进、额度尽暂停黄条照旧）。
 		 * 【M6·批C·C-2】处置人话补注（用户 2026-11-16 拍板）：判违规进垃圾箱、没看清进

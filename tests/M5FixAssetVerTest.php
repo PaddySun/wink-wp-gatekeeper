@@ -14,6 +14,11 @@
  * 「测试凭据」按钮绑定）→ 后缀 -m5fix1 → **-m6b1**（断言翻转非语义变化——
  * 「本文件内容变化必须伴随版本参数变化」纪律本体不变）。
  *
+ * 【W3·批A 后缀翻转注记】本批 admin-brand.js 内容变化（N7 scheme 前端兜底/校验
+ * 小段——design-system §02·P4 前端侧）→ 后缀 -m6b1 → **-w3a1**；并新增 CSS
+ * 注册行断言（admin-settings.css 版本参数=WINK_GATEKEEPER_VERSION 裸值形态钉——
+ * CSS 内容变化不批内加缀，0.8.5 进位一次击穿〔施工图 §5 风险 3 口径〕）。
+ *
  * @package WinkGatekeeper\Tests
  */
 
@@ -29,11 +34,12 @@ final class M5FixAssetVerTest extends TestCase {
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 
-		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-m6b1'。
+		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3a1'
+		// （窗幅 1200 字节——M5FIX/M6B/W3A 击穿语义注记累加后注册行注释段加长）。
 		self::assertMatchesRegularExpression(
-			"/wink-gatekeeper-admin-brand[\s\S]{0,700}WINK_GATEKEEPER_VERSION \. '-m6b1'/",
+			"/wink-gatekeeper-admin-brand[\s\S]{0,1200}WINK_GATEKEEPER_VERSION \. '-w3a1'/",
 			$src,
-			'admin-brand.js 注册行版本参数必须带 -m6b1 击穿后缀（【M6·批B 后缀翻转】-m5fix1→-m6b1）'
+			'admin-brand.js 注册行版本参数必须带 -w3a1 击穿后缀（【W3·批A 后缀翻转】-m6b1→-w3a1）'
 		);
 		// 【M5FIX】CDN 击穿语义注记在场（纪律传承——下次改 JS 必须再动版本参数）。
 		self::assertStringContainsString( 'M5FIX', $src, 'CDN 击穿语义注记' );
@@ -46,8 +52,24 @@ final class M5FixAssetVerTest extends TestCase {
 		self::assertIsString( $src );
 		self::assertSame(
 			1,
-			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-m6b1'/", $src ),
-			'-m6b1 全文恰出现一次（仅 admin-brand 注册行）'
+			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3a1'/", $src ),
+			'-w3a1 全文恰出现一次（仅 admin-brand 注册行）'
+		);
+	}
+
+	/**
+	 * 【W3·批A 新增】admin-settings.css 注册行版本参数形态钉：裸 WINK_GATEKEEPER_VERSION
+	 * （无内联后缀）——批 A 改 CSS 内容（N7 token 双组化）但批内不 bump 不加缀，
+	 * 缓存击穿随 0.8.5 进位一次收口（施工图 §5 风险 3 / R9 口径）；若中途热修发版
+	 * 则该批须同步 bump 或加 CSS 内联后缀（checklist 强制核对项）。
+	 */
+	public function test_admin_css_enqueue_plain_version(): void {
+		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
+		self::assertIsString( $src );
+		self::assertMatchesRegularExpression(
+			"/'wink-gatekeeper-admin',\s*\\\$this->base_url \. 'assets\/css\/admin-settings\.css',\s*array\(\),\s*WINK_GATEKEEPER_VERSION\s*\)/",
+			$src,
+			'admin-settings.css 注册行版本参数=WINK_GATEKEEPER_VERSION 裸值（无内联后缀——0.8.5 进位一次击穿口径）'
 		);
 	}
 }

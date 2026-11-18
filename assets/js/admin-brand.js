@@ -4,11 +4,51 @@
  * 【M6·批H4·H4-5】页头 logo 眨眼动效退役（用户拍板「使用静态版」——手测二轮 F1：
  * 4.2s 周期切帧+压缩在工作界面语境被感受为「一抖一抖」干扰；src 本就是静态版
  * logo-wink.svg，眨眼源属性已随本批移除。拦截页 130ms 单次眨眼为 M1 独立面不受
- * 影响）。本文件其余功能照旧：统计重置/文案工坊恢复默认/驱动下拉联动/各测试凭据
- * 探活/诊断面板/滑杆随动等。
+ * 影响）。
+ * 【W3·批A·N7】新增 scheme 前端兜底/校验首段（design-system §02·P4——明暗跟随
+ * WP 配色的前端侧；PHP 主路径定型+本段校验纠正）。本文件其余功能照旧：统计重置/
+ * 文案工坊恢复默认/驱动下拉联动/各测试凭据探活/诊断面板/滑杆随动等。
+ * 本文件内容变化 → Bootstrap 注册行版本参数后缀递进（本批 -m6b1 → -w3a1）。
  */
 ( function () {
 	'use strict';
+
+	/* -----------------------------------------------------------------
+	 * W3·N7 · scheme 前端兜底/校验（design-system §02·P4 双路径之前端侧）
+	 *   PHP 主路径（SettingsPage::admin_color_scheme_class → .wk-wrap 根 class，
+	 *   服务端定型免闪切换）渲染后，本段按 body.admin-color-{scheme} 校验容器
+	 *   定型 class，不符则纠正（防第三方主题/缓存错位）。深浅集合表与
+	 *   SettingsPage::ADMIN_COLOR_{DEEP,LIGHT}_SCHEMES 双写同源——两集合改动须
+	 *   同批同步本段与 W3SchemeTokensTest。未知/缺 admin-color-* class → 不动
+	 *   （PHP 侧恒暗色组保底已定型）。
+	 * ----------------------------------------------------------------- */
+
+	var wkWrap = document.querySelector( '.wk-wrap' );
+	if ( wkWrap ) {
+		var wkDeepSchemes = [ 'midnight', 'coffee', 'ectoplasm', 'ocean' ];
+		var wkLightSchemes = [ 'fresh', 'light', 'blue', 'modern', 'sunrise' ];
+		var wkSchemeMatch = /(?:^| )admin-color-([a-z0-9_-]+)(?: |$)/.exec( document.body.className || '' );
+		if ( wkSchemeMatch ) {
+			var wkSlug = wkSchemeMatch[ 1 ];
+			var wkWant = '';
+			if ( wkLightSchemes.indexOf( wkSlug ) !== -1 ) {
+				wkWant = 'wk-scheme-light';
+			} else if ( wkDeepSchemes.indexOf( wkSlug ) !== -1 ) {
+				wkWant = 'wk-scheme-dark';
+			} // 未知 scheme：不动（暗色保底已在 PHP 侧定型）。
+			if ( wkWant ) {
+				var wkCurrent = wkWrap.classList.contains( 'wk-scheme-light' )
+					? 'wk-scheme-light'
+					: ( wkWrap.classList.contains( 'wk-scheme-dark' ) ? 'wk-scheme-dark' : '' );
+				if ( '' === wkCurrent ) {
+					wkWrap.classList.add( wkWant ); // PHP 定型缺失=兜底补挂。
+				} else if ( wkCurrent !== wkWant ) {
+					wkWrap.classList.remove( wkCurrent ); // 校验不符=纠正。
+					wkWrap.classList.add( wkWant );
+				}
+			}
+		}
+	}
 
 	/* -----------------------------------------------------------------
 	 * M1 · Tab⑥ 统计重置（AJAX + nonce + confirm；03 §6 后台操作安全约定）

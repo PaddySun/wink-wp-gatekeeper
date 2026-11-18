@@ -1293,7 +1293,10 @@ final class Bootstrap {
 			// 缓存（实站回传：admin-brand.js 旧文件持续命中）。纪律：本文件内容
 			// 变化必须伴随本行版本参数变化（后缀递进 -m5fix1 → -m5fix2 …）。
 			// 【M6·批B】本批 JS 内容变化（网址核查独立凭据测试按钮绑定）→ -m6b1。
-			WINK_GATEKEEPER_VERSION . '-m6b1',
+			// 【W3·批A·N7】本批 JS 内容变化（scheme 前端兜底/校验首段——design-system
+			// §02·P4 前端侧）→ -w3a1。CSS 注册行不加内联后缀（0.8.5 进位一次击穿，
+			// 施工图 §5 风险 3 / R9 口径——M5FixAssetVerTest CSS 形态钉同步）。
+			WINK_GATEKEEPER_VERSION . '-w3a1',
 			true
 		);
 	}

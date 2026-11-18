@@ -1,34 +1,111 @@
 /**
- * Wink 门口保安 · 设置页品牌样式（03 §4 品牌落地对照）
+ * Wink 门口保安 · 设置页品牌样式（03 §4 品牌落地对照；W3 批 A N7 token 双组化）
  *
- * 色彩：Night #111114 深色页头 / Paper #F7F7F8 / Wink Red #FF4D4F /
- *       Blush #FFF2F2 / Ink #17171B / Fog #86868F / Line #E9E9EC
+ * 色彩 token 双组（施工图 docs/W3-重设计施工图-2026-11-18.md §2 批 A · R1 定名）：
+ *   暗色组=design-system §02 黑金暗色全表（:root / .wk-scheme-dark——品牌语言现行态，
+ *   侦测失败/未知 scheme 恒落此组保底）；浅色组=.wk-scheme-light 作用域整树覆盖
+ *   （design-system §02·P4 浅色 token 表 16 行照抄——深金文字变体 #8A6A0E 关键值、
+ *   语义四色浅底三件套；#FAFAFC / #8A8A94 / #A8871F / #FAF1DB 为原型标注的静态推断
+ *   新值，未实机校验，允许同明度档内微调）。
+ *   明暗定型=PHP 主路径 wp_get_user_admin_color() 明度二分（SettingsPage::
+ *   admin_color_scheme_class 输出 .wk-scheme-dark / .wk-scheme-light 容器 class）+
+ *   admin-brand.js 前端兜底校验（body.admin-color-{scheme} 比对纠正）。
+ *   logo 恒 #FF4D4F 两态同值不翻转（双色注：品牌位图语义）；页头深色横幅=品牌锚
+ *   两态不翻转（design-system §05「浅色页头保留 Night 深色块」同构）。
+ *   金填充态（--gold/--gold-strong/--gold-deep）不随明暗翻转——金字恒深 #221A05
+ *   （--gold-ink），文字态一律走 --gold-text（暗=#F0C75E 高亮金 / 浅=#8A6A0E 深金）。
  * 字体：无衬线负责说话，等宽负责作证（证据行、编号、时间戳）。
- * 规范：留白 0.5×（盾牌高度）、最小字号 16px、对比度 WCAG AA。
+ * 规范：任何界面元素的颜色只能取自 token（规则层零裸色值——W3SchemeTokensTest 钉）。
  */
 
-:root {
-	--wk-red: #ff4d4f;
-	--wk-red-deep: #e8383a;
-	--wk-blush: #fff2f2;
-	--wk-blush-line: #ffd9d9;
-	--wk-ink: #17171b;
-	--wk-night: #111114;
-	--wk-paper: #f7f7f8;
-	--wk-fog: #86868f;
-	--wk-line: #e9e9ec;
-	--wk-sans: "Inter", "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-	--wk-mono: "SFMono-Regular", Consolas, "JetBrains Mono", Menlo, monospace;
-	--wk-gap: 1rem; /* 卡片间距（≈盾牌 0.5× 留白节奏） */
+:root,
+.wk-scheme-dark {
+	/* ---- 底色（design-system §02 暗色组） ---- */
+	--bg:#111114;
+	--panel:#17171c;
+	--card:#1d1d24;
+	--card-2:#222229;
+	--line:#2c2c35;
+	--line-strong:#3a3a45;
+	/* ---- 文字 ---- */
+	--text:#f1f1f5;
+	--text-2:#a8a8b4;
+	--text-3:#6d6d7a;
+	/* ---- 品牌金（黑金系主色；填充态两态同值） ---- */
+	--gold:#e3b341;
+	--gold-strong:#f0c75e;
+	--gold-deep:#b98f2c;
+	--gold-dim:rgba(227,179,65,.13);
+	--gold-line:rgba(227,179,65,.4);
+	--gold-text:#f0c75e; /* 金文字态：暗色=高亮金（浅色组换深金 #8A6A0E——P4 关键值） */
+	--gold-ink:#221a05; /* 金底上的恒深字（推荐角标/金填充钮——两态同值） */
+	/* ---- 语义四色（notice 四级 + 状态点；各 dim/line 三件套） ---- */
+	--red:#ff5a5f;
+	--red-dim:rgba(255,90,95,.12);
+	--red-line:rgba(255,90,95,.42);
+	--amber:#ffab2e;
+	--amber-dim:rgba(255,171,46,.11);
+	--amber-line:rgba(255,171,46,.42);
+	--green:#3ecf8e;
+	--green-dim:rgba(62,207,142,.1);
+	--green-line:rgba(62,207,142,.4);
+	--blue:#5da8ff;
+	--blue-dim:rgba(93,168,255,.11);
+	--blue-line:rgba(93,168,255,.42);
+	/* ---- 几何 / 字体 / 间距基尺 ---- */
+	--radius:12px;
+	--radius-s:8px;
+	--sp:8px;
+	--sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+	--mono:"Cascadia Code",Consolas,"JetBrains Mono","SF Mono",monospace;
+	/* ---- 品牌锚（两态同值不翻转）：logo 红 / 页头深色横幅族 ---- */
+	--logo-red:#ff4d4f;
+	--logo-red-dim:rgba(255,77,79,.12);
+	--logo-red-line:rgba(255,77,79,.35);
+	--logo-red-glow:rgba(255,77,79,.16);
+	--header-bg:#17171c;
+	--header-text:#ffffff;
+	--header-dim:#9a9aa6;
+	--header-dim-2:#5c5c68;
 }
 
-/* ---------- 页头：Night 深色通栏 + 品牌锁定 ---------- */
+/* 浅色组（design-system §02·P4 浅色 token 表 16 行照抄；scheme 定型=
+ * SettingsPage::admin_color_scheme_class → .wk-scheme-light；金填充态/logo/页头锚
+ * 不翻转故不在此覆盖）。 */
+.wk-scheme-light {
+	--bg:#f4f4f6; /* 表行1 页面底 */
+	--panel:#fafafc; /* 表行2 面板（静态推断新值） */
+	--card:#ffffff; /* 表行3 卡面 */
+	--card-2:#f4f4f6; /* 表行3 次级卡面/表头/进度槽 */
+	--line:#e5e5ea; /* 表行4 描线 */
+	--line-strong:#c9c9d2; /* 表行4 强描线（ghost 边/输入框边） */
+	--text:#17171b; /* 表行5 文字一级（白底约 15.9:1） */
+	--text-2:#5d5d68; /* 表行6 文字二级 */
+	--text-3:#8a8a94; /* 表行7 文字三级（静态推断新值） */
+	--gold-dim:#faf1db; /* 表行11 金淡衬（静态推断新值） */
+	--gold-line:#a8871f; /* 表行10 金描边态（静态推断新值；白底约 3.4:1 UI 组件达标） */
+	--gold-text:#8a6a0e; /* 表行9 深金文字态（P4 关键值——#E3B341 白底约 1.95:1 禁作文字色） */
+	--red:#c43d42; /* 表行12 危险文字态（#FF5A5F 白底不达 AA → 深红变体；静态推断取值） */
+	--red-dim:#fdecec; /* 表行12 危险底 */
+	--red-line:#e89a9d; /* 表行12 危险线 */
+	--amber:#8a6d1f; /* 表行13 警示文字态（沿用 §05 样张取值） */
+	--amber-dim:#fff8e6; /* 表行13 警示底 */
+	--amber-line:#e2b93b; /* 表行13 警示线 */
+	--green:#1e7a4c; /* 表行14 正常文字态（静态推断取值） */
+	--green-dim:#e8f7f0; /* 表行14 正常底 */
+	--green-line:#7ed0ac; /* 表行14 正常线 */
+	--blue:#1d5fb8; /* 表行15 信息文字态（静态推断取值） */
+	--blue-dim:#eaf2fe; /* 表行15 信息底 */
+	--blue-line:#8fb8f0; /* 表行15 信息线 */
+}
+
+/* ---------- 页头：Night 深色通栏 + 品牌锁定（两态不翻转的品牌锚面） ---------- */
 
 .wk-wrap {
 	max-width: 64rem;
-	font-family: var(--wk-sans);
+	font-family: var(--sans);
 	font-size: 16px; /* 品牌最小字号 */
-	color: var(--wk-ink);
+	color: var(--text);
 	-webkit-font-smoothing: antialiased;
 }
 
@@ -38,8 +115,8 @@
 	justify-content: space-between;
 	gap: 1rem;
 	flex-wrap: wrap;
-	background: var(--wk-night);
-	color: #fff;
+	background: var(--header-bg);
+	color: var(--header-text);
 	border-radius: 0.5rem;
 	padding: 1.4rem 1.6rem; /* 品牌安全边距 ≥ 盾牌高度 0.5× */
 	margin: 1rem 0 0;
@@ -52,7 +129,7 @@
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background: radial-gradient(60% 60% at 50% 0%, rgba(255, 77, 79, 0.16), transparent 70%);
+	background: radial-gradient(60% 60% at 50% 0%, var(--logo-red-glow), transparent 70%);
 }
 
 .wk-header-brand {
@@ -87,7 +164,7 @@
 
 .wk-tagline {
 	font-size: 0.9rem;
-	color: #9a9aa6;
+	color: var(--header-dim);
 }
 
 .wk-header-meta {
@@ -99,26 +176,26 @@
 }
 
 .wk-badge {
-	font-family: var(--wk-mono);
+	font-family: var(--mono);
 	font-size: 0.8rem;
-	color: var(--wk-red);
-	background: rgba(255, 77, 79, 0.12);
-	border: 1px solid rgba(255, 77, 79, 0.35);
+	color: var(--logo-red);
+	background: var(--logo-red-dim);
+	border: 1px solid var(--logo-red-line);
 	border-radius: 0.4rem;
 	padding: 0.35rem 0.7rem;
 	white-space: nowrap;
 }
 
 .wk-version {
-	font-family: var(--wk-mono);
+	font-family: var(--mono);
 	font-size: 0.75rem;
-	color: #5c5c68;
+	color: var(--header-dim-2);
 }
 
 /* ---------- Tab 导航 ---------- */
 
 .wk-tabs {
-	margin-top: var(--wk-gap);
+	margin-top: calc(var(--sp) * 2);
 }
 
 .wk-tabs .nav-tab {
@@ -133,21 +210,21 @@
 /* ---------- 表单与面板 ---------- */
 
 .wk-form {
-	margin-top: var(--wk-gap);
+	margin-top: calc(var(--sp) * 2);
 }
 
 .wk-panel {
-	background: #fff;
-	border: 1px solid var(--wk-line);
+	background: var(--panel);
+	border: 1px solid var(--line);
 	border-radius: 0.75rem;
-	padding: calc(var(--wk-gap) * 1.5);
+	padding: calc(var(--sp) * 3);
 	display: grid;
-	gap: var(--wk-gap);
+	gap: calc(var(--sp) * 2);
 }
 
 .wk-card {
-	background: var(--wk-paper);
-	border: 1px solid var(--wk-line);
+	background: var(--card);
+	border: 1px solid var(--line);
 	border-radius: 0.75rem;
 	padding: 1.2rem 1.3rem;
 }
@@ -158,7 +235,7 @@
 	font-size: 1.15rem; /* 段标题（UI-FIX B① 两级标题制上层——段标题>小标题，全页统一） */
 	font-weight: 600;
 	letter-spacing: -0.01em;
-	color: var(--wk-ink);
+	color: var(--text);
 }
 
 /* ---------- UI-FIX B · Tab⑥ 两级标题制与样式克制（2026-11-12 用户实测反馈） ---------- */
@@ -168,7 +245,7 @@
 	margin: 1.1rem 0 0.4rem;
 	font-size: 1rem;
 	font-weight: 600;
-	color: var(--wk-ink);
+	color: var(--text);
 }
 
 /* 段级配置指引链接（每段≤1——卡内蓝链接退役，指引收敛段标题单入口）。 */
@@ -185,17 +262,17 @@
 	margin: 0.25rem 0 0;
 	white-space: pre-wrap;
 	font-size: 0.75rem;
-	font-family: var(--wk-mono);
+	font-family: var(--mono);
 }
 
 .wk-muted {
 	margin: 0;
 	font-size: 16px;
 	line-height: 1.7;
-	color: var(--wk-fog);
+	color: var(--text-2);
 }
 
-/* ---------- Tab⑥ 留档量黄条（03 Tab⑥ v1.3：spam 留档超阈值提示） ---------- */
+/* ---------- Tab⑥ 留档量黄条（03 Tab⑥ v1.3：spam 留档超阈值提示；W3 批 A 扩四级） ---------- */
 
 .wk-notice {
 	margin: 0 0 1rem;
@@ -206,20 +283,54 @@
 }
 
 .wk-notice--warn {
-	background: #fff8e6;
-	border: 1px solid #e2b93b;
-	color: #6b5410;
+	background: var(--amber-dim);
+	border: 1px solid var(--amber-line);
+	color: var(--amber);
 }
 
 .wk-notice--warn a {
-	color: #997b0c;
+	color: var(--gold-text);
+}
+
+/* 黄条四级（W3 批 A 建件——现 --warn 扩 danger/ok/info；语义=黄要留意/红已出事/
+ * 绿报平安/蓝中性说明，「有话才出现」纪律照旧。渲染面=notice_yellow_bar helper
+ * 现走 WP 原生 notice-{warning|error|success|info} inline 等价迁移，本类族随批 B
+ * 八 Tab 重组时成为黄条壳（design-system §04 黄条四级样张）。 */
+.wk-notice--danger {
+	background: var(--red-dim);
+	border: 1px solid var(--red-line);
+	color: var(--red);
+}
+
+.wk-notice--danger a {
+	color: var(--red);
+}
+
+.wk-notice--ok {
+	background: var(--green-dim);
+	border: 1px solid var(--green-line);
+	color: var(--green);
+}
+
+.wk-notice--ok a {
+	color: var(--green);
+}
+
+.wk-notice--info {
+	background: var(--blue-dim);
+	border: 1px solid var(--blue-line);
+	color: var(--blue);
+}
+
+.wk-notice--info a {
+	color: var(--blue);
 }
 
 /* ---------- 总览：今日拦截占位卡（Wink Red 作证） ---------- */
 
 .wk-card--metric {
-	background: var(--wk-blush);
-	border-color: var(--wk-blush-line);
+	background: var(--red-dim);
+	border-color: var(--red-line);
 }
 
 .wk-metric {
@@ -227,10 +338,10 @@
 }
 
 .wk-metric__num {
-	font-family: var(--wk-mono); /* 等宽「作证」：计数属证据 */
+	font-family: var(--mono); /* 等宽「作证」：计数属证据 */
 	font-size: 2.4rem;
 	font-weight: 600;
-	color: var(--wk-red);
+	color: var(--red);
 	line-height: 1.1;
 }
 
@@ -240,8 +351,8 @@
 	width: 100%;
 	border-collapse: collapse;
 	margin-top: 0.75rem;
-	background: #fff;
-	border: 1px solid var(--wk-line);
+	background: var(--card);
+	border: 1px solid var(--line);
 	border-radius: 0.5rem;
 	overflow: hidden;
 }
@@ -250,25 +361,25 @@
 .wk-table td {
 	text-align: left;
 	padding: 0.6rem 0.9rem;
-	border-top: 1px solid var(--wk-line);
+	border-top: 1px solid var(--line);
 	font-size: 16px;
 }
 
 .wk-table thead th {
 	border-top: 0;
-	background: var(--wk-paper);
-	color: var(--wk-fog);
+	background: var(--card-2);
+	color: var(--text-2);
 	font-size: 0.8rem;
 	letter-spacing: 0.1em;
 	text-transform: uppercase;
 }
 
 .wk-table code {
-	font-family: var(--wk-mono); /* 规则键 = 证据，等宽呈证 */
+	font-family: var(--mono); /* 规则键 = 证据，等宽呈证 */
 	font-size: 0.9em;
-	color: var(--wk-red-deep);
-	background: var(--wk-blush);
-	border: 1px solid var(--wk-blush-line);
+	color: var(--red);
+	background: var(--red-dim);
+	border: 1px solid var(--red-line);
 	border-radius: 0.3rem;
 	padding: 0.1rem 0.35rem;
 }
@@ -281,16 +392,25 @@
 /* ---------- 提交按钮区微调 ---------- */
 
 .wk-form .submit {
-	margin: var(--wk-gap) 0;
+	margin: calc(var(--sp) * 2) 0;
 }
 
-/* ---------- 动效降级：减少动效时常睁眼、无变换 ---------- */
+/* ---------- 动效降级：减少动效时常睁眼、无变换（W3 批 A 扩到全部新动效面——
+ * 向导动图骨架/组件过渡；现行 logo 先例扩面）。 ---------- */
 
 @media (prefers-reduced-motion: reduce) {
 	.wk-logo,
 	.wk-logo.is-blinking {
 		transform: none;
 		transition: none;
+	}
+
+	.wk-flow-demo,
+	.wk-flow-demo *,
+	.radio-card,
+	.wk-stepper li {
+		animation: none !important;
+		transition: none !important;
 	}
 }
 
@@ -307,22 +427,22 @@
 }
 
 .wk-dot--alert {
-	background: var(--wk-red);
+	background: var(--red);
 }
 
 /* 必填双层校验 JS 侧：缺失字段标红（服务端黄条兜底）。 */
 .wk-field-missing {
-	border-color: var(--wk-red) !important;
-	box-shadow: 0 0 0 1px var(--wk-red) inset;
+	border-color: var(--red) !important;
+	box-shadow: 0 0 0 1px var(--red) inset;
 }
 
 /* 接入指引折叠面板（配置区顶部，03 Tab② v1.3「接入指引内嵌」）。 */
 .wk-guide {
-	border: 1px solid var(--wk-line);
+	border: 1px solid var(--line);
 	border-radius: 0.5rem;
 	padding: 0.6rem 0.9rem;
-	margin-bottom: var(--wk-gap);
-	background: var(--wk-paper);
+	margin-bottom: calc(var(--sp) * 2);
+	background: var(--card-2);
 }
 
 .wk-guide summary {
@@ -357,13 +477,13 @@
 
 .wk-placeholder-list dd {
 	margin: 0.15rem 0 0 1.25rem;
-	color: var(--wk-fog);
+	color: var(--text-2);
 }
 
 .wk-placeholder-list dt code,
 .wk-placeholder-list dd code {
-	background: var(--wk-paper);
-	border: 1px solid var(--wk-line);
+	background: var(--card-2);
+	border: 1px solid var(--line);
 	border-radius: 3px;
 	padding: 0.1rem 0.35rem;
 }
@@ -373,15 +493,15 @@
 	display: block;
 	margin: 0.35rem 0 0.15rem;
 	padding: 0.35rem 0.6rem;
-	background: var(--wk-paper);
-	border-left: 3px solid var(--wk-red);
+	background: var(--card-2);
+	border-left: 3px solid var(--red);
 	border-radius: 3px;
-	font-family: var(--wk-mono);
+	font-family: var(--mono);
 	font-size: 0.9em;
 	overflow-wrap: anywhere;
 }
 
-/* 测试凭据三态结果（绿/红/黄/灰；结果只缓存在按钮旁，不落库）。 */
+/* 测试凭据三态结果（绿/红/黄/灰；结果只缓存在按钮旁，不落库——N1 持久化批 C 接线）。 */
 .wk-probe {
 	display: inline-block;
 	margin-left: 0.5rem;
@@ -389,40 +509,40 @@
 }
 
 .wk-probe--green {
-	color: #1a7f37;
+	color: var(--green);
 }
 
 .wk-probe--red {
-	color: var(--wk-red-deep);
+	color: var(--red);
 }
 
 .wk-probe--yellow {
-	color: #9a6700;
+	color: var(--amber);
 }
 
 .wk-probe--gray {
-	color: var(--wk-fog);
+	color: var(--text-3);
 }
 
 /* ---------- C4 · Tab① 驱动健康灯 / Tab③ 云审核（02 §5 状态机最小实装） ---------- */
 
 .wk-dot--ok {
-	background: #1a7f37;
+	background: var(--green);
 }
 
 .wk-dot--warn {
-	background: #d4a017;
+	background: var(--amber);
 }
 
 .wk-dot--standby {
-	background: #2271b1; /* 【v1.5·FIX】蓝=已配置未启用（用户三色体系：绿启用/蓝待命/灰未配置） */
+	background: var(--blue); /* 【v1.5·FIX】蓝=已配置未启用（用户三色体系：绿启用/蓝待命/灰未配置） */
 }
 
 /* ---------- UI 批 1 · Tab⑥ 驱动统一卡（DESIGN-UI-tab6 §3——评论/登录两段复用） ---------- */
 
 .wk-driver-card {
-	background: #fff;
-	border: 1px solid var(--wk-line);
+	background: var(--card);
+	border: 1px solid var(--line);
 	border-radius: 0.5rem;
 	padding: 0.6rem 0.9rem;
 	margin: 0.5rem 0;
@@ -433,8 +553,8 @@
 }
 
 .wk-driver-card--disabled {
-	background: var(--wk-paper);
-	color: var(--wk-fog);
+	background: var(--card-2);
+	color: var(--text-3);
 }
 
 .wk-driver-badge {
@@ -445,8 +565,8 @@
 
 .wk-defense-group {
 	margin: 0.9rem 0 0.3rem;
-	font-size: 0.95rem; /* 【v1.5·FIX】与段标题(1.15rem)拉开层级；墨色非灰（用户实测灰+近字号=层级消失） */
-	color: var(--wk-ink);
+	font-size: 0.95rem; /* 【v1.5·FIX】与段标题(1.15rem)拉开层级；主文字色非灰（用户实测灰+近字号=层级消失） */
+	color: var(--text);
 	font-weight: 700;
 }
 
@@ -461,8 +581,8 @@
 
 .wk-report-ticket {
 	flex: 1 1 170px;
-	background: #fff;
-	border: 1px solid var(--wk-line);
+	background: var(--card);
+	border: 1px solid var(--line);
 	border-radius: 0.5rem;
 	padding: 0.6rem 0.9rem;
 }
@@ -476,8 +596,8 @@
 }
 
 .wk-report-ticket--disabled {
-	background: var(--wk-paper);
-	color: var(--wk-fog);
+	background: var(--card-2);
+	color: var(--text-3);
 }
 
 .wk-roster-cards {
@@ -489,8 +609,8 @@
 
 .wk-roster-card {
 	flex: 1 1 150px;
-	background: #fff;
-	border: 1px solid var(--wk-line);
+	background: var(--card);
+	border: 1px solid var(--line);
 	border-radius: 0.5rem;
 	padding: 0.6rem 0.9rem;
 }
@@ -502,12 +622,12 @@
 /* 未配置服务商收拢行（UI-FIX A——默认只展开已配置卡，未配置一行带单入口）。 */
 .wk-roster-unconfigured {
 	margin: 0.5rem 0 0;
-	color: var(--wk-fog);
+	color: var(--text-3);
 }
 
 .wk-roster-role {
 	font-size: 0.8rem;
-	color: var(--wk-fog);
+	color: var(--text-3);
 }
 
 .wk-roster-status {
@@ -515,7 +635,7 @@
 }
 
 .wk-dot--gray {
-	background: var(--wk-fog);
+	background: var(--text-3);
 }
 
 .wk-incident-list {
@@ -528,7 +648,7 @@
 }
 
 .wk-overview-calm {
-	color: #1a7f37;
+	color: var(--green);
 }
 
 .wk-overview-more {
@@ -537,10 +657,10 @@
 }
 
 .wk-overview-footer {
-	border-top: 1px solid var(--wk-line);
+	border-top: 1px solid var(--line);
 	margin-top: 1rem;
 	padding: 0.6rem 0.2rem 0;
-	color: var(--wk-fog);
+	color: var(--text-3);
 	font-size: 0.9rem;
 }
 
@@ -568,7 +688,7 @@
 }
 
 .wk-ip-diag-card {
-	border: 1px solid var(--wk-line);
+	border: 1px solid var(--line);
 	border-radius: 4px;
 	padding: 0.6rem 0.8rem;
 	margin: 0;
@@ -587,7 +707,7 @@
 	float: left;
 	clear: left;
 	width: 6.5em;
-	color: var(--wk-fog);
+	color: var(--text-2);
 }
 
 .wk-ip-diag-rows dd {
@@ -598,24 +718,571 @@
 
 .wk-ip-diag-error {
 	margin: 0;
-	color: #b32d2e;
+	color: var(--red);
 }
 
 /* 【M6·批H5·H5-b】保存按钮悬浮右下角：免滚到底部即可保存（纯 CSS 零行为变化）。
  * 锚收窄 .wk-form > p.submit（不误伤 WP 他处 .submit）；阴影提示可点；表单底部
- * padding 补偿防悬浮层遮挡末行控件。 */
-.wk-form > p.submit {
+ * padding 补偿防悬浮层遮挡末行控件。
+ * 【W3·批A】save-fab 组件类并挂（design-system §04 样张——原型与施工同值；类名
+ * 对齐原型，.wk-form > p.submit 旧选择器保留兼容）。 */
+.wk-form > p.submit,
+.save-fab {
 	position: fixed;
 	right: 32px;
 	bottom: 32px;
 	z-index: 9990;
 	margin: 0;
 	padding: 8px 16px;
-	background: #fff;
-	border: 1px solid #dcdcde;
+	background: var(--card);
+	border: 1px solid var(--line-strong);
 	border-radius: 4px;
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 .wk-form {
 	padding-bottom: 96px; /* 悬浮层高度补偿（按钮+边距）——末行不被遮挡。 */
+}
+
+/* =================================================================
+ * W3 批 A · 组件类族（design-system §04 样张形态——同名组件跨页复用，
+ * 禁页内私改。建件即标注消费批序：CSS 类无交互语义不算悬空接线，
+ * 消费面到位前在类注释与本批报告清单登记。）
+ * ================================================================= */
+
+/* ---------- badge 徽标六态（design-system §04 徽标样张：b-ok/warn/err/info/gold/dim） ----------
+ * 消费：批 A=cred-test 五态徽标（probe_state_badge）；批 B=点名册/驱动卡排班态·健康态复合徽标。
+ * 现行 .wk-badge（页头今日拦截徽标）为独立既有类，不受本族影响。 */
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+	font-family: var(--mono);
+	border-radius: 99px;
+	padding: 2.5px 11px;
+	border: 1px solid;
+	white-space: nowrap;
+}
+
+.b-ok {
+	color: var(--green);
+	border-color: var(--green-line);
+	background: var(--green-dim);
+}
+
+.b-warn {
+	color: var(--amber);
+	border-color: var(--amber-line);
+	background: var(--amber-dim);
+}
+
+.b-err {
+	color: var(--red);
+	border-color: var(--red-line);
+	background: var(--red-dim);
+}
+
+.b-info {
+	color: var(--blue);
+	border-color: var(--blue-line);
+	background: var(--blue-dim);
+}
+
+.b-gold {
+	color: var(--gold-text);
+	border-color: var(--gold-line);
+	background: var(--gold-dim);
+}
+
+.b-dim {
+	color: var(--text-3);
+	border-color: var(--line-strong);
+	background: transparent;
+}
+
+/* ---------- 事件行四段式（design-system §04 ev-row 样张：时间+谁+发生了什么+然后呢） ----------
+ * 消费：批 B（Tab⑥ 登录流水/Tab① 岔子重组；同一组件不同 LIMIT）。 */
+.ev-list {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-s);
+	overflow: hidden;
+}
+
+.ev-row {
+	display: flex;
+	gap: 14px;
+	align-items: flex-start;
+	padding: 11px 16px;
+	border-bottom: 1px solid var(--line);
+	font-size: 13.5px;
+}
+
+.ev-row:last-child {
+	border-bottom: none;
+}
+
+.ev-row .t {
+	font-family: var(--mono);
+	font-size: 12px;
+	color: var(--text-3);
+	width: 96px;
+	flex: none;
+	padding-top: 1px;
+}
+
+.ev-row .who {
+	width: 130px;
+	flex: none;
+	font-weight: 600;
+}
+
+.ev-row .what {
+	flex: 1;
+	color: var(--text-2);
+}
+
+.ev-row .what .then {
+	color: var(--text-3);
+	font-size: 12.5px;
+	display: block;
+	margin-top: 1px;
+}
+
+/* ---------- 高级配置折叠（design-system §04 adv-fold：⚙ 高级配置统一命名） ----------
+ * 消费：批 B（八 Tab adv-fold 化；批 A 迁段样板=advanced_fold helper 等价迁移，
+ * 现行折叠壳仍为 details.wk-guide——helper 输出与现段 DOM 逐锚等价，批 B 重组时
+ * 折叠壳翻转为 details.adv 并挂 ⚙ 前缀）。 */
+details.adv {
+	border: 1px solid var(--line);
+	border-radius: var(--radius-s);
+	background: var(--bg);
+	overflow: hidden;
+}
+
+details.adv summary {
+	padding: 9px 14px;
+	font-size: 13px;
+	color: var(--text-2);
+	cursor: pointer;
+	font-weight: 600;
+	list-style: none;
+}
+
+details.adv summary::before {
+	content: "⚙ ";
+	color: var(--gold-text);
+}
+
+details.adv .gsteps {
+	padding: 4px 14px 12px;
+	font-size: 13px;
+	color: var(--text-2);
+	line-height: 1.9;
+}
+
+/* ---------- switch 行形态（design-system tab8 sw-label 行契约：switch-row 不换行 +
+ * sw-hd 单行排布——sw-label 与开关恒同排） ----------
+ * 消费：批 B（Tab② 四闸卡 switch-row 改形、Tab⑧ coexist 开关行）。 */
+.switch-row {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 0.4rem 0;
+	min-height: 40px; /* §03 密度：行高 ≥40px */
+}
+
+.switch-row .sw {
+	flex: none;
+}
+
+.switch-row .sw-label {
+	flex: 1 1 auto;
+	min-width: 0; /* 同排修正法：label 占余宽不换行坠落——与开关恒同排 */
+	font-weight: 600;
+}
+
+.sw-hd {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 0;
+	white-space: nowrap; /* 单行排布：标题+开关+标签一行收齐 */
+}
+
+.sw-tag {
+	font-family: var(--mono);
+	font-size: 11px;
+	color: var(--text-3);
+	border: 1px solid var(--line-strong);
+	border-radius: 4px;
+	padding: 1px 6px;
+	white-space: nowrap;
+}
+
+.why {
+	font-size: 13px;
+	line-height: 1.65;
+	color: var(--text-3);
+	margin: 0.15rem 0 0;
+}
+
+/* ---------- 测试凭据新形态（design-system §04 cred-test：单按钮+徽标五态+上次测试小字） ----------
+ * 消费：批 A=iprep 测试凭据迁段（test_credential_btn helper，state 恒「未测试」）；
+ * 批 C=N1 持久化接线（probe log 读件→五态+「上次测试」真值）。 */
+.cred-test {
+	display: flex;
+	gap: 16px;
+	align-items: flex-start;
+	flex-wrap: wrap;
+}
+
+.test-state {
+	display: inline-flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.last-test {
+	font-size: 11.5px;
+	color: var(--text-3);
+	font-family: var(--mono);
+	white-space: nowrap;
+}
+
+/* ---------- 调用量卡（design-system §04 usage-card 五域样张 + prog 进度条） ----------
+ * 消费：批 A=Tab① 调用量卡（usage_card_html helper 挂 Tab①）；批 B=Tab⑥ 调用量段二落位。
+ * .prog-line 批 B 消费（存量体检/额度推进行）。 */
+.usage-card {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.usage-hd {
+	padding: 13px 18px;
+	border-bottom: 1px solid var(--line);
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-weight: 600;
+	font-size: 14.5px;
+}
+
+.usage-hd .sum {
+	margin-left: auto;
+	font-family: var(--mono);
+	font-size: 12.5px;
+	color: var(--text-3);
+}
+
+.usage-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 18px;
+	border-bottom: 1px solid var(--line);
+	font-size: 13.5px;
+}
+
+.usage-row:last-child {
+	border-bottom: none;
+}
+
+.usage-row .nm {
+	width: 200px;
+	color: var(--text-2);
+	flex: none;
+}
+
+.usage-row .nm b {
+	color: var(--text);
+	font-weight: 600;
+}
+
+.usage-row .num {
+	font-family: var(--mono);
+	color: var(--text);
+}
+
+.usage-row .quota {
+	margin-left: auto;
+	font-family: var(--mono);
+	font-size: 12px;
+	color: var(--text-3);
+}
+
+.usage-row.free {
+	color: var(--text-3);
+	font-size: 12.5px;
+}
+
+.usage-domain {
+	padding: 8px 18px 2px;
+	font-size: 11.5px;
+	color: var(--gold-text);
+	letter-spacing: 0.1em;
+	font-family: var(--mono);
+}
+
+.prog {
+	height: 8px;
+	background: var(--bg);
+	border-radius: 99px;
+	overflow: hidden;
+	border: 1px solid var(--line);
+	flex: 1;
+}
+
+.prog i {
+	display: block;
+	height: 100%;
+	border-radius: 99px;
+	background: linear-gradient(90deg, var(--gold-deep), var(--gold));
+}
+
+.prog.warn i {
+	background: var(--amber); /* ≥85% 转警示色（原型双 stop 渐变批 B 按 token 微调） */
+}
+
+.prog.err i {
+	background: var(--red); /* 触顶转危险色 */
+}
+
+.prog-line {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 12.5px;
+	color: var(--text-2);
+}
+
+.prog-line .mono {
+	color: var(--text-3);
+	font-size: 11.5px;
+	white-space: nowrap;
+}
+
+/* ---------- 复用规则行（design-system §04 rule 样张：金衬左缘条） ----------
+ * 消费：批 B（八 Tab 卡头复用规则/口径注行）。 */
+.rule {
+	font-size: 13px;
+	color: var(--gold-text);
+	background: var(--gold-dim);
+	border-left: 3px solid var(--gold);
+	border-radius: 0 6px 6px 0;
+	padding: 8px 12px;
+}
+
+.rule b {
+	letter-spacing: 0.06em;
+	font-size: 12px;
+	margin-right: 6px;
+}
+
+/* ---------- 规划卡虚线壳 + 规划徽标（原型「规划 · 待施工」形态） ----------
+ * 消费：批 B（Tab⑦ 占位卡三件 / Tab⑧ RSS·REST·UA 规划卡）；批 D（N4 阿里每日额度
+ * 规划壳）。 */
+.wk-card--ghost {
+	background: transparent;
+	border: 1px dashed var(--line-strong);
+	border-radius: var(--radius);
+}
+
+.wk-plan-tag {
+	display: inline-block;
+	font-family: var(--mono);
+	font-size: 11px;
+	color: var(--text-3);
+	border: 1px dashed var(--line-strong);
+	border-radius: 4px;
+	padding: 1px 8px;
+	font-weight: 400;
+	white-space: nowrap;
+}
+
+/* ---------- Radio 卡（design-system §04 radio-card：互斥档位卡+推荐角标） ----------
+ * 消费：批 B（Tab② mode radio / Tab③ url_audit profile 档位卡化）；批 C（向导验证码/
+ * 云审 radio 卡）。档位说明=站长人话，禁旋钮外露。 */
+.radio-cards {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 12px;
+}
+
+@media (max-width: 782px) {
+	.radio-cards {
+		grid-template-columns: 1fr;
+	}
+}
+
+.radio-card {
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius-s);
+	padding: 14px 16px;
+	cursor: pointer;
+	position: relative;
+	background: var(--card);
+	transition: border-color 0.15s;
+}
+
+.radio-card:hover {
+	border-color: var(--gold-line);
+}
+
+.radio-card.on {
+	border-color: var(--gold);
+	background: var(--gold-dim);
+	box-shadow: 0 0 0 1px var(--gold);
+}
+
+.radio-card .rc-hd {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.radio-card .rc-dot {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 2px solid var(--text-3);
+	flex: none;
+}
+
+.radio-card.on .rc-dot {
+	border-color: var(--gold);
+	background: radial-gradient(circle, var(--gold) 40%, transparent 45%);
+}
+
+.radio-card .rc-bd {
+	font-size: 12.5px;
+	color: var(--text-2);
+	margin-top: 7px;
+	line-height: 1.6;
+}
+
+.radio-card .rc-tag {
+	position: absolute;
+	top: -9px;
+	right: 10px;
+	font-size: 11px;
+	background: var(--gold);
+	color: var(--gold-ink);
+	border-radius: 4px;
+	padding: 1px 8px;
+	font-weight: 600;
+}
+
+/* ---------- Tab⑥ 着色纪律（施工图批 B 四改①：服务商名恒中性、原因按严重度着色） ----------
+ * 消费：批 B（报错历史 reason-tag 映射——severity→red/amber/green 纯函数件）。
+ * 等宽小字承载=作证原则（原因类目词非正文层级）。 */
+.reason-tag {
+	display: inline-block;
+	font-family: var(--mono);
+	font-size: 11.5px;
+	border-radius: 4px;
+	padding: 0 6px;
+	border: 1px solid currentColor;
+	white-space: nowrap;
+}
+
+.reason-tag--red {
+	color: var(--red);
+}
+
+.reason-tag--amber {
+	color: var(--amber);
+}
+
+.reason-tag--green {
+	color: var(--green);
+}
+
+.reason-tag--dim {
+	color: var(--text-3);
+}
+
+/* ---------- 向导骨架（design-system §04 + proto-wizard：stepper/panel/checklist） ----------
+ * 消费：批 C（N5+P5+P6 向导实装——四步面板+stepper+上岗确认单；保存走 wk-form 主通道，
+ * stepper 纯显隐零提交语义）。骨架形态先落，实装批按 proto-wizard 校准。 */
+.wk-wizard {
+	max-width: 64rem;
+}
+
+.wk-stepper {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 1rem;
+	padding: 0;
+	list-style: none;
+}
+
+.wk-stepper li {
+	font-family: var(--mono);
+	font-size: 12px;
+	color: var(--text-3);
+	border: 1px solid var(--line-strong);
+	border-radius: 99px;
+	padding: 2px 10px;
+	transition: border-color 0.15s, color 0.15s;
+}
+
+.wk-stepper li.on {
+	color: var(--gold-text);
+	border-color: var(--gold-line);
+	background: var(--gold-dim);
+}
+
+.wk-step-panel {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 18px 20px;
+}
+
+.wk-checklist {
+	margin: 0.5rem 0 0;
+	padding-left: 1.2rem;
+}
+
+.wk-checklist li {
+	margin: 0.3rem 0;
+	color: var(--text-2);
+}
+
+/* ---------- 向导动图骨架（proto-wizard FD_STEPS 时序演示位；R8=CSS 动画+内联时序
+ * 脚本随步一面板渲染） ----------
+ * 消费：批 C（向导步一「循环动图」；prefers-reduced-motion 降级见上方降级面）。 */
+.wk-flow-demo {
+	position: relative;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-s);
+	background: var(--card-2);
+	overflow: hidden;
+}
+
+.wk-flow-demo .wk-flow-frame {
+	position: relative;
+	min-height: 120px;
+}
+
+.wk-flow-demo .wk-flow-step {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 13px;
+	color: var(--text-2);
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+.wk-flow-demo .wk-flow-step.on {
+	opacity: 1;
 }
