@@ -193,7 +193,7 @@ final class UiTab4ZonesContractTest extends TestCase {
 			$body,
 			'软顶命中黄条文案【O5 回写·P2-4】'
 		);
-		$this->assertStringContainsString( 'notice-warning', $body, '黄条形态' );
+		$this->assertMatchesRegularExpression( "/self::notice_yellow_bar[(]\s*'warn'/", $body, '黄条形态 warn 级（【W3·批B 翻转】软顶黄条迁 notice_yellow_bar 插件级类承载）' );
 	}
 
 	/* ---------- 分区③ 上报 ---------- */
@@ -204,7 +204,7 @@ final class UiTab4ZonesContractTest extends TestCase {
 		$this->assertStringContainsString( 'id="wk-iprep-report"', $body, '分区③ DOM 锚' );
 		$this->assertStringContainsString( "array( 'iprep', 'report', 'enabled' )", $body, '上报总开关' );
 		$this->assertStringContainsString( '启用后访客 IP 将提交至境外服务 AbuseIPDB', $body, '出境黄条（PIPL 提示）' );
-		$this->assertStringContainsString( 'notice-warning', $body, '出境提示为黄条形态' );
+		$this->assertMatchesRegularExpression( "/self::notice_yellow_bar[(]\s*'warn'/", $body, '出境提示为黄条形态 warn 级（【W3·批B 翻转】插件级类承载）' );
 	}
 
 	public function test_zone_report_trigger_groups_t1_to_t4(): void {

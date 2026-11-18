@@ -371,7 +371,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_notice_renders_when_enabled_and_chain_empty(): void {
 			$html = self::renderCard( self::baseSettings( '' ) );
 			self::assertStringContainsString( 'id="wk-url-audit-unconfigured-notice"', $html, '无钥态：notice 渲染' );
-			self::assertStringContainsString( 'notice notice-warning inline', $html, 'warning inline 形态（UI-1-2 范式）' );
+			self::assertStringContainsString( 'wk-notice--warn', $html, '插件级黄条形态（【W3·批B 翻转】原 WP 原生 notice-warning inline 字面——批 B 黄条 helper 化+四级映射翻插件级类）' );
 			self::assertStringContainsString( '还没有配置', $html, '人话指引文案' );
 			self::assertStringContainsString( '#wk-review-deepseek-card', $html, '深链：上方 DeepSeek 配置区' );
 			self::assertStringContainsString( '#wk-url-audit-advanced', $html, '深链：下方高级独立配置' );

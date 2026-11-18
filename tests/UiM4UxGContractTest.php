@@ -127,9 +127,10 @@ final class UiM4UxGContractTest extends TestCase {
 
 	public function test_g2_source_zone_advanced_collapsed(): void {
 		$body    = self::functionBody( self::settings_src(), 'render_iprep_zone_source' );
-		$details = self::htmlBlock( $body, 'id="wk-iprep-source-advanced"', '</details>' );
+		// 【W3·批B 翻转】折叠迁 advanced_fold（收口标记不在编排体——区块改至段收口）。
+		$details = self::htmlBlock( $body, 'id="wk-iprep-source-advanced"', '</section>' );
 
-		$this->assertStringContainsString( '<details class="wk-guide"', $body, '折叠形态=既有 details/wk-guide（F3-3 同款）' );
+		$this->assertStringContainsString( 'self::advanced_fold(', $body, '折叠迁 helper（details.adv 形态承载）' );
 		$this->assertStringContainsString( '高级设置', $details, '折叠区标题' );
 		foreach ( array( "'network', 'ip_source'", "'network', 'custom_header'", "'network', 'trusted_proxies', 'cloudflare'", "'network', 'trusted_proxies', 'custom'", "'iprep', 'whitelist'", 'wk-iprep-cidr-check' ) as $key ) {
 			$this->assertStringContainsString( $key, $details, "模式选择/自定义头/预设选择器/受信网段/白名单/CIDR 校验收进折叠（{$key}）" );
@@ -164,9 +165,10 @@ final class UiM4UxGContractTest extends TestCase {
 
 	public function test_g3_tab5_copy_group_collapsed(): void {
 		$body    = self::functionBody( self::settings_src(), 'render_tab_copy' );
-		$details = self::htmlBlock( $body, 'id="wk-copy-advanced"', '</details>' );
+		// 【W3·批B 翻转】文案折叠迁 advanced_fold（收口标记不在编排体——区块改至卡收口）。
+		$details = self::htmlBlock( $body, 'id="wk-copy-advanced"', '</section>' );
 
-		$this->assertStringContainsString( '<details class="wk-guide"', $body, '折叠形态=既有 details/wk-guide' );
+		$this->assertStringContainsString( 'self::advanced_fold(', $body, '折叠迁 helper（【W3·批B 翻转】details.adv 形态承载）' );
 		foreach ( array( 'wk-placeholder-list', "'copy', 'messages'", "'copy', 'titles'", 'wk-copy-restore-defaults' ) as $key ) {
 			$this->assertStringContainsString( $key, $details, "拦截文案组+占位符说明区+恢复默认按钮随组折叠（{$key}）" );
 		}

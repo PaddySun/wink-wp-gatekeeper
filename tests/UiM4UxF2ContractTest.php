@@ -101,7 +101,7 @@ final class UiM4UxF2ContractTest extends TestCase {
 	public function test_ui_1_1_onboarding_banner_shape(): void {
 		$body = self::functionBody( self::settings_src(), 'render_overview_onboarding' );
 
-		$this->assertStringContainsString( 'notice notice-warning inline', $body, '原生 notice-warning inline 形态' );
+		$this->assertMatchesRegularExpression( "/self::notice_yellow_bar\(\s*'warn'/", $body, '插件级黄条形态（【W3·批B 翻转】引导通栏入卡——notice_yellow_bar warn 级承载插件级类）' );
 		$this->assertStringContainsString( 'overview_configured_count', $body, '显隐判定复用 overview_configured_count' );
 		foreach ( array( '选验证码', '云审', 'IP 信誉', '测试凭据' ) as $step ) {
 			$this->assertStringContainsString( $step, $body, "三步引导须含「{$step}」" );
@@ -124,7 +124,7 @@ final class UiM4UxF2ContractTest extends TestCase {
 	public function test_ui_1_2_review_cloud_unconfigured_notice(): void {
 		$body = self::functionBody( self::settings_src(), 'render_tab_review' );
 
-		$this->assertStringContainsString( 'notice notice-warning inline', $body, '原生 notice 形态' );
+		$this->assertStringContainsString( 'wk-review-onboarding-notice', $body, '黄条 id 锚（【W3·批B 翻转】迁 notice_yellow_bar 插件级类——id 留编排位）' );
 		$this->assertStringContainsString( '云端审核还没配置，也没开启', $body, '页顶提示文案' );
 		$this->assertStringContainsString( 'empty( $cloud', $body, '判定：云端审核未开启' );
 		$this->assertStringContainsString( 'array() === $chain', $body, '判定：链上无任何驱动（未配置）' );

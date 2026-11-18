@@ -627,7 +627,7 @@ namespace WinkGatekeeper\Tests {
 			// 运行中态：inherit + 云审未配置。
 			$html = self::renderUrlCard( self::urlCardSettings() );
 			self::assertStringContainsString( 'id="wk-url-audit-fetcher-unconfigured-notice"', $html, '抓取未配置态：黄条渲染' );
-			self::assertStringContainsString( 'notice notice-warning inline', $html, 'U-1 式=warning inline（范式对齐）' );
+			self::assertStringContainsString( 'wk-notice--warn', $html, 'U-1 式=插件级黄条（【W3·批B 翻转】范式对齐）' );
 			self::assertStringContainsString( '本站直抓因暴露源站 IP 默认不自动启用', $html, '人话文案（不自动自抓原因）' );
 			self::assertStringContainsString( '#wk-url-audit-advanced', $html, '深链高级区（手动选择入口）' );
 

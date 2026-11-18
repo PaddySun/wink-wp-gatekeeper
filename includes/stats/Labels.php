@@ -202,6 +202,58 @@ final class Labels {
 	}
 
 	/**
+	 * 【W3·批B·四改①】故障原因 → reason-tag 严重度档（Tab⑥ 报错历史着色纪律——纯函数件
+	 * 可测；设计原理=原型 tab6 样张：服务商名恒中性不着色，原因按严重度着色）。
+	 *
+	 * 四档闭集（CSS .reason-tag--{red|amber|green|dim}）：绿=已自愈（解除记录）、
+	 * 黄=可自愈/软性故障（额度/网络类——次日恢复或瞬时）、红=需站长动手（密钥/配置/
+	 * 契约被拒）、灰=中性（其余/未收录键——不虚构严重度）。映射基于 rule_hit 键面
+	 * （fault_timeline_rows 行的 rule_hit 原键——前缀族 driver_halted:/remote_ 按族归档）。
+	 *
+	 * @param string $rule_hit 命中规则键（可含 driver_halted: 前缀）。
+	 * @return string red|amber|green|dim（闭集外回落 dim=中性）。
+	 */
+	public static function fault_reason_severity( string $rule_hit ): string {
+		if ( '' === $rule_hit ) {
+			return 'dim';
+		}
+		// 绿=解除记录（故障→修复小剧场的「修复」侧）。
+		if ( 'driver_resumed' === $rule_hit ) {
+			return 'green';
+		}
+		// 黄=软性/可自愈：额度类（当日停转次日自愈）+ 网络传输类（瞬时）+ 洪泛（瞬时节流）。
+		$amber = array( 'driver_halted:quota_exhausted', 'quota_paused', 'remote_transport', 'comment_flood' );
+		if ( in_array( $rule_hit, $amber, true ) ) {
+			return 'amber';
+		}
+		// 红=需站长动手：密钥/配置被拒（停转）+ 服务商拒绝/契约不符 + 票据签名异常。
+		$red = array( 'driver_halted:config_error', 'remote_semantic', 'remote_contract', 'contract_mismatch', 'bad-signature' );
+		if ( in_array( $rule_hit, $red, true ) ) {
+			return 'red';
+		}
+		// 其余 driver_halted:* 前缀族（未知停转原因）归黄档保守提示；未收录键中性。
+		if ( 0 === strpos( $rule_hit, 'driver_halted:' ) ) {
+			return 'amber';
+		}
+		return 'dim';
+	}
+
+	/**
+	 * 【W3·批B·四改③】登录流水结果列映射（Q3 统筹代裁=现数据面：时间/结果三态/哪张门/
+	 * 为什么拦/WK-——「出码·拦下｜未过码·拦下」两态如实，出码·放行不在拒绝流水数据面
+	 * 内不虚构）。stage 闭集=GateRegistry（ip|captcha——登录族无 review 阶段，02 §2.7）。
+	 *
+	 * @param string $stage 事件 stage 键。
+	 * @return string 出码 · 拦下（captcha 档）| 未过码 · 拦下（其余=预检/IP 档未到出码即拦）。
+	 */
+	public static function account_result_word( string $stage ): string {
+		if ( 'captcha' === $stage ) {
+			return '出码 · 拦下';
+		}
+		return '未过码 · 拦下';
+	}
+
+	/**
 	 * meta.raw/脱敏快照 → 服务商原始回复（对照表 18——设置项与展开行共用）。
 	 */
 	public static function snapshot_word(): string {

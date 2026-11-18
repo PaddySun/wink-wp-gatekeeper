@@ -213,6 +213,7 @@ final class InterceptDigest {
 				'created_at' => isset( $event['created_at'] ) && is_string( $event['created_at'] ) ? $event['created_at'] : '',
 				'gate'       => $gate,
 				'gate_word'  => '' !== $gate ? Labels::gate_word( $gate ) : '',
+				'stage'      => $stage, // 【W3·批B·四改③】结果三态映射入参（Labels::account_result_word——Tab⑥ 登录流水列面）。
 				'stage_word' => '' !== $stage ? Labels::stage_word( $stage ) : '',
 				'reason'     => '' !== $rule_hit ? Labels::rule_hit_word( $rule_hit ) : '',
 				'trigger'    => '' !== $source ? Labels::trigger_word( $source ) : '',

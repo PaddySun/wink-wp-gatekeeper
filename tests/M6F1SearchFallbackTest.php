@@ -962,7 +962,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_tab7_report_reason_search_marker_contract(): void {
 			$sp   = self::source( 'includes/settings/SettingsPage.php' );
-			$card = self::blockBetween( $sp, 'id="wk-tools-url-audit-report"', '<section class="wk-card">' );
+			$card = self::blockBetween( $sp, 'id="wk-tools-url-audit-report"', 'wk-card--ghost' );
 			self::assertStringContainsString( 'id="wk-tools-url-audit-reasons"', $card, 'URL 报告原因明细折叠锚' );
 			self::assertStringContainsString( '网址打不开，依据搜索线索判定', $card, '人话标记（evidence=search 行）' );
 		}

@@ -127,11 +127,12 @@ namespace WinkGatekeeper\Tests {
 		public function test_notice_level_map_closed_set(): void {
 			$src = self::settings_src();
 			// 四级→WP 原生 class 映射闭集（NOTICE_LEVEL_CLASSES 类常量——helper 消费位）。
+			// 【W3·批B 翻转】四级映射翻插件级类（批 A WP 原生等价形态退役——W3TabRemodelTest 同步钉）。
 			foreach ( array(
-				array( 'warn', 'notice notice-warning inline' ),
-				array( 'danger', 'notice notice-error inline' ),
-				array( 'ok', 'notice notice-success inline' ),
-				array( 'info', 'notice notice-info inline' ),
+				array( 'warn', 'wk-notice wk-notice--warn' ),
+				array( 'danger', 'wk-notice wk-notice--danger' ),
+				array( 'ok', 'wk-notice wk-notice--ok' ),
+				array( 'info', 'wk-notice wk-notice--info' ),
 			) as $pair ) {
 				self::assertMatchesRegularExpression(
 					"/'" . $pair[0] . "'\s+=>\s+'" . preg_quote( $pair[1], '/' ) . "'/",
@@ -143,7 +144,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_notice_yellow_bar_output_anchors(): void {
 			$html = self::invoke_render( 'notice_yellow_bar', 'danger', '<strong>被拒</strong>', array( '第一段', '第二段' ), ' <a href="#">去修</a>', '', 'wk-test-bar' );
-			self::assertStringContainsString( '<div class="notice notice-error inline" id="wk-test-bar">', $html, '四级映射到 WP 原生 class + id 锚' );
+			self::assertStringContainsString( '<div class="wk-notice wk-notice--danger" id="wk-test-bar">', $html, '四级映射到插件级黄条类 + id 锚（【W3·批B 翻转】）' );
 			self::assertStringContainsString( '<p><strong>被拒</strong>第一段</p>', $html, 'hd 拼首段' );
 			self::assertStringContainsString( '<p>第二段 <a href="#">去修</a></p>', $html, 'act 拼末段（多 <p> 形态）' );
 			self::assertSame( 2, substr_count( $html, '<p>' ), '数组参数=逐段一 <p>' );
@@ -163,7 +164,7 @@ namespace WinkGatekeeper\Tests {
 			$html = self::invoke_render( 'advanced_fold', 'id="wk-fold-x"', '高级配置', static function (): void {
 				echo '<p>inner</p>';
 			} );
-			self::assertStringContainsString( '<details class="wk-guide" id="wk-fold-x"><summary>高级配置</summary>', $html, '折叠锚：details.wk-guide + id + summary（等价迁移）' );
+			self::assertStringContainsString( '<details class="adv" id="wk-fold-x"><summary>高级配置</summary>', $html, '折叠锚：details.adv + id + summary（【W3·批B 翻转】⚙ 前缀由 CSS ::before 承载）' );
 			self::assertStringContainsString( '<p>inner</p></details>', $html, 'inner 原样 + 收口 </details>' );
 		}
 
@@ -286,7 +287,7 @@ namespace WinkGatekeeper\Tests {
 			// 防悬空：每件 helper 都有编排位真实消费（迁段样板）。
 			self::assertSame( 7, substr_count( self::body( 'render_overview_alerts' ), 'self::notice_yellow_bar(' ), 'Tab① 通栏七条迁 notice_yellow_bar' );
 			self::assertSame( 1, substr_count( self::body( 'render_overview_onboarding' ), 'self::notice_yellow_bar(' ), 'Tab① 引导通栏迁 1 条' );
-			self::assertSame( 4, substr_count( self::body( 'render_tab_captcha' ), 'self::notice_yellow_bar(' ), 'Tab② 四条迁（服务端/H3-A/两处 IP 信誉三态）' );
+			self::assertSame( 6, substr_count( self::body( 'render_tab_captcha' ), 'self::notice_yellow_bar(' ), 'Tab② 六条迁（服务端/H3-A/两处 IP 信誉三态/两驱动 privacy 行——【W3·批B】privacy 黄条 helper 化）' );
 			self::assertStringContainsString( 'self::advanced_fold(', self::body( 'render_url_audit_card' ), 'Tab③ url_audit 高级折叠迁 advanced_fold' );
 			self::assertStringContainsString( 'self::test_credential_btn(', self::body( 'render_iprep_zone_check' ), 'Tab④ iprep 测试凭据迁 test_credential_btn' );
 			self::assertStringContainsString( 'self::usage_card_html(', self::body( 'render_overview_usage' ), 'Tab① 调用量卡迁 usage_card_html' );
@@ -305,9 +306,9 @@ namespace WinkGatekeeper\Tests {
 
 			$captcha = self::body( 'render_tab_captcha' );
 			self::assertStringContainsString( 'wk-captcha-unconfigured-notice', $captcha, 'H3-A notice 锚（id 参数字面量）' );
-			self::assertStringContainsString( 'notice notice-warning inline', $captcha, 'M6H3 U-1 形态字面量钉（classes 覆盖位）' );
-			self::assertSame( 4, substr_count( $captcha, 'self::notice_yellow_bar(' ), 'Tab② 黄条四条迁段（warn×2+info×2）' );
-			self::assertSame( 2, substr_count( $captcha, "'info'," ), 'info 级两处（IP 信誉三态双位）' );
+			self::assertMatchesRegularExpression( "/self::notice_yellow_bar[(]\s*'warn'/", $captcha, 'warn 级承载插件级类（【W3·批B 翻转】M6H3 U-1 classes 字面量位退役）' );
+			self::assertSame( 6, substr_count( $captcha, 'self::notice_yellow_bar(' ), 'Tab② 黄条六条迁段（warn×2+info×2+privacy×2）' );
+			self::assertSame( 4, substr_count( $captcha, "'info'," ), 'info 级四处（IP 信誉三态双位 + 两驱动 privacy 条件位——【W3·批B】privacy helper 化）' );
 
 			$iprep = self::body( 'render_iprep_zone_check' );
 			self::assertStringContainsString( 'id="wk-iprep-test-credentials"', $iprep, '测试凭据按钮锚' );

@@ -275,9 +275,11 @@ final class UiM4UxF3ContractTest extends TestCase {
 
 	public function test_tab4_check_zone_advanced_collapsed(): void {
 		$body    = self::functionBody( self::settings_src(), 'render_iprep_zone_check' );
-		$details = self::htmlBlock( $body, 'id="wk-iprep-advanced"', '</details>' );
+		// 【W3·批B 翻转】折叠迁 advanced_fold（details.adv 壳在 helper 层，收口标记不在
+		// 编排体——htmlBlock 源抽取锁死解除：区块改从 attrs 锚到测试凭据调用位）。
+		$details = self::htmlBlock( $body, 'id="wk-iprep-advanced"', 'self::test_credential_btn(' );
 
-		$this->assertStringContainsString( '<details class="wk-guide"', $body, '折叠形态=既有 details/wk-guide（03 Tab② 同款）' );
+		$this->assertStringContainsString( 'self::advanced_fold(', $body, '折叠迁 helper（details.adv 形态承载）' );
 		$this->assertStringContainsString( '高级设置', $details, '折叠区标题' );
 		foreach ( array( 'malicious_score', 'suspect_score', 'soft_quota', 'daily_quota', 'cache_minutes', 'negative_cache_minutes', "'timeout'" ) as $key ) {
 			$this->assertStringContainsString( $key, $details, "阈值/软顶/日配额/缓存双键/timeout 收进折叠（{$key}）" );
@@ -297,7 +299,8 @@ final class UiM4UxF3ContractTest extends TestCase {
 
 	public function test_tab4_report_zone_triggers_collapsed(): void {
 		$body    = self::functionBody( self::settings_src(), 'render_iprep_zone_report' );
-		$details = self::htmlBlock( $body, 'id="wk-iprep-report-advanced"', '</details>' );
+		// 【W3·批B 翻转】同上——折叠迁 advanced_fold，区块改至段收口。
+		$details = self::htmlBlock( $body, 'id="wk-iprep-report-advanced"', '</section>' );
 
 		/* T1–T4 四面逐行（foreach 迭代 $faces——四面定义在折叠区之前）+ 限流参数收进折叠。 */
 		foreach ( array( 'foreach ( $faces', 'wk-iprep-threshold-', 'wk-iprep-category-', 'wk-iprep-comment-', '限流参数' ) as $key ) {
@@ -311,13 +314,14 @@ final class UiM4UxF3ContractTest extends TestCase {
 
 	public function test_tab4_report_zone_warnings_always_visible(): void {
 		$body    = self::functionBody( self::settings_src(), 'render_iprep_zone_report' );
-		$details = self::htmlBlock( $body, 'id="wk-iprep-report-advanced"', '</details>' );
+		// 【W3·批B 翻转】同上——折叠迁 advanced_fold，区块改至段收口。
+		$details = self::htmlBlock( $body, 'id="wk-iprep-report-advanced"', '</section>' );
 		$before  = substr( $body, 0, (int) strpos( $body, 'id="wk-iprep-report-advanced"' ) );
 
-		$this->assertStringContainsString( 'notice notice-warning', $before, '出境 PIPL 黄条不折叠常显' );
+		$this->assertMatchesRegularExpression( "/notice_yellow_bar\(\s*'warn'/", $before, '出境 PIPL 黄条不折叠常显（【W3·批B 翻转】插件级 warn 级）' );
 		$this->assertStringContainsString( '启用门禁', $before, '门禁状态行不折叠常显' );
 		$this->assertStringContainsString( "'iprep', 'report', 'enabled'", $before, '总开关不折叠常显' );
-		$this->assertStringNotContainsString( 'notice notice-warning', $details, '警示黄条不得落进折叠区' );
+		$this->assertStringNotContainsString( 'notice_yellow_bar(', $details, '警示黄条不得落进折叠区' );
 	}
 
 	/* ===================================================================
@@ -363,7 +367,7 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$this->assertNotFalse( $endif, '守卫块收口（endif）' );
 
 		$row_block = self::htmlBlock( $body, 'id="wk-review-wp-switches"', '</tr>' );
-		$this->assertStringContainsString( 'notice notice-warning', $row_block, '渲染态=warning notice（两开关会阻碍插件自动审核）' );
+		$this->assertMatchesRegularExpression( "/notice_yellow_bar\(\s*'warn'/", $row_block, '渲染态=插件级黄条 warn 级（【W3·批B 翻转】两开关会阻碍插件自动审核）' );
 		$this->assertStringNotContainsString( "field_name( array( 'comment_moderation'", $row_block, '红线：不进表单字段（只读不改行为）' );
 	}
 

@@ -496,7 +496,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( "'' === \$active", $body, '未配置判定条件（驱动空串）' );
 			self::assertStringContainsString( 'wk-captcha-unconfigured-notice', $body, '【H3-A】Tab② notice 锚' );
 			self::assertStringContainsString( '人机验证还没选服务商', $body, '文案与 Tab① 总览同义' );
-			self::assertStringContainsString( 'notice notice-warning inline', $body, 'U-1 式形态' );
+			self::assertStringContainsString( 'wk-notice--warn', $body, '插件级黄条形态（【W3·批B 翻转】U-1 式——notice_yellow_bar 四级映射翻插件级类）' );
 			// 条件块内才渲染：锚在 if 块之后（避免无条件渲染假绿——锚与条件同函数体+锚前有 if 判定）。
 			$cond_pos = strpos( $body, "'' === \$active" );
 			$anchor_pos = strpos( $body, 'wk-captcha-unconfigured-notice' );
@@ -511,7 +511,7 @@ namespace WinkGatekeeper\Tests {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
 			self::assertStringContainsString( 'wk-tools-audit-running-bar', $body, '【H3-B】体检运行中黄条锚' );
 			// running/quota_paused 才黄条：渲染条件须含两态（source-scan 弱断言——行为面随下轮真机）。
-			self::assertStringContainsString( "notice notice-warning inline", $body, 'notice-warning 形态（与网址核查黄条统一）' );
+			self::assertMatchesRegularExpression( "/self::notice_yellow_bar\(\s*'warn'/", $body, '插件级黄条 warn 级（【W3·批B 翻转】H3-B 运行中黄条迁 notice_yellow_bar——四级映射承载插件级类）' );
 		}
 
 		/* ===============================================================

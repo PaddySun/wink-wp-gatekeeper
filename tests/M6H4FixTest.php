@@ -73,7 +73,7 @@ namespace WinkGatekeeper\Tests {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
 			self::assertStringContainsString( 'wk-tools-url-audit-off-notice', $body, '【H4-3】未开启独立黄条锚' );
 			self::assertStringContainsString( '网址核查未开启', $body, '文案保持' );
-			self::assertStringContainsString( 'notice notice-warning inline', $body, 'U-1 式形态' );
+			self::assertMatchesRegularExpression( "/self::notice_yellow_bar\(\s*'warn'/", $body, '插件级黄条 warn 级（【W3·批B 翻转】U-1 式黄条迁 notice_yellow_bar）' );
 		}
 
 		/* H4-4 复核块套防线组 */

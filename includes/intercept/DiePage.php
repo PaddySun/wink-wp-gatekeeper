@@ -52,7 +52,8 @@ final class DiePage {
 
 		$logo = '';
 		if ( '' !== $logo_url ) {
-			$logo = '<img class="wk-logo" src="' . $e( $logo_url ) . '" alt="wink" width="40" height="45" decoding="async">';
+			// 【W3·批B·改名⑧】alt 改名（原 alt="wink"——显示层改名 8 处之一，§1.5 R3 清单）。
+			$logo = '<img class="wk-logo" src="' . $e( $logo_url ) . '" alt="Wink WP 保安" width="40" height="45" decoding="async">';
 		}
 
 		return '<!DOCTYPE html><html lang="' . $e( $lang ) . '"><head><meta charset="utf-8">'
@@ -83,6 +84,9 @@ final class DiePage {
 			. '.wk-back:hover{background:#E43E40;}'
 			. '.wk-contact{margin-top:20px;font-size:14px;color:#6B6B76;}'
 			. '.wk-contact a{color:#FF4D4F;}'
+			// 【W3·批B·R3/Q6】正文末常驻品牌署名行（原型 tab5 拦截页样式卡提案落位——
+			// 现码此前无文字署名；纯 esc 文本节点零注入面）。
+			. '.wk-sign{margin-top:16px;font-size:12px;color:#9A9AA4;}'
 			. '</style></head><body>'
 			. '<div class="wk-card" role="alert">'
 			. $logo
@@ -91,6 +95,7 @@ final class DiePage {
 			. $evidence_rows
 			. '<a class="wk-back" href="javascript:history.back()">&larr; 返回上一页</a>'
 			. $contact
+			. '<p class="wk-sign">Wink WP 保安</p>'
 			. '</div></body></html>';
 	}
 

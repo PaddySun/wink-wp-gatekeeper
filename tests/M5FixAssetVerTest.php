@@ -34,12 +34,13 @@ final class M5FixAssetVerTest extends TestCase {
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 
-		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3a1'
-		// （窗幅 1200 字节——M5FIX/M6B/W3A 击穿语义注记累加后注册行注释段加长）。
+		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3b1'
+		// （窗幅 1200 字节——M5FIX/M6B/W3A/W3B 击穿语义注记累加后注册行注释段加长）。
+		// 【W3·批B 后缀翻转】-w3a1→-w3b1（非语义变化——八 Tab 重组绑定面注记，M5Fix 纪律批内递进）。
 		self::assertMatchesRegularExpression(
-			"/wink-gatekeeper-admin-brand[\s\S]{0,1200}WINK_GATEKEEPER_VERSION \. '-w3a1'/",
+			"/wink-gatekeeper-admin-brand[\s\S]{0,1200}WINK_GATEKEEPER_VERSION \. '-w3b1'/",
 			$src,
-			'admin-brand.js 注册行版本参数必须带 -w3a1 击穿后缀（【W3·批A 后缀翻转】-m6b1→-w3a1）'
+			'admin-brand.js 注册行版本参数必须带 -w3b1 击穿后缀（【W3·批B 后缀翻转】-w3a1→-w3b1）'
 		);
 		// 【M5FIX】CDN 击穿语义注记在场（纪律传承——下次改 JS 必须再动版本参数）。
 		self::assertStringContainsString( 'M5FIX', $src, 'CDN 击穿语义注记' );
@@ -52,8 +53,8 @@ final class M5FixAssetVerTest extends TestCase {
 		self::assertIsString( $src );
 		self::assertSame(
 			1,
-			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3a1'/", $src ),
-			'-w3a1 全文恰出现一次（仅 admin-brand 注册行）'
+			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3b1'/", $src ),
+			'-w3b1 全文恰出现一次（仅 admin-brand 注册行）'
 		);
 	}
 

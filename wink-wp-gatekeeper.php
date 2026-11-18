@@ -12,7 +12,7 @@
  * @package WinkGatekeeper
  *
  * @wordpress-plugin
- * Plugin Name:       Wink 门口保安
+ * Plugin Name:       Wink WP 保安
  * Plugin URI:        https://github.com/wink/wink-wp-gatekeeper
  * Description:       对真人眨眨眼，对机器人睁着眼——评论验证 + 登录验证 + 内容过滤三闸合一，验证码与云端审核驱动化可插拔。
  * Version:           0.8.4

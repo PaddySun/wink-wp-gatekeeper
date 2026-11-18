@@ -1019,8 +1019,8 @@ final class Bootstrap {
 	 */
 	public function register_menu(): void {
 		$this->settings_page_hook = add_options_page(
-			__( 'Wink 门口保安', 'wink-gatekeeper' ),
-			__( 'Wink 门口保安', 'wink-gatekeeper' ),
+			__( 'Wink WP 保安', 'wink-gatekeeper' ),
+			__( 'Wink WP 保安', 'wink-gatekeeper' ),
 			'manage_options',
 			SettingsPage::PAGE_SLUG,
 			array( SettingsPage::class, 'render' )
@@ -1060,7 +1060,7 @@ final class Bootstrap {
 		);
 		wp_add_dashboard_widget(
 			'wink_gatekeeper_dashboard_widget',
-			__( 'Wink 门口保安 · 今日态势', 'wink-gatekeeper' ),
+			__( 'Wink WP 保安 · 今日态势', 'wink-gatekeeper' ),
 			array( $this, 'render_dashboard_widget' )
 		);
 	}
@@ -1296,7 +1296,9 @@ final class Bootstrap {
 			// 【W3·批A·N7】本批 JS 内容变化（scheme 前端兜底/校验首段——design-system
 			// §02·P4 前端侧）→ -w3a1。CSS 注册行不加内联后缀（0.8.5 进位一次击穿，
 			// 施工图 §5 风险 3 / R9 口径——M5FixAssetVerTest CSS 形态钉同步）。
-			WINK_GATEKEEPER_VERSION . '-w3a1',
+			// 【W3·批B】本批 JS 内容变化（八 Tab 重组绑定面注记——M5Fix 纪律批内递进）
+			// → -w3b1。
+			WINK_GATEKEEPER_VERSION . '-w3b1',
 			true
 		);
 	}
