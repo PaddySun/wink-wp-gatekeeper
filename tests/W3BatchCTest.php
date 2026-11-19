@@ -533,6 +533,29 @@ final class W3BatchCTest extends TestCase {
 			$this->assertStringContainsString( 'check_admin_referer', $body, "{$fn} nonce 闸" );
 			$this->assertStringContainsString( 'wp_safe_redirect', $body, "{$fn} 重定向回设置页" );
 		}
+
+		// 【W3-FIX·0.8.6】URL 生成面钉（W3F2 手测缺陷②防回退）：admin_post_* 钩子只由
+		// admin-post.php 派发，admin.php 不派发——0.8.5 出口四链曾用 admin.php?action=
+		// 形态=死链（实测 200/414B 空 admin shell、wizard_state 不翻转）。上方注册钉
+		// 只测挂钩不测生成面，故补出口/跳过四链生成面字面（admin-post.php 形态恰四条
+		// ——步四双出口 done/done&to=copy + 步一 wizard-foot 跳过/页脚 wizard-exit 跳过）
+		// + admin.php 死链形态全文件零残留。
+		$sp = self::sp();
+		$this->assertSame(
+			2,
+			substr_count( $sp, "'admin-post.php?action=' . self::ACTION_WIZARD_DONE" ),
+			'完成出口两链（进入总览/去文案工坊）URL 生成面=admin-post.php 形态（W3F2 缺陷②）'
+		);
+		$this->assertSame(
+			2,
+			substr_count( $sp, "'admin-post.php?action=' . self::ACTION_WIZARD_SKIP" ),
+			'跳过出口两链（步一 wizard-foot/页脚 wizard-exit）URL 生成面=admin-post.php 形态（W3F2 缺陷②）'
+		);
+		$this->assertSame(
+			0,
+			preg_match_all( "/admin\.php\?action=/", $sp ),
+			'SettingsPage 全文件零 admin.php?action= 死链形态残留（admin_post_* 只由 admin-post.php 派发——全仓 admin_post 链接同口径）'
+		);
 	}
 
 	public function test_render_routes_to_wizard_group(): void {

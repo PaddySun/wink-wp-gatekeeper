@@ -19,33 +19,37 @@
  * 注册行断言（admin-settings.css 版本参数=WINK_GATEKEEPER_VERSION 裸值形态钉——
  * CSS 内容变化不批内加缀，0.8.5 进位一次击穿〔施工图 §5 风险 3 口径〕）。
  *
- * 【W3·批C 后缀翻转注记】本批 admin-brand.js 内容变化（首启向导交互模块——stepper
- * 显隐/radio-card .on 同步/下一步 referer 改写/驱动·云审卡面显隐）→ 后缀 -w3b1 →
- * **-w3c1**（断言翻转非语义变化——「本文件内容变化必须伴随版本参数变化」纪律本体
- * 不变；0.8.5 进位一次击穿仍在批 D 收口）。
- *
- * @package WinkGatekeeper\Tests
- */
+	 * 【W3·批C 后缀翻转注记】本批 admin-brand.js 内容变化（首启向导交互模块——stepper
+	 * 显隐/radio-card .on 同步/下一步 referer 改写/驱动·云审卡面显隐）→ 后缀 -w3b1 →
+	 * **-w3c1**（断言翻转非语义变化——「本文件内容变化必须伴随版本参数变化」纪律本体
+	 * 不变；0.8.5 进位一次击穿仍在批 D 收口）。
+	 *
+	 * 【W3-FIX 后缀翻转注记】本批 admin-brand.js 内容变化（测试凭据徽标全量回写共享件
+	 * wkProbeWriteBadges + 九个 probe log 闭集驱动探活接线——W3F2 手测缺陷①）→ 后缀
+	 * -w3c1 → **-w3fix1**（断言翻转非语义变化——纪律本体不变；0.8.6 进位随本批一次击穿）。
+	 *
+	 * @package WinkGatekeeper\Tests
+	 */
 
-declare( strict_types=1 );
+ declare( strict_types=1 );
 
-namespace WinkGatekeeper\Tests;
+ namespace WinkGatekeeper\Tests;
 
-use PHPUnit\Framework\TestCase;
+ use PHPUnit\Framework\TestCase;
 
-final class M5FixAssetVerTest extends TestCase {
+ final class M5FixAssetVerTest extends TestCase {
 
 	public function test_admin_brand_enqueue_carries_bust_suffix(): void {
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 
-		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3c1'
-		// （窗幅 1600 字节——M5FIX/M6B/W3A/W3B/W3C 击穿语义注记累加后注册行注释段加长）。
-		// 【W3·批C 后缀翻转】-w3b1→-w3c1（非语义变化——首启向导交互模块注记，M5Fix 纪律批内递进）。
+		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3fix1'
+		// （窗幅 1600 字节——M5FIX/M6B/W3A/W3B/W3C/W3FIX 击穿语义注记累加后注册行注释段加长）。
+		// 【W3-FIX 后缀翻转】-w3c1→-w3fix1（非语义变化——徽标全量回写件注记，M5Fix 纪律批内递进）。
 		self::assertMatchesRegularExpression(
-			"/wink-gatekeeper-admin-brand[\s\S]{0,1600}WINK_GATEKEEPER_VERSION \. '-w3c1'/",
+			"/wink-gatekeeper-admin-brand[\s\S]{0,1600}WINK_GATEKEEPER_VERSION \. '-w3fix1'/",
 			$src,
-			'admin-brand.js 注册行版本参数必须带 -w3c1 击穿后缀（【W3·批C 后缀翻转】-w3b1→-w3c1）'
+			'admin-brand.js 注册行版本参数必须带 -w3fix1 击穿后缀（【W3-FIX 后缀翻转】-w3c1→-w3fix1）'
 		);
 		// 【M5FIX】CDN 击穿语义注记在场（纪律传承——下次改 JS 必须再动版本参数）。
 		self::assertStringContainsString( 'M5FIX', $src, 'CDN 击穿语义注记' );
@@ -53,14 +57,14 @@ final class M5FixAssetVerTest extends TestCase {
 
 	public function test_front_assets_version_untouched(): void {
 		// 击穿面最小化：front 注册行（gatekeeper.js / tencent.js）不带后缀——
-		// front 资产版本进位随 0.8.5 一次收口（【W3·批C】aliyun.js region 变化由批 D
-		// bump 击穿——R9 口径）。
+		// front 资产版本进位随版本号进位一次收口（0.8.5 批 D 收口在前；本批 front
+		// 资产零内容变化——0.8.6 进位仅自然击穿，无内联后缀需求）。
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 		self::assertSame(
 			1,
-			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3c1'/", $src ),
-			'-w3c1 全文恰出现一次（仅 admin-brand 注册行）'
+			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3fix1'/", $src ),
+			'-w3fix1 全文恰出现一次（仅 admin-brand 注册行）'
 		);
 	}
 

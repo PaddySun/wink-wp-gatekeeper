@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.8.5
+Stable tag: 0.8.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,10 @@ Wink WP 保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.8.6 =
+
+W3-FIX 手测缺陷修复两件（2026-11-19，W3F2 卸载重装续测实锤——手测档案 docs/reports/MANUAL-CARD-W3F-卸载重装全流程结果-2026-11-19 续测节）。① **首启向导出口白屏修复**：步四「进入总览」「去文案工坊」与「跳过全部」出口链接此前指向 admin.php（admin_post_* 钩子只由 admin-post.php 派发——点击得到空白页、向导完成状态不翻转），0.8.6 起四条出口链全部改经 admin-post.php 正常派发，完成/跳过后向导状态落盘并跳回总览。② **「测试凭据」徽标当场回写**：探活 AJAX 成功后，五态徽标（贯通/缺字/被拒/契约不符）与「上次测试」时间小字即时更新，不再需要刷新页面；回写按驱动标识命中页内全部同驱动徽标（首启向导页同屏存在步二凭据面与步四上岗确认两处同驱动徽标——两处同时更新），九家凭据探测全覆盖；头像源探测维持不留痕口径不变。测试 2241→2248 / 断言 14830→14899 全绿（W3FixW3F2Test 新 8 例 + W3BatchCTest 出口链生成面钉 + 版本面 pin 全量翻转清单见对应 commit）。
 
 = 0.8.5 =
 

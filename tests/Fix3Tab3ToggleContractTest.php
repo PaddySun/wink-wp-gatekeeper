@@ -183,10 +183,10 @@ final class Fix3Tab3ToggleContractTest extends TestCase {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.5$/m', $entry, '插件头 Version 须为 0.8.5（版本断言随批次推进更新——当前契约面在 UiTab6StatsContractTest）' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.5' )", $entry, '版本常量须为 0.8.5' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.5$/m', $readme, 'readme Stable tag 须为 0.8.5' );
-		$this->assertStringContainsString( '= 0.8.5 =', $readme, 'Changelog 须有 0.8.5 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.6$/m', $entry, '插件头 Version 须为 0.8.6（版本断言随批次推进更新——当前契约面在 UiTab6StatsContractTest）' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.6' )", $entry, '版本常量须为 0.8.6' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.6$/m', $readme, 'readme Stable tag 须为 0.8.6' );
+		$this->assertStringContainsString( '= 0.8.6 =', $readme, 'Changelog 须有 0.8.6 条目' );
 		$this->assertStringContainsString( 'FIX-3', $readme, 'Changelog 须含 FIX-3 锚点' );
 	}
 }

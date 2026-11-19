@@ -86,6 +86,9 @@ final class SettingsPage {
 	/**
 	 * 【W3·批C·R5】向导完成出口 admin action（manage_options + nonce 双闸在 handler；
 	 * GET 链接形态——wp_nonce_url，reactivate_cron 先例）。
+	 * 【W3-FIX·0.8.6】链接生成面=admin-post.php?action=…（admin_post_* 钩子只由
+	 * admin-post.php 派发，admin.php 不派发——0.8.5 出口四链曾用 admin.php 形态=死链，
+	 * W3F2 手测实锤白屏/wizard_state 不翻转；die_preview/审计四件/CSV 导出先例同口径）。
 	 */
 	const ACTION_WIZARD_DONE = 'wink_gatekeeper_wizard_done';
 
@@ -705,7 +708,7 @@ final class SettingsPage {
 		<p class="cred-test">
 			<button type="button" class="button" <?php echo $button_attrs; // 调用方常量（id 锚，非用户输入）。 ?> data-nonce="<?php echo esc_attr( $nonce ); ?>"><?php echo esc_html( $label ); ?></button>
 			<span <?php echo $result_attrs; // 调用方常量（id 锚）。 ?> aria-live="polite"></span>
-			<?php echo self::probe_state_badge( $state, $last_tested ); // 五态徽标闭集（本件转义）。 ?>
+			<?php echo self::probe_state_badge( $state, $last_tested, $driver_key ); // 五态徽标闭集（本件转义；driver_key 随附=JS 回写定位面）。 ?>
 		</p>
 		<?php
 	}
@@ -714,12 +717,17 @@ final class SettingsPage {
 	 * 测试凭据五态徽标（design-system §04 cred-test 样张闭集）：未测试（中性灰初始态）/
 	 * 绿贯通/黄缺字/红被拒/灰契约不符 + 「上次测试：时间 · 状态」等宽小字位。
 	 * 状态词表已按 CredentialProbe 分类三态（绿贯通/黄缺字/红被拒）+ 契约灰档定稿（N1）。
+	 * 【W3-FIX·0.8.6】$driver_key 非空时徽标 span 附 data-wk-driver-key（admin-brand.js
+	 * 探活响应全量回写定位面——向导页同屏同驱动徽标多副本〔步二凭据面+步四上岗引导〕
+	 * 场景必须按属性选择器批量命中；五态词/徽标类与 JS WK_PROBE_BADGE_STATES 双写同源，
+	 * 两处改动须同批同步）。
 	 *
 	 * @param string $state       ''|green|yellow|red|gray（闭集外回落未测试）。
 	 * @param string $last_tested 预格式化时间文案（空=「--」）。
+	 * @param string $driver_key  驱动 id（空=不带键——无回写定位需求的历史位）。
 	 * @return string HTML。
 	 */
-	private static function probe_state_badge( string $state, string $last_tested ): string {
+	private static function probe_state_badge( string $state, string $last_tested, string $driver_key = '' ): string {
 		$states = array(
 			''       => array( 'b-dim', '未测试' ),
 			'green'  => array( 'b-ok', '贯通 · 凭据可用' ),
@@ -729,7 +737,8 @@ final class SettingsPage {
 		);
 		$conf = isset( $states[ $state ] ) ? $states[ $state ] : $states[''];
 		$last = '' !== $last_tested ? $last_tested : '--';
-		return '<span class="test-state"><span class="badge ' . esc_attr( $conf[0] ) . '">' . esc_html( $conf[1] ) . '</span>'
+		$attr = '' !== $driver_key ? ' data-wk-driver-key="' . esc_attr( $driver_key ) . '"' : '';
+		return '<span class="test-state"' . $attr . '><span class="badge ' . esc_attr( $conf[0] ) . '">' . esc_html( $conf[1] ) . '</span>'
 			. '<span class="last-test">' . esc_html( sprintf( __( '上次测试：%s', 'wink-gatekeeper' ), $last ) ) . '</span></span>';
 	}
 
@@ -1278,7 +1287,7 @@ final class SettingsPage {
 					);
 					?>
 					<div class="wizard-foot">
-						<span class="wk-muted"><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '先不配置，直接去设置页（跳过全部）→', 'wink-gatekeeper' ); ?></a></span>
+						<span class="wk-muted"><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '先不配置，直接去设置页（跳过全部）→', 'wink-gatekeeper' ); ?></a></span>
 						<a class="button button-primary" href="<?php echo esc_url( self::wizard_url( 2 ) ); ?>"><?php esc_html_e( '开始第一步 →', 'wink-gatekeeper' ); ?></a>
 					</div>
 				</section>
@@ -1586,14 +1595,14 @@ final class SettingsPage {
 					<div class="wizard-foot">
 						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 1 ) ); ?>"><?php esc_html_e( '重新走一遍向导', 'wink-gatekeeper' ); ?></a></span>
 						<span>
-							<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_DONE . '&to=copy' ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '去文案工坊，把拦截页的话改成你的味儿', 'wink-gatekeeper' ); ?></a>
-							<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_DONE ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '进入总览 →', 'wink-gatekeeper' ); ?></a>
+							<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_DONE . '&to=copy' ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '去文案工坊，把拦截页的话改成你的味儿', 'wink-gatekeeper' ); ?></a>
+							<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_DONE ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '进入总览 →', 'wink-gatekeeper' ); ?></a>
 						</span>
 					</div>
 				</section>
 			</form>
 
-			<p class="wizard-exit wk-muted"><?php esc_html_e( '每一步的「下一步」都会保存当前已填内容；', 'wink-gatekeeper' ); ?><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '跳过全部，直接进设置页 →', 'wink-gatekeeper' ); ?></a></p>
+			<p class="wizard-exit wk-muted"><?php esc_html_e( '每一步的「下一步」都会保存当前已填内容；', 'wink-gatekeeper' ); ?><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '跳过全部，直接进设置页 →', 'wink-gatekeeper' ); ?></a></p>
 		</div>
 		<?php
 	}

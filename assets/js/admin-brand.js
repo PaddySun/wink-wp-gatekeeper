@@ -16,7 +16,12 @@
  * 显隐联动；动图内联时序脚本随 PHP 步二面板自带、不在本文件）；region radio 零 JS
  * 联动面（前端容器 data-wk-region 由 PHP 渲染定型，保存后下次前台渲染生效——施工图
  * 批 C admin-brand.js 行的 region 联动项据此落空，偏差已登记）。
- * 本文件内容变化 → Bootstrap 注册行版本参数后缀递进（-m6b1 → -w3a1 → -w3b1 → -w3c1）。
+ * 【W3-FIX·0.8.6】新增测试凭据徽标全量回写共享件 wkProbeWriteBadges（W3F2 手测缺陷①：
+ * 五态徽标 chip 与「上次测试」小字此前只有刷新后的服务端 probe_log 真值，AJAX 探活
+ * 当场零回写；回写按 data-wk-driver-key 属性选择器 forEach 批量命中——向导页同屏
+ * 同驱动徽标多副本〔步二凭据面+步四上岗引导复用同 id 口径〕场景全量正确）；九个
+ * probe log 闭集驱动探活响应接线（avatar 结果不落库语境不入回写——N1 红线）。
+ * 本文件内容变化 → Bootstrap 注册行版本参数后缀递进（-m6b1 → -w3a1 → -w3b1 → -w3c1 → -w3fix1）。
  */
 ( function () {
 	'use strict';
@@ -253,6 +258,52 @@
 		syncUpgradeRow();
 	} )();
 
+	/* -----------------------------------------------------------------
+	 * 【W3-FIX·0.8.6】测试凭据徽标全量回写共享件（W3F2 手测缺陷①）：
+	 *   五态徽标 chip（.badge）与「上次测试」小字（.last-test）此前只有刷新后的
+	 *   服务端真值（probe_log N1——SettingsPage::probe_state_badge 渲染），AJAX 探活
+	 *   当场不回写。本件在各探活响应成功分支按 driver key 调用：data-wk-driver-key
+	 *   属性选择器 forEach 批量命中全部同驱动徽标（向导页同屏同驱动徽标多副本——
+	 *   步二凭据面 + 步四上岗引导复用同 id 口径——单 id 窄选择器对此场景必漏）。
+	 *   五态词/徽标类与 SettingsPage::probe_state_badge 闭集双写同源（改动须同批
+	 *   同步 W3FixW3F2Test 契约）；avatar 镜像探活不入回写（ok/slow/fail 态在五态
+	 *   闭集外且结果不落库——N1 红线，徽标保持服务端「未测试」真值）。
+	 * ----------------------------------------------------------------- */
+
+	var WK_PROBE_BADGE_STATES = {
+		green:  { badge: 'b-ok',   word: '贯通 · 凭据可用', short: '贯通' },
+		yellow: { badge: 'b-warn', word: '缺字 · 必填缺失', short: '缺字' },
+		red:    { badge: 'b-err',  word: '被拒 · 密钥错', short: '被拒' },
+		gray:   { badge: 'b-dim',  word: '契约不符 · 状态未知', short: '契约不符' }
+	};
+
+	// 本地时刻 m月d日 H:i（服务端 date_i18n 'm月d日 H:i' 同形——上次测试小字当场值）。
+	function wkProbeStamp() {
+		var d = new Date();
+		function p2( n ) {
+			return ( n < 10 ? '0' : '' ) + n;
+		}
+		return p2( d.getMonth() + 1 ) + '月' + p2( d.getDate() ) + '日 ' + p2( d.getHours() ) + ':' + p2( d.getMinutes() );
+	}
+
+	function wkProbeWriteBadges( driverKey, state ) {
+		var conf = WK_PROBE_BADGE_STATES[ state ];
+		if ( ! conf || ! driverKey ) {
+			return;
+		}
+		document.querySelectorAll( '[data-wk-driver-key="' + driverKey + '"]' ).forEach( function ( chip ) {
+			var badge = chip.querySelector( '.badge' );
+			var last  = chip.querySelector( '.last-test' );
+			if ( badge ) {
+				badge.className = 'badge ' + conf.badge;
+				badge.textContent = conf.word;
+			}
+			if ( last ) {
+				last.textContent = '上次测试：' + wkProbeStamp() + ' · ' + conf.short;
+			}
+		} );
+	}
+
 	// 【M5·U4】Tab③ DeepSeek「测试凭据」（GET /models 探活三态——D5 零 token 成本）。
 	var deepseekProbeButton = document.getElementById( 'wk-deepseek-test-btn' );
 	if ( deepseekProbeButton ) {
@@ -290,6 +341,7 @@
 					result.textContent = data.message || '';
 					var dsStateClass = { green: 'wk-probe--green', yellow: 'wk-probe--yellow', red: 'wk-probe--red' };
 					result.className = 'wk-probe ' + ( dsStateClass[ data.state ] || 'wk-probe--gray' );
+					wkProbeWriteBadges( 'deepseek', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -344,6 +396,7 @@
 					result.textContent = data.message || '';
 					var ocStateClass = { green: 'wk-probe--green', yellow: 'wk-probe--yellow', red: 'wk-probe--red' };
 					result.className = 'wk-probe ' + ( ocStateClass[ data.state ] || 'wk-probe--gray' );
+					wkProbeWriteBadges( 'openai_custom', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -396,6 +449,7 @@
 					result.textContent = data.message || '';
 					var uaStateClass = { green: 'wk-probe--green', yellow: 'wk-probe--yellow', red: 'wk-probe--red' };
 					result.className = 'wk-probe ' + ( uaStateClass[ data.state ] || 'wk-probe--gray' );
+					wkProbeWriteBadges( 'url_audit_provider', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -559,6 +613,7 @@
 				if ( payload && payload.success && data ) {
 					result.textContent = data.message || '';
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+					wkProbeWriteBadges( 'tencent', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -618,6 +673,7 @@
 				if ( payload && payload.success && data ) {
 					result.textContent = data.message || '';
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+					wkProbeWriteBadges( 'aliyun', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -675,6 +731,7 @@
 				if ( payload && payload.success && data ) {
 					result.textContent = data.message || '';
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+					wkProbeWriteBadges( 'tencent_tms', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -733,6 +790,7 @@
 				if ( payload && payload.success && data ) {
 					result.textContent = data.message || '';
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+					wkProbeWriteBadges( 'aliyun_green', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -789,6 +847,7 @@
 				if ( payload && payload.success && data ) {
 					result.textContent = data.message || '';
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+					wkProbeWriteBadges( 'baidu', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';
@@ -957,6 +1016,7 @@
 				if ( payload && payload.success && data ) {
 					result.textContent = data.message || '';
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
+					wkProbeWriteBadges( 'abuseipdb', data.state );
 				} else {
 					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
 					result.className = 'wk-probe wk-probe--gray';

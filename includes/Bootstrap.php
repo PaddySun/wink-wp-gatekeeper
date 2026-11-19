@@ -1311,7 +1311,9 @@ final class Bootstrap {
 			// 【W3·批C】本批 JS 内容变化（首启向导交互模块——stepper 显隐/radio-card .on
 			// 同步/下一步 referer 改写/驱动·云审卡面显隐）→ -w3c1（M5Fix 纪律批内递进；
 			// 0.8.5 进位一次击穿在批 D 收口）。
-			WINK_GATEKEEPER_VERSION . '-w3c1',
+			// 【W3-FIX】本批 JS 内容变化（测试凭据徽标全量回写共享件 wkProbeWriteBadges
+			// + 九个 probe log 闭集驱动探活接线——W3F2 手测缺陷①）→ -w3fix1。
+			WINK_GATEKEEPER_VERSION . '-w3fix1',
 			true
 		);
 	}
