@@ -8,7 +8,7 @@
     <rule ref="WordPress"/>
 
     <!-- 插件 Text Domain（WordPress.WP.I18n） -->
-    <config name="text_domain" value="wink-gatekeeper"/>
+    <config name="text_domain" value="wink-wp-gatekeeper"/>
 
     <!-- 检查范围：运行时代码；tests/ 与 tools/ 由规则显式排除 -->
     <file>includes/</file>

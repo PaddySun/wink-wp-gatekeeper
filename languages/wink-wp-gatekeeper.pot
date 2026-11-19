@@ -1,0 +1,3750 @@
+# Copyright (C) 2026 Wink
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Wink WP 保安 0.8.7\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wink-wp-gatekeeper\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-19T19:05:55+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wink-gatekeeper\n"
+
+#. Plugin Name of the plugin
+#: wink-wp-gatekeeper.php
+#: includes/Bootstrap.php:1109
+#: includes/Bootstrap.php:1110
+#: includes/settings/SettingsPage.php:623
+msgid "Wink WP 保安"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wink-wp-gatekeeper.php
+msgid "https://github.com/wink/wink-wp-gatekeeper"
+msgstr ""
+
+#. Description of the plugin
+#: wink-wp-gatekeeper.php
+msgid "对真人眨眨眼，对机器人睁着眼——评论验证 + 登录验证 + 内容过滤三闸合一，验证码与云端审核驱动化可插拔。"
+msgstr ""
+
+#. Author of the plugin
+#: wink-wp-gatekeeper.php
+msgid "Wink"
+msgstr ""
+
+#: includes/Bootstrap.php:1072
+msgid "完成人机验证"
+msgstr ""
+
+#: includes/Bootstrap.php:1073
+msgid "验证码加载中……"
+msgstr ""
+
+#: includes/Bootstrap.php:1074
+msgid "验证中……"
+msgstr ""
+
+#: includes/Bootstrap.php:1075
+msgid "已通过验证"
+msgstr ""
+
+#: includes/Bootstrap.php:1076
+msgid "验证未完成，点击重试"
+msgstr ""
+
+#: includes/Bootstrap.php:1077
+msgid "验证码加载失败，点击重试"
+msgstr ""
+
+#: includes/Bootstrap.php:1078
+msgid "验证组件加载异常，请刷新页面重试。"
+msgstr ""
+
+#: includes/Bootstrap.php:1079
+msgid "验证组件初始化失败，请刷新重试"
+msgstr ""
+
+#: includes/Bootstrap.php:1081
+msgid "网络不佳，请稍后重试或联系站长"
+msgstr ""
+
+#: includes/Bootstrap.php:1082
+msgid "验证码配置缺失，请联系站长。"
+msgstr ""
+
+#: includes/Bootstrap.php:1084
+msgid "验证已过期，请重新验证"
+msgstr ""
+
+#: includes/Bootstrap.php:1086
+msgid "请先完成人机验证"
+msgstr ""
+
+#: includes/Bootstrap.php:1088
+msgid "检查中…"
+msgstr ""
+
+#: includes/Bootstrap.php:1091
+msgid "老朋友，免验放行"
+msgstr ""
+
+#: includes/Bootstrap.php:1094
+msgid "请先完成人机验证再提交"
+msgstr ""
+
+#: includes/Bootstrap.php:1095
+msgid "人机验证未完成，请再点一次提交重试"
+msgstr ""
+
+#: includes/Bootstrap.php:1150
+msgid "Wink WP 保安 · 今日态势"
+msgstr ""
+
+#: includes/Bootstrap.php:1257
+msgid "检测到代理转发头但 IP 来源=直连——per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源。"
+msgstr ""
+
+#: includes/Bootstrap.php:1258
+msgid "前往检查"
+msgstr ""
+
+#: includes/Bootstrap.php:1263
+msgid "系统健康"
+msgstr ""
+
+#: includes/Bootstrap.php:1274
+msgid "已配置"
+msgstr ""
+
+#: includes/Bootstrap.php:1274
+msgid "未配置——验证码阶段整体跳过"
+msgstr ""
+
+#: includes/Bootstrap.php:1287
+msgid "每日维护任务"
+msgstr ""
+
+#: includes/Bootstrap.php:1288
+msgid "已排程"
+msgstr ""
+
+#: includes/Bootstrap.php:1288
+msgid "丢失——事件清理已停摆"
+msgstr ""
+
+#: includes/Bootstrap.php:1290
+msgid "重新激活"
+msgstr ""
+
+#: includes/Bootstrap.php:1294
+msgid "总览详情"
+msgstr ""
+
+#: includes/Bootstrap.php:1302
+msgid "第三方调用量（今日）"
+msgstr ""
+
+#: includes/Bootstrap.php:1304
+#: includes/settings/SettingsPage.php:883
+msgid "今日无外呼。"
+msgstr ""
+
+#: includes/Bootstrap.php:1316
+#: includes/settings/SettingsPage.php:909
+msgid "——已达限，当日暂停"
+msgstr ""
+
+#: includes/Bootstrap.php:1318
+#: includes/Bootstrap.php:1326
+#: includes/Bootstrap.php:1331
+#: includes/settings/SettingsPage.php:918
+msgid " 次"
+msgstr ""
+
+#: includes/Bootstrap.php:1325
+msgid "站点今日总外呼"
+msgstr ""
+
+#: includes/Bootstrap.php:1330
+#: includes/settings/SettingsPage.php:918
+msgid "今日容灾放行"
+msgstr ""
+
+#: includes/Bootstrap.php:1331
+#: includes/settings/SettingsPage.php:918
+msgid "——验证码服务不稳的晴雨表"
+msgstr ""
+
+#: includes/Bootstrap.php:1334
+msgid "查调用明细"
+msgstr ""
+
+#: includes/Bootstrap.php:1341
+msgid "今日：拦截"
+msgstr ""
+
+#: includes/Bootstrap.php:1343
+msgid "｜ 待审"
+msgstr ""
+
+#: includes/Bootstrap.php:1345
+msgid "｜ 驱动错误"
+msgstr ""
+
+#: includes/Bootstrap.php:1349
+msgid "查看详情"
+msgstr ""
+
+#: includes/Bootstrap.php:1369
+#: includes/settings/SettingsPage.php:1235
+#: includes/settings/SettingsPage.php:1254
+#: includes/settings/SettingsPage.php:5040
+#: includes/settings/SettingsPage.php:5247
+#: includes/settings/SettingsPage.php:5614
+#: includes/settings/SettingsPage.php:5631
+#: includes/settings/SettingsPage.php:5656
+#: includes/settings/SettingsPage.php:6407
+msgid "权限不足。"
+msgstr ""
+
+#: includes/Bootstrap.php:1453
+msgid "wink 验证码演练模式启用中——全站人机验证旁路（24h 自动过期）"
+msgstr ""
+
+#: includes/gates/CommentGate.php:1233
+msgid "评论未通过验证。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:603
+#: includes/settings/SettingsPage.php:2894
+#: includes/settings/SettingsPage.php:2943
+#: includes/settings/SettingsPage.php:3008
+#: includes/settings/SettingsPage.php:3075
+#: includes/settings/SettingsPage.php:3140
+#: includes/settings/SettingsPage.php:4888
+#: includes/settings/SettingsPage.php:4953
+#: includes/settings/SettingsPage.php:5084
+#: includes/settings/SettingsPage.php:5131
+#: includes/settings/SettingsPage.php:5188
+#: includes/settings/SettingsPage.php:6693
+#: includes/settings/SettingsPage.php:7403
+msgid "权限不足：需要 manage_options。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:627
+msgid "对真人眨眨眼，对机器人睁着眼。"
+msgstr ""
+
+#. translators: %s: 今日拦截数
+#: includes/settings/SettingsPage.php:630
+#, php-format
+msgid "今日拦截 %s"
+msgstr ""
+
+#. translators: %s: 版本号
+#: includes/settings/SettingsPage.php:631
+#, php-format
+msgid "v%s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:638
+msgid "Wink WP 保安设置分区"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:657
+msgid "保存设置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:782
+#, php-format
+msgid "上次测试：%s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:881
+msgid "今日调用量"
+msgstr ""
+
+#. translators: %d: 站点今日总外呼次数
+#: includes/settings/SettingsPage.php:881
+#, php-format
+msgid "站点总外呼 %d 次"
+msgstr ""
+
+#. translators: %d: 调用次数
+#. translators: %d: 今日出错次数
+#: includes/settings/SettingsPage.php:911
+#: includes/settings/SettingsPage.php:6255
+#, php-format
+msgid "%d 次"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1132
+msgid "三步开始防护"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1133
+msgid "选验证码（Tab② 验证码）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1134
+msgid "配云审 / IP 信誉（Tab③ 内容审核 / Tab④ IP 信誉）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1135
+msgid "在各配置卡点「测试凭据」实测连通。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1136
+msgid "配好任意一家后本提示自动消失。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1137
+msgid "从第一步开始 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1141
+msgid "防护已上岗。想补齐验证码 / 云端审核 / IP 信誉，随时重走一遍首启向导（也可在各 Tab 直接细配）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1142
+msgid "继续配置（向导）→"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1303
+msgid "欢迎"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1304
+msgid "人机验证"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1305
+msgid "内容审核"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1306
+msgid "完成"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1315
+msgid "三步上岗，五分钟搞定"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1316
+msgid "Wink WP 保安是站在你的博客门口的保安：拦垃圾评论、防撞库登录、可疑内容转人工。接下来带你配好两把最关键的钥匙——配到哪一步都可以随时跳过，跳过的部分会有兜底防护，不会裸奔。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1318
+msgid "STEP 1 人机验证——选一家验证码服务商，把机器人挡在门外。真实访客正常时零感知。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1319
+msgid "STEP 2 内容审核——站内规矩免费在场；再配一家云端审核，机器措辞也逃不掉。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1320
+msgid "STEP 3 测一测凭据——每配好一家点一次「测试凭据」，绿了才算上岗。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1326
+msgid "只配站内规矩也能用——云端审核是增强层，不配不影响基本防护；配了会把站内规矩拦不住的评论再送审一遍。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1330
+msgid "先不配置，直接去设置页（跳过全部）→"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1331
+msgid "开始第一步 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1337
+msgid "第一步 · 人机验证"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1338
+msgid "选一家验证码服务商。境内站推荐默认那家——访客在境内加载快。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1342
+msgid "阿里云验证码 2.0"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1343
+#: includes/settings/SettingsPage.php:1439
+#: includes/settings/SettingsPage.php:1504
+msgid "推荐 · 默认"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1344
+msgid "境内直连快 · 免费额度充足 · 智能验证不打扰真人。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1348
+msgid "腾讯天御 2.0"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1349
+msgid "默认退役：账号套餐停止，不再默认推荐——存量已配置的站点仍可用。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1353
+#: includes/settings/SettingsPage.php:1529
+msgid "暂不配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1354
+msgid "评论闸仍保留站内规矩四道防线；之后随时可在「② 验证码」页配置。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1360
+#: includes/settings/SettingsPage.php:1566
+msgid "AccessKeyId / AccessKeySecret（阿里 RAM）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1363
+msgid "SceneId（场景 ID · 必填）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1365
+msgid "prefix（前端身份标 · 必填）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1367
+msgid "去哪拿：阿里云控制台 → 验证码 2.0 → 场景管理，创建场景后把 SceneId 与 prefix 一起复制过来；RAM 密钥需授权 AliyunYundunAFSFullAccess。粘贴后点下方「测试凭据」，绿 = 凭据通，黄 = 有字段漏填，红 = 密钥被拒。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1373
+#: includes/settings/SettingsPage.php:1423
+#: includes/settings/SettingsPage.php:1546
+#: includes/settings/SettingsPage.php:1560
+#: includes/settings/SettingsPage.php:1575
+#: includes/settings/SettingsPage.php:1590
+#: includes/settings/SettingsPage.php:1606
+#: includes/settings/SettingsPage.php:1732
+#: includes/settings/SettingsPage.php:1740
+#: includes/settings/SettingsPage.php:2651
+#: includes/settings/SettingsPage.php:2804
+#: includes/settings/SettingsPage.php:3607
+#: includes/settings/SettingsPage.php:3729
+#: includes/settings/SettingsPage.php:3823
+#: includes/settings/SettingsPage.php:3940
+#: includes/settings/SettingsPage.php:4069
+#: includes/settings/SettingsPage.php:4457
+#: includes/settings/SettingsPage.php:5442
+msgid "测试凭据"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1383
+msgid "天御已默认退役（存量可用）——配置面在「② 验证码」页，此处只作选择保留。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1392
+msgid "已选择「暂不配置」——评论闸只靠站内规矩把关，验证码阶段整体跳过。总览页会持续亮黄条提醒你回来补配。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1401
+msgid "IP 信誉（AbuseIPDB）· 可选——配好验证码后顺手接上"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1406
+msgid "按 IP 前科对可疑访客从严（强制先过人机验证再放行）——评论与登录两闸共用；不接也不影响上面任何防护，之后随时可在「④ IP 信誉」页细配（阈值/软顶/日配额都在该页 ⚙ 高级配置）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1411
+msgid "开启 IP 信誉查询"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1412
+msgid "填了 Key 才真正生效；关闭或未填 Key 时信任链跳过该项。启用后访客 IP 会送境外服务查询——出境提示见 Tab④。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1415
+msgid "AbuseIPDB API Key"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1417
+msgid "免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取；查询按次计额度，软顶/日配额两道闸在 Tab④ ⚙ 高级配置里调。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1432
+#: includes/settings/SettingsPage.php:2490
+msgid "提交触发形态"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1433
+msgid "访客过码的方式怎么触发——两种形态，下方动图直观对比（效果示意非实录）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1438
+#: includes/settings/SettingsPage.php:1705
+msgid "无按钮模式"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1440
+msgid "不渲染独立验证按钮——点原生「发表评论 / 登录」即验证，过码后自动续提。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1444
+msgid "独立验证按钮（经典）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1445
+msgid "先点表单内「完成人机验证」按钮过码，再点提交——0.8.3 及以前形态。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1452
+msgid "① 点提交——访客点「发表评论」（无按钮模式：提交被截住，验证弹层自动弹出）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1453
+msgid "② 过码——滑块/智能验证在弹层内完成"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1454
+msgid "③ 自动续提——过码后无需再点一次，Toast「正在接收检查」"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1455
+msgid "④ 落地——评论进入站内规矩 → 云审 → IP 信誉链路"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1457
+msgid "循环演示：无按钮模式 ↔ 经典按钮（经典=先点「完成人机验证」再提交，多第一步）· 效果示意非实录。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1478
+#: includes/settings/SettingsPage.php:1622
+msgid "先跳过这步 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1480
+#: includes/settings/SettingsPage.php:1624
+msgid "← 上一步"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1481
+msgid "下一步 · 内容审核 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1488
+msgid "第二步 · 内容审核"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1489
+msgid "站内规矩（字数 / 无中文 / 关键词）已经免费在场。想再强一点，配一家云端审核——由它把关措辞与变体广告。选「暂不配置」完全不影响已有防护。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1495
+#: includes/settings/SettingsPage.php:3438
+msgid "启用云端审核"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1496
+msgid "开启后按「本地规则 → 已选云端驱动」串联送审；本地规则恒在链首不可关闭。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1503
+msgid "百度文本审核"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1505
+msgid "推荐 · 国内直连 / 按量计费——开通门槛最低的一家。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1509
+msgid "DeepSeek（LLM 审核）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1510
+msgid "次选——会「读懂人话」的审核，判定更强；送审出境。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1514
+msgid "阿里文本审核增强版 PLUS"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1515
+msgid "境内 · 双通道分送（昵称/正文分开送）· 与阿里验证码同账号顺路。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1519
+msgid "腾讯 TMS 文本审核"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1520
+msgid "境内 · 与腾讯云生态顺路（已有腾讯云密钥就选它）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1524
+msgid "自定义 OpenAI 兼容端点"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1525
+msgid "中转 / 自建网关场景——端点与模型名手填。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1530
+msgid "只用站内规矩——完全够用，之后随时在「③ 内容审核」页补配。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1537
+msgid "API Key / Secret Key（百度智能云应用）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1540
+msgid "选它当默认推荐的理由＝开通门槛最低：百度智能云免费开通、按量计费、境内直连不出境，两把钥匙拿到就能用。粘贴后点「测试凭据」（良性样本真调用）：绿 = 凭据通，黄 = 必填缺（逐字段列出），红 = 密钥被拒。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1552
+msgid "API Key（DeepSeek 开放平台）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1554
+msgid "注意：LLM 审核会把评论正文送出境（DeepSeek 开放平台）；评论 IP 不送审。按量计费——超日配额自动先进待审区，不会爆账单。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1569
+msgid "已在第一步选了阿里云验证码？可与它共用同一 RAM 用户（同账号双产品线）。双 Service 分送：昵称、邮箱+正文各走各的通道（OR 取严）。需补授内容安全增强版权限。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1581
+msgid "SecretId / SecretKey（腾讯云 CAM）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1584
+msgid "境内、按次计费有免费额度；与腾讯云生态顺路。启用后评论的昵称、邮箱、正文会送审至第三方（腾讯云，境内）——此提示常驻。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1596
+msgid "接入地址 / API Key / 模型名（手填）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1599
+msgid "模型名须与端点一致（测试凭据可校验 /models 列表）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1600
+msgid "端点所在司法辖区未知——通用出境提示常驻，请自行评估合规。路径前缀陷阱：OpenAI 官方族填到 …/v1（本插件在其后拼 /chat/completions）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1616
+msgid "好选择——站内规矩始终在岗，零成本零外呼。总览页不会为这一项亮黄条。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1625
+msgid "完成配置 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1632
+msgid "上岗确认单"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1633
+msgid "配好几步算几步——下面是你当前的防护清单，缺的项随时可在设置页补。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1636
+msgid "重新走一遍向导"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1638
+msgid "去文案工坊，把拦截页的话改成你的味儿"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1639
+msgid "进入总览 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1645
+msgid "每一步的「下一步」都会保存当前已填内容；"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1645
+msgid "跳过全部，直接进设置页 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1665
+#: includes/settings/SettingsPage.php:3403
+msgid "已开启"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1665
+#: includes/settings/SettingsPage.php:2249
+#: includes/settings/SettingsPage.php:3404
+msgid "未开启"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1669
+msgid "WordPress 原生审核开关已开启"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1670
+msgid "——评论过码后仍需人工批准（这不是故障）。"
+msgstr ""
+
+#. translators: 1: 手动批准状态 2: 先前已批准状态
+#: includes/settings/SettingsPage.php:1673
+#, php-format
+msgid "「评论必须手动批准」：%1$s；「作者须有先前已批准的评论」：%2$s。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1677
+msgid "去讨论设置调整"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1691
+msgid "未配置——评论验证码阶段跳过"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1705
+msgid "经典按钮"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1705
+msgid "阿里云验证码 2.0 · 四键未配齐"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1707
+msgid "腾讯天御 2.0 · 凭据已配（存量可用）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1707
+msgid "腾讯天御 2.0 · 凭据未配齐"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1719
+msgid "站内规矩四道防线 · 已在岗（字数 / 无中文 / 关键词 / 正则——免费、零外呼、永远开着）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1720
+msgid "人机验证 · "
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1721
+msgid "云端审核 · 已启用（所选服务商凭据以「测试凭据」绿态为准）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1721
+msgid "云端审核 · 未启用（站内规矩照常把关）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1722
+msgid "IP 信誉（AbuseIPDB）· 已启用（凭据以「测试凭据」绿态为准）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1722
+msgid "IP 信誉（AbuseIPDB）· 可选增强——不配不影响以上防护"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1725
+msgid "最后一步：点「测试凭据」，绿了才算上岗。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1745
+msgid "云审与 IP 信誉的「测试凭据」在对应折叠卡/「③ 内容审核」「④ IP 信誉」页；各按钮的状态徽标与「上次测试」时间已持久化（N1）。"
+msgstr ""
+
+#. translators: 1: processed 2: total
+#: includes/settings/SettingsPage.php:1775
+#, php-format
+msgid "历史评论体检进行中（已处理 %1$d / 共 %2$d）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1779
+#: includes/settings/SettingsPage.php:6754
+msgid "暂停"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1780
+#: includes/settings/SettingsPage.php:1794
+msgid "看报告 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1793
+msgid "存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1811
+msgid "全站人机验证暂时被跳过，仅用于链路演练；24 小时后自动结束（旁路事件标注 drill，不进统计）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1812
+msgid "现在去关闭"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1823
+msgid "统计计数已停用"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1824
+msgid "下方战报不记账；事件记录照常落库（以 Tab⑥ 为准）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1825
+msgid "去开启"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1835
+#: includes/settings/SettingsPage.php:2326
+msgid "人机验证还没选服务商"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1836
+msgid "机器人不会被出题拦住；评论仍受站内规矩把关。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1837
+#: includes/settings/SettingsPage.php:1850
+#: includes/settings/SettingsPage.php:3313
+#: includes/settings/SettingsPage.php:6568
+msgid "去配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1848
+msgid "内容审核已启用，但还没配好任何一家审核服务商"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1849
+msgid "评论目前全靠站内规矩把关。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1861
+msgid "可疑：IP 上报请求今天突然增多"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1862
+msgid "可能有伪造验证码的脚本在批量触发上报，或有人试图把你的站点当枪使（诬报）。拦截照常有效、上报有冷却与限额兜底；若持续出现，可在 IP 信誉 → 上报分区临时关闭对应触发面。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1863
+msgid "去看上报设置"
+msgstr ""
+
+#. translators: %s: 日期（n月j日）.
+#: includes/settings/SettingsPage.php:1941
+#, php-format
+msgid "今日战报（%s）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1944
+msgid "统计：开启中"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1944
+msgid "统计：已停用"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1950
+msgid "统计已停用，今日没有记账（事件记录照常）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1955
+msgid "评论闸"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1961
+msgid "没有可疑评论"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1966
+msgid "登录闸"
+msgstr ""
+
+#. translators: %d: 密码输错次数.
+#: includes/settings/SettingsPage.php:1973
+#, php-format
+msgid "密码输错 %d 次，出码拦下"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1976
+msgid "没人试图撬门"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1981
+msgid "注册·找回闸"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1983
+msgid "没有异常注册或找回"
+msgstr ""
+
+#. translators: 1: 待你过目. 2: 条数.
+#: includes/settings/SettingsPage.php:1991
+#, php-format
+msgid "%1$s的评论 %2$d 条 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1995
+msgid "去处理"
+msgstr ""
+
+#. translators: %d: IP 信誉强制验证码次数.
+#: includes/settings/SettingsPage.php:2000
+#, php-format
+msgid "另有 IP 信誉强制验证码 %d 次（单列口径——不计入上方数字）"
+msgstr ""
+
+#. translators: 1: 垃圾箱存档. 2: 条数.
+#: includes/settings/SettingsPage.php:2008
+#, php-format
+msgid "%1$s %2$d 条 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2012
+msgid "去看看（该清一清了）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2012
+msgid "去看看"
+msgstr ""
+
+#. translators: %d: 服务商数.
+#: includes/settings/SettingsPage.php:2060
+#, php-format
+msgid "服务商点名册（%d 名）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2063
+msgid "没出错的也每天点名，一眼见分晓"
+msgstr ""
+
+#. translators: %s: 未配置服务商人话名清单.
+#: includes/settings/SettingsPage.php:2071
+#, php-format
+msgid "未配置的服务商：%s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2074
+msgid "去配置 →"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2202
+msgid "最近岔子"
+msgstr ""
+
+#. translators: %d: 条数.
+#: includes/settings/SettingsPage.php:2205
+#, php-format
+msgid "（最近 %d 条）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2209
+msgid "完整记录 → 统计页"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2211
+msgid "最近 7 天风平浪静。"
+msgstr ""
+
+#. translators: 1: 统计计数态. 2: 演练模式态. 3: 当前事件行数. 4: 容量上限.
+#: includes/settings/SettingsPage.php:2246
+#, php-format
+msgid "统计计数 %1$s · %2$s %3$s · 事件记录 %4$d / %5$d 条"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2247
+msgid "开启"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2247
+msgid "停用"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2249
+#: includes/settings/SettingsPage.php:6851
+msgid "进行中"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2327
+msgid "机器人不会被出题拦住；评论仍受站内规矩把关，请在下方「驱动选择」中挑选。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2344
+msgid "闸开关"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2350
+msgid "评论闸 · 启用评论保护"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2351
+msgid "= 本地规则四闸 + 验证码 + IP 信誉三阶段总开关；只关验证码请把驱动选「未配置」。关闭后评论表单零 DOM 变化、提交不验证。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2362
+msgid "评论保护·信用免验（预检免验证码）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2365
+msgid "信用免验"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2371
+msgid "点击「完成人机验证」时先预检（本地四闸 + IP 信誉 + 历史信用），全过免真实验证码"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2373
+msgid "预检是 UX 预演——提交期四闸/云审照常全链兜底，免验的只有验证码挑战这一件事。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2377
+msgid "已批评论阈值 N"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2380
+msgid "游客（同昵称+邮箱）或登录用户已有 N 条通过审核的评论即免验；WP 核心同类先例为 1，验证码豁免更强故默认收紧至 3。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2384
+msgid "信任凭证有效期（分钟）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2387
+msgid "预检通过签发信任凭证（绑定 IP+表单+身份，不绑内容——改内容重提不失效）；与验证短缓存窗口同宽。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2391
+msgid "信用缓存（分钟）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2394
+msgid "历史信用判定的布尔缓存 TTL（0 = 每次点击都查库）；站长批准新评论后缓存即时失效。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2398
+msgid "预检限流（次/时/IP）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2401
+msgid "封脚本高频试探关键词表/邮箱信用；真人一小时点按钮不超过个位数，30 容纳改稿重试。超限一律降级为出验证码。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2410
+#: includes/settings/SettingsPage.php:2872
+msgid "IP 信誉三态："
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2412
+#: includes/settings/SettingsPage.php:2874
+msgid "未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2413
+#: includes/settings/SettingsPage.php:2875
+msgid "→ 去配置 IP 信誉（Tab④）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2417
+msgid "整页缓存提示：启用整页缓存的站点建议缓存周期 <12 小时——nonce 陈旧会使免验静默退化为恒出码（fail-safe，不伤提交）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2423
+msgid "登录闸 · 启用登录验证"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2424
+msgid "模式档位见右侧下拉；阈值/窗口等细节在本卡下方「登录保护」独立卡。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2426
+msgid "登录验证出现时机"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2427
+msgid "关闭"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2427
+msgid "自适应（默认）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2427
+msgid "常显"
+msgstr ""
+
+#. translators: 1: 同用户名失败阈值 2: 同 IP 聚合阈值（均随当前配置值渲染）
+#: includes/settings/SettingsPage.php:2435
+#, php-format
+msgid "自适应：同一账户跨 IP 累计 %1$d 次口令错误（仅统计真实存在的账户）、或同 IP 聚合 %2$d 次、或站点级账号警报点亮后，登录页才出现验证码，平时零打扰；常显：每次登录都先验证。失败计数对 XML-RPC 同样生效；验证码驱动未配置时超阈也不拦。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2453
+msgid "启用（常显——进页面即出验证码）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2454
+msgid "未配置验证码驱动时自动不渲染不拦截；「设置 → 常规」关闭任何人可注册后注册表单不可达（开关空转无害）；多站点注册走 wp-signup.php，本闸不覆盖。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2461
+msgid "驱动选择"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2462
+msgid "验证码驱动"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2478
+msgid "选择厂商后下方显示配置区；切换厂商不清空已填字段（各自独立保存）。「未配置」= 验证码阶段整体跳过。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2494
+msgid "无按钮模式（默认）——不渲染独立验证按钮，访客直接点「发表评论/登录」即触发人机验证，过码后自动放行提交"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2498
+msgid "独立验证按钮（经典）——先点表单内「完成人机验证」按钮过码，再提交（0.8.3 及以前形态）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2500
+msgid "0.8.4 起默认无按钮模式（一刀切——升级站点前台形态即切换）；无 JS 或验证组件故障时自动回退经典按钮形态，服务端核验永远兜底。评论/登录/注册/找回四表单同型。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2515
+msgid "演练模式（旁路人机验证）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2516
+msgid "启用后全站人机验证旁路，仅用于链路演练。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2517
+msgid "启用中 24 小时后自动过期；旁路事件标注 drill（不进统计）、不写验证短缓存；内容闸/云审/IP 阶段照常全链兜底。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2523
+msgid "启用演练模式"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2527
+msgid "我确认要旁路全站人机验证（二次确认）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2551
+msgid "腾讯天御验证码 2.0 · 配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2552
+msgid "退役 · 存量可用"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2553
+msgid "默认已退役（出厂默认已切阿里云验证码 2.0——H-3 breaking）：选中本卡仍可维护存量凭据，四键照常可用。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2566
+#: includes/settings/SettingsPage.php:2678
+#: includes/settings/SettingsPage.php:3512
+#: includes/settings/SettingsPage.php:3625
+#: includes/settings/SettingsPage.php:3746
+#: includes/settings/SettingsPage.php:3843
+#: includes/settings/SettingsPage.php:3967
+msgid "接入指引（首次配置请展开）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2573
+#: includes/settings/SettingsPage.php:2685
+msgid "验证码控制台"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2574
+msgid "票据核验 API 文档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2581
+#: includes/settings/SettingsPage.php:2585
+msgid "CaptchaAppId"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2586
+msgid "验证码控制台 → 验证管理 → 密钥列（公开级，前端组件加载用）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2590
+#: includes/settings/SettingsPage.php:3524
+msgid "SecretId（CAM）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2593
+msgid "云 API 密钥（TC3 签名用，访问管理 → API 密钥管理）。与验证码控制台的 AppSecretKey 分属两套凭据体系。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2597
+#: includes/settings/SettingsPage.php:3531
+msgid "SecretKey（CAM）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2600
+msgid "与 SecretId 配对的 CAM 密钥，仅服务端 TC3 签名使用，绝不出前端。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2604
+msgid "AppSecretKey（验证码控制台）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2607
+msgid "验证码控制台与 CaptchaAppId 同页的密钥——核验请求 body 必填参数（服务端在线校验强制，2026-11-09 实测定论）。仅服务端使用。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2618
+msgid "机器分阈值（min_score）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2623
+msgid "评分制驱动专用：机器分折算 (0,1] 后低于该阈值即按不通过拦截（服务端钳 0.1–1.0，防 0 形同虚设/1.5 恒拒）。事件 meta 记 score+threshold 可查差值。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2628
+msgid "容灾票据（网络差放行）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2633
+msgid "网络差时放行（默认）——前端容灾票按通过 + 每 IP 每小时限 5 次 + 事件标注 trerror"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2637
+msgid "拦截（安全优先）——攻击期临时切换，容灾票一律不认"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2639
+msgid "官方语义：弱网用户可能拿到容灾票（trerror 前缀），默认拦了就是误杀真人；限速防滥用。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2655
+msgid "发一次全参假票核验：绿 = 凭据可用；红 = CAM 密钥（SecretId/SecretKey）错；黄 = 必填参数缺。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2667
+msgid "阿里云验证码 2.0 · 配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2686
+msgid "VerifyIntelligentCaptcha API 文档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2693
+#: includes/settings/SettingsPage.php:3637
+msgid "AccessKeyId"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2696
+msgid "RAM AccessKey（禁主账号 AK——ACS3 V3 签名用，访问管理 → RAM）。仅服务端使用，绝不出前端。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2700
+#: includes/settings/SettingsPage.php:3644
+msgid "AccessKeySecret"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2703
+msgid "与 AccessKeyId 配对的 RAM 密钥（HMAC 签名密钥原文）。仅服务端使用。RAM 用户需授权 AliyunYundunAFSFullAccess。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2707
+#: includes/settings/SettingsPage.php:2711
+msgid "SceneId"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2712
+msgid "验证码控制台 → 场景管理（必填——服务端补传防前端被篡改场景，错配返回 F012）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2716
+#: includes/settings/SettingsPage.php:2720
+msgid "prefix（身份标）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2721
+msgid "控制台概览页获取——前端 AliyunCaptchaConfig 全局配置用（前端公开级参数，非服务端 API 凭据）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2725
+msgid "前端形态（mode）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2731
+msgid "弹层（默认）——零占位：访客点「发表评论 / 登录」直接弹出交互弹层（无按钮模式主形态）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2735
+msgid "嵌入触发条——页内渲染「点击开始验证」触发条，点击后弹出拼图/图像复原交互弹层（0.8.4 及以前默认形态）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2737
+msgid "滑块宽度按官方最小 320px 传参；mode 切换不影响服务端核验链路（票据核验同一接口）。推荐档已平移（embed→popup）——升级站点凭据已配=保留嵌入形态显式选择；未配凭据=按新默认弹层。选回嵌入触发条并保存后不再平移。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2746
+msgid "高级配置（服务区域 / 故障处置）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2751
+msgid "故障时怎么办"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2758
+msgid "故障即拦（默认）——验证码服务出岔子时宁可不放行（安全优先）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2759
+msgid "受限放行——仅传输类故障 + 每 IP 每小时 5 次限流放行"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2761
+msgid "对两驱动共用（captcha 子树顶层键）；限流超额按「故障即拦」收口。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2765
+msgid "服务区域（region）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2771
+msgid "中国大陆（cn · 默认）——端点 captcha.cn-shanghai.aliyuncs.com"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2775
+msgid "海外（sgp）——端点 captcha.ap-southeast-1.aliyuncs.com（未实机验证）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2777
+msgid "region 须与服务端一致——前端 SDK 与服务端 endpoint 双端联动，错配即报错；切换后建议点测试凭据实测一次。sgp 档端点为静态推断（未实机验证；若真机复验不过则该档停用）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2790
+msgid "每日验证额度"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2790
+#: includes/settings/SettingsPage.php:7186
+#: includes/settings/SettingsPage.php:7190
+#: includes/settings/SettingsPage.php:7194
+#: includes/settings/SettingsPage.php:7234
+#: includes/settings/SettingsPage.php:7252
+#: includes/settings/SettingsPage.php:7257
+#: includes/settings/SettingsPage.php:7264
+#: includes/settings/SettingsPage.php:7269
+#: includes/settings/SettingsPage.php:7293
+#: includes/settings/SettingsPage.php:7298
+msgid "规划 · 待施工"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2791
+msgid "规划口径：额度用完当日停转、次日自愈。当前验证码服务未设每日上限（本行暂无任何设置项）——实装后转实线卡。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2808
+msgid "发一次假参实调（VerifyIntelligentCaptcha）：绿 = 凭据可用；红 = AccessKey/签名/权限错（含 RAM 未授权提示）；黄 = 必填参数缺。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2817
+msgid "登录保护"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2818
+msgid "超阈出码——不锁账号、不误伤真实用户：窗口内超阈只加验证码挑战，不锁账号不锁 IP（避免锁死办公室出口/家庭 NAT 的真人；Wordfence 式硬封锁刻意不做）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2821
+msgid "同用户名失败阈值"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2825
+msgid "同一账户跨 IP 累计 N 次口令错误出码——分布式爆破也触发；仅统计真实存在的账户。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2829
+msgid "计数窗口（分钟）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2832
+msgid "失败计数的固定窗口：窗口过后计数自然清零（成功登录立即清零）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2836
+msgid "同 IP 失败阈值"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2839
+msgid "同 IP 换用户名喷洒的聚合阈值：无论用户名怎么换，累计达此次数即触发。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2843
+msgid "IP 信誉联动"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2849
+msgid "启用后按 IP 信誉三态参与登录出码判定"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2851
+msgid "未启用 IP 信誉时信任链跳过该项，不影响登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（直接展示验证码）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2855
+msgid "关闭 XML-RPC 登录"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2862
+msgid "彻底关闭 XML-RPC 登录（推荐加固）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:2864
+msgid "默认关闭（0.4.5 起）：使用 XML-RPC 发布工具（博客客户端）的站长请取消勾选并保存以开启；升级站点已开启的不受影响。勾选后登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；system.listMethods 等只读方法不受影响。开启状态下超阈计数也会先行逐次拒绝 XML-RPC 认证（验证码无法在 XML-RPC 内呈现）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3208
+msgid "已配置 ✓（留空保存则不修改）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3215
+msgid "清除此凭据"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3311
+msgid "云端审核还没配置，也没开启"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3312
+msgid "评论目前只走本地规则闸（字数/中文/禁词）；想加云端送审，请在下方「云端审核」卡开启并选择一家服务商。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3340
+msgid "本地规则（四闸，上游迁移）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3343
+msgid "字数下限"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3346
+msgid "字（0 = 不限）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3350
+msgid "字数上限"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3353
+msgid "字（默认 1800）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3357
+msgid "要求包含中文"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3362
+msgid "无中文评论拦截"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3364
+msgid "评论正文不含任何中文字符时拦截（上游四闸之三）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3368
+msgid "自定义禁止关键词"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3370
+msgid "每行一个；/正则/flags 形态按正则匹配，如 /代.{0,3}开发票/i"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3371
+msgid "非法正则行自动跳过并记入事件（不影响其它行）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3375
+msgid "联动 WP 讨论设置关键词"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3380
+msgid "合并「设置 → 讨论 → 被禁止的关键词」"
+msgstr ""
+
+#. translators: %s: 关键词数
+#: includes/settings/SettingsPage.php:3385
+#, php-format
+msgid "当前 %s 条："
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3389
+msgid "管理"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3409
+msgid "WP 原生两开关（只读展示）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3418
+msgid "「评论必须手动批准」（设置 → 讨论）："
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3420
+msgid "已开启：即使插件审核通过，评论仍需你在 WP 侧人工批准后才会显示。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3421
+msgid "「作者须有先前已批准的评论」："
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3423
+msgid "已开启：即使插件审核通过，没有批准记录的老作者评论仍需人工批准。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3424
+msgid "本插件只读展示、不改这两个开关的行为；如需调整请到"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3425
+msgid "设置 → 讨论"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3435
+msgid "云端审核"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3443
+msgid "开启后按「本地规则 → 已选云端驱动」串联送审（failover 链）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3445
+msgid "本地规则恒在链首且不可关闭；某驱动故障时自动接力下一驱动，云端全部故障时按各驱动「故障降级」档处理（默认入待审）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3449
+msgid "当前云端审核驱动"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3467
+msgid "云端审核驱动"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3481
+msgid "选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek 已实装；模力为后续里程碑驱动。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3502
+msgid "腾讯云 TMS 文本审核 · 配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3514
+msgid "腾讯云控制台开通「内容安全 · 文本审核」并购买/领取套餐包（TextModeration 按策略计费）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3515
+msgid "内容安全控制台获取策略编号（BizType，如 TencentCloudDefault 或自定义策略）——建议填写绑定套餐包的策略。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3516
+msgid "准备 CAM 密钥对（访问管理 → API 密钥管理，与验证码的 CAM 密钥同体系，可复用同对）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3517
+msgid "粘贴至下方 → 点「测试凭据」（正常文本实测应返回 Pass）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3519
+msgid "TextModeration API 文档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3527
+msgid "云 API 密钥（TC3 签名用）。仅服务端使用，绝不出前端。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3534
+msgid "与 SecretId 配对的 CAM 密钥。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3538
+msgid "BizType（策略编号）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3542
+msgid "内容安全控制台的识别策略编号。官方参数可选（留空走默认策略）；建议填写绑定套餐包的策略，未开通对应策略时会收到「未获接口授权」。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3552
+msgid "高级配置（直拒阈值 / 超时 / 日配额 / 故障处置）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3557
+msgid "直拒分数阈值"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3561
+msgid "（0-100，默认 80）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3562
+msgid "腾讯判定 Block 且分数 ≥ 此值才直接拦截；低于阈值降为入待审（人工复核）。实测恶意广告样本 99 分，默认 80 留出灰区缓冲。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3566
+#: includes/settings/SettingsPage.php:3688
+#: includes/settings/SettingsPage.php:3782
+msgid "超时"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3570
+#: includes/settings/SettingsPage.php:3692
+#: includes/settings/SettingsPage.php:3786
+msgid "秒（默认 8）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3574
+#: includes/settings/SettingsPage.php:3696
+#: includes/settings/SettingsPage.php:3790
+#: includes/settings/SettingsPage.php:4409
+msgid "日配额"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3578
+msgid "次/天（0 = 不限）——达到后当日停用并按「故障降级」处理"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3582
+#: includes/settings/SettingsPage.php:3704
+#: includes/settings/SettingsPage.php:3798
+msgid "故障降级"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3587
+#: includes/settings/SettingsPage.php:3709
+#: includes/settings/SettingsPage.php:3803
+msgid "入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3591
+#: includes/settings/SettingsPage.php:3713
+#: includes/settings/SettingsPage.php:3807
+msgid "放行——故障时不拦不待审（仅本地规则生效）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3611
+msgid "发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3615
+msgid "阿里云内容安全·文本审核增强版 PLUS · 配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3627
+msgid "阿里云控制台开通「内容安全 · 文本审核增强版」（TextModerationPlus，Green 2022-03-02）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3628
+msgid "准备 RAM AccessKey 对（可与验证码 2.0 共用同一 RAM 用户），并授予 AliyunYundunGreenWebFullAccess 权限。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3629
+msgid "粘贴至下方（双 Service 名默认 nickname/comment_detection_pro，一般无需修改）→ 点「测试凭据」。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3630
+msgid "判定映射（站长不可调）：RiskLevel none/low→放行、medium→入待审、high→直接拦截；分档界线在阿里控制台规则配置。如需 medium/low 中间态与小数置信分，请在内容安全控制台规则配置中开启细粒度检测。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3632
+msgid "TextModerationPlus API 文档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3640
+msgid "RAM AccessKey（ACS3 签名用）。仅服务端使用，绝不出前端。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3647
+msgid "与 AccessKeyId 配对的密钥。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3651
+msgid "昵称 Service 名"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3655
+msgid "昵称分送通道（默认 nickname_detection_pro）。昵称特化模型对短广告串命中更细；一般无需修改。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3659
+msgid "正文 Service 名"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3663
+msgid "邮箱+正文送审通道（默认 comment_detection_pro）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3667
+msgid "双 Service 分送"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3672
+msgid "昵称单独一调 + 邮箱/正文一调（默认，精度更好，成本 ×2 可忽略）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3674
+msgid "关闭 = 兼容回退：按「昵称\\n邮箱\\n正文」拼接串单调一次（与其他云驱动同口径）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3683
+#: includes/settings/SettingsPage.php:3777
+msgid "高级配置（超时 / 日配额 / 故障处置）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3700
+msgid "次/天（0 = 不限）——达到后当日停用并按「故障降级」处理；双送按两次调用计量"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3733
+msgid "发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3736
+msgid "百度文本审核 · 配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3748
+msgid "百度智能云控制台开通「内容审核 · 文本审核」（现行 v2 端点，文本审核按量计费）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3749
+msgid "控制台「应用列表」创建应用获取 API Key 与 Secret Key（AppID 仅控制台标识，不参与请求）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3750
+msgid "粘贴至下方 → 点「测试凭据」（正常文本实测应返回合规）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3751
+msgid "判定映射（站长不可调）：conclusionType 1 合规→放行、2 不合规→直接拦截、3 疑似→入待审；access_token 由插件缓存复用（30 天有效期，无需手动管理）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3753
+msgid "文本审核 v2 API 文档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3758
+#: includes/settings/SettingsPage.php:3855
+#: includes/settings/SettingsPage.php:3978
+#: includes/settings/SettingsPage.php:4337
+msgid "API Key"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3761
+msgid "百度智能云应用 API Key（client_credentials 鉴权用）。仅服务端使用，绝不出前端。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3765
+msgid "Secret Key"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3768
+msgid "与 API Key 配对的 Secret Key（access_token 有效期 30 天，由插件缓存复用）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3794
+msgid "次/天（0 = 不限）——达到后当日停用并按「故障降级」处理（计费防呆，立项书 §6.4）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3827
+msgid "发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3831
+msgid "DeepSeek（AI 判定） · 配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3845
+msgid "DeepSeek 开放平台（platform.deepseek.com）创建 API Key 并充值（按量计费，判定一次约几百 token）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3846
+msgid "粘贴 API Key 至下方 → 点「测试凭据」（余额探测，零费用——顺带看到余额数字）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3847
+msgid "「低置信自动升级」默认开——说明见下方开关行（段级一次）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3848
+msgid "判定映射（站长不可调）：置信 ≥0.8 高置信直取、<0.8 一律入待审；AI 判 pass 不替评论放行（只放大严）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3850
+msgid "DeepSeek API 文档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3858
+msgid "仅服务端使用，绝不出前端。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3862
+#: includes/settings/SettingsPage.php:3985
+msgid "接入地址"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3865
+msgid "预填官方地址，一般不用改。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3869
+#: includes/settings/SettingsPage.php:3994
+msgid "判定模型"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3872
+msgid "标准（deepseek-flash，便宜快）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3873
+msgid "深思（deepseek-reasoner，更强慢）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3878
+#: includes/settings/SettingsPage.php:4003
+msgid "低置信自动升级"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3883
+msgid "AI 拿不准的评论，自动换更擅长的「深思」模型再判一次，每条评论最多判两次"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3888
+#: includes/settings/SettingsPage.php:4013
+msgid "升级用模型"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3891
+msgid "深思（deepseek-reasoner）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3892
+msgid "标准（deepseek-flash）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3906
+#: includes/settings/SettingsPage.php:4035
+msgid "高级配置（降级方式 / 今日判定额度）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3911
+#: includes/settings/SettingsPage.php:4040
+msgid "降级方式"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3914
+#: includes/settings/SettingsPage.php:4043
+msgid "出岔子时评论进待审区（推荐）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3915
+#: includes/settings/SettingsPage.php:4044
+msgid "出岔子时照常放行（不推荐）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3917
+msgid "超时 8 秒（防呆范围）；AI 判定只放大严：判 pass 也不会替评论放行。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3921
+#: includes/settings/SettingsPage.php:4050
+msgid "今日判定额度"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3924
+#: includes/settings/SettingsPage.php:4053
+#: includes/settings/SettingsPage.php:5486
+msgid "次（0=不限量）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3925
+#: includes/settings/SettingsPage.php:4054
+#, php-format
+msgid "今日已判定 %1$d 次 · 额度剩 %2$s 次。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3944
+msgid "余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；黄 = 账户暂不可用（可能欠费）；红 = 密钥无效或连不上；黄 = API Key 未填。结果记录最近一次测试状态与时间。独立端点用模型列表探活（OpenAI 兼容、无标准余额 API）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3957
+msgid "自定义 OpenAI 兼容端点（AI 判定） · 配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3969
+msgid "端点需提供 chat/completions（OpenAI 兼容）——中转站/自建网关（LiteLLM 类）/任意兼容厂商皆可。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3970
+msgid "填接入地址（注意路径前缀：插件在所填地址后拼 /chat/completions——OpenAI 官方族需填到 …/v1 为止）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3971
+msgid "填 API Key 与模型名 → 点「测试凭据」（模型列表探活，零 token 消耗——泛端点无标准余额 API，不显示余额）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3972
+msgid "可达性与合规由站长自负：数据送你填的端点所在辖区（不支持内网地址——传输脊私网拒绝红线优先）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3981
+msgid "该端点签发的 API Key（中转站/网关各自发放）。仅服务端使用，绝不出前端。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3990
+msgid "填你的 OpenAI 兼容端点根地址——插件在其后拼接 /chat/completions。OpenAI 官方族填到 https://…/v1 为止；DeepSeek 官方填 https://api.deepseek.com（不带 /v1）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3998
+msgid "填该端点支持的模型名"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:3999
+msgid "模型名须与端点一致——点「测试凭据」可校验是否在可用列表（列表不含也可能仍可用，部分端点列表不全）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4008
+msgid "AI 拿不准的评论，自动换更强的模型再判一次，每条评论最多判两次"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4021
+msgid "填端点支持的更强模型名；留空=不升级"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4022
+msgid "与 DeepSeek 共用同一键：在 DeepSeek 用过的升级模型名会残留在这里——不用升级就清空（留空=不发起第二次判定）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4046
+msgid "超时默认 8 秒；AI 判定只放大严：判 pass 也不会替评论放行。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4073
+msgid "模型列表探活（零 token）：绿 = 凭据可用（填了判定模型则顺带校验在不在列表）；黄 = 模型不在列表或必填缺；红 = 密钥被端点拒绝；灰 = 端点不提供 /models 或传输异常。泛端点无标准余额 API，不显示余额。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4081
+msgid "未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动后下方显示对应厂商配置区；各厂商配置独立保存、切换不清空已填。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4125
+msgid "检测到代理转发头但 IP 来源=直连"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4126
+msgid "per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源（CDN 站点=custom_header、自建反代=xff/traverse），并在下方诊断面板核对解析结果。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4160
+msgid "直连 direct（默认）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4161
+#: includes/settings/SettingsPage.php:4727
+msgid "XFF 信任链（仅取最右）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4162
+msgid "traverse 链式回溯（自建反代多级）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4163
+#: includes/settings/SettingsPage.php:4728
+msgid "自定义头 custom_header"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4167
+msgid "真实 IP 来源"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4168
+msgid "这里决定「访客的真实 IP 从哪读」——验证码核验、登录计数、IP 信誉与上报全部链路都以它为准。先确认下方诊断面板解析对了，再往下配。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4173
+msgid "请核对当前 IP 是否与您的真实出口一致，不一致请展开配置。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4182
+msgid "高级设置（真实 IP 获取方式 / 自定义头 / 受信网段 / 白名单）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4187
+msgid "真实 IP 获取方式"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4195
+msgid "适用拓扑：站点直连源站→direct；Cloudflare 等 CDN 托管→custom_header（头名填 CF-Connecting-IP）；自建反代多级→traverse，并在受信网段填反代出口。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4196
+msgid "traverse=REMOTE_ADDR 必须命中受信网段，再沿 XFF 从右往左跳过受信代理取第一个非受信 IP——不作默认：可直连源站的部署下回溯会把伪造链当真。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4197
+msgid "REMOTE_ADDR 不在受信网段时，转发头一律忽略（防伪造不变式）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4203
+msgid "自定义头名"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4208
+msgid "真实 IP 获取方式=自定义头时生效（单值 IP 头——Cloudflare 官方头 CF-Connecting-IP 是权威覆写头，伪造面最小）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4212
+msgid "受信网段"
+msgstr ""
+
+#. translators: 1: 快照核对日期 2: 网段条数
+#: includes/settings/SettingsPage.php:4221
+#, php-format
+msgid "使用 Cloudflare 官方段（%1$s 核对，v4+v6 共 %2$d 条）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4227
+msgid "EdgeOne 无官方静态网段列表（api.edgeone.ai/ips 动态发布、3–6 月轮换——空预设入选=静默无保护），故不提供预设；托管在 EdgeOne 的站点请在下方手填官方文档公布的回源网段。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4228
+msgid "自定义受信网段"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4231
+msgid "每行一条 CIDR（或裸 IP，v4/v6）——通常是反代/负载均衡的出口网段。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4237
+msgid "白名单（信誉豁免）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4241
+msgid "每行一个 IP 或 CIDR（v4/v6）——命中者永不查信誉、永不上报（判定与上报双通道同时豁免，零外呼）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4242
+msgid "与「受信网段」的区别：受信网段管解析信任链（决定信谁报来的转发头），白名单管信誉豁免（决定谁永不查信誉）——两者互不替代。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4243
+msgid "误伤防护：搜索引擎爬虫、办公出口等被信誉库误伤的 IP 加在这里——访客直接放行，不会被强制过码。"
+msgstr ""
+
+#. translators: 1: 非法行数 2: 逗号连接的非法行原文
+#: includes/settings/SettingsPage.php:4250
+#, php-format
+msgid "白名单存在 %1$d 条非法行（保存时会被忽略，不生效）：%2$s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4258
+msgid "校验白名单格式"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4265
+msgid "校验网段格式"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4268
+msgid "校验为前端格式预检；非法行保存时由解析层跳过，并在上方诊断面板「自定义网段非法行」标出（校准工具：tools/api-smoke/refresh-presets.php）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4296
+msgid "额度用完（当日停转——次日自动恢复）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4297
+msgid "配置问题（密钥被拒——当日停转；重存密钥并「测试凭据」绿态即解除）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4298
+msgid "正常"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4301
+msgid "IP 信誉查询"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4302
+msgid "启用后，评论与登录判定前会向 AbuseIPDB 查询访客 IP 的信誉分——恶意 IP 强制访客先过人机验证再放行。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4309
+msgid "当日查询配额已用尽——今日人机验证将临时对所有访客强制，次日自动恢复。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4310
+msgid "软顶保护：当日查询计数达到软顶后不再外呼、一律按「不通过」从严处理——把最后配额留给缓冲，防信誉层对攻击者静默。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4317
+msgid "启用"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4322
+msgid "启用 IP 信誉查询（同时提升评论闸与登录闸两处防护——Tab② 联动开关默认开）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4324
+msgid "未启用时信任链跳过该项，不影响信用免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，出码验证）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4328
+msgid "服务商"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4331
+msgid "AbuseIPDB（IP 信誉查询）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4333
+msgid "当前可用的 IP 信誉服务商（更多厂商随后续里程碑接入）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4341
+msgid "AbuseIPDB 免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取。仅服务端使用，不回显已存值。默认软顶 900 / 日配额 950（各留 5% 缓冲）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4342
+msgid "获取 API Key"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4347
+msgid "健康状态"
+msgstr ""
+
+#. translators: 1: 停转态/正常 2: 装配态标签（未启用/已启用（AbuseIPDB））
+#: includes/settings/SettingsPage.php:4359
+#, php-format
+msgid "%1$s · %2$s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4375
+msgid "高级设置（阈值 / 软顶 / 日配额 / 缓存 / 超时）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4380
+msgid "恶意阈值"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4386
+msgid "信誉分≥此值判恶意（默认 85）——强制访客过人机验证。AbuseIPDB 信誉分为多报告者聚合，单票不成黑 IP。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4390
+msgid "疑似阈值"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4396
+msgid "信誉分≥此值判可疑（默认 60）——与恶意阈值同为「不通过」档，强制验证码；两档差别仅在事件留档口径。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4400
+msgid "软顶"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4405
+msgid "次/天（默认 900；0=不限）——当日达到后不再外呼、一律按「不通过」从严处理（宁可从严不可静默放行）。免费档 1000/天（拍板统一口径）留 5% 缓冲。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4414
+msgid "次/天（默认 950）——免费档 1000/天（拍板统一口径）留 5% 缓冲；达到后当日停转（429 触发，次日自愈）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4418
+msgid "干净 IP 缓存"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4423
+msgid "分钟（默认 1440=24h）——查询判「通过」的 IP 结果缓存时长，省配额。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4427
+msgid "可疑 IP 缓存"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4432
+msgid "分钟（默认 60=1h）——判「可疑/恶意」的短缓存，恶意 IP 可复查降级。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4436
+msgid "查询超时"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4441
+msgid "秒（1–5，默认 1）——超时按「不通过」从严处理（出码验证）；登录/评论预检/提交期三处共用此键。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4461
+msgid "发一次最小查询实测（查询保留地址 127.0.0.2，几乎不耗配额）：绿 = HTTP 200 且响应 JSON 可解析（凭据可用——保留地址返回 isPublic:false 亦绿，验证的是凭据不是 IP）；红 = 401/402 密钥被拒；黄 = API Key 未填。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4489
+msgid "T1 · 验证码有票核验失败"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4490
+msgid "有人提交了伪造或重放的验证票据——「有票才报」：未完成验证的提交（无票）不触发。默认开。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4499
+msgid "T2 · 云端审核拒绝累计"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4500
+msgid "同一 IP 被云端审核判「拒绝」24 小时内累计达 N 次（内容垃圾发布者形态）。默认关。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4510
+msgid "T3 · 登录爆破（同 IP 计数饱和）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4511
+msgid "同一 IP 登录失败达到既有阈值（10 次/IP——沿登录闸现成计数，不单设阈值）。默认关。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4520
+msgid "T4 · 本地规则拦截累计"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4521
+msgid "同一 IP 被本地四规则闸（字数/无中文/禁词）拦 24 小时内累计达 N 次（预检与提交两处都计数）。默认关。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4533
+msgid "恶意行为上报"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4534
+msgid "可选能力：把确凿的恶意行为报告给 AbuseIPDB 社区信誉库，帮全世界的站点一起识别这些 IP。默认全关。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4540
+msgid "启用后访客 IP 将提交至境外服务 AbuseIPDB。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4541
+msgid "报告详情在 AbuseIPDB 公开可见（不含评论内容）；请自行评估数据出境合规（PIPL）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4548
+msgid "启用门禁：真实 IP 自检通过——上报具备启用条件。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4551
+msgid "上报已强制失效：真实 IP 解析异常（NAT/反代共显）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4552
+msgid "当前请求来源为私网/无法判定——向信誉库上报共享出口 IP 会污染库；在分区① 配好受信反代并保存后自动恢复（此门禁无开关，宁可少报）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4558
+msgid "上报总开关"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4563
+msgid "启用恶意行为上报（高级设置里任一触发面命中才发送）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4565
+msgid "独立于上方「IP 信誉查询」开关——只上报不查询；发送失败静默不影响拦截。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4575
+msgid "高级设置（触发面 T1–T4 / 备注 / 限流参数）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4586
+msgid "启用此触发面"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4591
+msgid "阈值 N（24h 窗累计）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4598
+msgid "上报类目"
+msgstr ""
+
+#. translators: 1: 默认类目码 2: 默认类目名
+#: includes/settings/SettingsPage.php:4605
+#, php-format
+msgid "用默认（%1$d %2$s）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4617
+msgid "自定义上报备注"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4626
+msgid "上报备注说明（T1–T4 共用）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4631
+msgid "备注留空=发送该触发面的默认英文短语（已回显在各输入框 placeholder）。发送时自动加前缀 [wink-wp-gatekeeper]（不可去除），超长自动截断（255 字符）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4632
+msgid "请勿填写站点敏感信息与个人数据——AbuseIPDB 报告详情公开可见（访客 IP 提交至境外服务，数据出境请自行评估 PIPL 合规）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4635
+msgid "支持占位符 {event_no}（拦截事件编号）、{category}（本次上报的 AbuseIPDB 类目码）、{gate}（触发面 T1/T2/T3/T4）。使用示例："
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4640
+msgid "类目下拉的官方全表见"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4642
+msgid "（AbuseIPDB 官方类目 1–23，下拉内已内置同表）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4647
+msgid "限流参数（只读）"
+msgstr ""
+
+#. translators: 1: 冷却分钟 2: 每小时次数 3: 每日上限
+#: includes/settings/SettingsPage.php:4653
+#, php-format
+msgid "每 IP 冷却 %1$d 分钟 · 全局限速 %2$d 次/小时 · 日顶 %3$d 次/日（上报独立池，不占查询配额）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4659
+msgid "冷却窗内重复触发免重报；10 分钟内触发超 20 次会在总览页提醒（可能有人在伪造票据灌水）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4681
+msgid "判定的三种结果（人话版）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4683
+msgid "跳过（skip）：IP 信誉未启用，或本次恰好查不了（退避/停转/私网）——不参与判定，验证照常走，也不影响「老朋友」免验资格。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4684
+msgid "通过（pass）：信誉良好——照常放行，访客无感。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4685
+msgid "不通过（fail）：恶意/可疑 IP，或配置错、超时、报错、超阈值——一律从严：强制访客先过人机验证再放行。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4687
+msgid "与信用免验的联动：IP 信誉判「不通过」时，就算是「老朋友」（信用免验通道）也会被要求先过一次码——新鲜判定压过信任凭证，过码后照常放行。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4688
+msgid "当日查询配额用尽后，验证码将临时对所有访客强制——次日自动恢复，非故障。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4713
+msgid "受信"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4714
+msgid "公网"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4715
+msgid "私网"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4716
+msgid "非法"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4719
+msgid "直连"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4720
+msgid "XFF 链"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4721
+msgid "自定义头"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4722
+msgid "未解析（回退）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4723
+msgid "来源不受信·转发头已忽略"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4726
+msgid "直连 direct"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4729
+msgid "traverse 链式回溯"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4733
+msgid "IP 检测诊断面板"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4734
+msgid "本面板展示「当前这次页面请求」的解析实况；下方手动查询会把所输 IP 发往四个服务商（AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb）——结果仅本次展示、不落库不缓存、不计调用次数。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4736
+msgid "本地解析区"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4739
+msgid "REMOTE_ADDR"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4741
+msgid "（缺失）"
+msgstr ""
+
+#. translators: 1: 作用域标注 2: 受信命中说明
+#: includes/settings/SettingsPage.php:4746
+#, php-format
+msgid "%1$s、%2$s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4748
+msgid "命中受信网段"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4748
+msgid "不在受信网段"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4759
+msgid "（本请求未出现）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4780
+msgid "当前生效"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4785
+msgid "白名单豁免"
+msgstr ""
+
+#. translators: 1: 五态 ip_src 2: 获取模式
+#: includes/settings/SettingsPage.php:4791
+#, php-format
+msgid "ip_src=%1$s · 模式=%2$s"
+msgstr ""
+
+#. translators: %s: 配置的自定义头名
+#: includes/settings/SettingsPage.php:4807
+#, php-format
+msgid "配置一致性：已配置自定义头「%s」但本请求没有该头——请核对当前拓扑（Wordfence「Configured but not valid」同款警示）。"
+msgstr ""
+
+#. translators: %s: 快照核对日期
+#: includes/settings/SettingsPage.php:4824
+#, php-format
+msgid "预设快照核对日期：%s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4829
+msgid "受信网段："
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4830
+msgid "受信网段：（未启用任何预设或自定义网段——转发头一概不参与解析）"
+msgstr ""
+
+#. translators: 1: 快照日期 2: 距今天数
+#: includes/settings/SettingsPage.php:4839
+#, php-format
+msgid "受信网段快照已超过 180 天（最后核对 %1$s，距今 %2$d 天）——网段可能过期，请校准（开发期工具 tools/api-smoke/refresh-presets.php 拉官方最新段 diff 后人工手改）。"
+msgstr ""
+
+#. translators: %s: 非法行列表
+#: includes/settings/SettingsPage.php:4852
+#, php-format
+msgid "自定义网段非法行（已跳过）：%s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4859
+msgid "手动聚合查询区"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4861
+msgid "要查询的 IP 地址"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4863
+msgid "查询四源"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4868
+msgid "威胁组：AbuseIPDB（评分/用途/ISP/Tor）· StopForumSpam（黑名单出现/频次）· ip.nc.gy（代理/VPN/Tor/机房/CDN/匿名六旗）；地理组：ip.sb（归属地/ISP/ASN）。查询超时 3 秒/源；任一源失败仅该卡片失败，其余照常出数。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4896
+msgid "IP 格式无效。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:4914
+msgid "未配置 API Key（Tab④ 分区二）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5317
+msgid "网址核查（增强层——关闭时评论防护照常，零行为变化）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5321
+msgid "启用网址核查"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5326
+msgid "评论者填的网站地址，先试着打开看一眼，再交给 AI 判定该网站是否有问题（赌博/诈骗/钓鱼等）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5328
+msgid "只放大严：网址没问题也不会替评论放行。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5332
+msgid "处置档位"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5335
+msgid "保守（默认）——违规不自动进垃圾箱，只出报告和标记；网址没看清的会先进待审等你判定"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5336
+msgid "均衡（推荐）——证据确凿的自动进垃圾箱（可一键撤销），其余进待审等你复核"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5337
+msgid "激进——拿不太准的也自动进垃圾箱，没看清的进待审；垃圾评论洪水期应急用，用完建议切回来"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5339
+msgid "「证据确凿」的门槛由系统掌握，界面不提供旋钮——只放大严。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5350
+msgid "高级（默认收起）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5358
+msgid "核查前先搜一搜"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5363
+msgid "打不开网页时，搜索结果也能当判定线索，减少「没看清」的次数（默认关）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5367
+msgid "搜索源"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5369
+msgid "博查网页搜索（默认——需上方博查 Key，按次计费独立计量）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5370
+msgid "DeepSeek 网页搜索（用上方 LLM提供商的凭证——按成功次计费）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5373
+msgid "选博查需在博查开放平台（bocha.cn）申请 API Key（按次计费、独立计量）；选 DeepSeek 则跟随上方 LLM提供商的凭证（无需额外 Key，按成功次数计费）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5390
+msgid "LLM提供商"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5393
+msgid "跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行判定）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5394
+msgid "独立凭证（网址核查专用）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5396
+msgid "跟随（默认）：云端审核为 DeepSeek 时，判定与网页抓取都用 DeepSeek（同一份凭证）；云端审核是其他驱动时，判定走其配置、网页抓取不会自动启用（抓取未配置——需要抓取请在下方「网页抓取服务商」手动选择）。独立：网址核查用单独的 DeepSeek 凭证（与评论云端审核互不影响，想用不同的账号/额度时才需要选独立）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5402
+msgid "独立凭证 API Key"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5405
+msgid "DeepSeek 开放平台的 API Key（与 Tab③ 云端审核可不同账号）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5409
+msgid "独立凭证接入地址"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5414
+msgid "留空用官方地址（一般不用改）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5418
+msgid "独立凭证判定模型"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5426
+msgid "手填模型名（OpenAI 兼容端点填其支持的模型）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5427
+msgid "模型名须与端点一致；留空=标准档（deepseek-flash 回落——DeepSeek 端点可直接留空）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5431
+msgid "测试独立凭证"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5446
+msgid "官方地址=余额探测（零费用，显示余额）；其他地址=模型列表探活（零 token）。绿 = 凭据可用；红 = 密钥被拒或连不上。结果记录最近一次测试状态与时间。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5459
+msgid "网页抓取服务商"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5464
+msgid "跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行抓取；其他驱动时抓取未配置，本站直抓不自动启用）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5465
+msgid "本站直接打开（免费）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5466
+msgid "DeepSeek 网页抓取（按次计费 ¥5/1000 次）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5468
+msgid "选 DeepSeek 抓取时，本站服务器不再直接打开评论者的网址——由 DeepSeek 代为抓取正文（对打不开/反爬的站点成功率高很多，如某些成人站、强反爬站），按成功次数计费。本站直接打开不花钱但会暴露源站 IP，且遇到反爬站容易「没看清」——默认不自动启用，需在此手动选择。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5474
+msgid "抓取专用 DeepSeek Key"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5477
+msgid "留空=用上方「LLM提供商」的 Key（一般不用填）。想给网页抓取单独用一个 DeepSeek 账号时才填。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5483
+msgid "日额度"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5485
+msgid "批量车道"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5485
+msgid "次"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5486
+msgid "新评论车道"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5487
+msgid "额度用完：批量车道先停、新评论照常防护，次日自动恢复。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5491
+msgid "robots 禁爬声明"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5493
+msgid "遵守网站的 robots 禁爬声明（默认关——开了会多「没看清」）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5497
+msgid "核查记录缓存"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5500
+msgid "清空全部网址核查记录？下次遇到同一网址会重新核查（消耗额度）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5500
+msgid "清空网址核查记录缓存"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5517
+msgid "网页抓取未配置——本站直抓因暴露源站 IP 默认不自动启用，请在"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5518
+msgid "高级区的「网页抓取服务商」手动选择"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5536
+#, php-format
+msgid "DeepSeek 网页抓取已连续 %d 次未成功——网址核查可能无法正常判定，请检查凭据、余额与端点状态。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5552
+msgid "网址核查已启用，但 AI 判定（DeepSeek）还没有配置——核查无法完成判定。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5553
+msgid "到上方 DeepSeek 配置区填写 API Key"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5554
+msgid "，或在"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5555
+msgid "下方「高级」里为网址核查单独配置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5569
+msgid "网站字段收集已关闭——新评论没有网址可核查，本功能对新评论自动失效；存量网址仍可在工具页「存量网址核查」中处理。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5677
+msgid "全局：联系邮箱"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5680
+msgid "出现在 captcha_failed / ip_malicious 等默认文案的「联系站长」处（{contact_email} 占位符）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5685
+msgid "拦截文案与页面标题"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5689
+msgid "语气三原则：只调侃行为 / 留台阶 / 带下一步。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5698
+msgid "高级设置（拦截文案 / 页面标题 / 占位符说明）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5704
+msgid "本地字数闸的实际判定值（Tab③「字数下限 / 字数上限」当前配置）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5706
+msgid "本次拦截的事件编号——可拿它去 Tab⑥ 事件流对号查详情。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5709
+msgid "命中规则键的人话名（由 Labels 映射表翻译，未收录键原样显示键名；命中的具体关键词仅站长在事件流可见）。映射示例："
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5714
+msgid "拦截发生时间（站点时区）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5716
+msgid "上方「联系邮箱」的值（未填写则该占位符整句省略）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5718
+msgid "确认恢复全部文案为默认？未保存的修改将丢失。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5719
+msgid "恢复默认文案"
+msgstr ""
+
+#. translators: %s: 规则键
+#: includes/settings/SettingsPage.php:5730
+#, php-format
+msgid "%s 拦截文案"
+msgstr ""
+
+#. translators: %s: 规则键
+#: includes/settings/SettingsPage.php:5734
+#, php-format
+msgid "%s 页面标题"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5750
+msgid "拦截页自定义"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5754
+msgid "作用于品牌整页拦截页的标题与正文（全部场景共用）。留空 = 使用各场景默认文案。占位符：{event_no} {rule} {time} {contact_email}——{rule} 只显示规则键名。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5757
+msgid "正文末常驻品牌署名行「Wink WP 保安」——点「查看效果」即可在实渲染预览中看到（W3 批 B 落位）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5763
+msgid "查看效果"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5768
+msgid "拦截页标题"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5776
+msgid "拦截页正文"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5786
+msgid "云端标签映射（只读预览）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5791
+msgid "拦截页「命中规则」证据行对云端驱动的原始 Label,Score 做人类可读映射（驱动人类名前缀 + 标签中文 + 置信）。未收录标签原样显示。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5796
+msgid "此表为全部云端驱动共用的一张映射表：各驱动返回的 reason 已统一为 Label,Score 形态，故一张表同时服务腾讯 TMS / 阿里 Green / 百度全部云端驱动，无需按驱动分表。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5818
+msgid "字数闸：评论过短"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5819
+msgid "字数闸：评论过长"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5820
+msgid "中文闸：缺中文"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5821
+msgid "关键词/正则命中"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5822
+msgid "验证码核验失败"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5823
+msgid "未完成验证就提交"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5824
+msgid "IP 恶意分拦截"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5825
+msgid "云审核故障已入待审"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5890
+msgid "今日速览"
+msgstr ""
+
+#. translators: 1: 今日拦下, 2: 转人工复核, 3: 出错
+#: includes/settings/SettingsPage.php:5896
+#, php-format
+msgid "今日拦下 %1$d 次 · 转人工复核 %2$d 条 · 出错 %3$d 次"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5905
+msgid "计数已停用"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5905
+msgid "——统计开关关闭期间的拦截不计入读数，事件表照常落库（拦截明细以本页为准）。"
+msgstr ""
+
+#. translators: 1: 留档条数, 2: 阈值
+#: includes/settings/SettingsPage.php:5915
+#, php-format
+msgid "本插件拦截留档已 %1$s 条（阈值 %2$s）——WP 原生垃圾清理（默认 30 天）会自动处理，或到垃圾评论分类手动清空；也可在设置中关闭留档。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5920
+#: includes/settings/SettingsPage.php:6679
+msgid "查看垃圾评论分类"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5946
+msgid "评论防护"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5948
+#: includes/settings/SettingsPage.php:6115
+msgid "今日概览"
+msgstr ""
+
+#. translators: 1: 拦下, 2: 转人工复核, 3: 出错
+#: includes/settings/SettingsPage.php:5953
+#, php-format
+msgid "拦下 %1$d 条 · 转人工复核 %2$d 条 · 出错 %3$d 次"
+msgstr ""
+
+#. translators: %s: 累计行（含窗口标注）
+#: includes/settings/SettingsPage.php:5964
+#, php-format
+msgid "转人工复核=进了待审区，等你处理。%s"
+msgstr ""
+
+#. translators: %d: IP 风控强制验证码次数
+#: includes/settings/SettingsPage.php:5969
+#, php-format
+msgid "IP 信誉强制验证码 %d 次（单列口径——不计入上方转人工复核数字）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:5979
+#, php-format
+msgid "网址核查：今日核查 %1$d 条 · 自动标垃圾 %2$d 条 · 待你复核 %3$d 条（核查=网址被打开看过；自动标垃圾可撤销）"
+msgstr ""
+
+#. translators: %d: 今日 DeepSeek 搜索成功次数
+#: includes/settings/SettingsPage.php:5997
+#, php-format
+msgid "网址核查搜索（DeepSeek）：今日 %1$d 次（按成功次数计费，打不开网页时的搜索线索）"
+msgstr ""
+
+#. translators: %d: 今日 DeepSeek 网页抓取成功次数
+#: includes/settings/SettingsPage.php:6012
+#, php-format
+msgid "网页抓取（DeepSeek 代开网页）：今日 %1$d 次（按成功次数计费——选「DeepSeek 网页抓取」时第三方打开网页看过）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6018
+msgid "谁拦的（按拦截链顺序）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6020
+msgid "——字数 / 关键词 / 中文检查，不花钱"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6025
+msgid "人机验证防线（第三方，按次计费）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6030
+msgid "云端审核防线（第三方，按次计费）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6036
+msgid "IP 信誉防线（第三方，按次计费）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6040
+msgid "放行=推算值（今日动作数−拦下−转人工−出错）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6054
+msgid "发布后复核防线（网址核查）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6056
+msgid "网址核查（复核处置）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6056
+msgid "——评论发布后复核网址；判违规与没看清都拦下等你复核"
+msgstr ""
+
+#. translators: 1: spam 2: hold
+#: includes/settings/SettingsPage.php:6060
+#, php-format
+msgid "今日判进垃圾箱 %1$d 条 · 转待审 %2$d 条"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6068
+msgid "最近拦下的评论（最近 10 条）"
+msgstr ""
+
+#. translators: 1: total 2: spam 3: hold
+#: includes/settings/SettingsPage.php:6077
+#, php-format
+msgid "网址核查今日处置 %1$d 条（垃圾箱 %2$d · 待审 %3$d）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6082
+msgid "→ 查看详情"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6113
+msgid "登录防护（登录 / 注册 / 找回密码 三张门）"
+msgstr ""
+
+#. translators: 1: 拦下, 2: 验证放行, 3: 密码输错, 4: 窗口分钟
+#: includes/settings/SettingsPage.php:6120
+#, php-format
+msgid "今日拦下 %1$d 次 · 验证放行 %2$d 人 · 密码输错 %3$d 次（%4$d 分钟内同账号）"
+msgstr ""
+
+#. translators: 1: 累计拦下, 2: 累计密码输错
+#: includes/settings/SettingsPage.php:6128
+#, php-format
+msgid "累计拦下 %1$d 次 · 密码输错 %2$d 次"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6130
+msgid "三张门分账"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6135
+msgid "今日拦下"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6136
+msgid "累计拦下"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6137
+msgid "说明"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6152
+msgid "谁拦的（按服务商口径）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6157
+msgid "最近拦下的登录尝试（最近 10 条）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6177
+msgid "只显示特征与结果，不显示账号与 IP；结果=出码拦下/未过码拦下两态（放行不进本表）；为什么拦=触发归因（同一账号连错太多次等）或验证码结果。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6179
+msgid "最近没拦过任何登录尝试——这是好状态。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6188
+#: includes/settings/SettingsPage.php:6280
+#: includes/settings/SettingsPage.php:6644
+msgid "时间"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6189
+msgid "结果"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6190
+msgid "哪张门"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6191
+msgid "为什么拦"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6192
+#: includes/settings/SettingsPage.php:6281
+#: includes/settings/SettingsPage.php:6645
+msgid "事件编号"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6251
+msgid "报错历史（和第三方服务商打交道时出的岔子）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6253
+msgid "今日出错"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6269
+msgid "今日没出过错——各防线都正常。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6272
+msgid "最近报错（全闸，含服务商暂停与恢复）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6273
+msgid "四张门和服务商的岔子都在一张时间线上；服务商当日暂停与次日恢复也会留痕在此。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6275
+msgid "最近没出过错——一切正常。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6282
+msgid "哪个门"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6283
+msgid "哪个服务商"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6284
+msgid "出了什么岔子"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6285
+msgid "当时怎么处理"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6307
+msgid "展开看服务商原始回复（排障用，已脱敏）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6334
+msgid "拦截记录流水（查全部记录 / 导出）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6336
+msgid "今天还没有拦截记录——没有生成导出文件；有拦下记录后再来导出当日流水。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6338
+msgid "每一条拦下、转人工复核、报错都有编号（如 WK-20261112-0042）。访客报障时报编号即可精确定位。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6340
+msgid "导出当日拦截流水（CSV）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6342
+msgid "导出只含当天的拦下记录：时间 / 结果 / 哪张门 / 原因 / 事件编号——不含账号、邮箱、评论正文与 IP（隐私最小化，与登录流水同一口径）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6357
+msgid "统计设置 · 清零"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6362
+msgid "开启统计计数（关掉后本页数字停止增长，拦截照常工作）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6369
+msgid "记录服务商原始回复（排障用，出错时多存一段返回内容）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6373
+msgid "保存长度上限（字）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6375
+msgid "（128–2048，默认 512；正文与错误消息各自截断）"
+msgstr ""
+
+#. translators: %s: 清零范围
+#: includes/settings/SettingsPage.php:6378
+#, php-format
+msgid "「清空全部统计」会清掉%s，不可恢复。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6381
+msgid "确认清空？所有统计数字和拦截记录将被清掉，不可恢复。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6382
+msgid "清空全部统计"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6431
+msgid "导出流打开失败。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6637
+msgid "昵称/邮箱打码展示，原文在留档链接查看；机器人试探（假提交探测）不留评论，不进此表。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6639
+msgid "最近没拦过任何评论——这是好状态。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6646
+msgid "哪道防线拦的"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6647
+msgid "原因"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6648
+msgid "昵称"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6649
+msgid "邮箱"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6650
+msgid "说了什么"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6651
+msgid "留档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6666
+msgid "查看留档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6668
+msgid "（评论已删除）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6670
+msgid "未留档"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6698
+msgid "统计已重置。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6728
+msgid "历史评论体检"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6745
+msgid "未配置（服务商未配置——发起后无法送审）"
+msgstr ""
+
+#. translators: 1: processed 2: total 3: driver id
+#: includes/settings/SettingsPage.php:6749
+#, php-format
+msgid "进行中（%1$d / %2$d）· 当前服务商：%3$s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6756
+msgid "——今日额度已用完，次日自动恢复。"
+msgstr ""
+
+#. translators: 1: processed 2: total
+#: includes/settings/SettingsPage.php:6761
+#, php-format
+msgid "已暂停（%1$d / %2$d）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6765
+msgid "继续"
+msgstr ""
+
+#. translators: 1: finished time
+#: includes/settings/SettingsPage.php:6769
+#, php-format
+msgid "上次完成于 %1$s"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6772
+#: includes/settings/SettingsPage.php:6832
+msgid "重新体检"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6774
+msgid "还没体检过"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6776
+msgid "开始体检"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6796
+msgid "云端审核还没配置——先到 Tab③ 配置并启用服务商，再发起体检。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6808
+msgid "高级说明（送审范围 / 处置方式）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6811
+msgid "把站里已有的评论整体交服务商再查一遍：判违规的进垃圾箱、没看清的进待审，都能手动恢复；没问题的不动。报告就展示在本卡下方。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6812
+msgid "红线注：体检只按「昵称+正文」送审，邮箱与网址不进入送审内容（邮箱剔除纪律；网址核查是另一条线）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6822
+msgid "按当前启用的服务商送审，消耗按次额度——确定开始？判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6824
+#: includes/settings/SettingsPage.php:6832
+msgid "重新体检=清掉上次标记重来，已处理结果作废——确定？"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6852
+msgid "已暂停"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6853
+msgid "今日额度用完已暂停（次日自动恢复）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6854
+msgid "已完成"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6857
+msgid "未配置"
+msgstr ""
+
+#. translators: 1: 服务商 2: 发起时间 3: 状态词
+#: includes/settings/SettingsPage.php:6860
+#, php-format
+msgid "服务商：%1$s · 发起：%2$s · %3$s"
+msgstr ""
+
+#. translators: %s: 完成时间
+#: includes/settings/SettingsPage.php:6868
+#, php-format
+msgid "完成：%s"
+msgstr ""
+
+#. translators: 1: processed 2: total
+#: includes/settings/SettingsPage.php:6874
+#, php-format
+msgid "已体检 %1$d / %2$d 条"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6879
+#: includes/settings/SettingsPage.php:7115
+msgid "判违规进垃圾箱、没看清进待审，都能手动恢复。"
+msgstr ""
+
+#. translators: 1: 评论已删条数 2: 出错条数
+#: includes/settings/SettingsPage.php:6883
+#, php-format
+msgid "另：评论已删除 %1$d 条 · 出错 %2$d 条。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6904
+#: includes/settings/SettingsPage.php:7155
+msgid "暂无命中"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6909
+msgid "存量审核报告（历史评论体检）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6911
+msgid "还没体检过历史评论——点上方「开始体检」发起，报告会展示在这里。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6918
+#: includes/settings/SettingsPage.php:7084
+msgid "没问题（pass）"
+msgstr ""
+
+#. translators: %s: 条数
+#: includes/settings/SettingsPage.php:6919
+#: includes/settings/SettingsPage.php:6924
+#: includes/settings/SettingsPage.php:6929
+#: includes/settings/SettingsPage.php:7085
+#: includes/settings/SettingsPage.php:7090
+#: includes/settings/SettingsPage.php:7095
+#, php-format
+msgid "%s 条"
+msgstr ""
+
+#. translators: %s: 条数
+#: includes/settings/SettingsPage.php:6920
+msgid "已核无问题——评论状态不动"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6923
+#: includes/settings/SettingsPage.php:7089
+msgid "待审核（没看清，不下结论）"
+msgstr ""
+
+#. translators: %s: 条数
+#: includes/settings/SettingsPage.php:6925
+#: includes/settings/SettingsPage.php:7091
+msgid "已进待审队列等你过目"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6928
+#: includes/settings/SettingsPage.php:7094
+msgid "垃圾箱（判违规）"
+msgstr ""
+
+#. translators: %s: 条数
+#: includes/settings/SettingsPage.php:6930
+#: includes/settings/SettingsPage.php:7096
+msgid "已进垃圾箱"
+msgstr ""
+
+#. translators: %d: 待审核条数
+#: includes/settings/SettingsPage.php:6936
+#: includes/settings/SettingsPage.php:7103
+#, php-format
+msgid "去待审队列处理（%d 条）→"
+msgstr ""
+
+#. translators: %d: 垃圾箱条数
+#: includes/settings/SettingsPage.php:6942
+#: includes/settings/SettingsPage.php:7110
+#, php-format
+msgid "去垃圾箱查看（%d 条）→"
+msgstr ""
+
+#. translators: %d: 原因类数
+#: includes/settings/SettingsPage.php:6950
+#: includes/settings/SettingsPage.php:7134
+#, php-format
+msgid "原因明细（%d 类）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6973
+msgid "存量网址核查"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6980
+msgid "存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）；完成后可看下方报告。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6992
+msgid "高级说明（每日推进额度 / 重查口径）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6995
+msgid "把站里已有评论中的网站地址交「网址核查」全部重查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:6996
+msgid "每日额度用完自动暂停（次日自动接着查）：判违规的进垃圾箱、没看清的进待审，都能手动恢复。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7009
+msgid "网址核查未开启——先到「云端审核」页开启「网址核查」，再回来发起存量核查。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7018
+msgid "（开启后这里可发起存量核查。）"
+msgstr ""
+
+#. translators: %s: 待核查条数。
+#: includes/settings/SettingsPage.php:7023
+#, php-format
+msgid "已排队 %s 条待核查（按每日额度自动推进）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7028
+msgid "没有待核查的存量网址——点下方按钮可把带网址的已批准评论全部重查一遍。"
+msgstr ""
+
+#. translators: %s: 本次入队条数
+#: includes/settings/SettingsPage.php:7036
+#, php-format
+msgid "已入队 %s 条·开始核查（按每日额度自动推进，可离开此页）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7039
+msgid "没有新发现需核查的存量网址——可能都已在队列中。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7046
+msgid "全部重查一遍？将忽略历史结果（网站内容可能已变化），把带网址的已批准评论重新排队核查，按每日额度逐条进行（消耗额度）。判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7046
+msgid "开始存量网址核查（全部重查一遍——忽略历史结果，网站内容可能已变化）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7058
+msgid "存量网址核查报告"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7060
+msgid "还没运行过存量网址核查——点上方「开始存量网址核查」发起，报告会展示在这里。"
+msgstr ""
+
+#. translators: 1: 发起时间 2: 已核查数 3: 共数 4: 队列残留数
+#: includes/settings/SettingsPage.php:7066
+#, php-format
+msgid "发起：%1$s · 进行中——已核查 %2$d / %3$d 条 · 队列残留 %4$d 条（按每日额度自动推进）"
+msgstr ""
+
+#. translators: 1: 发起时间 2: 完成时间 3: 共数
+#: includes/settings/SettingsPage.php:7075
+#, php-format
+msgid "发起：%1$s · 完成：%2$s · 共核查 %3$d 条（本轮全部收口）"
+msgstr ""
+
+#. translators: %s: 条数
+#: includes/settings/SettingsPage.php:7086
+msgid "网站核过没问题——评论状态不动"
+msgstr ""
+
+#. translators: %d: 评论已删条数
+#: includes/settings/SettingsPage.php:7119
+#, php-format
+msgid "另：评论已删除 %d 条。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7142
+msgid "网址打不开，依据搜索线索判定"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7165
+msgid "按网站归堆（网址核查判违规）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7167
+msgid "网站"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7167
+msgid "命中评论"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7167
+msgid "判违规"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7167
+msgid "建议"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7175
+msgid "清空此站的网址核查缓存并重新核查？"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7175
+msgid "重新核查此站"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7186
+msgid "导入/导出设置"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7187
+msgid "JSON 导出（默认不含密钥）/ 导入校验（schema 版本校验）。M4 实装（F27）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7190
+msgid "驱动自检与降级演练"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7191
+msgid "密钥试调用、前端 JS 可达性探测、真实 IP 自检（CIDR 校验 + 解析预览）、降级演练。M3/M4 实装（F28/F33）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7194
+msgid "系统信息"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7195
+msgid "PHP/WP 版本要求检查卡片（沿上游 baby_wp_check_requirements 交互）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7234
+msgid "RSS 防护"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7235
+msgid "对 RSS/Atom 订阅源限流、feed 摘要化（全文改摘要）等 feed 请求管控——默认全关、开了才生效。规划位：当前零控件零行为，实装后转实线卡。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7239
+msgid "XML-RPC 管控"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7239
+msgid "现行控件自 Tab② 登录保护卡搬位扩展"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7247
+msgid "彻底关闭 XML-RPC 登录"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7247
+msgid "推荐加固"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7248
+msgid "登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；使用博客客户端发布工具的站长取消勾选并保存以开启。与 Tab②「登录保护」卡为同一开关（任一处保存即生效）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7252
+msgid "整体关闭 XML-RPC"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7253
+msgid "含 pingback 与全部认证方法的整体 405——比仅关登录更彻底，适合完全不用 XML-RPC 的站。规划位：当前零控件零行为。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7257
+msgid "Pingback 关闭"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7257
+msgid "防反射滥用"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7258
+msgid "关闭 pingback 防反射攻击滥用。规划位：当前零控件零行为。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7264
+msgid "REST API 管控"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7265
+msgid "关闭未登录用户枚举（/wp/v2/users）、REST 计入登录闸失败计数等收窄面管控——取舍声明：收窄面而非关停面。规划位：当前零控件零行为，实装后转实线卡。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7269
+msgid "UA / HTTP 头规则"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7270
+msgid "按请求头（UA 等）放行/拦截的自定义规则行——与 Tab④ IP 信誉白名单的分工：这条管「请求长啥样」、那条管「IP 是谁」。规划位：当前零控件零行为，实装后转实线卡。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7274
+msgid "与其他防护的共存（coexist）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7274
+msgid "检测即让位 · 不打架"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7281
+msgid "检测到 hCaptcha 接管评论"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7281
+#: includes/settings/SettingsPage.php:7288
+msgid "验证码让位"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7282
+msgid "官方 hCaptcha 插件接管评论验证码时，本插件验证码让位（黄条提示；登录/注册/找回仍由本插件把守）。默认开。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7288
+msgid "检测到 hCaptcha 接管登录"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7289
+msgid "官方 hCaptcha 插件接管登录验证码时，本插件登录验证码让位。默认开——与评论让位开关各自独立。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7293
+msgid "检测到 Akismet 在场"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7293
+msgid "关键词闸去重"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7294
+msgid "Akismet 已把同名垃圾扔进其队列时，本插件站内规矩不再重复出码拦截（判定留痕仍全量落本插件事件表）。规划行——审计底稿 docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md，施工拍板后实装；检测即让位、不代改对方配置。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7298
+msgid "检测到 Wordfence 在场"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7298
+msgid "登录出码互斥提示"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7299
+msgid "两家都开登录验证时访客可能连过两道码——检测行提示「登录出码由谁把守」并给出建议（留一家，或一家让位）。规划行——提示性，不代改对方配置。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7305
+msgid "评论「网站」字段"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7306
+msgid "评论者可以填一个自己的网站。无论下面开关怎么设，后台评论区始终显示这个网址供你识别来访者；已存的网址不会删除。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7310
+msgid "收集新评论的网站字段"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7315
+msgid "评论表单出现「网站」一栏，新评论保存网址"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7317
+msgid "不勾选（默认）时，评论表单不出现该栏、提交的网址一律丢弃——防止垃圾提交程序试探采集。已发表评论不受影响。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7329
+msgid "网站字段收集已关闭——网址核查对新评论自动失效，存量网址仍可在工具页的「存量网址核查」中处理。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7336
+msgid "前台评论者名字保留可点链接"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7341
+msgid "前台评论区的评论者名字显示为可点开的链接"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7343
+msgid "不勾选（默认）时只显示名字本身。你自己在后台看评论时始终是可点链接。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7350
+msgid "评论者头像来源"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7353
+msgid "头像来源"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7356
+msgid "未配置（用 WordPress 官方源）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7357
+msgid "Cravatar（国内镜像，官方兼容）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7358
+msgid "WeAvatar（国内镜像，多级匹配）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7359
+msgid "sep.cc（国内镜像）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7360
+#: includes/settings/SettingsPage.php:7366
+msgid "自定义地址"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7362
+msgid "国内访客加载官方源可能很慢或失败；选用国内镜像可提速。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7369
+msgid "须以 https:// 开头、以 /avatar/ 结尾——按镜像站说明填写；地址不合法时不改写头像来源（用官方源）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7373
+msgid "切换头像来源后，已缓存的旧头像可能过一段时间才更新，不是故障。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7381
+msgid "测试当前头像来源"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7417
+msgid "自定义地址不合法：须以 https:// 开头、以 /avatar/ 结尾。"
+msgstr ""
+
+#. translators: %s: 响应耗时秒。
+#: includes/settings/SettingsPage.php:7444
+#, php-format
+msgid "正常（%.1f 秒）"
+msgstr ""
+
+#. translators: %s: 响应耗时秒。
+#: includes/settings/SettingsPage.php:7449
+#, php-format
+msgid "能用但慢（%.1f 秒）"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7452
+msgid "连不上该镜像（或返回的不是图片）。"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7457
+msgid "测试失败。"
+msgstr ""
