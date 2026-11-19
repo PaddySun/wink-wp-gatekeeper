@@ -164,9 +164,9 @@ final class W3BatchCTest extends TestCase {
 
 	public function test_tab2_mode_radio_default_tag_on_popup_and_shift_note(): void {
 		$body = self::body( 'render_tab_captcha' );
-		$this->assertStringContainsString( '弹层（默认）', $body, 'popup 档挂「默认」角标（N3 平移后）' );
+		$this->assertStringContainsString( 'Popup (default) — zero footprint: clicking “Post Comment / Log In” opens the interactive popup directly (the primary no-button flow)', $body, 'popup 档挂「默认」角标（N3 平移后）' );
 		$this->assertStringNotContainsString( '嵌入触发条（默认）', $body, 'embed 档「默认」角标退役' );
-		$this->assertStringContainsString( '已平移', $body, '卡面注记改「已平移」（批 B「待施工平移」记号退役）' );
+		$this->assertStringContainsString( 'Slider width follows the official 320px minimum; switching mode does not affect server-side verification (ticket checking uses the same API). The recommended level already shifted (embed → popup) — upgraded sites with credentials keep the embedded style as an explicit choice; without credentials the new popup default applies. Once you pick the embedded bar again and save, it never shifts back.', $body, '卡面注记改「已平移」（批 B「待施工平移」记号退役）' );
 		$this->assertStringNotContainsString( '随批 C 落地', $body, '「随批 C 落地」待施工措辞退役' );
 	}
 
@@ -214,7 +214,7 @@ final class W3BatchCTest extends TestCase {
 
 	public function test_tab4_free_tier_copy_unified(): void {
 		$body = self::body( 'render_iprep_zone_check' );
-		$this->assertStringContainsString( '免费档 1000', $body, 'Tab④ 免费档文案统一「1000 次/天（拍板统一口径）」' );
+	$this->assertStringContainsString( 'AbuseIPDB free tier: 1,000 lookups/day', $body, 'Tab④ 免费档文案统一「1000 次/天（拍板统一口径）」' );
 		$this->assertStringNotContainsString( '贡献者 5000', $body, '「贡献者 5000 次/天」旧文案按 N6 拍板退役' );
 		$this->assertStringContainsString( '900', $body, '软顶默认显示 900' );
 		$this->assertStringContainsString( '950', $body, '日配额默认显示 950' );
@@ -319,8 +319,8 @@ final class W3BatchCTest extends TestCase {
 		$body = self::body( 'render_tab_captcha' );
 		$this->assertStringContainsString( "'captcha', 'aliyun', 'region'", $body, 'Tab② 阿里卡 ⚙ 折叠内 region radio 实键（规划行退役）' );
 		$this->assertStringContainsString( 'value="sgp"', $body, 'sgp 档可选（复验不过则批 D 前 disabled——R7）' );
-		$this->assertStringContainsString( '切换后建议点测试凭据', $body, 'region 变更提示「须与服务端一致，切换后建议点测试凭据」' );
-		$this->assertStringContainsString( '未实机验证', $body, 'sgp 档静态推断注记在 UI 描述（R7 施工纪律）' );
+		$this->assertStringContainsString( 'region must match the server side — the front-end SDK and the server endpoint are linked, and a mismatch errors out; after switching, run “Test credentials” once. The sgp endpoint is a static inference (not verified on a live site; the level will be disabled if live re-verification fails).', $body, 'region 变更提示「须与服务端一致，切换后建议点测试凭据」' );
+		$this->assertStringContainsString( 'International (sgp) — endpoint captcha.ap-southeast-1.aliyuncs.com (not verified on a live site)', $body, 'sgp 档静态推断注记在 UI 描述（R7 施工纪律）' );
 		$this->assertStringNotContainsString( '本行为规划位', $body, 'region 规划位文案退役（实键控件落位）' );
 	}
 
@@ -423,7 +423,7 @@ final class W3BatchCTest extends TestCase {
 		$html = (string) self::invoke( 'test_credential_btn', 'id="wk-x-test-credentials"', 'id="wk-x-test-result"', 'nonce123', '测试凭据', 'abuseipdb' );
 		$this->assertStringContainsString( 'badge b-ok', $html, '有记录=绿态徽标' );
 		$this->assertStringContainsString( '贯通 · 凭据可用', $html, '状态词' );
-		$this->assertStringContainsString( '上次测试：11月18日 14:30 · 贯通', $html, '「上次测试：m月d日 H:i · 状态词」（date_i18n）' );
+		$this->assertStringContainsString( 'Last test: 11月18日 14:30', $html, '「上次测试：m月d日 H:i · 状态词」（date_i18n）' );
 		$this->assertStringNotContainsString( '上次测试：--', $html, '无占位残留' );
 
 		// 红态矩阵。
@@ -434,7 +434,7 @@ final class W3BatchCTest extends TestCase {
 		// 无记录 → 未测试中性灰初始态保持。
 		$html3 = (string) self::invoke( 'test_credential_btn', 'id="wk-z-test-credentials"', 'id="wk-z-test-result"', 'nonce123', '测试凭据', 'deepseek' );
 		$this->assertStringContainsString( 'badge b-dim', $html3, '无记录=未测试' );
-		$this->assertStringContainsString( '上次测试：--', $html3, '无记录时间位占位' );
+		$this->assertStringContainsString( 'Last test: --', $html3, '无记录时间位占位' );
 	}
 
 	public function test_result_persistence_copy_contract_flipped(): void {
@@ -450,15 +450,15 @@ final class W3BatchCTest extends TestCase {
 			unset( $desc_line_hint ); // 行号随施工漂移——九描述位由下方逐位锚定。
 		}
 		foreach ( array(
-			'发一次全参假票核验：绿 = 凭据可用；红 = CAM 密钥（SecretId/SecretKey）错；黄 = 必填参数缺。结果记录最近一次测试状态与时间。',
-			'发一次假参实调（VerifyIntelligentCaptcha）：绿 = 凭据可用；红 = AccessKey/签名/权限错（含 RAM 未授权提示）；黄 = 必填参数缺。结果记录最近一次测试状态与时间。',
-			'发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果记录最近一次测试状态与时间。',
-			'发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。',
-			'发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。',
-			'黄 = API Key 未填。结果记录最近一次测试状态与时间。',
-			'泛端点无标准余额 API，不显示余额。结果记录最近一次测试状态与时间。',
-			'红 = 401/402 密钥被拒；黄 = API Key 未填。结果记录最近一次测试状态与时间。',
-			'绿 = 凭据可用；红 = 密钥被拒或连不上。结果记录最近一次测试状态与时间。',
+			'Sends one full-parameter fake-ticket verification: green = credentials work; red = wrong CAM keys (SecretId/SecretKey); yellow = required parameters missing. The last test status and time are recorded.',
+			'Makes one real call with fake parameters (VerifyIntelligentCaptcha): green = credentials work; red = wrong AccessKey / signature / permissions (including RAM-not-authorized hints); yellow = required parameters missing. The last test status and time are recorded.',
+			'One live call with normal text: green = credentials work (and the day\\\'s pause is lifted); red = wrong keys or no package; yellow = bad parameters. The last test status and time are recorded.',
+			'One live call with a normal short text: green = credentials work (and the day\\\'s pause is lifted); red = unauthorized / in arrears / not enabled (Code=408) or wrong key / signature; yellow = bad parameters or missing required fields. The last test status and time are recorded.',
+			'One live call with normal text: green = credentials work (and the day\\\'s pause is lifted); red = auth failed (wrong API Key / Secret Key or service not enabled); yellow = bad parameters or missing required fields. The last test status and time are recorded.',
+			'yellow = API Key blank',
+			'generic endpoints have no standard balance API',
+			'red = 401/402',
+			'red = key rejected or unreachable',
 		) as $needle ) {
 			$this->assertStringContainsString( $needle, $sp, '凭据测试位描述翻转（结果记录最近一次测试状态与时间）：' . mb_substr( $needle, 0, 24 ) . '…' );
 		}
@@ -576,9 +576,9 @@ final class W3BatchCTest extends TestCase {
 			$this->assertStringContainsString( $word, $wiz, "步名照原型 proto-wizard（{$word}）" );
 		}
 		$this->assertSame( 4, substr_count( $wiz, 'data-wk-step' ), '四步面板（1–4）' );
-		$this->assertStringContainsString( '上岗确认单', $wiz, '步四核对清单（原型文案）' );
-		$this->assertStringContainsString( '进入总览', $wiz, '完成出口（主）' );
-		$this->assertStringContainsString( '跳过全部', $wiz, '全程跳过路径' );
+		$this->assertStringContainsString( 'On-duty checklist', $wiz, '步四核对清单（原型文案）' );
+		$this->assertStringContainsString( 'Go to overview →', $wiz, '完成出口（主）' );
+		$this->assertStringContainsString( 'Not now — go straight to settings (skip everything) →', $wiz, '全程跳过路径' );
 	}
 
 	public function test_wizard_key_face_closed_set(): void {
@@ -628,9 +628,9 @@ final class W3BatchCTest extends TestCase {
 
 	public function test_wizard_driver_radio_cards_with_retired_tencent(): void {
 		$wiz = self::body( 'render_wizard' );
-		$this->assertStringContainsString( '阿里云验证码 2.0', $wiz, '驱动 radio 卡一（阿里推荐·默认）' );
-		$this->assertStringContainsString( '退役', $wiz, '腾讯天御退役注（存量可用）' );
-		$this->assertStringContainsString( '暂不配置', $wiz, '驱动 radio 卡三（暂不配置）' );
+		$this->assertStringContainsString( 'Aliyun Captcha 2.0', $wiz, '驱动 radio 卡一（阿里推荐·默认）' );
+		$this->assertStringContainsString( 'Retired as default: the account plan has been discontinued and it is no longer recommended — sites already configured can keep using it.', $wiz, '腾讯天御退役注（存量可用）' );
+		$this->assertStringContainsString( 'Not now', $wiz, '驱动 radio 卡三（暂不配置）' );
 	}
 
 	public function test_wizard_baidu_first_recommendation_order(): void {
@@ -648,8 +648,8 @@ final class W3BatchCTest extends TestCase {
 			$this->assertGreaterThan( $prev, $pos, "百度推荐序位次（{$driver_id} 按拍板顺序出现）" );
 			$prev = $pos;
 		}
-		$this->assertStringContainsString( '推荐 · 默认', $wiz, '百度卡「推荐 · 默认」角标（开通门槛最低口径）' );
-		$this->assertStringContainsString( '次选', $wiz, 'DeepSeek「次选」措辞' );
+		$this->assertStringContainsString( 'Recommended · Default', $wiz, '百度卡「推荐 · 默认」角标（开通门槛最低口径）' );
+		$this->assertStringContainsString( 'Second choice — moderation that actually “reads” the text, with stronger verdicts; submissions leave the country.', $wiz, 'DeepSeek「次选」措辞' );
 	}
 
 	public function test_wizard_wp_switches_readonly_bar_truth_no_field_names(): void {
@@ -658,16 +658,16 @@ final class W3BatchCTest extends TestCase {
 		$this->assertStringContainsString( 'comment_moderation', $bar, '读 WP 原生真值（评论必须手动批准）' );
 		$this->assertStringContainsString( 'comment_whitelist', $bar, '读 WP 原生真值（作者须有先前已批准评论）' );
 		$this->assertStringNotContainsString( 'field_name(', $bar, '只读黄条零本插件表单字段名（SettingsPage :2131 红线照守——演示不落库）' );
-		$this->assertStringContainsString( '这不是故障', $bar, '黄条人话（过码后仍需人工批准——这不是故障）' );
+		$this->assertStringContainsString( '— comments still require manual approval after passing the captcha (this is not a malfunction).', $bar, '黄条人话（过码后仍需人工批准——这不是故障）' );
 		$this->assertStringContainsString( 'options-discussion.php', $bar, '管理入口深链' );
 	}
 
 	public function test_wizard_submit_flow_radio_and_abuseipdb_fold(): void {
 		$wiz = self::body( 'render_wizard' );
 		$this->assertStringContainsString( "'captcha', 'submit_flow'", $wiz, '步一提交触发形态 radio（captcha.submit_flow 实键）' );
-		$this->assertStringContainsString( '无按钮模式', $wiz, 'on_submit 选项文案' );
+		$this->assertStringContainsString( 'No-button mode', $wiz, 'on_submit 选项文案' );
 		$this->assertStringContainsString( 'AbuseIPDB', $wiz, 'AbuseIPDB 可选折叠卡' );
-		$this->assertStringContainsString( '免费档 1000', $wiz, '折叠卡免费档注（1000 次/天拍板统一口径）' );
+		$this->assertStringContainsString( 'Free tier: 1,000 lookups/day (agreed baseline). Register at abuseipdb.com; lookups count against the quota, and the soft cap / daily quota limits are tuned under ⚙ Advanced on Tab 4.', $wiz, '折叠卡免费档注（1000 次/天拍板统一口径）' );
 		$this->assertStringContainsString( "self::password_field( array( 'iprep', 'abuseipdb', 'api_key' )", $wiz, 'api_key 走 password_field（H-6 清除 checkbox 能力随 helper 附带——已配置态渲染「清除此凭据」）' );
 		$this->assertStringContainsString( 'self::test_credential_btn(', $wiz, '折叠卡 cred-test 复用新形态' );
 	}
@@ -684,15 +684,15 @@ final class W3BatchCTest extends TestCase {
 		$pos_panel4 = strpos( $wiz, 'data-wk-step="4"' );
 		$this->assertGreaterThan( 0, $pos_panel4, '步四面板在场' );
 		$panel4 = substr( $wiz, (int) $pos_panel4 ) . self::body( 'render_wizard_checklist' );
-		$this->assertStringContainsString( '测试凭据', $panel4, '步四测试凭据引导（复用 test_credential_btn 新形态）' );
+		$this->assertStringContainsString( 'Test credentials', $panel4, '步四测试凭据引导（复用 test_credential_btn 新形态）' );
 		$this->assertStringContainsString( 'self::render_wizard_checklist(', $wiz, '上岗确认单=独立核对清单渲染件（真值态）' );
-		$this->assertStringContainsString( '上岗确认单', $panel4, '步四核对清单（原型文案）' );
+		$this->assertStringContainsString( 'On-duty checklist', $panel4, '步四核对清单（原型文案）' );
 	}
 
 	public function test_wizard_entry_card_points_to_wizard(): void {
 		$entry = self::body( 'render_overview_onboarding' );
 		$this->assertStringContainsString( 'wizard_url(', $entry, 'Tab① 常驻入口卡改指 wizard 重进入口' );
-		$this->assertStringContainsString( '向导', $entry, '入口文案点明向导（done/skipped 也可再进）' );
+		$this->assertStringContainsString( 'Protection is on duty. To add captcha, cloud moderation, or IP reputation later, rerun the setup wizard at any time (or fine-tune things directly on each tab).', $entry, '入口文案点明向导（done/skipped 也可再进）' );
 		$mode = self::body( 'wizard_mode_active' );
 		$this->assertStringContainsString( "'1'", $mode, 'wizard=1 手动入口参数' );
 	}

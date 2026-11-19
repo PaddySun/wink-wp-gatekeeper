@@ -71,7 +71,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return void
 		 */
-		function esc_attr_e( string $text, string $domain = 'wink-gatekeeper' ): void {
+		function esc_attr_e( string $text, string $domain = 'wink-wp-gatekeeper' ): void {
 			unset( $domain );
 			echo htmlspecialchars( $text, ENT_QUOTES );
 		}

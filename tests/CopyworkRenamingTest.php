@@ -21,14 +21,14 @@ final class CopyworkRenamingTest extends TestCase {
 	public function test_captcha_missing_copy_renamed(): void {
 		$defaults = Copywork::defaults();
 		$this->assertSame( '还差一个眨眼——完成人机验证再点提交。', $defaults['messages']['captcha_missing'] );
-		$this->assertStringNotContainsString( '上方', $defaults['messages']['captcha_missing'], '嵌入式后验证码不一定在「上方」（反馈 5）' );
+		$this->assertStringNotContainsString( 'Plus %d captcha challenges enforced by IP reputation (counted separately — not included in the figures above)', $defaults['messages']['captcha_missing'], '嵌入式后验证码不一定在「上方」（反馈 5）' );
 		// 键名不变：sanitize 白名单/Tab⑤ 渲染零改动。
 		$this->assertContains( 'captcha_missing', Copywork::keys() );
 	}
 
 	public function test_js_hint_l10n_renamed_in_bootstrap(): void {
 		$bootstrap = (string) file_get_contents( dirname( __DIR__ ) . '/includes/Bootstrap.php' );
-		$this->assertStringContainsString( "'hint'      => __( '请先完成人机验证'", $bootstrap, 'Bootstrap L10n hint 改词' );
+		$this->assertStringContainsString( "'hint'      => __( 'Please complete human verification first", $bootstrap, 'Bootstrap L10n hint 改词' );
 		$this->assertStringNotContainsString( '请先完成上方的人机验证', $bootstrap );
 	}
 
@@ -40,7 +40,7 @@ final class CopyworkRenamingTest extends TestCase {
 
 	public function test_local_rules_ui_label_renamed_single_occurrence(): void {
 		$page = (string) file_get_contents( dirname( __DIR__ ) . '/includes/settings/SettingsPage.php' );
-		$this->assertStringContainsString( '无中文评论拦截', $page, 'Tab③ UI 标签改名（反馈 8）' );
+		$this->assertStringContainsString( 'Block comments without Chinese', $page, 'Tab③ UI 标签改名（反馈 8）' );
 		$this->assertStringNotContainsString( '纯外文评论拦截', $page, '全库唯一处改名，旧词不得残留' );
 	}
 }

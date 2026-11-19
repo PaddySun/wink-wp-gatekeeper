@@ -250,8 +250,8 @@ final class M6BBalanceProbeTest extends TestCase {
 
 	public function test_ui_copy_mentions_balance_probe(): void {
 		$sp = self::source( 'includes/settings/SettingsPage.php' );
-		self::assertStringContainsString( '余额探测', $sp, 'UI 说明改写为余额探测语义' );
-		self::assertStringContainsString( '独立端点用模型列表探活', $sp, 'openai_custom 泛端点差异注（B-3 范围边界）' );
+		self::assertStringContainsString( 'Paste the API Key below → click “Test credentials” (a zero-cost balance probe — you also get to see the balance).', $sp, 'UI 说明改写为余额探测语义' );
+		self::assertStringContainsString( 'Balance probe (zero cost): green = credentials valid and account usable (balance shown); yellow = account temporarily unusable (possibly in arrears); red = invalid key or unreachable; yellow = API Key blank. The last test status and time are recorded. Custom endpoints are probed via the model list (OpenAI-compatible, no standard balance API).', $sp, 'openai_custom 泛端点差异注（B-3 范围边界）' );
 	}
 
 	/* ===============================================================

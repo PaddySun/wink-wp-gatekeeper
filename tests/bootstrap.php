@@ -130,7 +130,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（桩忽略）。
 		 * @return string
 		 */
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			unset( $domain );
 			return $text;
 		}
@@ -144,7 +144,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（桩忽略）。
 		 * @return string
 		 */
-		function esc_html__( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			unset( $domain );
 			return $text;
 		}
@@ -158,9 +158,39 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（桩忽略）。
 		 * @return void
 		 */
-		function esc_html_e( string $text, string $domain = 'wink-gatekeeper' ): void {
+		function esc_html_e( string $text, string $domain = 'wink-wp-gatekeeper' ): void {
 			unset( $domain );
 			echo $text;
+		}
+	}
+
+	if ( ! function_exists( 'WinkGatekeeper\Settings\_x' ) ) {
+		/**
+		 * _x 命名空间桩（identity——批 I-2b _x 拆分位配套：带上下文透传原文）。
+		 *
+		 * @param string $text    原文（译文基线即默认译文）。
+		 * @param string $context 上下文（桩忽略）。
+		 * @param string $domain  文本域（桩忽略）。
+		 * @return string
+		 */
+		function _x( string $text, string $context, string $domain = 'wink-wp-gatekeeper' ): string {
+			unset( $context, $domain );
+			return $text;
+		}
+	}
+
+	if ( ! function_exists( 'WinkGatekeeper\Settings\esc_html_x' ) ) {
+		/**
+		 * esc_html_x 命名空间桩（identity）。
+		 *
+		 * @param string $text    原文。
+		 * @param string $context 上下文（桩忽略）。
+		 * @param string $domain  文本域（桩忽略）。
+		 * @return string
+		 */
+		function esc_html_x( string $text, string $context, string $domain = 'wink-wp-gatekeeper' ): string {
+			unset( $context, $domain );
+			return $text;
 		}
 	}
 

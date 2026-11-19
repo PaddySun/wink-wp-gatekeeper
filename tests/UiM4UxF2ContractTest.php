@@ -103,13 +103,13 @@ final class UiM4UxF2ContractTest extends TestCase {
 
 		$this->assertMatchesRegularExpression( "/self::notice_yellow_bar\(\s*'warn'/", $body, '插件级黄条形态（【W3·批B 翻转】引导通栏入卡——notice_yellow_bar warn 级承载插件级类）' );
 		$this->assertStringContainsString( 'overview_configured_count', $body, '显隐判定复用 overview_configured_count' );
-		foreach ( array( '选验证码', '云审', 'IP 信誉', '测试凭据' ) as $step ) {
+		foreach ( array( 'Pick a captcha', 'cloud moderation', 'IP reputation', 'Test credentials' ) as $step ) {
 			$this->assertStringContainsString( $step, $body, "三步引导须含「{$step}」" );
 		}
 		// 【W3·批C·R5 翻转注记】行动链接改指首启向导重进入口（wizard_url——批 C 向导实装，
 		// Tab① 入口改指向导；Tab② 直达由「选验证码（Tab② 验证码）」三步文案承载）。
 		$this->assertStringContainsString( 'wizard_url(', $body, '行动链接=首启向导重进入口（wizard=1）' );
-		$this->assertStringContainsString( '自动消失', $body, '配好即消失承诺写进文案' );
+		$this->assertStringContainsString( 'This notice disappears once any provider is configured.', $body, '配好即消失承诺写进文案' );
 		$this->assertStringNotContainsString( 'style="', $body, '样式全走类（FIX-B 纪律：禁内联）' );
 	}
 
@@ -127,7 +127,7 @@ final class UiM4UxF2ContractTest extends TestCase {
 		$body = self::functionBody( self::settings_src(), 'render_tab_review' );
 
 		$this->assertStringContainsString( 'wk-review-onboarding-notice', $body, '黄条 id 锚（【W3·批B 翻转】迁 notice_yellow_bar 插件级类——id 留编排位）' );
-		$this->assertStringContainsString( '云端审核还没配置，也没开启', $body, '页顶提示文案' );
+		$this->assertStringContainsString( 'Cloud moderation is neither configured nor enabled', $body, '页顶提示文案' );
 		$this->assertStringContainsString( 'empty( $cloud', $body, '判定：云端审核未开启' );
 		$this->assertStringContainsString( 'array() === $chain', $body, '判定：链上无任何驱动（未配置）' );
 		$this->assertStringContainsString( 'wk-review-cloud-card', $body, '行动锚点=云端审核卡' );
@@ -141,7 +141,7 @@ final class UiM4UxF2ContractTest extends TestCase {
 		$this->assertStringContainsString( "get_option( 'comment_moderation'", $body, '查询 WP 原生「评论必须手动批准」' );
 		$this->assertStringContainsString( "get_option( 'comment_whitelist'", $body, '查询 WP 原生「作者须有已批准评论」' );
 		$this->assertStringContainsString( 'id="wk-review-wp-switches"', $body, '只读状态行 DOM 锚' );
-		$this->assertStringContainsString( '即使插件审核通过', $body, '开启时交互影响提示语' );
+		$this->assertStringContainsString( 'On: even when the plugin approves a comment, it still stays hidden until you manually approve it in WP.', $body, '开启时交互影响提示语' );
 		$this->assertStringContainsString( 'options-discussion.php', $body, '管理入口=设置 → 讨论' );
 		$this->assertStringNotContainsString( "field_name( array( 'comment_moderation'", $body, '红线：不改行为——开关不得进表单字段' );
 		$this->assertStringNotContainsString( "field_name( array( 'comment_whitelist'", $body, '红线：不改行为——开关不得进表单字段' );
@@ -152,14 +152,14 @@ final class UiM4UxF2ContractTest extends TestCase {
 	public function test_ui_2_1_report_comment_description_converged(): void {
 		$body = self::functionBody( self::settings_src(), 'render_iprep_zone_report' );
 
-		$this->assertSame( 1, substr_count( $body, 'AbuseIPDB 报告详情公开可见' ), '公开可见警示 foreach 外共享一条（不得逐面重复 ×4）' );
-		$this->assertSame( 1, substr_count( $body, '不可去除' ), '前缀不可去说明只出现一次' );
-		$this->assertSame( 1, substr_count( $body, '超长自动截断' ), '255 截断说明只出现一次' );
+		$this->assertSame( 1, substr_count( $body, 'AbuseIPDB report details are publicly visible' ), '公开可见警示 foreach 外共享一条（不得逐面重复 ×4）' );
+		$this->assertSame( 1, substr_count( $body, 'not removable' ), '前缀不可去说明只出现一次' );
+		$this->assertSame( 1, substr_count( $body, 'truncated (255 characters)' ), '255 截断说明只出现一次' );
 		$this->assertStringContainsString( 'https://www.abuseipdb.com/categories', $body, '官方类目表外链' );
 		$this->assertStringContainsString( '{event_no}', $body, '占位符统一说明' );
 		$this->assertStringContainsString( '{category}', $body, '占位符统一说明' );
 		$this->assertStringContainsString( '{gate}', $body, '占位符统一说明' );
-		$this->assertStringContainsString( '使用示例', $body, '占位符须带使用示例' );
+		$this->assertStringContainsString( 'Placeholders supported: {event_no} (block event number), {category} (the AbuseIPDB category code for this report), {gate} (trigger surface T1/T2/T3/T4). Usage example:', $body, '占位符须带使用示例' );
 		$this->assertStringNotContainsString( '可留空用默认；支持占位符', $body, '旧逐面 placeholder 提示文案退役（说明收敛进共享 description）' );
 	}
 
@@ -201,7 +201,7 @@ final class UiM4UxF2ContractTest extends TestCase {
 	public function test_ui_2_4_ip_source_label_renamed(): void {
 		$body = self::functionBody( self::settings_src(), 'render_iprep_zone_source' );
 
-		$this->assertStringContainsString( '真实 IP 获取方式', $body, 'label 改名（用户 UI-2-4 定值）' );
+		$this->assertStringContainsString( 'Real-IP retrieval method', $body, 'label 改名（用户 UI-2-4 定值）' );
 		$this->assertStringNotContainsString( "esc_html_e( '获取模式'", $body, '旧 label「获取模式」退役' );
 	}
 
@@ -241,7 +241,7 @@ final class UiM4UxF2ContractTest extends TestCase {
 	public function test_ui_3_2_cloud_labels_shared_table_note(): void {
 		$body = self::functionBody( self::settings_src(), 'render_tab_copy' );
 
-		$this->assertStringContainsString( '全部云端驱动共用', $body, '统一表说明行（一张映射表服务全部云端驱动）' );
+		$this->assertStringContainsString( 'One shared table for all cloud drivers: each driver\\\'s reason is already normalized to Label,Score form, so one table serves Tencent TMS / Aliyun Green / Baidu alike — no per-driver tables needed.', $body, '统一表说明行（一张映射表服务全部云端驱动）' );
 		$this->assertStringContainsString( 'Label,Score', $body, '说明行注明 reason 统一形态' );
 	}
 

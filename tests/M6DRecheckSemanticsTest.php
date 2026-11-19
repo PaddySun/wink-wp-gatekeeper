@@ -515,9 +515,9 @@ namespace WinkGatekeeper\Tests {
 		public function test_tab7_button_and_confirm_full_recheck_copy(): void {
 			$sp  = self::source( 'includes/settings/SettingsPage.php' );
 			$card = self::blockBetween( $sp, 'id="wk-tools-url-audit-card"', 'id="wk-tools-url-audit-report"' );
-			self::assertStringContainsString( '全部重查一遍——忽略历史结果，网站内容可能已变化', $card, '按钮文案改「全部重查一遍」语义（§3b-add 逐字）' );
-			self::assertStringContainsString( '忽略历史结果', $card, 'confirm 同步：忽略历史结果' );
-			self::assertStringContainsString( '网站内容可能已变化', $card, 'confirm 同步：网站内容可能已变化' );
+			self::assertStringContainsString( 'Start the existing URL check (re-check everything — historical results ignored, site content may have changed)', $card, '按钮文案改「全部重查一遍」语义（§3b-add 逐字）' );
+			self::assertStringContainsString( 'Re-check everything? Historical results are ignored (site content may have changed), approved comments with URLs are re-queued, and checks proceed one by one within the daily quota (consuming quota). Violations go to Spam, unclear ones to pending review (both recoverable by hand).', $card, 'confirm 同步：忽略历史结果' );
+			self::assertStringContainsString( 'Re-check everything? Historical results are ignored (site content may have changed), approved comments with URLs are re-queued, and checks proceed one by one within the daily quota (consuming quota). Violations go to Spam, unclear ones to pending review (both recoverable by hand).', $card, 'confirm 同步：网站内容可能已变化' );
 		}
 
 		public function test_tab7_state_line_drops_unchecked_wording(): void {

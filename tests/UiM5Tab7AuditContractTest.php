@@ -73,7 +73,7 @@ final class UiM5Tab7AuditContractTest extends TestCase {
 		foreach ( array( 'wk-tools-existing-audit-card', 'wk-tools-audit-state-line' ) as $anchor ) {
 			self::assertStringContainsString( $anchor, $tools, "Tab⑦ 锚 {$anchor}" );
 		}
-		self::assertStringContainsString( '昵称+正文', $tools, '送审串红线注：邮箱与网址不进送审内容' );
+		self::assertStringContainsString( 'Red line: the audit submits “nickname + body” only — emails and URLs never enter the submission (email-exclusion discipline; the URL check is a separate line).', $tools, '送审串红线注：邮箱与网址不进送审内容' );
 	}
 
 	public function test_tab7_admin_actions_double_gated(): void {
@@ -88,8 +88,8 @@ final class UiM5Tab7AuditContractTest extends TestCase {
 
 	public function test_tab7_reset_uses_confirmation_wording(): void {
 		$tools = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
-		self::assertStringContainsString( '重新体检', $tools, '重置动作按钮' );
-		self::assertStringContainsString( '作废', $tools, '重新体检=清上次标记重来的警示措辞' );
+		self::assertStringContainsString( 'Re-run audit', $tools, '重置动作按钮' );
+		self::assertStringContainsString( 'Re-running the audit wipes the previous marks and starts over; processed results are voided — sure?', $tools, '重新体检=清上次标记重来的警示措辞' );
 	}
 
 	/* ===================================================================
@@ -112,7 +112,7 @@ final class UiM5Tab7AuditContractTest extends TestCase {
 	public function test_tab1_running_bar(): void {
 		$alerts = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_overview_alerts' );
 		self::assertStringContainsString( 'wk-overview-existing-bar', $alerts, 'Tab① 体检中黄条锚' );
-		self::assertStringContainsString( '历史评论体检进行中', $alerts, '黄条文案' );
+		self::assertStringContainsString( 'Existing comment audit in progress (%1$d of %2$d processed)', $alerts, '黄条文案' );
 	}
 
 	/* ===================================================================

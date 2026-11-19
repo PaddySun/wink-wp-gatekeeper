@@ -58,7 +58,7 @@ final class M6CReportsContractTest extends TestCase {
 		self::assertStringNotContainsString( 'render_stats_existing_audit_card', $sp, '旧报告卡渲染函数退役' );
 
 		$stats_body = self::functionBody( $sp, 'render_tab_stats' );
-		self::assertStringNotContainsString( '存量审核报告', $stats_body, 'render_tab_stats 编排零存量审核报告卡' );
+		self::assertStringNotContainsString( 'Existing-comment audit report', $stats_body, 'render_tab_stats 编排零存量审核报告卡' );
 	}
 
 	public function test_tab6_running_bar_kept_and_repointed_to_tools(): void {
@@ -93,9 +93,9 @@ final class M6CReportsContractTest extends TestCase {
 	public function test_tab7_reports_show_recovery_wording(): void {
 		// C-2 红线人话：判违规进垃圾箱、没看清进待审，都能手动恢复（两操作卡文案）。
 		$tools = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
-		self::assertStringContainsString( '都能手动恢复', $tools, '可逆面人话在场' );
-		self::assertStringContainsString( '进垃圾箱', $tools, 'reject 去向人话' );
-		self::assertStringContainsString( '进待审', $tools, 'review/inconclusive 去向人话' );
+		self::assertStringContainsString( 'Hands all existing comments to the provider for another pass: violations go to Spam, unclear ones to pending review — both recoverable by hand; clean ones are left alone. The report appears just below this card.', $tools, '可逆面人话在场' );
+		self::assertStringContainsString( 'go to Spam', $tools, 'reject 去向人话' );
+		self::assertStringContainsString( 'to pending review', $tools, 'review/inconclusive 去向人话' );
 	}
 
 	public function test_tab7_reports_link_to_moderation_queues(): void {
@@ -147,8 +147,8 @@ final class M6CReportsContractTest extends TestCase {
 
 		$tools = self::functionBody( $sp, 'render_tab_tools' );
 		self::assertStringContainsString( 'wk-tools-url-audit-feedback', $tools, '点击反馈行锚' );
-		self::assertStringContainsString( '已入队', $tools, '「已入队 N 条·开始核查」人话行' );
-		self::assertStringContainsString( '开始核查', $tools, '反馈行含开始核查' );
+		self::assertStringContainsString( '%s queued · checking starts (advances automatically within the daily quota; you can leave this page).', $tools, '「已入队 N 条·开始核查」人话行' );
+		self::assertStringContainsString( '%s queued · checking starts (advances automatically within the daily quota; you can leave this page).', $tools, '反馈行含开始核查' );
 	}
 
 	/* ===================================================================
@@ -159,7 +159,7 @@ final class M6CReportsContractTest extends TestCase {
 		$sp = self::source( 'includes/settings/SettingsPage.php' );
 		self::assertStringNotContainsString( '统计页存量审核报告', $sp, 'Tab③ inert notice 文案改指工具页' );
 		self::assertStringNotContainsString( '统计页的存量审核报告', $sp, 'Tab⑧ A 关闭提示文案改指工具页' );
-		self::assertSame( 2, substr_count( (string) $sp, '存量网址仍可在工具页' ), '两处提示（Tab③+Tab⑧）均改指工具页存量网址核查' );
+		self::assertSame( 2, substr_count( (string) $sp, 'existing URLs can still be' ), '两处提示（Tab③+Tab⑧）均改指工具页存量网址核查' );
 	}
 
 	public function test_old_stats_report_links_retired(): void {

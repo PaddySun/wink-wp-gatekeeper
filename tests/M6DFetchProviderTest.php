@@ -282,9 +282,9 @@ namespace WinkGatekeeper\Tests {
 			$fold = self::blockBetween( $sp, 'id="wk-url-audit-advanced"', 'wk-url-audit-inert-notice' );
 			self::assertStringContainsString( 'id="wk-url-audit-fetcher-mode"', $fold, '网页抓取服务商下拉在高级折叠内（C-2）' );
 			self::assertStringContainsString( "array( 'url_audit', 'fetcher', 'mode' )", $fold, '字段名 url_audit.fetcher.mode' );
-			self::assertStringContainsString( '跟随云端审核', $fold, '三态文案①：跟随云端审核（默认）' );
-			self::assertStringContainsString( '本站直接打开', $fold, '三态文案②：本站直接打开（免费）' );
-			self::assertStringContainsString( 'DeepSeek 网页抓取', $fold, '三态文案③：DeepSeek 网页抓取（按次计费）' );
+			self::assertStringContainsString( 'Follow cloud moderation (default — when cloud moderation is DeepSeek, verdicts use the same configuration)', $fold, '三态文案①：跟随云端审核（默认）' );
+			self::assertStringContainsString( 'Open directly from this site (free)', $fold, '三态文案②：本站直接打开（免费）' );
+			self::assertStringContainsString( 'DeepSeek page fetching (pay-per-use ¥5/1,000)', $fold, '三态文案③：DeepSeek 网页抓取（按次计费）' );
 		}
 
 		public function test_fetcher_key_rows_conditional_on_deepseek(): void {
@@ -303,9 +303,9 @@ namespace WinkGatekeeper\Tests {
 			// 网页抓取都用 DeepSeek；其他驱动时抓取走本站。
 			$sp   = self::source( 'includes/settings/SettingsPage.php' );
 			$fold = self::blockBetween( $sp, 'id="wk-url-audit-advanced"', 'wk-url-audit-inert-notice' );
-			self::assertStringContainsString( '云端审核为 DeepSeek', $fold, 'N3：inherit 语义——云端审核为 DeepSeek 时' );
-			self::assertStringContainsString( '网页抓取', $fold, 'N3：描述须提及网页抓取跟随面' );
-			self::assertStringContainsString( '本站直接打开', $fold, 'N3：其他驱动时抓取走本站' );
+			self::assertStringContainsString( 'Follow cloud moderation (default — when cloud moderation is DeepSeek, verdicts use the same configuration)', $fold, 'N3：inherit 语义——云端审核为 DeepSeek 时' );
+			self::assertStringContainsString( 'Follow (default): when cloud moderation is DeepSeek, both verdicts and page fetching use DeepSeek (one set of credentials); with another driver, verdicts use its configuration and page fetching does not auto-enable (unconfigured — pick one manually under “Fetch provider” below). Separate: the URL check uses its own DeepSeek credentials (independent of comment cloud moderation; only needed for a different account/quota).', $fold, 'N3：描述须提及网页抓取跟随面' );
+			self::assertStringContainsString( 'Open directly from this site (free)', $fold, 'N3：其他驱动时抓取走本站' );
 		}
 
 		/* ===============================================================

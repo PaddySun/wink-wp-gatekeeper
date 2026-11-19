@@ -34,12 +34,12 @@ namespace WinkGatekeeper\Settings {
 		}
 	}
 	if ( ! function_exists( 'WinkGatekeeper\Settings\esc_html__' ) ) {
-		function esc_html__( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
 	if ( ! function_exists( 'WinkGatekeeper\Settings\__' ) ) {
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -178,7 +178,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( '<span id="wk-x-test-result" aria-live="polite"></span>', $html, '三态结果位锚（aria-live）' );
 			self::assertStringContainsString( 'class="cred-test"', $html, 'cred-test 组件类（原型新形态容器）' );
 			self::assertStringContainsString( 'badge b-dim', $html, '未测试=中性灰初始态' );
-			self::assertStringContainsString( '上次测试：--', $html, '上次测试等宽小字位（批 C 接线持久化读数）' );
+			self::assertStringContainsString( 'Last test: --', $html, '上次测试等宽小字位（批 C 接线持久化读数）' );
 		}
 
 		public function test_probe_state_badge_five_states_closed_set(): void {
@@ -193,7 +193,7 @@ namespace WinkGatekeeper\Tests {
 				$badge = self::invoke_render( 'probe_state_badge', $state, '11-18 14:30' );
 				self::assertStringContainsString( 'badge ' . $conf[0], $badge, "state「{$state}」→ {$conf[0]}" );
 				self::assertStringContainsString( '>' . $conf[1] . '</span>', $badge, "state「{$state}」→ 状态词「{$conf[1]}」" );
-				self::assertStringContainsString( '上次测试：11-18 14:30', $badge, '上次测试小字位' );
+				self::assertStringContainsString( 'Last test: 11-18 14:30', $badge, '上次测试小字位' );
 			}
 			// 非法态=闭集外回落未测试（五态闭集纪律）。
 			$bad = self::invoke_render( 'probe_state_badge', 'bogus', '' );
@@ -228,17 +228,17 @@ namespace WinkGatekeeper\Tests {
 			$html = self::invoke_render( 'usage_card_html', $view );
 			self::assertStringContainsString( 'class="usage-card"', $html, 'usage-card 壳' );
 			self::assertStringContainsString( 'class="usage-hd"', $html, '卡头' );
-			self::assertStringContainsString( '站点总外呼 214 次', $html, '卡头合计（等宽 sum 位）' );
+			self::assertStringContainsString( 'Total site outbound calls: 214', $html, '卡头合计（等宽 sum 位）' );
 			self::assertStringContainsString( 'class="usage-domain"', $html, '域分隔行' );
 			self::assertStringContainsString( 'class="usage-row"', $html, '域内行' );
 			self::assertStringContainsString( '86 / 300', $html, '配额读数 N / M' );
 			self::assertStringContainsString( 'class="prog"', $html, '进度条' );
 			self::assertStringContainsString( 'class="usage-row free"', $html, '不计费声明行（free 形态）' );
 			self::assertStringContainsString( '本站直接打开——不计费', $html, 'free 行无次数渲染（M6·H-4 口径）' );
-			self::assertStringContainsString( '今日容灾放行', $html, '容灾放行行' );
+			self::assertStringContainsString( 'Failover passes today', $html, '容灾放行行' );
 			// 空态：零数据域不渲染=显式空态行（「真安静/没记数」纪律）。
 			$empty = self::invoke_render( 'usage_card_html', array( 'domains' => array(), 'site_total' => 0, 'disaster_pass' => 0 ) );
-			self::assertStringContainsString( '今日无外呼', $empty, '空态显式声明' );
+			self::assertStringContainsString( 'No outbound calls today.', $empty, '空态显式声明' );
 			self::assertStringNotContainsString( 'usage-domain', $empty, '零数据域不渲染' );
 		}
 
@@ -302,7 +302,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( 'wk-overview-url-backlog-bar', $alerts, '网址核查运行黄条锚（id 参数字面量）' );
 			self::assertStringContainsString( "tab_url( 'tools' )", $alerts, '看报告链接改指 Tab⑦' );
 			self::assertStringContainsString( 'Labels::test_mode_word', $alerts, '演练模式词走映射表' );
-			self::assertStringContainsString( '现在去关闭', $alerts, '演练通栏动作出口' );
+			self::assertStringContainsString( 'Turn it off now', $alerts, '演练通栏动作出口' );
 
 			$captcha = self::body( 'render_tab_captcha' );
 			self::assertStringContainsString( 'wk-captcha-unconfigured-notice', $captcha, 'H3-A notice 锚（id 参数字面量）' );

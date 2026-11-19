@@ -401,12 +401,12 @@ namespace WinkGatekeeper\Tests {
 			self::assertIsString( $src );
 			$card = self::functionBody( $src, 'render_url_audit_card' );
 			// conservative：违规不自动进垃圾箱；没看清先进待审等你判定。
-			self::assertStringContainsString( '违规不自动进垃圾箱', $card, '保守档描述含新矩阵语义' );
-			self::assertStringContainsString( '网址没看清的会先进待审等你判定', $card, '保守档 inconclusive→待审人话' );
+			self::assertStringContainsString( 'Conservative (default) — violations are not auto-spammed, only reported and flagged; unclear URLs go to pending review for your call', $card, '保守档描述含新矩阵语义' );
+			self::assertStringContainsString( 'Conservative (default) — violations are not auto-spammed, only reported and flagged; unclear URLs go to pending review for your call', $card, '保守档 inconclusive→待审人话' );
 			// balanced：确凿自动进垃圾箱（可撤销），其余进待审等你复核。
-			self::assertStringContainsString( '证据确凿的自动进垃圾箱（可一键撤销），其余进待审等你复核', $card, '均衡档描述含新矩阵语义' );
+			self::assertStringContainsString( 'Balanced (recommended) — clear-cut violations are auto-spammed (one-click undo), the rest go to pending review', $card, '均衡档描述含新矩阵语义' );
 			// aggressive：拿不太准的也自动进垃圾箱；没看清的进待审。
-			self::assertStringContainsString( '没看清的进待审', $card, '激进档 inconclusive→待审人话' );
+			self::assertStringContainsString( 'Aggressive — even not-so-sure cases are auto-spammed, unclear ones go to pending review; for emergencies during spam floods, switch back afterwards', $card, '激进档 inconclusive→待审人话' );
 			// 旧文案退役（与旧矩阵绑定的表述不再出现）。
 			self::assertStringNotContainsString( '其余附上证据等你复核', $card, '旧均衡档描述退役（「其余」现进待审非只附证据）' );
 		}

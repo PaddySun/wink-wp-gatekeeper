@@ -178,6 +178,6 @@ final class O3DashboardWidgetContractTest extends TestCase {
 	public function test_widget_title_translated_with_text_domain(): void {
 		$fn = self::body( 'add_dashboard_widget' );
 		$this->assertStringContainsString( "__(", $fn, 'widget 标题走 __() 管理面文案' );
-		$this->assertStringContainsString( "'wink-gatekeeper'", $fn, 'text domain' );
+		$this->assertStringContainsString( "'wink-wp-gatekeeper'", $fn, 'text domain' );
 	}
 }

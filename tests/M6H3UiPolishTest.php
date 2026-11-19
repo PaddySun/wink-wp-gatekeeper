@@ -69,7 +69,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function esc_html__( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -82,7 +82,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -495,7 +495,7 @@ namespace WinkGatekeeper\Tests {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_captcha' );
 			self::assertStringContainsString( "'' === \$active", $body, '未配置判定条件（驱动空串）' );
 			self::assertStringContainsString( 'wk-captcha-unconfigured-notice', $body, '【H3-A】Tab② notice 锚' );
-			self::assertStringContainsString( '人机验证还没选服务商', $body, '文案与 Tab① 总览同义' );
+			self::assertStringContainsString( 'No captcha provider selected yet', $body, '文案与 Tab① 总览同义' );
 			self::assertStringContainsString( 'wk-notice--warn', $body, '插件级黄条形态（【W3·批B 翻转】U-1 式——notice_yellow_bar 四级映射翻插件级类）' );
 			// 条件块内才渲染：锚在 if 块之后（避免无条件渲染假绿——锚与条件同函数体+锚前有 if 判定）。
 			$cond_pos = strpos( $body, "'' === \$active" );
@@ -596,8 +596,8 @@ namespace WinkGatekeeper\Tests {
 		public function test_h3d_intercept_block_in_stats_section(): void {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_stats_comment_section' );
 			self::assertStringContainsString( 'wk-stats-url-intercept-block', $body, '【H3-D】谁拦的区新块锚' );
-			self::assertStringContainsString( '网址核查（复核处置）', $body, '块标题（区别于同步拦截链）' );
-			self::assertStringContainsString( '转待审', $body, '用户拍板口径：转待审也算拦——块文案含待审分量' );
+			self::assertStringContainsString( 'URL check (review handling)', $body, '块标题（区别于同步拦截链）' );
+			self::assertStringContainsString( '%1$d sent to Spam today · %2$d to pending review', $body, '用户拍板口径：转待审也算拦——块文案含待审分量' );
 			self::assertStringContainsString( "url_disposal['total']", $body, '数据源=H-9 today_disposal_line 复用（meta 反查零新事件）' );
 		}
 

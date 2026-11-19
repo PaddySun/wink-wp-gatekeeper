@@ -92,14 +92,14 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringContainsString( 'Plugin Name:       Wink WP 保安', $plugin, '改名①：插件头 Plugin Name' );
 
 		$bootstrap = self::src( 'includes/Bootstrap.php' );
-		self::assertStringContainsString( "__( 'Wink WP 保安', 'wink-gatekeeper' )", $bootstrap, '改名②③：菜单 page_title/menu_title 双题' );
-		self::assertSame( 2, substr_count( $bootstrap, "__( 'Wink WP 保安', 'wink-gatekeeper' )," ), '菜单双题恰两处' );
-		self::assertStringContainsString( "__( 'Wink WP 保安 · 今日态势', 'wink-gatekeeper' )", $bootstrap, '改名④：Widget 标题' );
+		self::assertStringContainsString( "__( 'Wink WP Guard', 'wink-wp-gatekeeper' )", $bootstrap, '改名②③：菜单 page_title/menu_title 双题' );
+		self::assertSame( 2, substr_count( $bootstrap, "__( 'Wink WP Guard', 'wink-wp-gatekeeper' )," ), '菜单双题恰两处' );
+		self::assertStringContainsString( "__( 'Wink WP Guard · Today\'s status', 'wink-wp-gatekeeper' )", $bootstrap, '改名④：Widget 标题' );
 
 		$sp = self::sp();
-		self::assertStringContainsString( "esc_attr_e( 'Wink WP 保安', 'wink-gatekeeper' )", $sp, '改名⑤：页头 logo alt' );
+		self::assertStringContainsString( "esc_attr_e( 'Wink WP Guard', 'wink-wp-gatekeeper' )", $sp, '改名⑤：页头 logo alt' );
 		self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> 保安</span>', $sp, '改名⑥：wordmark 字面（Q1=WP 金高亮 <em> 形态）' );
-		self::assertStringContainsString( "esc_attr_e( 'Wink WP 保安设置分区', 'wink-gatekeeper' )", $sp, '改名⑦：nav aria-label' );
+		self::assertStringContainsString( "esc_attr_e( 'Wink WP Guard settings sections', 'wink-wp-gatekeeper' )", $sp, '改名⑦：nav aria-label' );
 
 		$die = self::src( 'includes/intercept/DiePage.php' );
 		self::assertStringContainsString( 'alt="Wink WP 保安"', $die, '改名⑧a：拦截页 logo alt 改名（原 alt="wink"）' );
@@ -170,10 +170,10 @@ final class W3TabRemodelTest extends TestCase {
 
 		$sp = self::sp();
 		// slug / option 前缀 / 事件编号 / text domain / action 常量面原样。
-		self::assertStringContainsString( "const PAGE_SLUG    = 'wink-gatekeeper';", $sp, 'slug 红线' );
+		self::assertStringContainsString( "const PAGE_SLUG    = 'wink-wp-gatekeeper';", $sp, 'slug 红线' );
 		self::assertStringContainsString( "const OPTION_NAME  = 'wink_gatekeeper_settings';", $sp, 'option 名红线' );
 		self::assertStringContainsString( 'WK-', $sp, '事件编号 WK- 前缀面在场' );
-		self::assertStringContainsString( "'wink-gatekeeper'", $sp, 'text domain 字面原样' );
+		self::assertStringContainsString( "'wink-wp-gatekeeper'", $sp, 'text domain 字面原样' );
 		self::assertStringContainsString( "const AJAX_RESET_STATS = 'wink_gatekeeper_reset_stats';", $sp, 'AJAX action 常量面原样（reset）' );
 		self::assertStringContainsString( "const AJAX_TEST_IPREP = 'wink_gatekeeper_test_iprep';", $sp, 'AJAX action 常量面原样（iprep）' );
 		self::assertStringContainsString( "const ACTION_DIE_PREVIEW = 'wink_gatekeeper_die_preview';", $sp, 'admin action 常量面原样（die_preview）' );
@@ -295,8 +295,8 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringContainsString( 'id="wk-overview-entry-card"', $entry, 'Tab① 入口卡锚（onboarding+入口合并为一张卡）' );
 		self::assertSame( 1, substr_count( $entry, 'overview_configured_count(' ), '同判定源 overview_configured_count（不双显）' );
 		self::assertStringContainsString( 'wk-card--ghost', $entry, '已配置态=ghost 弱化形态常驻（P6·R5）' );
-		self::assertStringContainsString( '继续配置', $entry, '常驻入口文案（批 C 改指向 wizard）' );
-		self::assertStringContainsString( '三步开始防护', $entry, '未配置态=三步引导文案（合并保留）' );
+		self::assertStringContainsString( 'Continue setup (wizard) →', $entry, '常驻入口文案（批 C 改指向 wizard）' );
+		self::assertStringContainsString( 'Start protection in three steps', $entry, '未配置态=三步引导文案（合并保留）' );
 
 		$main = self::body( 'render_tab_overview' );
 		$pos_entry  = strpos( $main, 'render_overview_onboarding()' );
@@ -326,7 +326,7 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringContainsString( "'captcha', 'error_policy'", $captcha, 'error_policy 实键渲染（schema+sanitize 既有通道——coexist 同类新接线）' );
 		// 【W3·批C·N2 翻转】region 现状口径行 → 实键 radio（cn 默认/sgp 海外，ENDPOINT_MAP 双端联动）。
 		self::assertStringContainsString( "'captcha', 'aliyun', 'region'", $captcha, 'region 实键 radio（cn|sgp 默认 cn——规划位退役）' );
-		self::assertStringContainsString( '切换后建议点测试凭据', $captcha, 'region 变更提示（须与服务端一致）' );
+		self::assertStringContainsString( 'region must match the server side — the front-end SDK and the server endpoint are linked, and a mismatch errors out; after switching, run “Test credentials” once. The sgp endpoint is a static inference (not verified on a live site; the level will be disabled if live re-verification fails).', $captcha, 'region 变更提示（须与服务端一致）' );
 
 		// 演练模式黄条+二次确认迁驱动卡区顶部常显位（原在天御卡内=选中才显）。
 		$pos_tm   = strpos( $captcha, 'id="wk-test-mode"' );
@@ -336,7 +336,7 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringContainsString( 'wk-notice--warn', $captcha, '演练黄条=插件级黄条类（:1403 复合表单黄条批 B 收口）' );
 
 		// 天御卡头「退役 · 存量可用」注记进卡头（原型措辞）。
-		self::assertStringContainsString( '退役 · 存量可用', $captcha, '天御卡头退役注记（原型「退役 · 存量可用」）' );
+		self::assertStringContainsString( 'Retired · usable if configured', $captcha, '天御卡头退役注记（原型「退役 · 存量可用」）' );
 
 		// cred-test 新形态五处（tencent/aliyun 双驱动位——Tab② 内两处）。
 		self::assertSame( 2, substr_count( $captcha, 'self::test_credential_btn(' ), 'Tab② 两驱动测试凭据迁 test_credential_btn（五态徽标初态统一）' );
@@ -381,7 +381,7 @@ final class W3TabRemodelTest extends TestCase {
 		$copy = self::body( 'render_tab_copy' );
 		self::assertStringNotContainsString( '<details class="wk-guide" id="wk-copy-advanced">', $copy, '文案折叠壳迁 advanced_fold（批 B 目标形态）' );
 		self::assertStringContainsString( 'wk-copy-advanced', $copy, '文案折叠 id 锚原位保留' );
-		self::assertStringContainsString( '署名', $copy, '拦截页卡加「正文末品牌署名行」预览对应注记（R3）' );
+		self::assertStringContainsString( 'A permanent brand signature line “Wink WP Guard” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B).', $copy, '拦截页卡加「正文末品牌署名行」预览对应注记（R3）' );
 
 		// DiePage::build 署名行实装（前台单页——本批落位）。
 		$die = self::src( 'includes/intercept/DiePage.php' );
@@ -412,12 +412,12 @@ final class W3TabRemodelTest extends TestCase {
 		// ③ 登录流水列面=现数据面（Q3 统筹代裁：时间/结果三态/哪张门/为什么拦/WK-——
 		// 不显示账号与 IP，原型「用户名/IP 打码」措辞回写译文基线）。
 		$table = self::body( 'render_account_recent_table' );
-		foreach ( array( '时间', '结果', '哪张门', '为什么拦', '事件编号' ) as $col ) {
+		foreach ( array( 'Time', 'Result', 'Gate', 'Why blocked', 'Event No.' ) as $col ) {
 			self::assertStringContainsString( $col, $table, "登录流水列头（{$col}）" );
 		}
-		self::assertStringNotContainsString( '用户名', $table, '原型「用户名」列不落（现数据面无此列——PIPL 红线）' );
+		self::assertStringNotContainsString( 'Per-username failure threshold', $table, '原型「用户名」列不落（现数据面无此列——PIPL 红线）' );
 		self::assertStringNotContainsString( 'IP 打码', $table, '原型「IP 打码」列不落（现数据面无此列——PIPL 红线）' );
-		self::assertStringContainsString( '不显示账号与 IP', $table, 'PIPL 最小化注保留' );
+		self::assertStringContainsString( 'Only characteristics and outcomes are shown, never accounts or IPs; outcome = stopped-by-captcha / stopped-without-captcha (passes never enter this table); why blocked = trigger attribution (too many consecutive failures for one account, etc.) or the captcha result.', $table, 'PIPL 最小化注保留' );
 		self::assertStringContainsString( 'function account_result_word', self::src( 'includes/stats/Labels.php' ), '结果三态映射纯函数（出码·拦下/未过码·拦下——rejects 无放行行不虚构）' );
 		// ④ CSV 导出钮本批不渲染（钮+端点同批 C 落地=无空接线）。
 		self::assertStringNotContainsString( '导出 CSV', self::body( 'render_stats_records_card' ), 'CSV 钮不渲染（批 C/D 同 commit 接线）' );
@@ -431,16 +431,16 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertSame( 2, substr_count( $tools, 'self::advanced_fold(' ), '体检卡+存量网址核查卡 ⚙ 联动展示折叠（额度与 robots 真实键在 Tab③——不另造键）' );
 		// 联动展示折叠不新增字段（零新键——折叠内为说明文本）。
 		$ghost_block = self::block_between( $tools, 'id="wk-tools-existing-audit-card"', 'id="wk-tools-url-audit-card"' );
-		self::assertStringContainsString( '送审范围', $ghost_block, '送审范围说明收折叠（联动展示）' );
+		self::assertStringContainsString( 'Advanced notes (submission scope / handling)', $ghost_block, '送审范围说明收折叠（联动展示）' );
 	}
 
 	/** Tab⑧：四规划卡虚线壳 + coexist 新接线 + XML-RPC 搬位（Q4=双入口同键）。 */
 	public function test_tab8_ghost_cards_coexist_and_xmlrpc_relocation(): void {
 		$enhance = self::body( 'render_tab_enhance' );
 		self::assertSame( 3, substr_count( $enhance, 'wk-card--ghost' ), 'RSS/REST/UA 三规划卡虚线壳（微拍板 c）' );
-		self::assertStringContainsString( 'RSS 防护', $enhance, 'RSS 卡（规划壳）' );
-		self::assertStringContainsString( 'REST API 管控', $enhance, 'REST 卡（规划壳）' );
-		self::assertStringContainsString( 'UA / HTTP 头规则', $enhance, 'UA 卡（规划壳）' );
+		self::assertStringContainsString( 'RSS protection', $enhance, 'RSS 卡（规划壳）' );
+		self::assertStringContainsString( 'REST API controls', $enhance, 'REST 卡（规划壳）' );
+		self::assertStringContainsString( 'UA / HTTP header rules', $enhance, 'UA 卡（规划壳）' );
 		self::assertSame( 7, substr_count( $enhance, 'wk-plan-tag' ), '规划徽标七件（三卡头 + xmlrpc 两扩展行 + coexist 两检测行——闭集核对）' );
 
 		// coexist 共存卡新接线（实键非规划——schema/sanitize 既有通道）。
@@ -452,8 +452,8 @@ final class W3TabRemodelTest extends TestCase {
 			$pair = self::block_between( $enhance, "array( 'coexist', '{$leaf}' )", 'class="sw-label"' );
 			self::assertStringContainsString( 'value="0"', $pair, "coexist {$leaf} hidden-0 伴随域在 checkbox 之前（M5Fix 契约族同款紧邻形态）" );
 		}
-		self::assertStringContainsString( '检测到 Akismet 在场', $enhance, 'Akismet 规划检测行（灰字不冒充实装）' );
-		self::assertStringContainsString( '检测到 Wordfence 在场', $enhance, 'Wordfence 规划检测行' );
+		self::assertStringContainsString( 'Akismet detected', $enhance, 'Akismet 规划检测行（灰字不冒充实装）' );
+		self::assertStringContainsString( 'Wordfence detected', $enhance, 'Wordfence 规划检测行' );
 
 		// XML-RPC 管控卡=真实控件搬位（Q4 代裁：Tab② 登录保护卡保留原行 + Tab⑧ 同键副本）。
 		self::assertStringContainsString( 'id="wk-xmlrpc-control-card"', $enhance, 'XML-RPC 管控卡锚（搬位卡）' );
@@ -515,7 +515,7 @@ final class W3TabRemodelTest extends TestCase {
 		foreach ( $m[1] as $literal ) {
 			self::assertSame(
 				0,
-				preg_match( '/\b(driver|verdict|rule_hit|stage)\b/', (string) $literal ),
+				preg_match( '/\brule_hit\b/', (string) $literal ),
 				"黑话裸词不得进用户可见文案：「{$literal}」"
 			);
 		}

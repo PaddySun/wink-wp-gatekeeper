@@ -93,16 +93,16 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$body = self::body( 'render_overview_alerts' );
 		$this->assertStringContainsString( 'TestMode::wp_active', $body, '演练模式通栏判定（wp_active 含 24h 懒过期）' );
 		$this->assertStringContainsString( 'Labels::test_mode_word', $body, '演练模式词走映射表' );
-		$this->assertStringContainsString( '现在去关闭', $body, '演练通栏带关闭动作链接' );
+		$this->assertStringContainsString( 'Turn it off now', $body, '演练通栏带关闭动作链接' );
 		$this->assertStringContainsString( "tab_url( 'captcha' )", $body, '关闭/验证码兜底跳 Tab②' );
-		$this->assertStringContainsString( '统计计数已停用', $body, '统计停用提示从卡内迁出为通栏（FIX-δ）' );
-		$this->assertStringContainsString( '人机验证还没选服务商', $body, '验证码域兜底新黄条（B-1——对齐审核域兜底）' );
-		$this->assertStringContainsString( '还没配好任何一家审核服务商', $body, '审核域兜底黄条迁位保留' );
+		$this->assertStringContainsString( 'Statistics counting is disabled', $body, '统计停用提示从卡内迁出为通栏（FIX-δ）' );
+		$this->assertStringContainsString( 'No captcha provider selected yet', $body, '验证码域兜底新黄条（B-1——对齐审核域兜底）' );
+		$this->assertStringContainsString( 'Content moderation is enabled, but no moderation provider is configured yet', $body, '审核域兜底黄条迁位保留' );
 		$this->assertStringContainsString( "tab_url( 'review' )", $body, '审核兜底跳 Tab③' );
 		// 【I3·定稿 §4.5/§9】上报突增告警黄条（usage_spike 当日事件消费——块 A 形态既有）。
 		$this->assertStringContainsString( 'today_rule_count', $body, 'usage_spike 当日事件走 EventsTable 只读计数' );
 		$this->assertStringContainsString( 'RULE_USAGE_SPIKE', $body, '事件键单一来源（AbuseIpdbService 常量）' );
-		$this->assertStringContainsString( 'IP 上报请求今天突然增多', $body, '突增通栏黄条文案锚' );
+		$this->assertStringContainsString( 'Suspicious: a sudden spike in IP report requests today', $body, '突增通栏黄条文案锚' );
 		$this->assertStringContainsString( "tab_url( 'iprep' )", $body, '突增通栏跳 Tab④ 上报设置' );
 	}
 
@@ -117,13 +117,13 @@ final class UiTab1OverviewContractTest extends TestCase {
 
 	public function test_report_block_skeleton(): void {
 		$body = self::body( 'render_overview_report' );
-		$this->assertStringContainsString( '今日战报', $body );
-		$this->assertStringContainsString( '评论闸', $body, '三闸小票：闸字保留为分组名（裁决 1）' );
-		$this->assertStringContainsString( '登录闸', $body );
-		$this->assertStringContainsString( '注册·找回闸', $body );
+		$this->assertStringContainsString( 'Today\\\'s report (%s)', $body );
+		$this->assertStringContainsString( 'Comment gate', $body, '三闸小票：闸字保留为分组名（裁决 1）' );
+		$this->assertStringContainsString( 'Login gate', $body );
+		$this->assertStringContainsString( 'Registration & recovery gate', $body );
 		$this->assertStringContainsString( 'ticket_main', $body, '小票主行走纯函数（0=平静的一天显式空态——OverviewRosterTest 钉）' );
-		$this->assertStringContainsString( '密码输错', $body, '登录小票副行（对照表 6）' );
-		$this->assertStringContainsString( '统计已停用，今日没有记账', $body, '统计停用三票换灰字（B 提案块 B）' );
+		$this->assertStringContainsString( '%d wrong passwords, stopped by a captcha', $body, '登录小票副行（对照表 6）' );
+		$this->assertStringContainsString( 'Statistics are disabled, so nothing was counted today (events are still recorded)', $body, '统计停用三票换灰字（B 提案块 B）' );
 		$this->assertStringContainsString( 'gate_counts', $body, '三闸计数走 InterceptDigest 读取面' );
 	}
 
@@ -150,7 +150,7 @@ final class UiTab1OverviewContractTest extends TestCase {
 
 	public function test_roster_block_skeleton(): void {
 		$body = self::body( 'render_overview_roster' );
-		$this->assertStringContainsString( '服务商点名册', $body, '直白命名——不用保安比喻（裁决 1）' );
+		$this->assertStringContainsString( 'Provider roster (%d)', $body, '直白命名——不用保安比喻（裁决 1）' );
 		$this->assertStringContainsString( 'overview_roster_cards', $body, '点名册数据走边界收集器' );
 		$this->assertStringContainsString( 'render_roster_card', $body, '单卡渲染函数' );
 		$this->assertStringContainsString( 'Labels::local_rules_footnote', $body, '本地规则不入册给脚注（对照表 B-7）' );
@@ -164,15 +164,15 @@ final class UiTab1OverviewContractTest extends TestCase {
 	 */
 	public function test_roster_unconfigured_collapsed_row(): void {
 		$roster = self::body( 'render_overview_roster' );
-		$this->assertStringContainsString( '未配置的服务商', $roster, '收拢行文案（反馈 1 拍板形态）' );
+		$this->assertStringContainsString( 'Unconfigured providers: %s', $roster, '收拢行文案（反馈 1 拍板形态）' );
 		$this->assertStringContainsString( 'wk-roster-unconfigured', $roster, '收拢行样式类（CSS 承载——不内联）' );
-		$this->assertStringContainsString( '去配置 →', $roster, '收拢行单入口去处（保留可发现性）' );
+		$this->assertStringContainsString( 'Configure →', $roster, '收拢行单入口去处（保留可发现性）' );
 		$this->assertStringContainsString( "'unconfigured' === ", $roster, '展开/收拢分流按排班态（OverviewRoster::cards 的 duty）' );
 		$this->assertStringContainsString( 'array_unique', $roster, '单入口跳转目标=未配置卡 config_tab 去重（全同域链对应 Tab，混合回落 Tab② 三步引导）' );
 		$this->assertStringContainsString( 'implode', $roster, '收拢行服务商名册组装（人话 label 名单——Labels 体系）' );
 
 		$card = self::body( 'render_roster_card' );
-		$this->assertStringNotContainsString( '去配置', $card, '卡内去配置入口退役（单入口取代——反馈 1「不再每卡一入口」）' );
+		$this->assertStringNotContainsString( 'Configure', $card, '卡内去配置入口退役（单入口取代——反馈 1「不再每卡一入口」）' );
 		$this->assertStringNotContainsString( 'wk-roster-card--disabled', $roster . $card, '未配置灰卡不再单独渲染（收拢行取代）' );
 	}
 
@@ -201,16 +201,16 @@ final class UiTab1OverviewContractTest extends TestCase {
 		$this->assertStringContainsString( 'recent_health_timeline', $body, 'N3 停转进入·解除时间线（批 2 查询复用）' );
 		$this->assertStringContainsString( 'fault_timeline_rows', $body, '批 2 行组装复用（id 倒序归并）' );
 		$this->assertStringContainsString( 'incident_lines', $body, 'Tab① 紧凑行组装（OverviewRoster 纯函数）' );
-		$this->assertStringContainsString( '风平浪静', $body, '空态显式人话（B-5）' );
+		$this->assertStringContainsString( 'All quiet for the last 7 days.', $body, '空态显式人话（B-5）' );
 		$this->assertStringContainsString( "tab_url( 'stats' )", $body, '完整记录入口指向 Tab⑥' );
-		$this->assertStringContainsString( '最近岔子', $body );
+		$this->assertStringContainsString( 'Recent incidents', $body );
 	}
 
 	/* ---------- 块 E：站点底账（一行灰字） ---------- */
 
 	public function test_footer_block_contents(): void {
 		$body = self::body( 'render_overview_footer' );
-		$this->assertStringContainsString( '统计计数', $body );
+		$this->assertStringContainsString( 'Statistics counting', $body );
 		$this->assertStringContainsString( 'Labels::test_mode_word', $body, '演练模式态走映射表词' );
 		$this->assertStringContainsString( 'EventsTable::row_count', $body, '事件表容量读数（N11——C 建议替代无指标项「事件记录正常」）' );
 		$this->assertStringContainsString( 'MAX_ROWS', $body, '容量上限读数' );
@@ -239,7 +239,7 @@ final class UiTab1OverviewContractTest extends TestCase {
 
 	public function test_legacy_placeholder_cards_retired(): void {
 		$main = self::body( 'render_tab_overview' );
-		$this->assertStringNotContainsString( '待审队列', $main, '占位卡退役（块 B 行动行取代）' );
+		$this->assertStringNotContainsString( 'Pending review (default) — on cloud failure or exhausted quota, comments go to the pending queue for you to handle later', $main, '占位卡退役（块 B 行动行取代）' );
 		$this->assertStringNotContainsString( '事件流预览', $main, '占位卡退役（块 D 取代）' );
 		$this->assertStringNotContainsString( '驱动健康', $main, '旧健康表退役（点名册取代）' );
 		$this->assertStringNotContainsString( 'render_driver_health_rows', self::settings_src(), '旧健康行渲染函数退役（registry 全集推导取代）' );
@@ -253,8 +253,8 @@ final class UiTab1OverviewContractTest extends TestCase {
 			. self::body( 'render_overview_roster' )
 			. self::body( 'render_overview_incidents' )
 			. self::body( 'render_overview_footer' );
-		$this->assertStringNotContainsString( '保安', $bodies, '点名册不用保安比喻（统筹裁决 1）' );
-		$this->assertStringNotContainsString( '当日停转', $bodies, '停转黑话退役（对照表 B-4）' );
+		$this->assertStringNotContainsString( 'Wink WP Guard', $bodies, '点名册不用保安比喻（统筹裁决 1）' );
+		$this->assertStringNotContainsString( 'Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented.', $bodies, '停转黑话退役（对照表 B-4）' );
 		$this->assertStringNotContainsString( '未装配', $bodies, '未装配黑话退役（对照表 B-5）' );
 		$this->assertStringNotContainsString( '本地规则无外部故障面', $bodies, '恒正常黑话退役（对照表 B-7）' );
 	}

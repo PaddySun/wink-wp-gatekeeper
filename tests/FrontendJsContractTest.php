@@ -80,7 +80,7 @@ final class FrontendJsContractTest extends TestCase {
 	public function test_bootstrap_l10n_keyset_contains_trust_hint(): void {
 		$src = self::bootstrap();
 		self::assertStringContainsString( "'wk_trust_hint'", $src, 'wkGateL10n 键集须补 wk_trust_hint' );
-		self::assertStringContainsString( '老朋友，免验放行', $src );
+		self::assertStringContainsString( 'Old friend, no verification needed', $src );
 	}
 
 	/* ---------- F4-2 三清除时机 ---------- */

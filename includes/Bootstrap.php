@@ -1069,30 +1069,30 @@ final class Bootstrap {
 	private static function front_l10n(): array {
 		return array(
 			// M2-FIX2 D1 v1.4（2026-11-10 用户反馈②）：三态单按钮文案（按钮 aria-live 承载）。
-			'idle'      => __( '完成人机验证', 'wink-gatekeeper' ),
-			'loading'   => __( '验证码加载中……', 'wink-gatekeeper' ),
-			'pending'   => __( '验证中……', 'wink-gatekeeper' ),
-			'done'      => __( '已通过验证', 'wink-gatekeeper' ),
-			'retry'     => __( '验证未完成，点击重试', 'wink-gatekeeper' ),
-			'loadFail'  => __( '验证码加载失败，点击重试', 'wink-gatekeeper' ),
-			'mismatch'  => __( '验证组件加载异常，请刷新页面重试。', 'wink-gatekeeper' ),
-			'error'     => __( '验证组件初始化失败，请刷新重试', 'wink-gatekeeper' ),
+			'idle'      => __( 'Complete human verification', 'wink-wp-gatekeeper' ),
+			'loading'   => __( 'Loading captcha…', 'wink-wp-gatekeeper' ),
+			'pending'   => __( 'Verifying…', 'wink-wp-gatekeeper' ),
+			'done'      => __( 'Verification passed', 'wink-wp-gatekeeper' ),
+			'retry'     => __( 'Verification incomplete — click to retry', 'wink-wp-gatekeeper' ),
+			'loadFail'  => __( 'Captcha failed to load — click to retry', 'wink-wp-gatekeeper' ),
+			'mismatch'  => __( 'The verification widget failed to load. Please refresh the page and try again.', 'wink-wp-gatekeeper' ),
+			'error'     => __( 'The verification widget failed to initialize — refresh to retry', 'wink-wp-gatekeeper' ),
 			// FIX-γ 2026-11-10（03 §2.1 v1.3）：8s 看门狗超时文案 + appId 缺失配置错误文案。
-			'loadTimeout' => __( '网络不佳，请稍后重试或联系站长', 'wink-gatekeeper' ),
-			'configError' => __( '验证码配置缺失，请联系站长。', 'wink-gatekeeper' ),
+			'loadTimeout' => __( 'Weak network — please retry later or contact the site owner', 'wink-wp-gatekeeper' ),
+			'configError' => __( 'Captcha is not configured. Please contact the site owner.', 'wink-wp-gatekeeper' ),
 			// C1 2026-11-11（03 §2.1 v1.3）：票据 5 分钟过期回退文案（onExpire 适配器消费）。
-			'expired'   => __( '验证已过期，请重新验证', 'wink-gatekeeper' ),
+			'expired'   => __( 'Verification expired — please verify again', 'wink-wp-gatekeeper' ),
 			// M2-FIX2 D3（2026-11-10 用户反馈③）：未验证点提交的提示文案（按钮临时切换 + title）。
-			'hint'      => __( '请先完成人机验证', 'wink-gatekeeper' ), // 【v1.4·反馈5 改词】删除「上方」字样（嵌入式后验证码不一定在上方）。
+			'hint'      => __( 'Please complete human verification first', 'wink-wp-gatekeeper' ), // 【v1.4·反馈5 改词】删除「上方」字样（嵌入式后验证码不一定在上方）。
 			// 【v1.4·R2/03 §2.1】预检门 checking 态文案（按钮状态机增量：unverified → checking → …）。
-			'checking'  => __( '检查中…', 'wink-gatekeeper' ),
+			'checking'  => __( 'Checking…', 'wink-wp-gatekeeper' ),
 			// 【v1.5·F4-1】免验轻提示（03 §2.1 v1.5：trust_pass 分支差异化文案——让「免验发生了」
 			// 前台可感知；aria-live 随按钮播报）。
-			'wk_trust_hint' => __( '老朋友，免验放行', 'wink-gatekeeper' ),
+			'wk_trust_hint' => __( 'Old friend, no verification needed', 'wink-wp-gatekeeper' ),
 			// 【W2·无按钮模式】submit-gate 模块文案（0.8.4，gatekeeper.js 消费——Toast 单例播报；
 			// 无按钮语境的「重试」=再点一次提交）。
-			'submit_gate_verify' => __( '请先完成人机验证再提交', 'wink-gatekeeper' ),
-			'submit_gate_retry'  => __( '人机验证未完成，请再点一次提交重试', 'wink-gatekeeper' ),
+			'submit_gate_verify' => __( 'Please complete human verification before submitting', 'wink-wp-gatekeeper' ),
+			'submit_gate_retry'  => __( 'Human verification incomplete — click submit once more to retry', 'wink-wp-gatekeeper' ),
 			// 【F3-2·0.5.4】旧「过码后切网络提示」（net_changed）退役——用户明示删除
 			// （「插在这里很丑，删掉」M4UX-MANUAL-FEEDBACK-2 §一④）；天御票据网络绑定知识
 			// 改入人工卡备注行（MANUAL-CARD-M4UX ④），不做前台提示。
@@ -1106,8 +1106,8 @@ final class Bootstrap {
 	 */
 	public function register_menu(): void {
 		$this->settings_page_hook = add_options_page(
-			__( 'Wink WP 保安', 'wink-gatekeeper' ),
-			__( 'Wink WP 保安', 'wink-gatekeeper' ),
+			__( 'Wink WP Guard', 'wink-wp-gatekeeper' ),
+			__( 'Wink WP Guard', 'wink-wp-gatekeeper' ),
 			'manage_options',
 			SettingsPage::PAGE_SLUG,
 			array( SettingsPage::class, 'render' )
@@ -1147,7 +1147,7 @@ final class Bootstrap {
 		);
 		wp_add_dashboard_widget(
 			'wink_gatekeeper_dashboard_widget',
-			__( 'Wink WP 保安 · 今日态势', 'wink-gatekeeper' ),
+			__( 'Wink WP Guard · Today\'s status', 'wink-wp-gatekeeper' ),
 			array( $this, 'render_dashboard_widget' )
 		);
 	}
@@ -1254,13 +1254,13 @@ final class Bootstrap {
 			<?php if ( $proxy_header_conflict ) : ?>
 				<p class="wk-widget-line is-alert" id="wk-widget-proxy-header-alert">
 					<span class="wk-widget-light is-warn" aria-hidden="true"></span>
-					<?php echo esc_html( __( '检测到代理转发头但 IP 来源=直连——per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源。', 'wink-gatekeeper' ) ); ?>
-					<a class="wk-widget-fix" href="<?php echo esc_url( admin_url( 'options-general.php?page=' . SettingsPage::PAGE_SLUG . '&tab=iprep' ) ); ?>"><?php echo esc_html( __( '前往检查', 'wink-gatekeeper' ) ); ?></a>
+					<?php echo esc_html( __( 'Proxy forwarding headers detected but the IP source is direct — per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely; choose an IP source that matches your deployment topology in the network settings.', 'wink-wp-gatekeeper' ) ); ?>
+					<a class="wk-widget-fix" href="<?php echo esc_url( admin_url( 'options-general.php?page=' . SettingsPage::PAGE_SLUG . '&tab=iprep' ) ); ?>"><?php echo esc_html( __( 'Go check', 'wink-wp-gatekeeper' ) ); ?></a>
 				</p>
 			<?php endif; ?>
 			<?php /* 卡 1：系统健康——四闸状态点 + 验证码配置态 + 停转红警报 + cron 存活。 */ ?>
 			<div class="wk-widget-card" id="wk-widget-health">
-				<p class="wk-widget-card-title"><?php echo esc_html( __( '系统健康', 'wink-gatekeeper' ) ); ?></p>
+				<p class="wk-widget-card-title"><?php echo esc_html( __( 'System health', 'wink-wp-gatekeeper' ) ); ?></p>
 				<ul class="wk-widget-dots">
 					<?php foreach ( $view['health']['gates'] as $gate ) : ?>
 						<li class="wk-widget-dot<?php echo esc_attr( ! empty( $gate['enabled'] ) ? ' is-on' : ' is-off' ); ?>">
@@ -1271,7 +1271,7 @@ final class Bootstrap {
 				<p class="wk-widget-line">
 					<span class="wk-widget-light<?php echo esc_attr( $captcha_configured ? ' is-on' : ' is-warn' ); ?>" aria-hidden="true"></span>
 					<?php echo esc_html( (string) $view['health']['captcha']['label'] ); ?>：
-					<?php echo esc_html( $captcha_configured ? __( '已配置', 'wink-gatekeeper' ) : __( '未配置——验证码阶段整体跳过', 'wink-gatekeeper' ) ); ?>
+					<?php echo esc_html( $captcha_configured ? __( 'Configured', 'wink-wp-gatekeeper' ) : __( 'Not configured — the captcha stage is skipped entirely', 'wink-wp-gatekeeper' ) ); ?>
 				</p>
 				<?php foreach ( $view['health']['halts'] as $halt ) : ?>
 					<?php
@@ -1284,14 +1284,14 @@ final class Bootstrap {
 				<?php endforeach; ?>
 				<p class="wk-widget-line">
 					<span class="wk-widget-light<?php echo esc_attr( $view['health']['cron_alive'] ? ' is-on' : ' is-red' ); ?>" aria-hidden="true"></span>
-					<?php echo esc_html( __( '每日维护任务', 'wink-gatekeeper' ) ); ?>：
-					<?php echo esc_html( $view['health']['cron_alive'] ? __( '已排程', 'wink-gatekeeper' ) : __( '丢失——事件清理已停摆', 'wink-gatekeeper' ) ); ?>
+					<?php echo esc_html( __( 'Daily maintenance task', 'wink-wp-gatekeeper' ) ); ?>：
+					<?php echo esc_html( $view['health']['cron_alive'] ? __( 'Scheduled', 'wink-wp-gatekeeper' ) : __( 'Missing — event cleanup has stalled', 'wink-wp-gatekeeper' ) ); ?>
 					<?php if ( ! $view['health']['cron_alive'] ) : ?>
-						<a class="wk-widget-fix" href="<?php echo esc_url( $reactivate_url ); ?>"><?php echo esc_html( __( '重新激活', 'wink-gatekeeper' ) ); ?></a>
+						<a class="wk-widget-fix" href="<?php echo esc_url( $reactivate_url ); ?>"><?php echo esc_html( __( 'Reactivate', 'wink-wp-gatekeeper' ) ); ?></a>
 					<?php endif; ?>
 				</p>
 				<p class="wk-widget-actions">
-					<a class="button button-primary" href="<?php echo esc_url( $tab1_url ); ?>"><?php echo esc_html( __( '总览详情', 'wink-gatekeeper' ) ); ?></a>
+					<a class="button button-primary" href="<?php echo esc_url( $tab1_url ); ?>"><?php echo esc_html( __( 'Overview details', 'wink-wp-gatekeeper' ) ); ?></a>
 				</p>
 			</div>
 
@@ -1299,9 +1299,9 @@ final class Bootstrap {
 			 * 〔内容审核本地不计数不显〕→网页抓取→网页搜索；IP 信誉殿后）+各域实际启用驱动行
 			 * +本站直抓不计费声明行 + 站点总外呼 + 容灾放行。 */ ?>
 			<div class="wk-widget-card" id="wk-widget-usage">
-				<p class="wk-widget-card-title"><?php echo esc_html( __( '第三方调用量（今日）', 'wink-gatekeeper' ) ); ?></p>
+				<p class="wk-widget-card-title"><?php echo esc_html( __( 'Third-party calls (today)', 'wink-wp-gatekeeper' ) ); ?></p>
 				<?php if ( array() === $view['usage']['domains'] ) : ?>
-					<p class="wk-widget-empty"><?php echo esc_html( __( '今日无外呼。', 'wink-gatekeeper' ) ); ?></p>
+					<p class="wk-widget-empty"><?php echo esc_html( __( 'No outbound calls today.', 'wink-wp-gatekeeper' ) ); ?></p>
 				<?php else : ?>
 					<?php foreach ( $view['usage']['domains'] as $domain ) : ?>
 						<p class="wk-widget-usage-domain"><?php echo esc_html( (string) $domain['label'] ); ?></p>
@@ -1313,40 +1313,40 @@ final class Bootstrap {
 										<?php /* 【M6·批H·H-4③】本站直抓不计费声明行——无次数渲染。 */ ?>
 									<?php elseif ( (int) $row['quota'] > 0 ) : ?>
 										<span class="wk-widget-num"><?php echo (int) $row['used']; ?> / <?php echo (int) $row['quota']; ?></span>
-										<?php echo ! empty( $row['quota_reached'] ) ? esc_html( __( '——已达限，当日暂停', 'wink-gatekeeper' ) ) : ''; ?>
+										<?php echo ! empty( $row['quota_reached'] ) ? esc_html( __( '— quota reached, paused for today', 'wink-wp-gatekeeper' ) ) : ''; ?>
 									<?php else : ?>
-										<span class="wk-widget-num"><?php echo (int) $row['used']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?>
+										<span class="wk-widget-num"><?php echo (int) $row['used']; ?></span><?php echo esc_html( __( ' times', 'wink-wp-gatekeeper' ) ); ?>
 									<?php endif; ?>
 								</li>
 							<?php endforeach; ?>
 						</ul>
 					<?php endforeach; ?>
 					<p class="wk-widget-line">
-						<?php echo esc_html( __( '站点今日总外呼', 'wink-gatekeeper' ) ); ?>
-						<span class="wk-widget-num"><?php echo (int) $view['usage']['site_total']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?>
+						<?php echo esc_html( __( 'Site outbound calls today', 'wink-wp-gatekeeper' ) ); ?>
+						<span class="wk-widget-num"><?php echo (int) $view['usage']['site_total']; ?></span><?php echo esc_html( __( ' times', 'wink-wp-gatekeeper' ) ); ?>
 					</p>
 				<?php endif; ?>
 				<p class="wk-widget-line">
-					<?php echo esc_html( __( '今日容灾放行', 'wink-gatekeeper' ) ); ?>
-					<span class="wk-widget-num<?php echo esc_attr( (int) $view['usage']['disaster_pass'] > 0 ? ' is-red' : '' ); ?>"><?php echo (int) $view['usage']['disaster_pass']; ?></span><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?><?php echo (int) $view['usage']['disaster_pass'] > 0 ? esc_html( __( '——验证码服务不稳的晴雨表', 'wink-gatekeeper' ) ) : ''; ?>
+					<?php echo esc_html( __( 'Failover passes today', 'wink-wp-gatekeeper' ) ); ?>
+					<span class="wk-widget-num<?php echo esc_attr( (int) $view['usage']['disaster_pass'] > 0 ? ' is-red' : '' ); ?>"><?php echo (int) $view['usage']['disaster_pass']; ?></span><?php echo esc_html( __( ' times', 'wink-wp-gatekeeper' ) ); ?><?php echo (int) $view['usage']['disaster_pass'] > 0 ? esc_html( __( '— a barometer of captcha service instability', 'wink-wp-gatekeeper' ) ) : ''; ?>
 				</p>
 				<p class="wk-widget-actions">
-					<a class="button button-primary" href="<?php echo esc_url( $tab6_url ); ?>"><?php echo esc_html( __( '查调用明细', 'wink-gatekeeper' ) ); ?></a>
+					<a class="button button-primary" href="<?php echo esc_url( $tab6_url ); ?>"><?php echo esc_html( __( 'View call details', 'wink-wp-gatekeeper' ) ); ?></a>
 				</p>
 			</div>
 
 			<?php /* 卡 3：今日拦截概览迷你条——三格计数 + 行动出口。 */ ?>
 			<div class="wk-widget-card" id="wk-widget-overview">
 				<p class="wk-widget-strip">
-					<?php echo esc_html( __( '今日：拦截', 'wink-gatekeeper' ) ); ?>
+					<?php echo esc_html( __( 'Today: blocked', 'wink-wp-gatekeeper' ) ); ?>
 					<span class="wk-widget-num"><?php echo (int) $view['overview']['reject']; ?></span>
-					<?php echo esc_html( __( '｜ 待审', 'wink-gatekeeper' ) ); ?>
+					<?php echo esc_html( __( '| pending', 'wink-wp-gatekeeper' ) ); ?>
 					<span class="wk-widget-num"><?php echo (int) $view['overview']['review']; ?></span>
-					<?php echo esc_html( __( '｜ 驱动错误', 'wink-gatekeeper' ) ); ?>
+					<?php echo esc_html( __( '| driver errors', 'wink-wp-gatekeeper' ) ); ?>
 					<span class="wk-widget-num<?php echo esc_attr( (int) $view['overview']['error'] > 0 ? ' is-red' : '' ); ?>"><?php echo (int) $view['overview']['error']; ?></span>
 				</p>
 				<p class="wk-widget-actions">
-					<a class="button button-primary" href="<?php echo esc_url( $tab6_url ); ?>"><?php echo esc_html( __( '查看详情', 'wink-gatekeeper' ) ); ?></a>
+					<a class="button button-primary" href="<?php echo esc_url( $tab6_url ); ?>"><?php echo esc_html( __( 'View details', 'wink-wp-gatekeeper' ) ); ?></a>
 				</p>
 			</div>
 
@@ -1366,7 +1366,7 @@ final class Bootstrap {
 	 */
 	public function handle_reactivate_cron(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( 'wink_gatekeeper_reactivate_cron' );
 		EventsTable::register_cron();
@@ -1423,7 +1423,7 @@ final class Bootstrap {
 	 */
 	public function load_textdomain(): void {
 		load_plugin_textdomain(
-			'wink-gatekeeper',
+			'wink-wp-gatekeeper',
 			false,
 			dirname( plugin_basename( WINK_GATEKEEPER_FILE ) ) . '/languages'
 		);
@@ -1450,7 +1450,7 @@ final class Bootstrap {
 		$wp_admin_bar->add_node( array(
 			'id'     => 'wk-gatekeeper-test-mode',
 			'parent' => 'top-secondary',
-			'title'  => __( 'wink 验证码演练模式启用中——全站人机验证旁路（24h 自动过期）', 'wink-gatekeeper' ),
+			'title'  => __( 'Wink captcha drill mode is active — site-wide human verification bypassed (auto-expires in 24h)', 'wink-wp-gatekeeper' ),
 			'href'   => admin_url( 'options-general.php?page=' . SettingsPage::PAGE_SLUG . '&tab=captcha' ),
 			'meta'   => array( 'class' => 'wk-admin-bar-test-mode' ),
 		) );

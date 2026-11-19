@@ -36,7 +36,7 @@ use WinkGatekeeper\Stats\Usage;
 
 final class SettingsPage {
 
-	const PAGE_SLUG    = 'wink-gatekeeper';
+	const PAGE_SLUG    = 'wink-wp-gatekeeper';
 	const OPTION_NAME  = 'wink_gatekeeper_settings';
 	const OPTION_GROUP = 'wink_gatekeeper';
 
@@ -600,7 +600,7 @@ final class SettingsPage {
 	 */
 	public static function render(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) );
+			wp_die( esc_html__( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) );
 		}
 
 		$scheme_class = self::admin_color_scheme_class( function_exists( 'wp_get_user_admin_color' ) ? (string) wp_get_user_admin_color() : '' );
@@ -620,22 +620,22 @@ final class SettingsPage {
 						id="wk-brand-logo"
 						class="wk-logo"
 						src="<?php echo esc_url( WINK_GATEKEEPER_URL . 'assets/brand/logo-wink.svg' ); ?>"
-						alt="<?php esc_attr_e( 'Wink WP 保安', 'wink-gatekeeper' ); ?>"
+						alt="<?php esc_attr_e( 'Wink WP Guard', 'wink-wp-gatekeeper' ); ?>"
 						width="40" height="45" decoding="async"
 					/>
 					<span class="wk-wordmark">Wink <em>WP</em> 保安</span>
-					<span class="wk-tagline"><?php esc_html_e( '对真人眨眨眼，对机器人睁着眼。', 'wink-gatekeeper' ); ?></span>
+					<span class="wk-tagline"><?php esc_html_e( 'It winks at real visitors and keeps its eyes open for bots.', 'wink-wp-gatekeeper' ); ?></span>
 				</div>
 				<div class="wk-header-meta">
-					<span class="wk-badge"><?php echo esc_html( sprintf( /* translators: %s: 今日拦截数 */ __( '今日拦截 %s', 'wink-gatekeeper' ), (string) $today_rejects ) ); ?></span>
-					<span class="wk-version"><?php echo esc_html( sprintf( /* translators: %s: 版本号 */ __( 'v%s', 'wink-gatekeeper' ), $version ) ); ?></span>
+					<span class="wk-badge"><?php echo esc_html( sprintf( /* translators: %s: 今日拦截数 */ __( 'Blocked today: %s', 'wink-wp-gatekeeper' ), (string) $today_rejects ) ); ?></span>
+					<span class="wk-version"><?php echo esc_html( sprintf( /* translators: %s: 版本号 */ __( 'v%s', 'wink-wp-gatekeeper' ), $version ) ); ?></span>
 				</div>
 			</header>
 
 			<?php if ( self::wizard_mode_active() ) : ?>
 				<?php self::render_wizard(); // 【W3·批C·R5】向导模式：四步全屏面板替代 Tab 面（pending 自动 / wizard=1 手动）。 ?>
 			<?php else : ?>
-			<nav class="nav-tab-wrapper wk-tabs" aria-label="<?php esc_attr_e( 'Wink WP 保安设置分区', 'wink-gatekeeper' ); ?>">
+			<nav class="nav-tab-wrapper wk-tabs" aria-label="<?php esc_attr_e( 'Wink WP Guard settings sections', 'wink-wp-gatekeeper' ); ?>">
 				<?php foreach ( self::TABS as $tab_key => $tab_def ) : ?>
 					<a
 						href="<?php echo esc_url( self::tab_url( $tab_key ) ); ?>"
@@ -654,7 +654,7 @@ final class SettingsPage {
 				<div class="wk-panel">
 					<?php self::render_tab( $active_tab ); ?>
 				</div>
-				<?php submit_button( __( '保存设置', 'wink-gatekeeper' ) ); ?>
+				<?php submit_button( __( 'Save settings', 'wink-wp-gatekeeper' ) ); ?>
 			</form>
 			<?php endif; ?>
 		</div>
@@ -779,7 +779,8 @@ final class SettingsPage {
 		$last = '' !== $last_tested ? $last_tested : '--';
 		$attr = '' !== $driver_key ? ' data-wk-driver-key="' . esc_attr( $driver_key ) . '"' : '';
 		return '<span class="test-state"' . $attr . '><span class="badge ' . esc_attr( $conf[0] ) . '">' . esc_html( $conf[1] ) . '</span>'
-			. '<span class="last-test">' . esc_html( sprintf( __( '上次测试：%s', 'wink-gatekeeper' ), $last ) ) . '</span></span>';
+			/* translators: %s: date and time of the last verification test */
+			. '<span class="last-test">' . esc_html( sprintf( __( 'Last test: %s', 'wink-wp-gatekeeper' ), $last ) ) . '</span></span>';
 	}
 
 	/* -------------------------------------------------------------------
@@ -878,9 +879,9 @@ final class SettingsPage {
 		$disaster   = isset( $usage['disaster_pass'] ) && is_numeric( $usage['disaster_pass'] ) ? (int) $usage['disaster_pass'] : 0;
 		?>
 		<section class="usage-card" id="wk-overview-usage">
-			<div class="usage-hd"><?php esc_html_e( '今日调用量', 'wink-gatekeeper' ); ?><span class="sum"><?php echo esc_html( sprintf( /* translators: %d: 站点今日总外呼次数 */ __( '站点总外呼 %d 次', 'wink-gatekeeper' ), $site_total ) ); ?></span></div>
+			<div class="usage-hd"><?php esc_html_e( 'API calls today', 'wink-wp-gatekeeper' ); ?><span class="sum"><?php echo esc_html( sprintf( /* translators: %d: 站点今日总外呼次数 */ __( 'Total site outbound calls: %d', 'wink-wp-gatekeeper' ), $site_total ) ); ?></span></div>
 			<?php if ( array() === $domains ) : ?>
-				<div class="usage-row free"><?php esc_html_e( '今日无外呼。', 'wink-gatekeeper' ); ?></div>
+				<div class="usage-row free"><?php esc_html_e( 'No outbound calls today.', 'wink-wp-gatekeeper' ); ?></div>
 			<?php else : ?>
 				<?php foreach ( $domains as $domain ) : ?>
 					<?php
@@ -906,16 +907,16 @@ final class SettingsPage {
 								<?php if ( $quota > 0 ) : ?>
 									<span class="num"><?php echo esc_html( sprintf( '%d', $used ) ); ?></span>
 									<span class="prog" aria-hidden="true"><i style="width:<?php echo esc_attr( (string) self::usage_pct( $used, $quota ) ); ?>%"></i></span>
-									<span class="quota"><?php echo esc_html( sprintf( '%d / %d', $used, $quota ) ); ?><?php echo $reached ? esc_html__( '——已达限，当日暂停', 'wink-gatekeeper' ) : ''; ?></span>
+									<span class="quota"><?php echo esc_html( sprintf( '%d / %d', $used, $quota ) ); ?><?php echo $reached ? esc_html__( '— quota reached, paused for today', 'wink-wp-gatekeeper' ) : ''; ?></span>
 								<?php else : ?>
-									<span class="num"><?php echo esc_html( sprintf( /* translators: %d: 调用次数 */ __( '%d 次', 'wink-gatekeeper' ), $used ) ); ?></span>
+									<span class="num"><?php echo esc_html( sprintf( /* translators: %d: 调用次数 */ _x( '%d calls', 'call-count', 'wink-wp-gatekeeper' ), $used ) ); ?></span>
 								<?php endif; ?>
 							</div>
 						<?php endif; ?>
 					<?php endforeach; ?>
 				<?php endforeach; ?>
 			<?php endif; ?>
-			<div class="usage-row free"><?php echo esc_html( __( '今日容灾放行', 'wink-gatekeeper' ) ); ?> <?php echo esc_html( sprintf( '%d', $disaster ) ); ?><?php echo esc_html( __( ' 次', 'wink-gatekeeper' ) ); ?><?php echo $disaster > 0 ? esc_html__( '——验证码服务不稳的晴雨表', 'wink-gatekeeper' ) : ''; ?></div>
+			<div class="usage-row free"><?php echo esc_html( __( 'Failover passes today', 'wink-wp-gatekeeper' ) ); ?> <?php echo esc_html( sprintf( '%d', $disaster ) ); ?><?php echo esc_html( __( ' times', 'wink-wp-gatekeeper' ) ); ?><?php echo $disaster > 0 ? esc_html__( '— a barometer of captcha service instability', 'wink-wp-gatekeeper' ) : ''; ?></div>
 		</section>
 		<?php
 	}
@@ -1129,17 +1130,17 @@ final class SettingsPage {
 				// 文案/esc/链接组装留在编排位（等价迁移）；【W3·批C】入口改指向导。
 				self::notice_yellow_bar(
 					'warn',
-					'<strong>' . esc_html__( '三步开始防护', 'wink-gatekeeper' ) . '</strong>',
-					'——① ' . esc_html__( '选验证码（Tab② 验证码）', 'wink-gatekeeper' )
-						. ' → ② ' . esc_html__( '配云审 / IP 信誉（Tab③ 内容审核 / Tab④ IP 信誉）', 'wink-gatekeeper' )
-						. ' → ③ ' . esc_html__( '在各配置卡点「测试凭据」实测连通。', 'wink-gatekeeper' )
-						. esc_html__( '配好任意一家后本提示自动消失。', 'wink-gatekeeper' ),
-					' <a href="' . esc_url( self::wizard_url() ) . '">' . esc_html__( '从第一步开始 →', 'wink-gatekeeper' ) . '</a>'
+					'<strong>' . esc_html__( 'Start protection in three steps', 'wink-wp-gatekeeper' ) . '</strong>',
+					'——① ' . esc_html__( 'Pick a captcha (Tab 2: Captcha)', 'wink-wp-gatekeeper' )
+						. ' → ② ' . esc_html__( 'Add cloud moderation / IP reputation (Tab 3: Content moderation / Tab 4: IP reputation)', 'wink-wp-gatekeeper' )
+						. ' → ③ ' . esc_html__( 'Use “Test credentials” on each provider card to verify connectivity.', 'wink-wp-gatekeeper' )
+						. esc_html__( 'This notice disappears once any provider is configured.', 'wink-wp-gatekeeper' ),
+					' <a href="' . esc_url( self::wizard_url() ) . '">' . esc_html__( 'Start from step 1 →', 'wink-wp-gatekeeper' ) . '</a>'
 				);
 				?>
 			<?php else : ?>
-				<p class="wk-muted"><?php esc_html_e( '防护已上岗。想补齐验证码 / 云端审核 / IP 信誉，随时重走一遍首启向导（也可在各 Tab 直接细配）。', 'wink-gatekeeper' ); ?>
-					<a href="<?php echo esc_url( self::wizard_url() ); ?>"><?php esc_html_e( '继续配置（向导）→', 'wink-gatekeeper' ); ?></a></p>
+				<p class="wk-muted"><?php esc_html_e( 'Protection is on duty. To add captcha, cloud moderation, or IP reputation later, rerun the setup wizard at any time (or fine-tune things directly on each tab).', 'wink-wp-gatekeeper' ); ?>
+					<a href="<?php echo esc_url( self::wizard_url() ); ?>"><?php esc_html_e( 'Continue setup (wizard) →', 'wink-wp-gatekeeper' ); ?></a></p>
 			<?php endif; ?>
 		</section>
 		<?php
@@ -1232,7 +1233,7 @@ final class SettingsPage {
 	 */
 	public static function handle_wizard_finish(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( self::ACTION_WIZARD_DONE );
 		update_option( self::OPTION_WIZARD_STATE, self::WIZARD_STATE_DONE, false );
@@ -1251,7 +1252,7 @@ final class SettingsPage {
 	 */
 	public static function handle_wizard_skip(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( self::ACTION_WIZARD_SKIP );
 		update_option( self::OPTION_WIZARD_STATE, self::WIZARD_STATE_SKIPPED, false );
@@ -1300,10 +1301,10 @@ final class SettingsPage {
 			</p>
 
 			<ol class="wk-stepper">
-				<li data-wk-goto="1"<?php echo 1 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '欢迎', 'wink-gatekeeper' ); ?></li>
-				<li data-wk-goto="2"<?php echo 2 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '人机验证', 'wink-gatekeeper' ); ?></li>
-				<li data-wk-goto="3"<?php echo 3 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '内容审核', 'wink-gatekeeper' ); ?></li>
-				<li data-wk-goto="4"<?php echo 4 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( '完成', 'wink-gatekeeper' ); ?></li>
+				<li data-wk-goto="1"<?php echo 1 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( 'Welcome', 'wink-wp-gatekeeper' ); ?></li>
+				<li data-wk-goto="2"<?php echo 2 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( 'Human verification', 'wink-wp-gatekeeper' ); ?></li>
+				<li data-wk-goto="3"<?php echo 3 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( 'Content moderation', 'wink-wp-gatekeeper' ); ?></li>
+				<li data-wk-goto="4"<?php echo 4 === $step ? ' class="on"' : ''; ?>><?php esc_html_e( 'Done', 'wink-wp-gatekeeper' ); ?></li>
 			</ol>
 
 			<form method="post" action="options.php" class="wk-form" id="wk-wizard-form">
@@ -1312,65 +1313,65 @@ final class SettingsPage {
 
 				<?php /* ---------- 步 1 · 欢迎（零字段——纯引导+跳过承诺） ---------- */ ?>
 				<section class="wk-step-panel" data-wk-step="1"<?php echo 1 !== $step ? ' hidden' : ''; ?>>
-					<h2><?php esc_html_e( '三步上岗，五分钟搞定', 'wink-gatekeeper' ); ?></h2>
-					<p class="wk-muted"><?php esc_html_e( 'Wink WP 保安是站在你的博客门口的保安：拦垃圾评论、防撞库登录、可疑内容转人工。接下来带你配好两把最关键的钥匙——配到哪一步都可以随时跳过，跳过的部分会有兜底防护，不会裸奔。', 'wink-gatekeeper' ); ?></p>
+					<h2><?php esc_html_e( 'On duty in three steps, five minutes', 'wink-wp-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( 'Wink WP Guard stands at your blog\'s door: it blocks spam comments, stops credential-stuffing logins, and routes suspicious content to manual review. This wizard walks you through the two most important keys — you can skip any step and come back later; skipped parts keep fallback protection, so you are never left exposed.', 'wink-wp-gatekeeper' ); ?></p>
 					<ul class="wk-checklist">
-						<li><?php esc_html_e( 'STEP 1 人机验证——选一家验证码服务商，把机器人挡在门外。真实访客正常时零感知。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( 'STEP 2 内容审核——站内规矩免费在场；再配一家云端审核，机器措辞也逃不掉。', 'wink-gatekeeper' ); ?></li>
-						<li><?php esc_html_e( 'STEP 3 测一测凭据——每配好一家点一次「测试凭据」，绿了才算上岗。', 'wink-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( 'STEP 1 Human verification — pick a captcha provider to keep bots out. Real visitors barely notice it.', 'wink-wp-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( 'STEP 2 Content moderation — the built-in rules are free and already on duty; add a cloud moderation provider so machine-crafted wording cannot slip through either.', 'wink-wp-gatekeeper' ); ?></li>
+						<li><?php esc_html_e( 'STEP 3 Test your credentials — click “Test credentials” after configuring each provider; green means on duty.', 'wink-wp-gatekeeper' ); ?></li>
 					</ul>
 					<?php
 					self::notice_yellow_bar(
 						'info',
 						'',
-						esc_html__( '只配站内规矩也能用——云端审核是增强层，不配不影响基本防护；配了会把站内规矩拦不住的评论再送审一遍。', 'wink-gatekeeper' )
+						esc_html__( 'The built-in rules alone are enough — cloud moderation is an enhancement layer that leaves basic protection untouched; when enabled, comments the built-in rules do not block get one more round of cloud review.', 'wink-wp-gatekeeper' )
 					);
 					?>
 					<div class="wizard-foot">
-						<span class="wk-muted"><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '先不配置，直接去设置页（跳过全部）→', 'wink-gatekeeper' ); ?></a></span>
-						<a class="button button-primary" href="<?php echo esc_url( self::wizard_url( 2 ) ); ?>"><?php esc_html_e( '开始第一步 →', 'wink-gatekeeper' ); ?></a>
+						<span class="wk-muted"><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( 'Not now — go straight to settings (skip everything) →', 'wink-wp-gatekeeper' ); ?></a></span>
+						<a class="button button-primary" href="<?php echo esc_url( self::wizard_url( 2 ) ); ?>"><?php esc_html_e( 'Start step 1 →', 'wink-wp-gatekeeper' ); ?></a>
 					</div>
 				</section>
 
 				<?php /* ---------- 步 2 · 人机验证（驱动 radio 三卡 + 阿里四键 + AbuseIPDB 折叠卡 + submit_flow radio + 动图） ---------- */ ?>
 				<section class="wk-step-panel" data-wk-step="2"<?php echo 2 !== $step ? ' hidden' : ''; ?>>
-					<h2><?php esc_html_e( '第一步 · 人机验证', 'wink-gatekeeper' ); ?></h2>
-					<p class="wk-muted"><?php esc_html_e( '选一家验证码服务商。境内站推荐默认那家——访客在境内加载快。', 'wink-gatekeeper' ); ?></p>
+					<h2><?php esc_html_e( 'Step 1 · Human verification', 'wink-wp-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( 'Pick a captcha provider. For sites serving visitors in mainland China the default is recommended — it loads fastest there.', 'wink-wp-gatekeeper' ); ?></p>
 					<div class="radio-cards" data-wk-radio-group="captcha-driver">
 						<label class="radio-card<?php echo 'aliyun' === $captcha_driver ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'driver' ) ) ); ?>" value="aliyun" data-wk-driver-toggle="aliyun" <?php checked( 'aliyun', $captcha_driver ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '阿里云验证码 2.0', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-tag"><?php esc_html_e( '推荐 · 默认', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '境内直连快 · 免费额度充足 · 智能验证不打扰真人。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Aliyun Captcha 2.0', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-tag"><?php esc_html_e( 'Recommended · Default', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Fast mainland direct connection · generous free tier · smart verification that leaves humans alone.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo 'tencent' === $captcha_driver ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'driver' ) ) ); ?>" value="tencent" data-wk-driver-toggle="tencent" <?php checked( 'tencent', $captcha_driver ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '腾讯天御 2.0', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '默认退役：账号套餐停止，不再默认推荐——存量已配置的站点仍可用。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Tencent Tianyu 2.0', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Retired as default: the account plan has been discontinued and it is no longer recommended — sites already configured can keep using it.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo '' === $captcha_driver ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'driver' ) ) ); ?>" value="" data-wk-driver-toggle="none" <?php checked( '', $captcha_driver ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '暂不配置', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '评论闸仍保留站内规矩四道防线；之后随时可在「② 验证码」页配置。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Not now', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'The comment gate keeps its four built-in rule defenses; you can configure a captcha later on the “2: Captcha” tab.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 					</div>
 
 					<div class="wizard-frow" data-wk-driver-face="aliyun"<?php echo 'aliyun' === $captcha_driver ? '' : ' hidden'; ?>>
 						<?php /* 阿里四键最小面——字段 id 与 Tab② 同名（admin-brand.js 阿里探活绑定面复用）。 */ ?>
-						<p><strong><?php esc_html_e( 'AccessKeyId / AccessKeySecret（阿里 RAM）', 'wink-gatekeeper' ); ?></strong></p>
+						<p><strong><?php esc_html_e( 'AccessKeyId / AccessKeySecret (Aliyun RAM)', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_id' ), '' !== (string) ( $aliyun['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
 						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_secret' ), '' !== (string) ( $aliyun['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
-						<p><label for="wk-aliyun-scene-id"><strong><?php esc_html_e( 'SceneId（场景 ID · 必填）', 'wink-gatekeeper' ); ?></strong></label></p>
+						<p><label for="wk-aliyun-scene-id"><strong><?php esc_html_e( 'SceneId (scene ID · required)', 'wink-wp-gatekeeper' ); ?></strong></label></p>
 						<input type="text" id="wk-aliyun-scene-id" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'scene_id' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $aliyun['scene_id'] ?? '' ) ); ?>" class="regular-text" data-wk-required="1" data-wk-label="SceneId" />
-						<p><label for="wk-aliyun-prefix"><strong><?php esc_html_e( 'prefix（前端身份标 · 必填）', 'wink-gatekeeper' ); ?></strong></label></p>
+						<p><label for="wk-aliyun-prefix"><strong><?php esc_html_e( 'prefix (front-end identity tag · required)', 'wink-wp-gatekeeper' ); ?></strong></label></p>
 						<input type="text" id="wk-aliyun-prefix" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'prefix' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $aliyun['prefix'] ?? '' ) ); ?>" class="regular-text" data-wk-required="1" data-wk-label="prefix" />
-						<p class="description"><?php esc_html_e( '去哪拿：阿里云控制台 → 验证码 2.0 → 场景管理，创建场景后把 SceneId 与 prefix 一起复制过来；RAM 密钥需授权 AliyunYundunAFSFullAccess。粘贴后点下方「测试凭据」，绿 = 凭据通，黄 = 有字段漏填，红 = 密钥被拒。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Where to get them: Aliyun console → Captcha 2.0 → Scene management. Create a scene and copy the SceneId and prefix over together; the RAM key needs the AliyunYundunAFSFullAccess policy. After pasting, click “Test credentials” below: green = credentials work, yellow = required fields missing, red = key rejected.', 'wink-wp-gatekeeper' ); ?></p>
 						<?php
 						self::test_credential_btn(
 							'id="wk-aliyun-test-credentials"',
 							'id="wk-aliyun-test-result"',
 							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN ),
-							__( '测试凭据', 'wink-gatekeeper' ),
+							__( 'Test credentials', 'wink-wp-gatekeeper' ),
 							'aliyun'
 						);
 						?>
@@ -1380,7 +1381,7 @@ final class SettingsPage {
 						self::notice_yellow_bar(
 							'info',
 							'',
-							esc_html__( '天御已默认退役（存量可用）——配置面在「② 验证码」页，此处只作选择保留。', 'wink-gatekeeper' )
+							esc_html__( 'Tianyu is retired as default (existing setups still work) — its settings live on the “2: Captcha” tab; it stays here only as a choice.', 'wink-wp-gatekeeper' )
 						);
 						?>
 					</div>
@@ -1389,7 +1390,7 @@ final class SettingsPage {
 						self::notice_yellow_bar(
 							'warn',
 							'',
-							esc_html__( '已选择「暂不配置」——评论闸只靠站内规矩把关，验证码阶段整体跳过。总览页会持续亮黄条提醒你回来补配。', 'wink-gatekeeper' )
+							esc_html__( '“Not now” selected — the comment gate relies on the built-in rules alone and the captcha stage is skipped entirely. The overview page keeps a yellow banner reminding you to come back.', 'wink-wp-gatekeeper' )
 						);
 						?>
 					</div>
@@ -1398,29 +1399,29 @@ final class SettingsPage {
 					<?php
 					self::advanced_fold(
 						'id="wk-wizard-abuseipdb"',
-						__( 'IP 信誉（AbuseIPDB）· 可选——配好验证码后顺手接上', 'wink-gatekeeper' ),
+						__( 'IP reputation (AbuseIPDB) · optional — add it once your captcha is set up', 'wink-wp-gatekeeper' ),
 						static function () use ( $settings ): void {
 							$iprep = is_array( $settings['iprep'] ?? null ) ? $settings['iprep'] : array();
 							$abuse = is_array( $iprep['abuseipdb'] ?? null ) ? $iprep['abuseipdb'] : array();
 							?>
-							<p class="description"><?php esc_html_e( '按 IP 前科对可疑访客从严（强制先过人机验证再放行）——评论与登录两闸共用；不接也不影响上面任何防护，之后随时可在「④ IP 信誉」页细配（阈值/软顶/日配额都在该页 ⚙ 高级配置）。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Treat suspicious visitors strictly based on their IP record (force human verification before letting them through) — shared by the comment and login gates; skipping it does not affect any protection above, and you can fine-tune later on the “4: IP reputation” tab (threshold / soft cap / daily quota all live under ⚙ Advanced there).', 'wink-wp-gatekeeper' ); ?></p>
 							<div class="switch-row">
 								<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="0" />
 								<label>
 									<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $iprep['enabled'] ) ); ?> />
-									<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '开启 IP 信誉查询', 'wink-gatekeeper' ); ?></b></span>
-										<span class="why"><?php esc_html_e( '填了 Key 才真正生效；关闭或未填 Key 时信任链跳过该项。启用后访客 IP 会送境外服务查询——出境提示见 Tab④。', 'wink-gatekeeper' ); ?></span></span>
+									<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Enable IP reputation lookups', 'wink-wp-gatekeeper' ); ?></b></span>
+										<span class="why"><?php esc_html_e( 'It only takes effect with a key filled in; when off or empty, the trust chain skips this item. When enabled, visitor IPs are sent to an overseas service for lookup — see Tab 4 for the data-transfer notice.', 'wink-wp-gatekeeper' ); ?></span></span>
 								</label>
 							</div>
-							<p><label for="wk-field-iprep-abuseipdb-api_key"><strong><?php esc_html_e( 'AbuseIPDB API Key', 'wink-gatekeeper' ); ?></strong></label></p>
+							<p><label for="wk-field-iprep-abuseipdb-api_key"><strong><?php esc_html_e( 'AbuseIPDB API Key', 'wink-wp-gatekeeper' ); ?></strong></label></p>
 							<?php self::password_field( array( 'iprep', 'abuseipdb', 'api_key' ), '' !== (string) ( $abuse['api_key'] ?? '' ), 'API Key' ); ?>
-							<p class="description"><?php esc_html_e( '免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取；查询按次计额度，软顶/日配额两道闸在 Tab④ ⚙ 高级配置里调。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Free tier: 1,000 lookups/day (agreed baseline). Register at abuseipdb.com; lookups count against the quota, and the soft cap / daily quota limits are tuned under ⚙ Advanced on Tab 4.', 'wink-wp-gatekeeper' ); ?></p>
 							<?php
 							self::test_credential_btn(
 								'id="wk-iprep-test-credentials"',
 								'id="wk-iprep-test-result"',
 								wp_create_nonce( self::AJAX_TEST_IPREP ),
-								__( '测试凭据', 'wink-gatekeeper' ),
+								__( 'Test credentials', 'wink-wp-gatekeeper' ),
 								'abuseipdb'
 							);
 							?>
@@ -1429,32 +1430,32 @@ final class SettingsPage {
 					);
 					?>
 
-					<h3><?php esc_html_e( '提交触发形态', 'wink-gatekeeper' ); ?></h3>
-					<p class="wk-muted"><?php esc_html_e( '访客过码的方式怎么触发——两种形态，下方动图直观对比（效果示意非实录）。', 'wink-gatekeeper' ); ?></p>
+					<h3><?php esc_html_e( 'Submit-trigger flow', 'wink-wp-gatekeeper' ); ?></h3>
+					<p class="wk-muted"><?php esc_html_e( 'How visitors get challenged — two flows, compared in the animation below (illustrative, not a live recording).', 'wink-wp-gatekeeper' ); ?></p>
 					<div class="radio-cards" data-wk-radio-group="submit-flow">
 						<?php $submit_flow = 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? 'button' : 'on_submit'; ?>
 						<label class="radio-card<?php echo 'on_submit' === $submit_flow ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="on_submit" <?php checked( 'on_submit', $submit_flow ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '无按钮模式', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-tag"><?php esc_html_e( '推荐 · 默认', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '不渲染独立验证按钮——点原生「发表评论 / 登录」即验证，过码后自动续提。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'No-button mode', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-tag"><?php esc_html_e( 'Recommended · Default', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'No separate verify button — clicking the native “Post Comment / Log In” runs the check, and the form resubmits automatically afterwards.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo 'button' === $submit_flow ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="button" <?php checked( 'button', $submit_flow ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '独立验证按钮（经典）', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '先点表单内「完成人机验证」按钮过码，再点提交——0.8.3 及以前形态。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Dedicated verify button (classic)', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Click “Complete human verification” in the form first, then submit — the behavior up to 0.8.3.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 					</div>
 
 					<?php /* 两形态循环动图（R8：CSS 动画+少量演示 JS 循环时序内联——纯展示零状态零提交语义；prefers-reduced-motion 降级静态帧）。 */ ?>
 					<div class="wk-flow-demo" id="wk-flow-demo">
 						<div class="wk-flow-frame">
-							<div class="wk-flow-step on"><?php esc_html_e( '① 点提交——访客点「发表评论」（无按钮模式：提交被截住，验证弹层自动弹出）', 'wink-gatekeeper' ); ?></div>
-							<div class="wk-flow-step"><?php esc_html_e( '② 过码——滑块/智能验证在弹层内完成', 'wink-gatekeeper' ); ?></div>
-							<div class="wk-flow-step"><?php esc_html_e( '③ 自动续提——过码后无需再点一次，Toast「正在接收检查」', 'wink-gatekeeper' ); ?></div>
-							<div class="wk-flow-step"><?php esc_html_e( '④ 落地——评论进入站内规矩 → 云审 → IP 信誉链路', 'wink-gatekeeper' ); ?></div>
+							<div class="wk-flow-step on"><?php esc_html_e( '① Submit — the visitor clicks “Post Comment” (no-button mode: the submission is intercepted and the verification popup opens automatically)', 'wink-wp-gatekeeper' ); ?></div>
+							<div class="wk-flow-step"><?php esc_html_e( '② Verify — the slider / smart check completes inside the popup', 'wink-wp-gatekeeper' ); ?></div>
+							<div class="wk-flow-step"><?php esc_html_e( '③ Auto-resubmit — no second click needed; toast “Running checks”', 'wink-wp-gatekeeper' ); ?></div>
+							<div class="wk-flow-step"><?php esc_html_e( '④ Landing — the comment enters the built-in rules → cloud moderation → IP reputation chain', 'wink-wp-gatekeeper' ); ?></div>
 						</div>
-						<p class="description wk-flow-note" id="wk-flow-note"><?php esc_html_e( '循环演示：无按钮模式 ↔ 经典按钮（经典=先点「完成人机验证」再提交，多第一步）· 效果示意非实录。', 'wink-gatekeeper' ); ?></p>
+						<p class="description wk-flow-note" id="wk-flow-note"><?php esc_html_e( 'Looped demo: no-button mode ↔ classic button (classic = “Complete human verification” first, then submit — one extra step) · illustrative, not a live recording.', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 					<script>
 						( function () {
@@ -1475,135 +1476,135 @@ final class SettingsPage {
 					</script>
 
 					<div class="wizard-foot">
-						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 3 ) ); ?>"><?php esc_html_e( '先跳过这步 →', 'wink-gatekeeper' ); ?></a></span>
+						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 3 ) ); ?>"><?php esc_html_e( 'Skip this step for now →', 'wink-wp-gatekeeper' ); ?></a></span>
 						<span>
-							<a class="button" href="<?php echo esc_url( self::wizard_url( 1 ) ); ?>"><?php esc_html_e( '← 上一步', 'wink-gatekeeper' ); ?></a>
-							<button type="submit" class="button button-primary" data-wk-wizard-next="3"><?php esc_html_e( '下一步 · 内容审核 →', 'wink-gatekeeper' ); ?></button>
+							<a class="button" href="<?php echo esc_url( self::wizard_url( 1 ) ); ?>"><?php esc_html_e( '← Back', 'wink-wp-gatekeeper' ); ?></a>
+							<button type="submit" class="button button-primary" data-wk-wizard-next="3"><?php esc_html_e( 'Next · Content moderation →', 'wink-wp-gatekeeper' ); ?></button>
 						</span>
 					</div>
 				</section>
 
 				<?php /* ---------- 步 3 · 内容审核（WP 两开关只读黄条 + 云审推荐序 radio 六卡 + 最小凭据面） ---------- */ ?>
 				<section class="wk-step-panel" data-wk-step="3"<?php echo 3 !== $step ? ' hidden' : ''; ?>>
-					<h2><?php esc_html_e( '第二步 · 内容审核', 'wink-gatekeeper' ); ?></h2>
-					<p class="wk-muted"><?php esc_html_e( '站内规矩（字数 / 无中文 / 关键词）已经免费在场。想再强一点，配一家云端审核——由它把关措辞与变体广告。选「暂不配置」完全不影响已有防护。', 'wink-gatekeeper' ); ?></p>
+					<h2><?php esc_html_e( 'Step 2 · Content moderation', 'wink-wp-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( 'The built-in rules (length / no-Chinese / keywords) are free and already on duty. For more strength, add a cloud moderation provider — it polices wording and ad variants. Choosing “Not now” does not affect existing protection at all.', 'wink-wp-gatekeeper' ); ?></p>
 					<?php self::render_wizard_wp_switches_bar(); ?>
 					<div class="switch-row">
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'enabled' ) ) ); ?>" value="0" />
 						<label>
 							<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['enabled'] ) ); ?> />
-							<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '启用云端审核', 'wink-gatekeeper' ); ?></b></span>
-								<span class="why"><?php esc_html_e( '开启后按「本地规则 → 已选云端驱动」串联送审；本地规则恒在链首不可关闭。', 'wink-gatekeeper' ); ?></span></span>
+							<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Enable cloud moderation', 'wink-wp-gatekeeper' ); ?></b></span>
+								<span class="why"><?php esc_html_e( 'When on, submissions run through “local rules → selected cloud driver” in series; local rules always stay first in the chain and cannot be turned off.', 'wink-wp-gatekeeper' ); ?></span></span>
 						</label>
 					</div>
 					<div class="radio-cards" data-wk-radio-group="cloud-chain">
 						<?php /* 云审推荐序（2026-11-18 拍板）：百度推荐·默认 → DeepSeek 次选 → 阿里 Green → 腾讯 TMS → openai_custom → 暂不配置。radio 同名 []（text_list 单值数组——checked 一项 + hidden '' 伴随域，与 Tab③ checkbox 组同一保存通道）。 */ ?>
 						<label class="radio-card<?php echo 'baidu' === $selected ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="baidu" data-wk-chain-toggle="baidu" <?php checked( 'baidu', $selected ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '百度文本审核', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-tag"><?php esc_html_e( '推荐 · 默认', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '推荐 · 国内直连 / 按量计费——开通门槛最低的一家。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Baidu Text Moderation', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-tag"><?php esc_html_e( 'Recommended · Default', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Recommended · mainland direct connection / pay-as-you-go — the lowest barrier to entry.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo 'deepseek' === $selected ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="deepseek" data-wk-chain-toggle="deepseek" <?php checked( 'deepseek', $selected ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'DeepSeek（LLM 审核）', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '次选——会「读懂人话」的审核，判定更强；送审出境。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'DeepSeek (LLM moderation)', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Second choice — moderation that actually “reads” the text, with stronger verdicts; submissions leave the country.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo 'aliyun_green' === $selected ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="aliyun_green" data-wk-chain-toggle="aliyun_green" <?php checked( 'aliyun_green', $selected ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '阿里文本审核增强版 PLUS', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '境内 · 双通道分送（昵称/正文分开送）· 与阿里验证码同账号顺路。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Aliyun text moderation PLUS', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Mainland · dual-channel submission (nickname and body sent separately) · shares an account with Aliyun Captcha.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo 'tencent_tms' === $selected ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="tencent_tms" data-wk-chain-toggle="tencent_tms" <?php checked( 'tencent_tms', $selected ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '腾讯 TMS 文本审核', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '境内 · 与腾讯云生态顺路（已有腾讯云密钥就选它）。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Tencent TMS text moderation', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Mainland · fits the Tencent Cloud ecosystem (pick it if you already have Tencent Cloud keys).', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo 'openai_custom' === $selected ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="openai_custom" data-wk-chain-toggle="openai_custom" <?php checked( 'openai_custom', $selected ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '自定义 OpenAI 兼容端点', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '中转 / 自建网关场景——端点与模型名手填。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Custom OpenAI-compatible endpoint', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'For relays / self-hosted gateways — endpoint and model name are entered manually.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 						<label class="radio-card<?php echo '' === $selected ? ' on' : ''; ?>">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="" data-wk-chain-toggle="none" <?php checked( '', $selected ); ?> />
-							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( '暂不配置', 'wink-gatekeeper' ); ?></span>
-							<span class="rc-bd"><?php esc_html_e( '只用站内规矩——完全够用，之后随时在「③ 内容审核」页补配。', 'wink-gatekeeper' ); ?></span>
+							<span class="rc-hd"><span class="rc-dot"></span><?php esc_html_e( 'Not now', 'wink-wp-gatekeeper' ); ?></span>
+							<span class="rc-bd"><?php esc_html_e( 'Built-in rules only — perfectly usable; add a provider later on the “3: Content moderation” tab.', 'wink-wp-gatekeeper' ); ?></span>
 						</label>
 					</div>
 					<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="" />
 
 					<?php /* 各驱动最小凭据面（实况键+JS 探活绑定 id 与 Tab③ 同名——password_field 路径即 id）。 */ ?>
 					<div class="wizard-frow" data-wk-chain-face="baidu"<?php echo 'baidu' === $selected ? '' : ' hidden'; ?>>
-						<p><strong><?php esc_html_e( 'API Key / Secret Key（百度智能云应用）', 'wink-gatekeeper' ); ?></strong></p>
+						<p><strong><?php esc_html_e( 'API Key / Secret Key (Baidu AI Cloud app)', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'api_key' ), '' !== (string) ( $cloud['baidu']['api_key'] ?? '' ), 'API Key' ); ?>
 						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'secret_key' ), '' !== (string) ( $cloud['baidu']['secret_key'] ?? '' ), 'Secret Key' ); ?>
-						<p class="description"><?php esc_html_e( '选它当默认推荐的理由＝开通门槛最低：百度智能云免费开通、按量计费、境内直连不出境，两把钥匙拿到就能用。粘贴后点「测试凭据」（良性样本真调用）：绿 = 凭据通，黄 = 必填缺（逐字段列出），红 = 密钥被拒。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Why it is the default recommendation = lowest barrier to entry: Baidu AI Cloud is free to enable, pay-as-you-go, and connects directly within the mainland — with both keys in hand you are ready to go. After pasting, click “Test credentials” (a real call with a benign sample): green = credentials work, yellow = required fields missing (listed per field), red = key rejected.', 'wink-wp-gatekeeper' ); ?></p>
 						<?php
 						self::test_credential_btn(
 							'id="wk-baidu-test-credentials"',
 							'id="wk-baidu-test-result"',
 							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_BAIDU ),
-							__( '测试凭据', 'wink-gatekeeper' ),
+							__( 'Test credentials', 'wink-wp-gatekeeper' ),
 							'baidu'
 						);
 						?>
 					</div>
 					<div class="wizard-frow" data-wk-chain-face="deepseek"<?php echo 'deepseek' === $selected ? '' : ' hidden'; ?>>
-						<p><strong><?php esc_html_e( 'API Key（DeepSeek 开放平台）', 'wink-gatekeeper' ); ?></strong></p>
+						<p><strong><?php esc_html_e( 'API Key (DeepSeek platform)', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<?php self::password_field( array( 'review', 'cloud', 'deepseek', 'api_key' ), '' !== (string) ( $cloud['deepseek']['api_key'] ?? '' ), 'API Key' ); ?>
-						<p class="description"><?php esc_html_e( '注意：LLM 审核会把评论正文送出境（DeepSeek 开放平台）；评论 IP 不送审。按量计费——超日配额自动先进待审区，不会爆账单。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Note: LLM moderation sends the comment body abroad (DeepSeek platform); commenter IPs are not sent. Pay-as-you-go — past the daily quota, items go to pending review first, so the bill cannot explode.', 'wink-wp-gatekeeper' ); ?></p>
 						<?php
 						self::test_credential_btn(
 							'id="wk-deepseek-test-btn"',
 							'id="wk-deepseek-test-result"',
 							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_DEEPSEEK ),
-							__( '测试凭据', 'wink-gatekeeper' ),
+							__( 'Test credentials', 'wink-wp-gatekeeper' ),
 							'deepseek'
 						);
 						?>
 					</div>
 					<div class="wizard-frow" data-wk-chain-face="aliyun_green"<?php echo 'aliyun_green' === $selected ? '' : ' hidden'; ?>>
-						<p><strong><?php esc_html_e( 'AccessKeyId / AccessKeySecret（阿里 RAM）', 'wink-gatekeeper' ); ?></strong></p>
+						<p><strong><?php esc_html_e( 'AccessKeyId / AccessKeySecret (Aliyun RAM)', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_id' ), '' !== (string) ( $cloud['aliyun_green']['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
 						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_secret' ), '' !== (string) ( $cloud['aliyun_green']['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
-						<p class="description"><?php esc_html_e( '已在第一步选了阿里云验证码？可与它共用同一 RAM 用户（同账号双产品线）。双 Service 分送：昵称、邮箱+正文各走各的通道（OR 取严）。需补授内容安全增强版权限。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Already picked Aliyun Captcha in step 1? You can share the same RAM user (two product lines, one account). Dual-service submission: nickname and email+body each go through their own channel (OR, stricter wins). Grant the extra content-safety enhanced permission.', 'wink-wp-gatekeeper' ); ?></p>
 						<?php
 						self::test_credential_btn(
 							'id="wk-green-test-credentials"',
 							'id="wk-green-test-result"',
 							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN ),
-							__( '测试凭据', 'wink-gatekeeper' ),
+							__( 'Test credentials', 'wink-wp-gatekeeper' ),
 							'aliyun_green'
 						);
 						?>
 					</div>
 					<div class="wizard-frow" data-wk-chain-face="tencent_tms"<?php echo 'tencent_tms' === $selected ? '' : ' hidden'; ?>>
-						<p><strong><?php esc_html_e( 'SecretId / SecretKey（腾讯云 CAM）', 'wink-gatekeeper' ); ?></strong></p>
+						<p><strong><?php esc_html_e( 'SecretId / SecretKey (Tencent Cloud CAM)', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_id' ), '' !== (string) ( $cloud['tencent_tms']['secret_id'] ?? '' ), 'SecretId' ); ?>
 						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_key' ), '' !== (string) ( $cloud['tencent_tms']['secret_key'] ?? '' ), 'SecretKey' ); ?>
-						<p class="description"><?php esc_html_e( '境内、按次计费有免费额度；与腾讯云生态顺路。启用后评论的昵称、邮箱、正文会送审至第三方（腾讯云，境内）——此提示常驻。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Mainland, per-call billing with a free tier; fits the Tencent Cloud ecosystem. When enabled, comment nicknames, emails, and bodies are sent to a third party (Tencent Cloud, in the mainland) — this notice is always shown.', 'wink-wp-gatekeeper' ); ?></p>
 						<?php
 						self::test_credential_btn(
 							'id="wk-tms-test-credentials"',
 							'id="wk-tms-test-result"',
 							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_TMS ),
-							__( '测试凭据', 'wink-gatekeeper' ),
+							__( 'Test credentials', 'wink-wp-gatekeeper' ),
 							'tencent_tms'
 						);
 						?>
 					</div>
 					<div class="wizard-frow" data-wk-chain-face="openai_custom"<?php echo 'openai_custom' === $selected ? '' : ' hidden'; ?>>
-						<p><strong><?php esc_html_e( '接入地址 / API Key / 模型名（手填）', 'wink-gatekeeper' ); ?></strong></p>
+						<p><strong><?php esc_html_e( 'Endpoint / API Key / model name (manual entry)', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<p><input type="url" id="wk-openai-custom-base-url" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'base_url' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $cloud['openai_custom']['base_url'] ?? '' ) ); ?>" class="regular-text code" placeholder="https://api.example.com/v1" /></p>
 						<?php self::password_field( array( 'review', 'cloud', 'openai_custom', 'api_key' ), '' !== (string) ( $cloud['openai_custom']['api_key'] ?? '' ), 'API Key' ); ?>
-						<p><input type="text" id="wk-openai-custom-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'model' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $cloud['openai_custom']['model'] ?? '' ) ); ?>" class="regular-text" placeholder="<?php esc_attr_e( '模型名须与端点一致（测试凭据可校验 /models 列表）', 'wink-gatekeeper' ); ?>" /></p>
-						<p class="description"><?php esc_html_e( '端点所在司法辖区未知——通用出境提示常驻，请自行评估合规。路径前缀陷阱：OpenAI 官方族填到 …/v1（本插件在其后拼 /chat/completions）。', 'wink-gatekeeper' ); ?></p>
+						<p><input type="text" id="wk-openai-custom-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'model' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $cloud['openai_custom']['model'] ?? '' ) ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'The model name must match the endpoint (“Test credentials” can check the /models list)', 'wink-wp-gatekeeper' ); ?>" /></p>
+						<p class="description"><?php esc_html_e( 'The jurisdiction of the endpoint is unknown — the generic data-transfer notice is always shown; assess compliance yourself. Path prefix trap: for the official OpenAI family, fill up to …/v1 (this plugin appends /chat/completions).', 'wink-wp-gatekeeper' ); ?></p>
 						<?php
 						self::test_credential_btn(
 							'id="wk-openai-custom-test-btn"',
 							'id="wk-openai-custom-test-result"',
 							wp_create_nonce( self::AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM ),
-							__( '测试凭据', 'wink-gatekeeper' ),
+							__( 'Test credentials', 'wink-wp-gatekeeper' ),
 							'openai_custom'
 						);
 						?>
@@ -1613,36 +1614,36 @@ final class SettingsPage {
 						self::notice_yellow_bar(
 							'ok',
 							'',
-							esc_html__( '好选择——站内规矩始终在岗，零成本零外呼。总览页不会为这一项亮黄条。', 'wink-gatekeeper' )
+							esc_html__( 'Good choice — the built-in rules stay on duty at zero cost and zero outbound calls. The overview page will not flag this one.', 'wink-wp-gatekeeper' )
 						);
 						?>
 					</div>
 
 					<div class="wizard-foot">
-						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 4 ) ); ?>"><?php esc_html_e( '先跳过这步 →', 'wink-gatekeeper' ); ?></a></span>
+						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 4 ) ); ?>"><?php esc_html_e( 'Skip this step for now →', 'wink-wp-gatekeeper' ); ?></a></span>
 						<span>
-							<a class="button" href="<?php echo esc_url( self::wizard_url( 2 ) ); ?>"><?php esc_html_e( '← 上一步', 'wink-gatekeeper' ); ?></a>
-							<button type="submit" class="button button-primary" data-wk-wizard-next="4"><?php esc_html_e( '完成配置 →', 'wink-gatekeeper' ); ?></button>
+							<a class="button" href="<?php echo esc_url( self::wizard_url( 2 ) ); ?>"><?php esc_html_e( '← Back', 'wink-wp-gatekeeper' ); ?></a>
+							<button type="submit" class="button button-primary" data-wk-wizard-next="4"><?php esc_html_e( 'Finish setup →', 'wink-wp-gatekeeper' ); ?></button>
 						</span>
 					</div>
 				</section>
 
 				<?php /* ---------- 步 4 · 完成（上岗确认单=真值核对清单 + 测试凭据引导 + 出口两枚） ---------- */ ?>
 				<section class="wk-step-panel" data-wk-step="4"<?php echo 4 !== $step ? ' hidden' : ''; ?>>
-					<h2><?php esc_html_e( '上岗确认单', 'wink-gatekeeper' ); ?></h2>
-					<p class="wk-muted"><?php esc_html_e( '配好几步算几步——下面是你当前的防护清单，缺的项随时可在设置页补。', 'wink-gatekeeper' ); ?></p>
+					<h2><?php esc_html_e( 'On-duty checklist', 'wink-wp-gatekeeper' ); ?></h2>
+					<p class="wk-muted"><?php esc_html_e( 'Whatever you finished counts — below is your current protection checklist; missing items can be added later on the settings page.', 'wink-wp-gatekeeper' ); ?></p>
 					<?php self::render_wizard_checklist( $settings ); ?>
 					<div class="wizard-foot">
-						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 1 ) ); ?>"><?php esc_html_e( '重新走一遍向导', 'wink-gatekeeper' ); ?></a></span>
+						<span class="wk-muted"><a href="<?php echo esc_url( self::wizard_url( 1 ) ); ?>"><?php esc_html_e( 'Rerun the wizard', 'wink-wp-gatekeeper' ); ?></a></span>
 						<span>
-							<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_DONE . '&to=copy' ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '去文案工坊，把拦截页的话改成你的味儿', 'wink-gatekeeper' ); ?></a>
-							<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_DONE ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( '进入总览 →', 'wink-gatekeeper' ); ?></a>
+							<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_DONE . '&to=copy' ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( 'Open the Copy Workshop to give the block page your own voice', 'wink-wp-gatekeeper' ); ?></a>
+							<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_DONE ), self::ACTION_WIZARD_DONE ) ); ?>"><?php esc_html_e( 'Go to overview →', 'wink-wp-gatekeeper' ); ?></a>
 						</span>
 					</div>
 				</section>
 			</form>
 
-			<p class="wizard-exit wk-muted"><?php esc_html_e( '每一步的「下一步」都会保存当前已填内容；', 'wink-gatekeeper' ); ?><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( '跳过全部，直接进设置页 →', 'wink-gatekeeper' ); ?></a></p>
+			<p class="wizard-exit wk-muted"><?php esc_html_e( 'Each “Next” step saves what you have filled in so far; ', 'wink-wp-gatekeeper' ); ?><a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_WIZARD_SKIP ), self::ACTION_WIZARD_SKIP ) ); ?>"><?php esc_html_e( 'Skip everything and go straight to settings →', 'wink-wp-gatekeeper' ); ?></a></p>
 		</div>
 		<?php
 	}
@@ -1662,19 +1663,19 @@ final class SettingsPage {
 			return; // 两开关都为否：整行不渲染（零 DOM——F3-5 同口径）。
 		}
 		$state_word = static function ( bool $on ): string {
-			return $on ? __( '已开启', 'wink-gatekeeper' ) : __( '未开启', 'wink-gatekeeper' );
+			return $on ? __( 'Enabled', 'wink-wp-gatekeeper' ) : __( 'Disabled', 'wink-wp-gatekeeper' );
 		};
 		self::notice_yellow_bar(
 			'warn',
-			'<strong>' . esc_html__( 'WordPress 原生审核开关已开启', 'wink-gatekeeper' ) . '</strong>',
-			esc_html__( '——评论过码后仍需人工批准（这不是故障）。', 'wink-gatekeeper' )
+			'<strong>' . esc_html__( 'A WordPress native moderation switch is on', 'wink-wp-gatekeeper' ) . '</strong>',
+			esc_html__( '— comments still require manual approval after passing the captcha (this is not a malfunction).', 'wink-wp-gatekeeper' )
 				. esc_html( sprintf(
 					/* translators: 1: 手动批准状态 2: 先前已批准状态 */
-					__( '「评论必须手动批准」：%1$s；「作者须有先前已批准的评论」：%2$s。', 'wink-gatekeeper' ),
+					__( '“Comment must be manually approved”: %1$s; “Comment author must have a previously approved comment”: %2$s.', 'wink-wp-gatekeeper' ),
 					$state_word( $wp_moderation ),
 					$state_word( $wp_whitelist )
 				) )
-				. ' <a href="' . esc_url( admin_url( 'options-discussion.php' ) ) . '">' . esc_html__( '去讨论设置调整', 'wink-gatekeeper' ) . '</a>'
+				. ' <a href="' . esc_url( admin_url( 'options-discussion.php' ) ) . '">' . esc_html__( 'Adjust in Discussion Settings', 'wink-wp-gatekeeper' ) . '</a>'
 		);
 	}
 
@@ -1688,7 +1689,7 @@ final class SettingsPage {
 	private static function render_wizard_checklist( array $settings ): void {
 		$captcha_driver = is_string( $settings['captcha']['driver'] ?? null ) ? $settings['captcha']['driver'] : '';
 		$captcha_ok     = false;
-		$captcha_word   = __( '未配置——评论验证码阶段跳过', 'wink-gatekeeper' );
+		$captcha_word   = __( 'Not configured — the comment captcha stage is skipped', 'wink-wp-gatekeeper' );
 		if ( 'aliyun' === $captcha_driver ) {
 			$aliyun = is_array( $settings['captcha']['aliyun'] ?? null ) ? $settings['captcha']['aliyun'] : array();
 			$captcha_ok = '' !== trim( (string) ( $aliyun['access_key_id'] ?? '' ) )
@@ -1702,9 +1703,9 @@ final class SettingsPage {
 				&& '' !== trim( (string) ( $tencent['secret_key'] ?? '' ) );
 		}
 		if ( 'aliyun' === $captcha_driver ) {
-			$captcha_word = $captcha_ok ? __( '阿里云验证码 2.0 · 四键已配（提交触发形态=' ) . ( 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? __( '经典按钮', 'wink-gatekeeper' ) : __( '无按钮模式', 'wink-gatekeeper' ) ) . '）' : __( '阿里云验证码 2.0 · 四键未配齐', 'wink-gatekeeper' );
+			$captcha_word = $captcha_ok ? __( 'Aliyun Captcha 2.0 · all four keys set (submit-trigger flow=', 'wink-wp-gatekeeper' ) . ( 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? __( 'Classic button', 'wink-wp-gatekeeper' ) : __( 'No-button mode', 'wink-wp-gatekeeper' ) ) . '）' : __( 'Aliyun Captcha 2.0 · four keys incomplete', 'wink-wp-gatekeeper' );
 		} elseif ( 'tencent' === $captcha_driver ) {
-			$captcha_word = $captcha_ok ? __( '腾讯天御 2.0 · 凭据已配（存量可用）', 'wink-gatekeeper' ) : __( '腾讯天御 2.0 · 凭据未配齐', 'wink-gatekeeper' );
+			$captcha_word = $captcha_ok ? __( 'Tencent Tianyu 2.0 · credentials set (existing setups still work)', 'wink-wp-gatekeeper' ) : __( 'Tencent Tianyu 2.0 · credentials incomplete', 'wink-wp-gatekeeper' );
 		}
 		$cloud    = is_array( $settings['review']['cloud'] ?? null ) ? $settings['review']['cloud'] : array();
 		$chain    = is_array( $cloud['chain'] ?? null ) ? $cloud['chain'] : array();
@@ -1716,20 +1717,20 @@ final class SettingsPage {
 		$iprep = is_array( $settings['iprep'] ?? null ) ? $settings['iprep'] : array();
 		?>
 		<ul class="wk-checklist">
-			<li>✓ <?php esc_html_e( '站内规矩四道防线 · 已在岗（字数 / 无中文 / 关键词 / 正则——免费、零外呼、永远开着）', 'wink-gatekeeper' ); ?></li>
-			<li><?php echo '' !== $captcha_driver ? '✓' : '·'; ?> <?php echo esc_html( __( '人机验证 · ', 'wink-gatekeeper' ) . $captcha_word ); ?></li>
-			<li><?php echo ! empty( $cloud['enabled'] ) && '' !== $selected ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $cloud['enabled'] ) && '' !== $selected ? __( '云端审核 · 已启用（所选服务商凭据以「测试凭据」绿态为准）', 'wink-gatekeeper' ) : __( '云端审核 · 未启用（站内规矩照常把关）', 'wink-gatekeeper' ) ); ?></li>
-			<li><?php echo ! empty( $iprep['enabled'] ) ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $iprep['enabled'] ) ? __( 'IP 信誉（AbuseIPDB）· 已启用（凭据以「测试凭据」绿态为准）', 'wink-gatekeeper' ) : __( 'IP 信誉（AbuseIPDB）· 可选增强——不配不影响以上防护', 'wink-gatekeeper' ) ); ?></li>
+			<li>✓ <?php esc_html_e( 'Four built-in rule defenses · on duty (length / no-Chinese / keywords / regex — free, zero outbound calls, always on)', 'wink-wp-gatekeeper' ); ?></li>
+			<li><?php echo '' !== $captcha_driver ? '✓' : '·'; ?> <?php echo esc_html( __( 'Human verification · ', 'wink-wp-gatekeeper' ) . $captcha_word ); ?></li>
+			<li><?php echo ! empty( $cloud['enabled'] ) && '' !== $selected ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $cloud['enabled'] ) && '' !== $selected ? __( 'Cloud moderation · enabled (provider credentials count as good when “Test credentials” shows green)', 'wink-wp-gatekeeper' ) : __( 'Cloud moderation · disabled (the built-in rules keep watch as usual)', 'wink-wp-gatekeeper' ) ); ?></li>
+			<li><?php echo ! empty( $iprep['enabled'] ) ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $iprep['enabled'] ) ? __( 'IP reputation (AbuseIPDB) · enabled (credentials count as good when “Test credentials” shows green)', 'wink-wp-gatekeeper' ) : __( 'IP reputation (AbuseIPDB) · optional enhancement — skipping it does not affect the protections above', 'wink-wp-gatekeeper' ) ); ?></li>
 		</ul>
 		<?php if ( '' !== $captcha_driver ) : ?>
-			<p><strong><?php esc_html_e( '最后一步：点「测试凭据」，绿了才算上岗。', 'wink-gatekeeper' ); ?></strong></p>
+			<p><strong><?php esc_html_e( 'Last step: click “Test credentials” — green means on duty.', 'wink-wp-gatekeeper' ); ?></strong></p>
 			<?php
 			if ( 'aliyun' === $captcha_driver ) {
 				self::test_credential_btn(
 					'id="wk-aliyun-test-credentials"',
 					'id="wk-aliyun-test-result"',
 					wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN ),
-					__( '测试凭据', 'wink-gatekeeper' ),
+					__( 'Test credentials', 'wink-wp-gatekeeper' ),
 					'aliyun'
 				);
 			} elseif ( 'tencent' === $captcha_driver ) {
@@ -1737,12 +1738,12 @@ final class SettingsPage {
 					'id="wk-tencent-test-credentials"',
 					'id="wk-tencent-test-result"',
 					wp_create_nonce( self::AJAX_TEST_CREDENTIALS ),
-					__( '测试凭据', 'wink-gatekeeper' ),
+					__( 'Test credentials', 'wink-wp-gatekeeper' ),
 					'tencent'
 				);
 			}
 			?>
-			<p class="description wk-muted"><?php esc_html_e( '云审与 IP 信誉的「测试凭据」在对应折叠卡/「③ 内容审核」「④ IP 信誉」页；各按钮的状态徽标与「上次测试」时间已持久化（N1）。', 'wink-gatekeeper' ); ?></p>
+			<p class="description wk-muted"><?php esc_html_e( 'The “Test credentials” buttons for cloud moderation and IP reputation live on their cards / on the “3: Content moderation” and “4: IP reputation” tabs; each button\'s status badge and “last test” time are persisted (N1).', 'wink-wp-gatekeeper' ); ?></p>
 		<?php endif; ?>
 		<?php
 	}
@@ -1772,12 +1773,12 @@ final class SettingsPage {
 				'',
 				sprintf(
 					/* translators: 1: processed 2: total */
-					esc_html__( '历史评论体检进行中（已处理 %1$d / 共 %2$d）', 'wink-gatekeeper' ),
+					esc_html__( 'Existing comment audit in progress (%1$d of %2$d processed)', 'wink-wp-gatekeeper' ),
 					(int) ( $audit_prog['processed'] ?? 0 ),
 					(int) ( $audit_prog['total'] ?? 0 )
 				)
-				. ' ——<a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( '暂停', 'wink-gatekeeper' ) . '</a>'
-				. ' · <a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( '看报告 →', 'wink-gatekeeper' ) . '</a>',
+				. ' ——<a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( 'Pause', 'wink-wp-gatekeeper' ) . '</a>'
+				. ' · <a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( 'View report →', 'wink-wp-gatekeeper' ) . '</a>',
 				'',
 				'',
 				'wk-overview-existing-bar'
@@ -1790,8 +1791,8 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				esc_html__( '存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）。', 'wink-gatekeeper' )
-				. ' ——<a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( '看报告 →', 'wink-gatekeeper' ) . '</a>',
+				esc_html__( 'Existing URL check in progress… advances automatically within the daily quota (violations go to Spam, unclear ones to pending — both recoverable by hand).', 'wink-wp-gatekeeper' )
+				. ' ——<a href="' . esc_url( self::tab_url( 'tools' ) ) . '">' . esc_html__( 'View report →', 'wink-wp-gatekeeper' ) . '</a>',
 				'',
 				'',
 				'wk-overview-url-backlog-bar'
@@ -1808,8 +1809,8 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html( \WinkGatekeeper\Stats\Labels::test_mode_word() . '进行中（今天 ' . $tm_time . ' 开启，还剩约 ' . $tm_left . ' 小时）' ) . '</strong>',
-				'——' . esc_html__( '全站人机验证暂时被跳过，仅用于链路演练；24 小时后自动结束（旁路事件标注 drill，不进统计）。', 'wink-gatekeeper' ),
-				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( '现在去关闭', 'wink-gatekeeper' ) . '</a>'
+				'——' . esc_html__( 'Site-wide human verification is temporarily bypassed for pipeline drills only; it ends automatically after 24 hours (bypassed events are tagged drill and excluded from statistics).', 'wink-wp-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( 'Turn it off now', 'wink-wp-gatekeeper' ) . '</a>'
 			);
 			?>
 			<?php
@@ -1820,9 +1821,9 @@ final class SettingsPage {
 			// 【W3·批A】迁段 notice_yellow_bar。
 			self::notice_yellow_bar(
 				'warn',
-				'<strong>' . esc_html__( '统计计数已停用', 'wink-gatekeeper' ) . '</strong>',
-				'——' . esc_html__( '下方战报不记账；事件记录照常落库（以 Tab⑥ 为准）。', 'wink-gatekeeper' ),
-				' <a href="' . esc_url( self::tab_url( 'stats' ) ) . '">' . esc_html__( '去开启', 'wink-gatekeeper' ) . '</a>'
+				'<strong>' . esc_html__( 'Statistics counting is disabled', 'wink-wp-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( 'The report below keeps no counts; event records still land as usual (Tab 6 is authoritative).', 'wink-wp-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'stats' ) ) . '">' . esc_html__( 'Turn on', 'wink-wp-gatekeeper' ) . '</a>'
 			);
 		}
 
@@ -1832,9 +1833,9 @@ final class SettingsPage {
 			// 【W3·批A】迁段 notice_yellow_bar。
 			self::notice_yellow_bar(
 				'warn',
-				'<strong>' . esc_html__( '人机验证还没选服务商', 'wink-gatekeeper' ) . '</strong>',
-				'——' . esc_html__( '机器人不会被出题拦住；评论仍受站内规矩把关。', 'wink-gatekeeper' ),
-				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( '去配置', 'wink-gatekeeper' ) . '</a>'
+				'<strong>' . esc_html__( 'No captcha provider selected yet', 'wink-wp-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( 'Bots are not stopped by the challenge; comments are still screened by the built-in rules.', 'wink-wp-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( 'Configure', 'wink-wp-gatekeeper' ) . '</a>'
 			);
 		}
 
@@ -1845,9 +1846,9 @@ final class SettingsPage {
 			// 【W3·批A】迁段 notice_yellow_bar。
 			self::notice_yellow_bar(
 				'warn',
-				'<strong>' . esc_html__( '内容审核已启用，但还没配好任何一家审核服务商', 'wink-gatekeeper' ) . '</strong>',
-				'——' . esc_html__( '评论目前全靠站内规矩把关。', 'wink-gatekeeper' ),
-				' <a href="' . esc_url( self::tab_url( 'review' ) ) . '">' . esc_html__( '去配置', 'wink-gatekeeper' ) . '</a>'
+				'<strong>' . esc_html__( 'Content moderation is enabled, but no moderation provider is configured yet', 'wink-wp-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( 'Comments currently rely on the built-in rules alone.', 'wink-wp-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'review' ) ) . '">' . esc_html__( 'Configure', 'wink-wp-gatekeeper' ) . '</a>'
 			);
 		}
 
@@ -1858,9 +1859,9 @@ final class SettingsPage {
 			// 【W3·批A】迁段 notice_yellow_bar（上报突增告警——usage_spike 只读计数判定留编排位）。
 			self::notice_yellow_bar(
 				'warn',
-				'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html__( '可疑：IP 上报请求今天突然增多', 'wink-gatekeeper' ) . '</strong>',
-				'——' . esc_html__( '可能有伪造验证码的脚本在批量触发上报，或有人试图把你的站点当枪使（诬报）。拦截照常有效、上报有冷却与限额兜底；若持续出现，可在 IP 信誉 → 上报分区临时关闭对应触发面。', 'wink-gatekeeper' ),
-				' <a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '去看上报设置', 'wink-gatekeeper' ) . '</a>'
+				'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html__( 'Suspicious: a sudden spike in IP report requests today', 'wink-wp-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( 'A script forging captchas may be triggering reports in bulk, or someone may be abusing your site as a false-report weapon. Blocking still works, and reporting has cooldown and quota guardrails; if it persists, temporarily disable the trigger under IP reputation → Reporting.', 'wink-wp-gatekeeper' ),
+				' <a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( 'Open reporting settings', 'wink-wp-gatekeeper' ) . '</a>'
 			);
 		}
 		?>
@@ -1938,49 +1939,49 @@ final class SettingsPage {
 			<h2><?php
 				printf(
 					/* translators: %s: 日期（n月j日）. */
-					esc_html__( '今日战报（%s）', 'wink-gatekeeper' ),
+					esc_html__( 'Today\'s report (%s)', 'wink-wp-gatekeeper' ),
 					esc_html( $today_label )
 				);
-				?> <span class="wk-muted"><?php echo esc_html( $stats_enabled ? __( '统计：开启中', 'wink-gatekeeper' ) : __( '统计：已停用', 'wink-gatekeeper' ) ); ?></span></h2>
+				?> <span class="wk-muted"><?php echo esc_html( $stats_enabled ? __( 'Statistics: enabled', 'wink-wp-gatekeeper' ) : __( 'Statistics: disabled', 'wink-wp-gatekeeper' ) ); ?></span></h2>
 			<div class="wk-report-tickets">
 				<?php if ( ! $stats_enabled ) : ?>
 					<?php foreach ( array( '评论闸', '登录闸', '注册·找回闸' ) as $gray_gate ) : ?>
 						<div class="wk-report-ticket wk-report-ticket--disabled">
 							<p class="wk-report-ticket__name"><strong><?php echo esc_html( $gray_gate ); ?></strong></p>
-							<p class="wk-muted"><?php esc_html_e( '统计已停用，今日没有记账（事件记录照常）', 'wink-gatekeeper' ); ?></p>
+							<p class="wk-muted"><?php esc_html_e( 'Statistics are disabled, so nothing was counted today (events are still recorded)', 'wink-wp-gatekeeper' ); ?></p>
 						</div>
 					<?php endforeach; ?>
 				<?php else : ?>
 					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '评论闸', 'wink-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( 'Comment gate', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<p class="wk-report-ticket__main"><?php echo esc_html( \WinkGatekeeper\Stats\OverviewRoster::ticket_main( $comment_reject, 'comment' ) ); ?></p>
 						<p class="wk-muted"><?php
 							echo esc_html(
 								array() !== $comment_dist
 									? \WinkGatekeeper\Stats\OverviewRoster::ticket_subline( $comment_dist )
-									: __( '没有可疑评论', 'wink-gatekeeper' )
+									: __( 'No suspicious comments', 'wink-wp-gatekeeper' )
 							);
 						?></p>
 					</div>
 					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '登录闸', 'wink-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( 'Login gate', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<p class="wk-report-ticket__main"><?php echo esc_html( \WinkGatekeeper\Stats\OverviewRoster::ticket_main( $login_reject, 'login' ) ); ?></p>
 						<p class="wk-muted"><?php
 							echo esc_html(
 								$attempts > 0
 									? sprintf(
 										/* translators: %d: 密码输错次数. */
-										__( '密码输错 %d 次，出码拦下', 'wink-gatekeeper' ),
+										__( '%d wrong passwords, stopped by a captcha', 'wink-wp-gatekeeper' ),
 										$attempts
 									)
-									: __( '没人试图撬门', 'wink-gatekeeper' )
+									: __( 'Nobody tried to pick the locks', 'wink-wp-gatekeeper' )
 							);
 						?></p>
 					</div>
 					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '注册·找回闸', 'wink-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( 'Registration & recovery gate', 'wink-wp-gatekeeper' ); ?></strong></p>
 						<p class="wk-report-ticket__main"><?php echo esc_html( \WinkGatekeeper\Stats\OverviewRoster::ticket_main( $acct_reject, 'register' ) ); ?></p>
-						<p class="wk-muted"><?php esc_html_e( '没有异常注册或找回', 'wink-gatekeeper' ); ?></p>
+						<p class="wk-muted"><?php esc_html_e( 'No abnormal registrations or recoveries', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -1988,16 +1989,16 @@ final class SettingsPage {
 				<a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ); ?>"><?php
 					echo esc_html( sprintf(
 						/* translators: 1: 待你过目. 2: 条数. */
-						__( '%1$s的评论 %2$d 条 →', 'wink-gatekeeper' ),
+						__( 'Comments by %1$s: %2$d →', 'wink-wp-gatekeeper' ),
 						\WinkGatekeeper\Stats\Labels::pending_word(),
 						$pending_n
 					) );
-					?> <?php esc_html_e( '去处理', 'wink-gatekeeper' ); ?></a>
+					?> <?php esc_html_e( 'Review them', 'wink-wp-gatekeeper' ); ?></a>
 				<?php if ( $ip_captcha > 0 ) : ?>
 					· <span class="wk-muted"><?php
 						echo esc_html( sprintf(
 							/* translators: %d: IP 信誉强制验证码次数. */
-							__( '另有 IP 信誉强制验证码 %d 次（单列口径——不计入上方数字）', 'wink-gatekeeper' ),
+							__( 'Plus %d captcha challenges enforced by IP reputation (counted separately — not included in the figures above)', 'wink-wp-gatekeeper' ),
 							$ip_captcha
 						) );
 					?></span>
@@ -2005,11 +2006,11 @@ final class SettingsPage {
 				· <a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php
 					echo esc_html( sprintf(
 						/* translators: 1: 垃圾箱存档. 2: 条数. */
-						__( '%1$s %2$d 条 →', 'wink-gatekeeper' ),
+						__( '%1$s: %2$d →', 'wink-wp-gatekeeper' ),
 						\WinkGatekeeper\Stats\Labels::spam_word(),
 						$spam_n
 					) );
-					?> <?php echo esc_html( \WinkGatekeeper\Stats\InterceptDigest::spam_warn( $spam_n ) ? __( '去看看（该清一清了）', 'wink-gatekeeper' ) : __( '去看看', 'wink-gatekeeper' ) ); ?></a>
+					?> <?php echo esc_html( \WinkGatekeeper\Stats\InterceptDigest::spam_warn( $spam_n ) ? __( 'Take a look (time for a cleanup)', 'wink-wp-gatekeeper' ) : __( 'Take a look', 'wink-wp-gatekeeper' ) ); ?></a>
 			</p>
 		</section>
 		<?php
@@ -2057,10 +2058,10 @@ final class SettingsPage {
 			<h2><?php
 				echo esc_html( sprintf(
 					/* translators: %d: 服务商数. */
-					__( '服务商点名册（%d 名）', 'wink-gatekeeper' ),
+					__( 'Provider roster (%d)', 'wink-wp-gatekeeper' ),
 					count( $cards )
 				) );
-				?> <span class="wk-muted"><?php esc_html_e( '没出错的也每天点名，一眼见分晓', 'wink-gatekeeper' ); ?></span></h2>
+				?> <span class="wk-muted"><?php esc_html_e( 'Even the error-free get called each day, so you can tell at a glance', 'wink-wp-gatekeeper' ); ?></span></h2>
 			<div class="wk-roster-cards">
 				<?php foreach ( $shown as $roster_card ) { self::render_roster_card( $roster_card ); } ?>
 			</div>
@@ -2068,10 +2069,10 @@ final class SettingsPage {
 				<p class="wk-roster-unconfigured"><?php
 					echo esc_html( sprintf(
 						/* translators: %s: 未配置服务商人话名清单. */
-						__( '未配置的服务商：%s', 'wink-gatekeeper' ),
+						__( 'Unconfigured providers: %s', 'wink-wp-gatekeeper' ),
 						implode( ' · ', $setup_names )
 					) );
-					?> <a href="<?php echo esc_url( self::tab_url( $setup_tab ) ); ?>"><?php esc_html_e( '去配置 →', 'wink-gatekeeper' ); ?></a></p>
+					?> <a href="<?php echo esc_url( self::tab_url( $setup_tab ) ); ?>"><?php esc_html_e( 'Configure →', 'wink-wp-gatekeeper' ); ?></a></p>
 			<?php endif; ?>
 			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::local_rules_footnote() ); ?></p>
 			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::pass_uncounted_note() ); ?></p>
@@ -2199,16 +2200,16 @@ final class SettingsPage {
 		$lines     = \WinkGatekeeper\Stats\OverviewRoster::incident_lines( $timeline, $today, $yesterday, \WinkGatekeeper\Stats\OverviewRoster::INCIDENT_LIMIT );
 		?>
 		<section id="wk-overview-incidents" class="wk-card">
-			<h2><?php esc_html_e( '最近岔子', 'wink-gatekeeper' ); ?><?php if ( array() !== $lines ) : ?> <span class="wk-muted"><?php
+			<h2><?php esc_html_e( 'Recent incidents', 'wink-wp-gatekeeper' ); ?><?php if ( array() !== $lines ) : ?> <span class="wk-muted"><?php
 				echo esc_html( sprintf(
 					/* translators: %d: 条数. */
-					__( '（最近 %d 条）', 'wink-gatekeeper' ),
+					__( '(last %d)', 'wink-wp-gatekeeper' ),
 					count( $lines )
 				) );
 			?></span><?php endif; ?>
-				<a class="wk-overview-more" href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( '完整记录 → 统计页', 'wink-gatekeeper' ); ?></a></h2>
+				<a class="wk-overview-more" href="<?php echo esc_url( self::tab_url( 'stats' ) ); ?>"><?php esc_html_e( 'Full records → Statistics', 'wink-wp-gatekeeper' ); ?></a></h2>
 			<?php if ( array() === $lines ) : ?>
-				<p class="wk-muted wk-overview-calm"><?php esc_html_e( '最近 7 天风平浪静。', 'wink-gatekeeper' ); ?></p>
+				<p class="wk-muted wk-overview-calm"><?php esc_html_e( 'All quiet for the last 7 days.', 'wink-wp-gatekeeper' ); ?></p>
 			<?php else : ?>
 				<ul class="wk-incident-list">
 					<?php foreach ( $lines as $line ) : ?>
@@ -2243,10 +2244,10 @@ final class SettingsPage {
 		<section id="wk-overview-footer" class="wk-overview-footer">
 			<?php echo esc_html( sprintf(
 				/* translators: 1: 统计计数态. 2: 演练模式态. 3: 当前事件行数. 4: 容量上限. */
-				__( '统计计数 %1$s · %2$s %3$s · 事件记录 %4$d / %5$d 条', 'wink-gatekeeper' ),
-				$stats_on ? __( '开启', 'wink-gatekeeper' ) : __( '停用', 'wink-gatekeeper' ),
+				__( 'Statistics counting %1$s · %2$s %3$s · event records %4$d / %5$d', 'wink-wp-gatekeeper' ),
+				$stats_on ? __( 'On', 'wink-wp-gatekeeper' ) : __( 'Off', 'wink-wp-gatekeeper' ),
 				\WinkGatekeeper\Stats\Labels::test_mode_word(),
-				\WinkGatekeeper\Gates\TestMode::wp_active() ? __( '进行中', 'wink-gatekeeper' ) : __( '未开启', 'wink-gatekeeper' ),
+				\WinkGatekeeper\Gates\TestMode::wp_active() ? _x( 'Active', 'drill-active', 'wink-wp-gatekeeper' ) : __( 'Disabled', 'wink-wp-gatekeeper' ),
 				$rows,
 				$max_rows
 			) ); ?>
@@ -2323,8 +2324,8 @@ final class SettingsPage {
 			// 【W3·批A 迁段→批B 翻转】id 锚留编排位（M6H3 契约钉）；classes 位退役。
 			self::notice_yellow_bar(
 				'warn',
-				'<strong>' . esc_html__( '人机验证还没选服务商', 'wink-gatekeeper' ) . '</strong>',
-				'——' . esc_html__( '机器人不会被出题拦住；评论仍受站内规矩把关，请在下方「驱动选择」中挑选。', 'wink-gatekeeper' ),
+				'<strong>' . esc_html__( 'No captcha provider selected yet', 'wink-wp-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( 'Bots are not stopped by the challenge; comments are still screened by the built-in rules — pick a provider under “Provider” below.', 'wink-wp-gatekeeper' ),
 				'',
 				'',
 				'wk-captcha-unconfigured-notice'
@@ -2341,14 +2342,14 @@ final class SettingsPage {
 		$guide    = CaptchaTabSpec::guide();
 		?>
 		<section class="wk-card" id="wk-captcha-gates-card">
-			<h2><?php esc_html_e( '闸开关', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Gate switches', 'wink-wp-gatekeeper' ); ?></h2>
 			<?php /* 【W3·批B】四闸卡改 switch-row 行形态（design-system §04 tab8 sw-label
 			 * 行契约——开关恒最左、说明 .why 同排换行不坠落）；字段面零变化。 */ ?>
 			<div class="switch-row">
 				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'gates', 'comment', 'enabled' ) ) ); ?>" value="0" />
 				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'gates', 'comment', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $settings['gates']['comment']['enabled'] ) ); ?> />
-				<span class="sw-label"><b><?php esc_html_e( '评论闸 · 启用评论保护', 'wink-gatekeeper' ); ?></b>
-					<span class="why"><?php esc_html_e( '= 本地规则四闸 + 验证码 + IP 信誉三阶段总开关；只关验证码请把驱动选「未配置」。关闭后评论表单零 DOM 变化、提交不验证。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><b><?php esc_html_e( 'Comment gate · Enable comment protection', 'wink-wp-gatekeeper' ); ?></b>
+					<span class="why"><?php esc_html_e( '= master switch for the four local rule gates plus the captcha and IP reputation stages; to disable only the captcha, set the provider to “Not configured”. When off, the comment form has zero DOM changes and submissions are not verified.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 
@@ -2359,46 +2360,46 @@ final class SettingsPage {
 			$trust = isset( $settings['captcha']['trust'] ) && is_array( $settings['captcha']['trust'] ) ? $settings['captcha']['trust'] : array();
 			?>
 			<details class="wk-guide" style="margin-top:10px;">
-				<summary><?php esc_html_e( '评论保护·信用免验（预检免验证码）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Comment protection · trusted-visitor waiver (pre-check without a captcha)', 'wink-wp-gatekeeper' ); ?></summary>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( '信用免验', 'wink-gatekeeper' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Trusted-visitor waiver', 'wink-wp-gatekeeper' ); ?></th>
 						<td>
 							<!-- captcha.trust.enabled（04 §2 v1.4 六键之一；纯 on/off——三态语义由澄清 A 定死无需语义开关）。 -->
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'trust', 'enabled' ) ) ); ?>" value="0" />
 							<label>
 								<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'trust', 'enabled' ) ) ); ?>" value="1" <?php checked( ! isset( $trust['enabled'] ) || ! empty( $trust['enabled'] ) ); ?> />
-								<?php esc_html_e( '点击「完成人机验证」时先预检（本地四闸 + IP 信誉 + 历史信用），全过免真实验证码', 'wink-gatekeeper' ); ?>
+								<?php esc_html_e( 'When “Complete human verification” is clicked, a pre-check runs first (four local gates + IP reputation + track record); passing everything skips the real captcha', 'wink-wp-gatekeeper' ); ?>
 							</label>
-							<p class="description"><?php esc_html_e( '预检是 UX 预演——提交期四闸/云审照常全链兜底，免验的只有验证码挑战这一件事。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'The pre-check is a UX rehearsal — at submission time the four gates / cloud moderation still run the full chain; only the captcha challenge itself is waived.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="wk-trust-min-approved"><?php esc_html_e( '已批评论阈值 N', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-trust-min-approved"><?php esc_html_e( 'Approved-comments threshold N', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<input type="number" id="wk-trust-min-approved" min="1" max="10" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'trust', 'min_approved' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $trust['min_approved'] ?? 3 ) ); ?>" class="small-text" />
-							<p class="description"><?php esc_html_e( '游客（同昵称+邮箱）或登录用户已有 N 条通过审核的评论即免验；WP 核心同类先例为 1，验证码豁免更强故默认收紧至 3。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Visitors (same nickname + email) or logged-in users with N approved comments are waived; the comparable WP core precedent is 1, and because a captcha waiver is stronger, the default is tightened to 3.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="wk-trust-ttl"><?php esc_html_e( '信任凭证有效期（分钟）', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-trust-ttl"><?php esc_html_e( 'Trust voucher validity (minutes)', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<input type="number" id="wk-trust-ttl" min="1" max="60" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'trust', 'ttl_minutes' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $trust['ttl_minutes'] ?? 10 ) ); ?>" class="small-text" />
-							<p class="description"><?php esc_html_e( '预检通过签发信任凭证（绑定 IP+表单+身份，不绑内容——改内容重提不失效）；与验证短缓存窗口同宽。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Passing the pre-check issues a trust voucher (bound to IP + form + identity, not content — editing and resubmitting does not invalidate it); same width as the short verification cache window.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="wk-trust-credit-cache"><?php esc_html_e( '信用缓存（分钟）', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-trust-credit-cache"><?php esc_html_e( 'Trust cache (minutes)', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<input type="number" id="wk-trust-credit-cache" min="0" max="60" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'trust', 'credit_cache_minutes' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $trust['credit_cache_minutes'] ?? 5 ) ); ?>" class="small-text" />
-							<p class="description"><?php esc_html_e( '历史信用判定的布尔缓存 TTL（0 = 每次点击都查库）；站长批准新评论后缓存即时失效。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Boolean cache TTL for track-record checks (0 = query the database on every click); approving a new comment invalidates the cache immediately.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="wk-trust-precheck-limit"><?php esc_html_e( '预检限流（次/时/IP）', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-trust-precheck-limit"><?php esc_html_e( 'Pre-check rate limit (per hour per IP)', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<input type="number" id="wk-trust-precheck-limit" min="0" max="360" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'trust', 'precheck_hourly_limit' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $trust['precheck_hourly_limit'] ?? 30 ) ); ?>" class="small-text" />
-							<p class="description"><?php esc_html_e( '封脚本高频试探关键词表/邮箱信用；真人一小时点按钮不超过个位数，30 容纳改稿重试。超限一律降级为出验证码。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Blocks scripts hammering the keyword-list / email-trust probes; real humans click the button single-digit times per hour, and 30 leaves room for edits and retries. Over the limit it always degrades to showing a captcha.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -2407,24 +2408,24 @@ final class SettingsPage {
 				// 【W3·批A】迁段 notice_yellow_bar（info 级——双 <p> 形态）。
 				self::notice_yellow_bar(
 					'info',
-					'<strong>' . esc_html__( 'IP 信誉三态：', 'wink-gatekeeper' ) . '</strong>',
+					'<strong>' . esc_html__( 'Three IP reputation states:', 'wink-wp-gatekeeper' ) . '</strong>',
 					array(
-						esc_html__( '未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。', 'wink-gatekeeper' ),
-						'<a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '→ 去配置 IP 信誉（Tab④）', 'wink-gatekeeper' ) . '</a>',
+						esc_html__( 'When IP reputation is disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail and a captcha is shown outright) — configuring IP reputation is recommended for stronger protection.', 'wink-wp-gatekeeper' ),
+						'<a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '→ Configure IP reputation (Tab 4)', 'wink-wp-gatekeeper' ) . '</a>',
 					)
 				);
 				?>
-				<p class="description"><?php esc_html_e( '整页缓存提示：启用整页缓存的站点建议缓存周期 <12 小时——nonce 陈旧会使免验静默退化为恒出码（fail-safe，不伤提交）。', 'wink-gatekeeper' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Full-page cache note: keep the cache cycle under 12 hours — a stale nonce silently degrades the waiver into always-show-a-captcha (fail-safe, submissions still work).', 'wink-wp-gatekeeper' ); ?></p>
 			</details>
 
 			<div class="switch-row">
 				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'enabled' ) ) ); ?>" value="0" />
 				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $settings['gates']['login']['enabled'] ) ); ?> />
-				<span class="sw-label"><b><?php esc_html_e( '登录闸 · 启用登录验证', 'wink-gatekeeper' ); ?></b>
-					<span class="why"><?php esc_html_e( '模式档位见右侧下拉；阈值/窗口等细节在本卡下方「登录保护」独立卡。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><b><?php esc_html_e( 'Login gate · Enable login verification', 'wink-wp-gatekeeper' ); ?></b>
+					<span class="why"><?php esc_html_e( 'Mode levels are in the dropdown on the right; thresholds / windows and other details are in the separate “Login protection” card below.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
-				<select name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'render_mode' ) ) ); ?>" aria-label="<?php esc_attr_e( '登录验证出现时机', 'wink-gatekeeper' ); ?>">
-					<?php foreach ( array( 'off' => __( '关闭', 'wink-gatekeeper' ), 'adaptive' => __( '自适应（默认）', 'wink-gatekeeper' ), 'always' => __( '常显', 'wink-gatekeeper' ) ) as $mode => $label ) : ?>
+				<select name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'render_mode' ) ) ); ?>" aria-label="<?php esc_attr_e( 'When login verification appears', 'wink-wp-gatekeeper' ); ?>">
+					<?php foreach ( array( 'off' => __( 'Never', 'wink-wp-gatekeeper' ), 'adaptive' => __( 'Adaptive (default)', 'wink-wp-gatekeeper' ), 'always' => __( 'Always', 'wink-wp-gatekeeper' ) ) as $mode => $label ) : ?>
 						<option value="<?php echo esc_attr( $mode ); ?>" <?php selected( $settings['gates']['login']['render_mode'], $mode ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
 				</select>
@@ -2432,7 +2433,7 @@ final class SettingsPage {
 			<p class="description" id="wk-login-adaptive-desc"><?php
 				echo esc_html( sprintf(
 					/* translators: 1: 同用户名失败阈值 2: 同 IP 聚合阈值（均随当前配置值渲染） */
-					__( '自适应：同一账户跨 IP 累计 %1$d 次口令错误（仅统计真实存在的账户）、或同 IP 聚合 %2$d 次、或站点级账号警报点亮后，登录页才出现验证码，平时零打扰；常显：每次登录都先验证。失败计数对 XML-RPC 同样生效；验证码驱动未配置时超阈也不拦。', 'wink-gatekeeper' ),
+					__( 'Adaptive: the login captcha appears only after %1$d cumulative wrong passwords for one account across IPs (only accounts that actually exist are counted), %2$d aggregated for one IP, or a site-level account alert trips — zero bother otherwise; Always: verify before every login. Failure counting also applies to XML-RPC; with no captcha provider configured, going over the threshold still does not block.', 'wink-wp-gatekeeper' ),
 					$desc_user_threshold,
 					$desc_ip_threshold
 				) );
@@ -2450,16 +2451,16 @@ final class SettingsPage {
 			<div class="switch-row">
 				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'gates', $account_key, 'enabled' ) ) ); ?>" value="0" />
 				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'gates', $account_key, 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $settings['gates'][ $account_key ]['enabled'] ) ); ?> />
-				<span class="sw-label"><b><?php echo esc_html( $account_meta['label'] ); ?> · <?php esc_html_e( '启用（常显——进页面即出验证码）', 'wink-gatekeeper' ); ?></b>
-					<span class="why"><?php echo esc_html( $account_meta['hint'] ); ?><?php esc_html_e( '未配置验证码驱动时自动不渲染不拦截；「设置 → 常规」关闭任何人可注册后注册表单不可达（开关空转无害）；多站点注册走 wp-signup.php，本闸不覆盖。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><b><?php echo esc_html( $account_meta['label'] ); ?> · <?php esc_html_e( 'Enable (always — the captcha shows as soon as the page loads)', 'wink-wp-gatekeeper' ); ?></b>
+					<span class="why"><?php echo esc_html( $account_meta['hint'] ); ?><?php esc_html_e( 'With no captcha provider configured, nothing renders and nothing blocks; if “Settings → General” disallows registration, the signup form is unreachable (an idle switch is harmless); multisite signups go through wp-signup.php, which this gate does not cover.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 			<?php endforeach; ?>
 		</section>
 
 		<section class="wk-card">
-			<h2><?php esc_html_e( '驱动选择', 'wink-gatekeeper' ); ?></h2>
-			<label for="wk-captcha-driver" class="screen-reader-text"><?php esc_html_e( '验证码驱动', 'wink-gatekeeper' ); ?></label>
+			<h2><?php esc_html_e( 'Provider selection', 'wink-wp-gatekeeper' ); ?></h2>
+			<label for="wk-captcha-driver" class="screen-reader-text"><?php esc_html_e( 'Captcha provider', 'wink-wp-gatekeeper' ); ?></label>
 			<select id="wk-captcha-driver" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'driver' ) ) ); ?>">
 				<?php foreach ( $options as $option ) : ?>
 					<option value="<?php echo esc_attr( $option['value'] ); ?>" <?php selected( $option['value'], $active ); ?>>
@@ -2475,7 +2476,7 @@ final class SettingsPage {
 				<?php endforeach; ?>
 			</select>
 			<!-- M4 厂商项注册位：阿里 2.0 / hCaptcha / Turnstile / 极验——DriverRegistry 注册后自动入下拉与配置区。 -->
-			<p class="description"><?php esc_html_e( '选择厂商后下方显示配置区；切换厂商不清空已填字段（各自独立保存）。「未配置」= 验证码阶段整体跳过。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Selecting a vendor shows its settings below; switching vendors does not clear filled fields (each saves independently). “Not configured” = the captcha stage is skipped entirely.', 'wink-wp-gatekeeper' ); ?></p>
 			<p id="wk-captcha-unconfigured-note" class="description<?php echo $area['visible'] ? ' hidden' : ''; ?>">
 				<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
 				<?php echo esc_html( $area['hidden_note'] ); ?>
@@ -2487,17 +2488,17 @@ final class SettingsPage {
 		 * 驱动无关（captcha.submit_flow 在 captcha 子树顶层——Q6 腾讯同批后两驱动共用），
 		 * 故落驱动选择卡之后的常显卡位，不进厂商配置区（那边按 active 驱动 hidden 切换）。 */ ?>
 		<section class="wk-card">
-			<h2><?php esc_html_e( '提交触发形态', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Submit-trigger flow', 'wink-wp-gatekeeper' ); ?></h2>
 			<?php $submit_flow = 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? 'button' : 'on_submit'; ?>
 			<label style="display:block;margin-bottom:6px;">
 				<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="on_submit" <?php checked( 'on_submit', $submit_flow ); ?> />
-				<?php esc_html_e( '无按钮模式（默认）——不渲染独立验证按钮，访客直接点「发表评论/登录」即触发人机验证，过码后自动放行提交', 'wink-gatekeeper' ); ?>
+				<?php esc_html_e( 'No-button mode (default) — no separate verify button; visitors click “Post Comment / Log In” directly, human verification triggers, and the submission goes through once cleared', 'wink-wp-gatekeeper' ); ?>
 			</label>
 			<label style="display:block;">
 				<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'submit_flow' ) ) ); ?>" value="button" <?php checked( 'button', $submit_flow ); ?> />
-				<?php esc_html_e( '独立验证按钮（经典）——先点表单内「完成人机验证」按钮过码，再提交（0.8.3 及以前形态）', 'wink-gatekeeper' ); ?>
+				<?php esc_html_e( 'Dedicated verify button (classic) — click “Complete human verification” in the form first, then submit (the behavior up to 0.8.3)', 'wink-wp-gatekeeper' ); ?>
 			</label>
-			<p class="description"><?php esc_html_e( '0.8.4 起默认无按钮模式（一刀切——升级站点前台形态即切换）；无 JS 或验证组件故障时自动回退经典按钮形态，服务端核验永远兜底。评论/登录/注册/找回四表单同型。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Since 0.8.4 the default is no-button mode (across the board — upgraded sites switch front-end flow on update); with no JS or a broken widget it falls back to the classic button, and server-side verification always has your back. All four forms — comment / login / registration / recovery — behave the same.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<?php
@@ -2512,19 +2513,19 @@ final class SettingsPage {
 		?>
 		<div class="wk-notice wk-notice--warn">
 			<p>
-				<strong><?php esc_html_e( '演练模式（旁路人机验证）', 'wink-gatekeeper' ); ?></strong>
-				<span style="color:#b32d2e;"><?php esc_html_e( '启用后全站人机验证旁路，仅用于链路演练。', 'wink-gatekeeper' ); ?></span>
-				<?php esc_html_e( '启用中 24 小时后自动过期；旁路事件标注 drill（不进统计）、不写验证短缓存；内容闸/云审/IP 阶段照常全链兜底。', 'wink-gatekeeper' ); ?>
+				<strong><?php esc_html_e( 'Drill mode (bypass human verification)', 'wink-wp-gatekeeper' ); ?></strong>
+				<span style="color:#b32d2e;"><?php esc_html_e( 'When enabled, site-wide human verification is bypassed — for pipeline drills only.', 'wink-wp-gatekeeper' ); ?></span>
+				<?php esc_html_e( 'Once enabled it expires automatically after 24 hours; bypassed events are tagged drill (excluded from statistics) and never write the short verification cache; the content / cloud / IP stages still run the full chain.', 'wink-wp-gatekeeper' ); ?>
 			</p>
 			<p>
 				<label>
 					<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'test_mode' ) ) ); ?>" value="0" />
 					<input type="checkbox" id="wk-test-mode" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'test_mode' ) ) ); ?>" value="1" <?php checked( $tm_checked ); ?> <?php echo $tm_checked ? '' : 'disabled'; ?> />
-					<?php esc_html_e( '启用演练模式', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'Enable drill mode', 'wink-wp-gatekeeper' ); ?>
 				</label>
 				<label style="margin-left:1em;">
 					<input type="checkbox" id="wk-test-mode-confirm" />
-					<?php esc_html_e( '我确认要旁路全站人机验证（二次确认）', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'I confirm I want to bypass site-wide human verification (double confirmation)', 'wink-wp-gatekeeper' ); ?>
 				</label>
 			</p>
 		</div>
@@ -2548,9 +2549,9 @@ final class SettingsPage {
 		</script>
 
 		<section class="wk-card" id="wk-captcha-config-area" data-wk-vendor="tencent"<?php echo ( $area['visible'] && 'tencent' === $active ) ? '' : ' hidden'; ?>>
-			<h2><?php esc_html_e( '腾讯天御验证码 2.0 · 配置', 'wink-gatekeeper' ); ?>
-				<span class="badge b-dim"><?php esc_html_e( '退役 · 存量可用', 'wink-gatekeeper' ); ?></span></h2>
-			<p class="description"><?php esc_html_e( '默认已退役（出厂默认已切阿里云验证码 2.0——H-3 breaking）：选中本卡仍可维护存量凭据，四键照常可用。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'Tencent Tianyu Captcha 2.0 · Configuration', 'wink-wp-gatekeeper' ); ?>
+				<span class="badge b-dim"><?php esc_html_e( 'Retired · usable if configured', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<p class="description"><?php esc_html_e( 'Retired as default (the factory default switched to Aliyun Captcha 2.0 — H-3 breaking): selecting this card still lets you maintain existing credentials; all four keys keep working.', 'wink-wp-gatekeeper' ); ?></p>
 
 			<?php
 			// 【v1.4·反馈9/R4 §C.3】逐驱动合规行（registry privacy 维渲染；原接入指引内的
@@ -2563,48 +2564,48 @@ final class SettingsPage {
 			?>
 
 			<details class="wk-guide">
-				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Setup guide (expand on first configuration)', 'wink-wp-gatekeeper' ); ?></summary>
 				<ol>
 					<?php foreach ( $guide['steps'] as $step ) : ?>
 						<li><?php echo esc_html( $step ); ?></li>
 					<?php endforeach; ?>
 				</ol>
 				<p>
-					<a href="<?php echo esc_url( $guide['console_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '验证码控制台', 'wink-gatekeeper' ); ?></a>
-					· <a href="<?php echo esc_url( $guide['doc_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '票据核验 API 文档', 'wink-gatekeeper' ); ?></a>
+					<a href="<?php echo esc_url( $guide['console_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Captcha console', 'wink-wp-gatekeeper' ); ?></a>
+					· <a href="<?php echo esc_url( $guide['doc_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Ticket verification API documentation', 'wink-wp-gatekeeper' ); ?></a>
 				</p>
 				<p class="description"><?php echo esc_html( $guide['ticket_note'] ); ?></p>
 			</details>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-tencent-app-id"><?php esc_html_e( 'CaptchaAppId', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-tencent-app-id"><?php esc_html_e( 'CaptchaAppId', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-tencent-app-id" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'tencent', 'app_id' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) $tencent['app_id'] ); ?>" class="regular-text"
-							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'CaptchaAppId', 'wink-gatekeeper' ); ?>" />
-						<p class="description"><?php esc_html_e( '验证码控制台 → 验证管理 → 密钥列（公开级，前端组件加载用）。', 'wink-gatekeeper' ); ?></p>
+							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'CaptchaAppId', 'wink-wp-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( 'Captcha console → Verification management → Keys column (public level, used by the front-end widget).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-tencent-secret-id"><?php esc_html_e( 'SecretId（CAM）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-tencent-secret-id"><?php esc_html_e( 'SecretId（CAM）', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'captcha', 'tencent', 'secret_id' ), '' !== $tencent['secret_id'], 'SecretId（CAM）' ); ?>
-						<p class="description"><?php esc_html_e( '云 API 密钥（TC3 签名用，访问管理 → API 密钥管理）。与验证码控制台的 AppSecretKey 分属两套凭据体系。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Cloud API key (for TC3 signing, Access Management → API Key Management). Separate from the captcha console\'s AppSecretKey — two different credential systems.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-tencent-secret-key"><?php esc_html_e( 'SecretKey（CAM）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-tencent-secret-key"><?php esc_html_e( 'SecretKey（CAM）', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'captcha', 'tencent', 'secret_key' ), '' !== $tencent['secret_key'], 'SecretKey（CAM）' ); ?>
-						<p class="description"><?php esc_html_e( '与 SecretId 配对的 CAM 密钥，仅服务端 TC3 签名使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The CAM key paired with the SecretId; used only for server-side TC3 signing and never exposed to the front end.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-tencent-app-secret-key"><?php esc_html_e( 'AppSecretKey（验证码控制台）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-tencent-app-secret-key"><?php esc_html_e( 'AppSecretKey (captcha console)', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'captcha', 'tencent', 'app_secret_key' ), '' !== $tencent['app_secret_key'], 'AppSecretKey（验证码控制台）' ); ?>
-						<p class="description"><?php esc_html_e( '验证码控制台与 CaptchaAppId 同页的密钥——核验请求 body 必填参数（服务端在线校验强制，2026-11-09 实测定论）。仅服务端使用。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The key on the same captcha console page as the CaptchaAppId — a required body parameter of the verification request (enforced by server-side online checks, confirmed by live testing on 2026-11-09). Server-side only.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<?php
@@ -2615,28 +2616,28 @@ final class SettingsPage {
 				if ( is_array( $active_meta ) && ! empty( $active_meta['scoring'] ) ) :
 					?>
 					<tr>
-						<th scope="row"><label for="wk-captcha-min-score"><?php esc_html_e( '机器分阈值（min_score）', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-captcha-min-score"><?php esc_html_e( 'Bot-score threshold (min_score)', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<input type="number" id="wk-captcha-min-score" step="0.1" min="0.1" max="1"
 								name="<?php echo esc_attr( self::field_name( array( 'captcha', 'min_score' ) ) ); ?>"
 								value="<?php echo esc_attr( (string) ( $settings['captcha']['min_score'] ?? 0.5 ) ); ?>" class="small-text" />
-							<p class="description"><?php esc_html_e( '评分制驱动专用：机器分折算 (0,1] 后低于该阈值即按不通过拦截（服务端钳 0.1–1.0，防 0 形同虚设/1.5 恒拒）。事件 meta 记 score+threshold 可查差值。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Score-based providers only: the bot score is normalized to (0,1] and anything below the threshold is blocked as a fail (the server clamps to 0.1–1.0 so 0 is not a free pass and 1.5 is not an always-reject). Event meta records score + threshold so you can inspect the gap.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				<?php endif; ?>
 				<tr>
-					<th scope="row"><?php esc_html_e( '容灾票据（网络差放行）', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Failover tickets (pass on bad networks)', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<?php $disaster = 'block' === ( $tencent['disaster_pass'] ?? 'allow' ) ? 'block' : 'allow'; ?>
 						<label style="display:block;margin-bottom:6px;">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'tencent', 'disaster_pass' ) ) ); ?>" value="allow" <?php checked( 'allow', $disaster ); ?> />
-							<?php esc_html_e( '网络差时放行（默认）——前端容灾票按通过 + 每 IP 每小时限 5 次 + 事件标注 trerror', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Pass on bad networks (default) — front-end failover tickets count as passed, limited to 5 per IP per hour, events tagged trerror', 'wink-wp-gatekeeper' ); ?>
 						</label>
 						<label style="display:block;">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'tencent', 'disaster_pass' ) ) ); ?>" value="block" <?php checked( 'block', $disaster ); ?> />
-							<?php esc_html_e( '拦截（安全优先）——攻击期临时切换，容灾票一律不认', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Block (safety first) — switch temporarily during attacks; failover tickets are never accepted', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '官方语义：弱网用户可能拿到容灾票（trerror 前缀），默认拦了就是误杀真人；限速防滥用。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Official semantics: users on weak networks may receive failover tickets (trerror prefix); blocking them by default would hit real humans — rate limiting guards against abuse.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -2648,11 +2649,11 @@ final class SettingsPage {
 				'id="wk-tencent-test-credentials"',
 				'id="wk-tencent-test-result"',
 				wp_create_nonce( self::AJAX_TEST_CREDENTIALS ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'tencent'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次全参假票核验：绿 = 凭据可用；红 = CAM 密钥（SecretId/SecretKey）错；黄 = 必填参数缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Sends one full-parameter fake-ticket verification: green = credentials work; red = wrong CAM keys (SecretId/SecretKey); yellow = required parameters missing. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<?php
@@ -2664,7 +2665,7 @@ final class SettingsPage {
 		$aliyun_guide = CaptchaTabSpec::aliyun_guide();
 		?>
 		<section class="wk-card" data-wk-vendor="aliyun"<?php echo ( $area['visible'] && 'aliyun' === $active ) ? '' : ' hidden'; ?>>
-			<h2><?php esc_html_e( '阿里云验证码 2.0 · 配置', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Aliyun Captcha 2.0 · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
 
 			<?php
 			// 逐驱动合规行（registry privacy 维渲染——R4 §C.3 同款；常驻不可关闭）。
@@ -2675,66 +2676,66 @@ final class SettingsPage {
 			?>
 
 			<details class="wk-guide">
-				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Setup guide (expand on first configuration)', 'wink-wp-gatekeeper' ); ?></summary>
 				<ol>
 					<?php foreach ( $aliyun_guide['steps'] as $step ) : ?>
 						<li><?php echo esc_html( $step ); ?></li>
 					<?php endforeach; ?>
 				</ol>
 				<p>
-					<a href="<?php echo esc_url( $aliyun_guide['console_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '验证码控制台', 'wink-gatekeeper' ); ?></a>
-					· <a href="<?php echo esc_url( $aliyun_guide['doc_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'VerifyIntelligentCaptcha API 文档', 'wink-gatekeeper' ); ?></a>
+					<a href="<?php echo esc_url( $aliyun_guide['console_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Captcha console', 'wink-wp-gatekeeper' ); ?></a>
+					· <a href="<?php echo esc_url( $aliyun_guide['doc_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'VerifyIntelligentCaptcha API documentation', 'wink-wp-gatekeeper' ); ?></a>
 				</p>
 				<p class="description"><?php echo esc_html( $aliyun_guide['ticket_note'] ); ?></p>
 			</details>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-aliyun-access-key-id"><?php esc_html_e( 'AccessKeyId', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-aliyun-access-key-id"><?php esc_html_e( 'AccessKeyId', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_id' ), '' !== $aliyun['access_key_id'], 'AccessKeyId' ); ?>
-						<p class="description"><?php esc_html_e( 'RAM AccessKey（禁主账号 AK——ACS3 V3 签名用，访问管理 → RAM）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'RAM AccessKey (primary-account AKs forbidden — for ACS3 V3 signing, Access Management → RAM). Server-side only, never exposed to the front end.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-aliyun-access-key-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-aliyun-access-key-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'captcha', 'aliyun', 'access_key_secret' ), '' !== $aliyun['access_key_secret'], 'AccessKeySecret' ); ?>
-						<p class="description"><?php esc_html_e( '与 AccessKeyId 配对的 RAM 密钥（HMAC 签名密钥原文）。仅服务端使用。RAM 用户需授权 AliyunYundunAFSFullAccess。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The RAM key paired with the AccessKeyId (the raw HMAC signing key). Server-side only. The RAM user needs the AliyunYundunAFSFullAccess policy.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-aliyun-scene-id"><?php esc_html_e( 'SceneId', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-aliyun-scene-id"><?php esc_html_e( 'SceneId', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-aliyun-scene-id" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'scene_id' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) $aliyun['scene_id'] ); ?>" class="regular-text"
-							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'SceneId', 'wink-gatekeeper' ); ?>" />
-						<p class="description"><?php esc_html_e( '验证码控制台 → 场景管理（必填——服务端补传防前端被篡改场景，错配返回 F012）。', 'wink-gatekeeper' ); ?></p>
+							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'SceneId', 'wink-wp-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( 'Captcha console → Scene management (required — the server re-sends it so the front end cannot tamper with the scene; a mismatch returns F012).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-aliyun-prefix"><?php esc_html_e( 'prefix（身份标）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-aliyun-prefix"><?php esc_html_e( 'prefix (identity tag)', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-aliyun-prefix" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'prefix' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) $aliyun['prefix'] ); ?>" class="regular-text"
-							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'prefix（身份标）', 'wink-gatekeeper' ); ?>" />
-						<p class="description"><?php esc_html_e( '控制台概览页获取——前端 AliyunCaptchaConfig 全局配置用（前端公开级参数，非服务端 API 凭据）。', 'wink-gatekeeper' ); ?></p>
+							data-wk-required="1" data-wk-label="<?php esc_attr_e( 'prefix (identity tag)', 'wink-wp-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( 'Get it from the console overview page — used by the front-end AliyunCaptchaConfig global config (a public front-end parameter, not a server-side API credential).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '前端形态（mode）', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Front-end style (mode)', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<?php /* 【W3·批C·N3·breaking】出厂默认 embed→popup 平移（schema migrate 撞车守卫：凭据已配=显式选择保留 embed）；「默认」角标换位 popup。 */ ?>
 						<?php $aliyun_mode = 'popup' === ( $aliyun['mode'] ?? 'popup' ) ? 'popup' : 'embed'; ?>
 						<label style="display:block;margin-bottom:6px;">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="popup" <?php checked( 'popup', $aliyun_mode ); ?> />
-							<?php esc_html_e( '弹层（默认）——零占位：访客点「发表评论 / 登录」直接弹出交互弹层（无按钮模式主形态）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Popup (default) — zero footprint: clicking “Post Comment / Log In” opens the interactive popup directly (the primary no-button flow)', 'wink-wp-gatekeeper' ); ?>
 						</label>
 						<label style="display:block;">
 							<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'mode' ) ) ); ?>" value="embed" <?php checked( 'embed', $aliyun_mode ); ?> />
-							<?php esc_html_e( '嵌入触发条——页内渲染「点击开始验证」触发条，点击后弹出拼图/图像复原交互弹层（0.8.4 及以前默认形态）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Embedded trigger bar — renders a “click to start verification” bar in the page; clicking it opens the puzzle / image-restore popup (the default up to 0.8.4)', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '滑块宽度按官方最小 320px 传参；mode 切换不影响服务端核验链路（票据核验同一接口）。推荐档已平移（embed→popup）——升级站点凭据已配=保留嵌入形态显式选择；未配凭据=按新默认弹层。选回嵌入触发条并保存后不再平移。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Slider width follows the official 320px minimum; switching mode does not affect server-side verification (ticket checking uses the same API). The recommended level already shifted (embed → popup) — upgraded sites with credentials keep the embedded style as an explicit choice; without credentials the new popup default applies. Once you pick the embedded bar again and save, it never shifts back.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -2743,38 +2744,38 @@ final class SettingsPage {
 			// ⚙ 高级配置折叠（原型 Tab② 分区二样张——复杂参数收折叠，主卡只留必填+mode+测试凭据）。
 			self::advanced_fold(
 				'id="wk-aliyun-advanced"',
-				__( '高级配置（服务区域 / 故障处置）', 'wink-gatekeeper' ),
+				__( 'Advanced (region / failure handling)', 'wink-wp-gatekeeper' ),
 				static function () use ( $settings ): void {
 					?>
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="wk-aliyun-error-policy"><?php esc_html_e( '故障时怎么办', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-aliyun-error-policy"><?php esc_html_e( 'What to do on failure', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<?php /* 【W3·批B】captcha.error_policy 实键渲染（schema SettingsSchema.php:115 +
 								 * Sanitize error_policy 枚举既有通道无渲染面——coexist 同类新接线；
 								 * 默认 block=现行行为保底，非法值保存时回落「故障即拦」）。 */ ?>
 								<?php $error_policy = 'pass_limited' === ( $settings['captcha']['error_policy'] ?? 'block' ) ? 'pass_limited' : 'block'; ?>
 								<select id="wk-aliyun-error-policy" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'error_policy' ) ) ); ?>">
-									<option value="block" <?php selected( 'block', $error_policy ); ?>><?php esc_html_e( '故障即拦（默认）——验证码服务出岔子时宁可不放行（安全优先）', 'wink-gatekeeper' ); ?></option>
-									<option value="pass_limited" <?php selected( 'pass_limited', $error_policy ); ?>><?php esc_html_e( '受限放行——仅传输类故障 + 每 IP 每小时 5 次限流放行', 'wink-gatekeeper' ); ?></option>
+									<option value="block" <?php selected( 'block', $error_policy ); ?>><?php esc_html_e( 'Block on failure (default) — when the captcha service misbehaves, prefer not to let things through (safety first)', 'wink-wp-gatekeeper' ); ?></option>
+									<option value="pass_limited" <?php selected( 'pass_limited', $error_policy ); ?>><?php esc_html_e( 'Limited pass — transport failures only, plus a 5-per-IP-per-hour pass limit', 'wink-wp-gatekeeper' ); ?></option>
 								</select>
-								<p class="description"><?php esc_html_e( '对两驱动共用（captcha 子树顶层键）；限流超额按「故障即拦」收口。', 'wink-gatekeeper' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Shared by both providers (top-level captcha key); past the rate limit it tightens back to “block on failure”.', 'wink-wp-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><?php esc_html_e( '服务区域（region）', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Region', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<?php /* 【W3·批C·N2】region 实键 radio（schema captcha.aliyun.region cn|sgp 默认 cn——ENDPOINT_MAP 双端联动；规划位退役）。 */ ?>
 								<?php $aliyun_region = 'sgp' === ( $settings['captcha']['aliyun']['region'] ?? 'cn' ) ? 'sgp' : 'cn'; ?>
 								<label style="display:block;margin-bottom:6px;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'region' ) ) ); ?>" value="cn" <?php checked( 'cn', $aliyun_region ); ?> />
-									<?php esc_html_e( '中国大陆（cn · 默认）——端点 captcha.cn-shanghai.aliyuncs.com', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'Mainland China (cn · default) — endpoint captcha.cn-shanghai.aliyuncs.com', 'wink-wp-gatekeeper' ); ?>
 								</label>
 								<label style="display:block;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'aliyun', 'region' ) ) ); ?>" value="sgp" <?php checked( 'sgp', $aliyun_region ); ?> />
-									<?php esc_html_e( '海外（sgp）——端点 captcha.ap-southeast-1.aliyuncs.com（未实机验证）', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'International (sgp) — endpoint captcha.ap-southeast-1.aliyuncs.com (not verified on a live site)', 'wink-wp-gatekeeper' ); ?>
 								</label>
-								<p class="description"><?php esc_html_e( 'region 须与服务端一致——前端 SDK 与服务端 endpoint 双端联动，错配即报错；切换后建议点测试凭据实测一次。sgp 档端点为静态推断（未实机验证；若真机复验不过则该档停用）。', 'wink-gatekeeper' ); ?></p>
+								<p class="description"><?php esc_html_e( 'region must match the server side — the front-end SDK and the server endpoint are linked, and a mismatch errors out; after switching, run “Test credentials” once. The sgp endpoint is a static inference (not verified on a live site; the level will be disabled if live re-verification fails).', 'wink-wp-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 					</table>
@@ -2787,8 +2788,8 @@ final class SettingsPage {
 					 * 零控件**——实装后转实线卡。 ---------- */
 					?>
 					<div class="wk-card--ghost" style="padding:12px 16px;margin-top:8px;">
-						<p><b><?php esc_html_e( '每日验证额度', 'wink-gatekeeper' ); ?></b> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></p>
-						<p class="description"><?php esc_html_e( '规划口径：额度用完当日停转、次日自愈。当前验证码服务未设每日上限（本行暂无任何设置项）——实装后转实线卡。', 'wink-gatekeeper' ); ?></p>
+						<p><b><?php esc_html_e( 'Daily verification quota', 'wink-wp-gatekeeper' ); ?></b> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></p>
+						<p class="description"><?php esc_html_e( 'Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented.', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 					<?php
 				}
@@ -2801,11 +2802,11 @@ final class SettingsPage {
 				'id="wk-aliyun-test-credentials"',
 				'id="wk-aliyun-test-result"',
 				wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'aliyun'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次假参实调（VerifyIntelligentCaptcha）：绿 = 凭据可用；红 = AccessKey/签名/权限错（含 RAM 未授权提示）；黄 = 必填参数缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Makes one real call with fake parameters (VerifyIntelligentCaptcha): green = credentials work; red = wrong AccessKey / signature / permissions (including RAM-not-authorized hints); yellow = required parameters missing. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<?php
@@ -2814,54 +2815,54 @@ final class SettingsPage {
 		 * 迁出为独立卡；字段面零变化，折叠壳退役）。 ---------- */
 		?>
 		<section class="wk-card" id="wk-login-guard-card">
-			<h2><?php esc_html_e( '登录保护', 'wink-gatekeeper' ); ?></h2>
-			<p class="wk-muted"><?php esc_html_e( '超阈出码——不锁账号、不误伤真实用户：窗口内超阈只加验证码挑战，不锁账号不锁 IP（避免锁死办公室出口/家庭 NAT 的真人；Wordfence 式硬封锁刻意不做）。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'Login protection', 'wink-wp-gatekeeper' ); ?></h2>
+			<p class="wk-muted"><?php esc_html_e( 'Captcha over threshold — no account locks, no collateral damage to real users: crossing the threshold within the window only adds a captcha challenge, never locking accounts or IPs (to avoid locking out office egress IPs / home NAT users; Wordfence-style hard lockouts are deliberately not done).', 'wink-wp-gatekeeper' ); ?></p>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-login-user-threshold"><?php esc_html_e( '同用户名失败阈值', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-login-user-threshold"><?php esc_html_e( 'Per-username failure threshold', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<!-- 【v1.4·R4-G】threshold → user_threshold（schema v2 迁移键）。 -->
 						<input type="number" id="wk-login-user-threshold" min="1" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'login_adaptive', 'user_threshold' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $adaptive['user_threshold'] ?? 3 ) ); ?>" class="small-text" />
-						<p class="description"><?php esc_html_e( '同一账户跨 IP 累计 N 次口令错误出码——分布式爆破也触发；仅统计真实存在的账户。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'N cumulative wrong passwords for one account across IPs triggers a captcha — distributed brute force still trips it; only accounts that actually exist are counted.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-login-window"><?php esc_html_e( '计数窗口（分钟）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-login-window"><?php esc_html_e( 'Counting window (minutes)', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-login-window" min="1" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'login_adaptive', 'window_minutes' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $adaptive['window_minutes'] ?? 15 ) ); ?>" class="small-text" />
-						<p class="description"><?php esc_html_e( '失败计数的固定窗口：窗口过后计数自然清零（成功登录立即清零）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Fixed window for failure counting: counts reset naturally once the window passes (a successful login resets immediately).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-login-ip-threshold"><?php esc_html_e( '同 IP 失败阈值', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-login-ip-threshold"><?php esc_html_e( 'Per-IP failure threshold', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-login-ip-threshold" min="1" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'login_adaptive', 'ip_threshold' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $adaptive['ip_threshold'] ?? 3 ) ); ?>" class="small-text" />
-						<p class="description"><?php esc_html_e( '同 IP 换用户名喷洒的聚合阈值：无论用户名怎么换，累计达此次数即触发。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Aggregate threshold for username spraying from one IP: however the username changes, this many cumulative failures triggers it.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( 'IP 信誉联动', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'IP reputation tie-in', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<!-- 【v1.4·澄清A】iprep_gate：登录闸 IP 信誉三态联动开关（M3 前未装配=恒 skip=现行行为）。 -->
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'login_adaptive', 'iprep_gate' ) ) ); ?>" value="0" />
 						<label>
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'captcha', 'login_adaptive', 'iprep_gate' ) ) ); ?>" value="1" <?php checked( ! empty( $adaptive['iprep_gate'] ) ); ?> />
-							<?php esc_html_e( '启用后按 IP 信誉三态参与登录出码判定', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'When enabled, the three IP reputation states take part in deciding when to show the login captcha', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '未启用 IP 信誉时信任链跳过该项，不影响登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（直接展示验证码）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Without IP reputation the trust chain skips it and login counts are unaffected; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (a captcha is shown outright).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '关闭 XML-RPC 登录', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Disable XML-RPC logins', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<?php $xmlrpc_login = isset( $settings['gates']['login']['xmlrpc_login'] ) ? (bool) $settings['gates']['login']['xmlrpc_login'] : false; // 缺键回落=false（v1.7 默认翻转——存量不迁移，仅新装/缺键站点按新默认）。 ?>
 						<!-- 反选形态：hidden 恒 1，勾选提交 0（后值覆盖前值 = 关闭）。默认关（v1.7 breaking）——使用 XML-RPC 发布工具的站长在此手动开启（取消勾选并保存）。 -->
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'xmlrpc_login' ) ) ); ?>" value="1" />
 						<label>
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'xmlrpc_login' ) ) ); ?>" value="0" <?php checked( false, $xmlrpc_login ); ?> />
-							<?php esc_html_e( '彻底关闭 XML-RPC 登录（推荐加固）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Completely disable XML-RPC logins (recommended hardening)', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '默认关闭（0.4.5 起）：使用 XML-RPC 发布工具（博客客户端）的站长请取消勾选并保存以开启；升级站点已开启的不受影响。勾选后登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；system.listMethods 等只读方法不受影响。开启状态下超阈计数也会先行逐次拒绝 XML-RPC 认证（验证码无法在 XML-RPC 内呈现）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Off by default (since 0.4.5): publishers using XML-RPC tools (blog clients) should untick this and save to re-enable; upgraded sites that had it on are unaffected. When ticked, login-type XML-RPC methods (wp.getUsersBlogs, credentials carried by system.multicall, etc.) get an across-the-board 405; read-only methods such as system.listMethods are unaffected. While on, over-threshold counting also rejects XML-RPC authentication attempt by attempt (a captcha cannot be presented inside XML-RPC).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -2869,10 +2870,10 @@ final class SettingsPage {
 			// IP 信誉三态说明块（澄清 A 强制；03 Tab② 登录保护卡）+ 跳 Tab④ 引导。
 			self::notice_yellow_bar(
 				'info',
-				'<strong>' . esc_html__( 'IP 信誉三态：', 'wink-gatekeeper' ) . '</strong>',
+				'<strong>' . esc_html__( 'Three IP reputation states:', 'wink-wp-gatekeeper' ) . '</strong>',
 				array(
-					esc_html__( '未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。', 'wink-gatekeeper' ),
-					'<a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '→ 去配置 IP 信誉（Tab④）', 'wink-gatekeeper' ) . '</a>',
+					esc_html__( 'When IP reputation is disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail and a captcha is shown outright) — configuring IP reputation is recommended for stronger protection.', 'wink-wp-gatekeeper' ),
+					'<a href="' . esc_url( self::tab_url( 'iprep' ) ) . '">' . esc_html__( '→ Configure IP reputation (Tab 4)', 'wink-wp-gatekeeper' ) . '</a>',
 				)
 			);
 			?>
@@ -2891,7 +2892,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -2940,7 +2941,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_ALIYUN, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -3005,7 +3006,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_TMS, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -3072,7 +3073,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -3137,7 +3138,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_BAIDU, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -3205,14 +3206,14 @@ final class SettingsPage {
 		echo '<input type="password" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="" class="regular-text" autocomplete="new-password"'
 			. ' data-wk-required="1" data-wk-label="' . esc_attr( $label ) . '" data-wk-configured="' . ( $configured ? '1' : '0' ) . '" />';
 		if ( $configured ) {
-			echo ' <span class="wk-muted">' . esc_html__( '已配置 ✓（留空保存则不修改）', 'wink-gatekeeper' ) . '</span>';
+			echo ' <span class="wk-muted">' . esc_html__( 'Configured ✓ (save with it blank to keep it unchanged)', 'wink-wp-gatekeeper' ) . '</span>';
 			$leaf       = (string) end( $path );
 			$clear_name = self::field_name( array_merge( array_slice( $path, 0, -1 ), array( $leaf . '_clear' ) ) );
 			$clear_id   = 'wk-clear-' . implode( '-', $path );
 			echo '<label class="wk-clear-credential" for="' . esc_attr( $clear_id ) . '">'
 				. '<input type="hidden" name="' . esc_attr( $clear_name ) . '" value="0" />'
 				. '<input type="checkbox" id="' . esc_attr( $clear_id ) . '" name="' . esc_attr( $clear_name ) . '" value="1" /> '
-				. esc_html__( '清除此凭据', 'wink-gatekeeper' )
+				. esc_html__( 'Clear this credential', 'wink-wp-gatekeeper' )
 				. '</label>';
 		}
 	}
@@ -3308,9 +3309,9 @@ final class SettingsPage {
 			// 【W3·批B】迁段 notice_yellow_bar（id 锚留编排位；插件级黄条类——UiM4UxF2 字面钉翻转）。
 			self::notice_yellow_bar(
 				'warn',
-				'<strong>' . esc_html__( '云端审核还没配置，也没开启', 'wink-gatekeeper' ) . '</strong>',
-				'——' . esc_html__( '评论目前只走本地规则闸（字数/中文/禁词）；想加云端送审，请在下方「云端审核」卡开启并选择一家服务商。', 'wink-gatekeeper' )
-					. '<a href="#wk-review-cloud-card">' . esc_html__( '去配置', 'wink-gatekeeper' ) . '</a>',
+				'<strong>' . esc_html__( 'Cloud moderation is neither configured nor enabled', 'wink-wp-gatekeeper' ) . '</strong>',
+				'——' . esc_html__( 'Comments currently run the local rule gates only (length / Chinese / banned words); to add cloud review, enable it on the “Cloud moderation” card below and pick a provider.', 'wink-wp-gatekeeper' )
+					. '<a href="#wk-review-cloud-card">' . esc_html__( 'Configure', 'wink-wp-gatekeeper' ) . '</a>',
 				'',
 				'',
 				'wk-review-onboarding-notice'
@@ -3337,56 +3338,56 @@ final class SettingsPage {
 		$wp_keys = array_values( array_filter( $wp_keys ) );
 		?>
 		<section class="wk-card">
-			<h2><?php esc_html_e( '本地规则（四闸，上游迁移）', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Local rules (four gates, migrated from upstream)', 'wink-wp-gatekeeper' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-local-min"><?php esc_html_e( '字数下限', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-local-min"><?php esc_html_e( 'Minimum length', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-local-min" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'min_length' ) ) ); ?>" value="<?php echo esc_attr( (string) $local['min_length'] ); ?>" class="small-text" />
-						<span class="wk-muted"><?php esc_html_e( '字（0 = 不限）', 'wink-gatekeeper' ); ?></span>
+						<span class="wk-muted"><?php esc_html_e( 'characters (0 = no limit)', 'wink-wp-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-local-max"><?php esc_html_e( '字数上限', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-local-max"><?php esc_html_e( 'Maximum length', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-local-max" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'max_length' ) ) ); ?>" value="<?php echo esc_attr( (string) $local['max_length'] ); ?>" class="small-text" />
-						<span class="wk-muted"><?php esc_html_e( '字（默认 1800）', 'wink-gatekeeper' ); ?></span>
+						<span class="wk-muted"><?php esc_html_e( 'characters (default 1800)', 'wink-wp-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '要求包含中文', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Require Chinese', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'require_chinese' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'require_chinese' ) ) ); ?>" value="1" <?php checked( ! empty( $local['require_chinese'] ) ); ?> />
-							<?php esc_html_e( '无中文评论拦截', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Block comments without Chinese', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '评论正文不含任何中文字符时拦截（上游四闸之三）', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Blocks comments whose body contains no Chinese characters at all (the third of the upstream four gates)', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-local-words"><?php esc_html_e( '自定义禁止关键词', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-local-words"><?php esc_html_e( 'Custom banned keywords', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
-						<textarea id="wk-local-words" class="large-text" rows="5" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'custom_banned_words' ) ) ); ?>" placeholder="<?php esc_attr_e( "每行一个；/正则/flags 形态按正则匹配，如 /代.{0,3}开发票/i", 'wink-gatekeeper' ); ?>"><?php echo esc_textarea( (string) $local['custom_banned_words'] ); ?></textarea>
-						<p class="description"><?php esc_html_e( '非法正则行自动跳过并记入事件（不影响其它行）。', 'wink-gatekeeper' ); ?></p>
+						<textarea id="wk-local-words" class="large-text" rows="5" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'custom_banned_words' ) ) ); ?>" placeholder="<?php esc_attr_e( "One per line; /regex/flags entries match as regular expressions, e.g. /代.{0,3}开发票/i", 'wink-wp-gatekeeper' ); ?>"><?php echo esc_textarea( (string) $local['custom_banned_words'] ); ?></textarea>
+						<p class="description"><?php esc_html_e( 'Invalid regex lines are skipped automatically and logged as events (other lines are unaffected).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '联动 WP 讨论设置关键词', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Merge WordPress discussion keywords', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'use_wp_keywords' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'local', 'use_wp_keywords' ) ) ); ?>" value="1" <?php checked( ! empty( $local['use_wp_keywords'] ) ); ?> />
-							<?php esc_html_e( '合并「设置 → 讨论 → 被禁止的关键词」', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Merges “Settings → Discussion → Disallowed comment keywords”', 'wink-wp-gatekeeper' ); ?>
 						</label>
 						<?php if ( array() !== $wp_keys ) : ?>
 							<p class="description">
 								<?php
-								echo esc_html( sprintf( /* translators: %s: 关键词数 */ __( '当前 %s 条：', 'wink-gatekeeper' ), number_format_i18n( count( $wp_keys ) ) ) );
+								echo esc_html( sprintf( /* translators: %s: 关键词数 */ __( 'Currently %s:', 'wink-wp-gatekeeper' ), number_format_i18n( count( $wp_keys ) ) ) );
 								echo esc_html( implode( '、', array_slice( $wp_keys, 0, 10 ) ) );
 								echo count( $wp_keys ) > 10 ? esc_html( '…' ) : '';
 								?>
-								<a href="<?php echo esc_url( admin_url( 'options-discussion.php' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '管理', 'wink-gatekeeper' ); ?></a>
+								<a href="<?php echo esc_url( admin_url( 'options-discussion.php' ) ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Manage', 'wink-wp-gatekeeper' ); ?></a>
 							</p>
 						<?php endif; ?>
 					</td>
@@ -3400,13 +3401,13 @@ final class SettingsPage {
 				$wp_whitelist  = (bool) get_option( 'comment_whitelist', 0 );
 				$wp_switch_state = static function ( bool $on ): string {
 					return $on
-						? __( '已开启', 'wink-gatekeeper' )
-						: __( '未开启', 'wink-gatekeeper' );
+						? __( 'Enabled', 'wink-wp-gatekeeper' )
+						: __( 'Disabled', 'wink-wp-gatekeeper' );
 				};
 				?>
 				<?php if ( $wp_moderation || $wp_whitelist ) : ?>
 				<tr id="wk-review-wp-switches">
-					<th scope="row"><?php esc_html_e( 'WP 原生两开关（只读展示）', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Two native WP switches (read-only display)', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<?php
 						// 【W3·批B】迁段 notice_yellow_bar（三段数组形态——文案/判定留编排位，
@@ -3415,14 +3416,14 @@ final class SettingsPage {
 							'warn',
 							'',
 							array(
-								esc_html__( '「评论必须手动批准」（设置 → 讨论）：', 'wink-gatekeeper' )
+								esc_html__( '“Comment must be manually approved” (Settings → Discussion):', 'wink-wp-gatekeeper' )
 									. '<strong>' . esc_html( $wp_switch_state( $wp_moderation ) ) . '</strong>'
-									. ( $wp_moderation ? '——' . esc_html__( '已开启：即使插件审核通过，评论仍需你在 WP 侧人工批准后才会显示。', 'wink-gatekeeper' ) : '' ),
-								esc_html__( '「作者须有先前已批准的评论」：', 'wink-gatekeeper' )
+									. ( $wp_moderation ? '——' . esc_html__( 'On: even when the plugin approves a comment, it still stays hidden until you manually approve it in WP.', 'wink-wp-gatekeeper' ) : '' ),
+								esc_html__( '“Comment author must have a previously approved comment”:', 'wink-wp-gatekeeper' )
 									. '<strong>' . esc_html( $wp_switch_state( $wp_whitelist ) ) . '</strong>'
-									. ( $wp_whitelist ? '——' . esc_html__( '已开启：即使插件审核通过，没有批准记录的老作者评论仍需人工批准。', 'wink-gatekeeper' ) : '' ),
-								esc_html__( '本插件只读展示、不改这两个开关的行为；如需调整请到', 'wink-gatekeeper' )
-									. '<a href="' . esc_url( admin_url( 'options-discussion.php' ) ) . '">' . esc_html__( '设置 → 讨论', 'wink-gatekeeper' ) . '</a>',
+									. ( $wp_whitelist ? '——' . esc_html__( 'On: even when the plugin approves a comment, returning authors without an approval record still need manual approval.', 'wink-wp-gatekeeper' ) : '' ),
+								esc_html__( 'This plugin shows them read-only and never changes their behavior; to adjust, go to ', 'wink-wp-gatekeeper' )
+									. '<a href="' . esc_url( admin_url( 'options-discussion.php' ) ) . '">' . esc_html__( 'Settings → Discussion', 'wink-wp-gatekeeper' ) . '</a>',
 							)
 						);
 						?>
@@ -3432,21 +3433,21 @@ final class SettingsPage {
 			</table>
 		</section>
 		<section class="wk-card" id="wk-review-cloud-card">
-			<h2><?php esc_html_e( '云端审核', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Cloud moderation', 'wink-wp-gatekeeper' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( '启用云端审核', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Enable cloud moderation', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'enabled' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['enabled'] ) ); ?> />
-							<?php esc_html_e( '开启后按「本地规则 → 已选云端驱动」串联送审（failover 链）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'When on, submissions run through “local rules → selected cloud driver” in series (failover chain)', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '本地规则恒在链首且不可关闭；某驱动故障时自动接力下一驱动，云端全部故障时按各驱动「故障降级」档处理（默认入待审）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Local rules always stay first in the chain and cannot be disabled; a failing driver hands over to the next automatically, and when every cloud driver fails each one\'s “failure fallback” level applies (default: pending review).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-cloud-driver"><?php esc_html_e( '当前云端审核驱动', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-cloud-driver"><?php esc_html_e( 'Current cloud moderation driver', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php
 						/* 【v1.4·反馈7+澄清B/R4 §A】下拉单选（=chain[0] 可视面）：
@@ -3464,7 +3465,7 @@ final class SettingsPage {
 						$cloud_dots     = DriverConfigSpec::dot_labels();
 						?>
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]" value="" />
-						<label for="wk-cloud-driver" class="screen-reader-text"><?php esc_html_e( '云端审核驱动', 'wink-gatekeeper' ); ?></label>
+						<label for="wk-cloud-driver" class="screen-reader-text"><?php esc_html_e( 'Cloud moderation driver', 'wink-wp-gatekeeper' ); ?></label>
 						<select id="wk-cloud-driver" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'chain' ) ) ); ?>[]">
 							<?php foreach ( $cloud_options as $cloud_option ) : ?>
 								<option value="<?php echo esc_attr( $cloud_option['value'] ); ?>" <?php selected( $cloud_option['value'], $cloud_selected ); ?>>
@@ -3478,7 +3479,7 @@ final class SettingsPage {
 								</option>
 							<?php endforeach; ?>
 						</select>
-						<p class="description"><?php esc_html_e( '选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek 已实装；模力为后续里程碑驱动。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Selecting a driver shows its settings below (each vendor saves independently and switching does not clear fields); “Not configured” = the cloud moderation stage is skipped (enabled + not configured matches Tab 2 semantics). DeepSeek is implemented; Moli is a future milestone driver.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -3499,7 +3500,7 @@ final class SettingsPage {
 		$baidu_privacy = DriverConfigSpec::privacy_notice( $baidu_meta, '百度文本审核' );
 		?>
 		<section class="wk-card" id="wk-tms-config-area" data-wk-vendor="tencent_tms"<?php echo ( 'tencent_tms' === $cloud_selected ) ? '' : ' hidden'; ?>>
-			<h2><?php esc_html_e( '腾讯云 TMS 文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Tencent Cloud TMS text moderation · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
 
 			<?php
 			// 【W3·批B】privacy 行黄条 helper 化（判定/文案留编排位——DriverPrivacyTable 契约零变化）。
@@ -3509,37 +3510,37 @@ final class SettingsPage {
 			?>
 
 			<details class="wk-guide">
-				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Setup guide (expand on first configuration)', 'wink-wp-gatekeeper' ); ?></summary>
 				<ol>
-					<li><?php esc_html_e( '腾讯云控制台开通「内容安全 · 文本审核」并购买/领取套餐包（TextModeration 按策略计费）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '内容安全控制台获取策略编号（BizType，如 TencentCloudDefault 或自定义策略）——建议填写绑定套餐包的策略。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '准备 CAM 密钥对（访问管理 → API 密钥管理，与验证码的 CAM 密钥同体系，可复用同对）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '粘贴至下方 → 点「测试凭据」（正常文本实测应返回 Pass）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Enable “Content Security · Text Moderation” in the Tencent Cloud console and purchase/claim a package (TextModeration bills by policy).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Get the policy ID (BizType) from the Content Security console (e.g. TencentCloudDefault or a custom policy) — preferably one bound to your package.', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Prepare a CAM key pair (Access Management → API Key Management; same system as the captcha CAM keys, so you can reuse one pair).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Paste below → click “Test credentials” (a normal-text live call should return Pass).', 'wink-wp-gatekeeper' ); ?></li>
 				</ol>
-				<p><a href="https://cloud.tencent.com/document/api/1124/51860" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModeration API 文档', 'wink-gatekeeper' ); ?></a></p>
+				<p><a href="https://cloud.tencent.com/document/api/1124/51860" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModeration API documentation', 'wink-wp-gatekeeper' ); ?></a></p>
 			</details>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-tms-secret-id"><?php esc_html_e( 'SecretId（CAM）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-tms-secret-id"><?php esc_html_e( 'SecretId（CAM）', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_id' ), '' !== (string) ( $tms['secret_id'] ?? '' ), 'SecretId（CAM）' ); ?>
-						<p class="description"><?php esc_html_e( '云 API 密钥（TC3 签名用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Cloud API key (for TC3 signing). Server-side only, never exposed to the front end.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-tms-secret-key"><?php esc_html_e( 'SecretKey（CAM）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-tms-secret-key"><?php esc_html_e( 'SecretKey（CAM）', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'tencent_tms', 'secret_key' ), '' !== (string) ( $tms['secret_key'] ?? '' ), 'SecretKey（CAM）' ); ?>
-						<p class="description"><?php esc_html_e( '与 SecretId 配对的 CAM 密钥。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The CAM key paired with the SecretId.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-tms-biz-type"><?php esc_html_e( 'BizType（策略编号）', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-tms-biz-type"><?php esc_html_e( 'BizType (policy ID)', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-tms-biz-type" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'biz_type' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $tms['biz_type'] ?? '' ) ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( '内容安全控制台的识别策略编号。官方参数可选（留空走默认策略）；建议填写绑定套餐包的策略，未开通对应策略时会收到「未获接口授权」。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The recognition policy ID from the Content Security console. Officially optional (blank uses the default policy); preferably fill in one bound to your package, otherwise you may get “not authorized for this API”.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -3549,46 +3550,46 @@ final class SettingsPage {
 			// 字段 name 路径零变化，闭包承载=source-scan 锚留编排体）。
 			self::advanced_fold(
 				'id="wk-tms-advanced"',
-				__( '高级配置（直拒阈值 / 超时 / 日配额 / 故障处置）', 'wink-gatekeeper' ),
+				__( 'Advanced (block threshold / timeout / daily quota / failure handling)', 'wink-wp-gatekeeper' ),
 				static function () use ( $tms ): void {
 					?>
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="wk-tms-reject-score"><?php esc_html_e( '直拒分数阈值', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-tms-reject-score"><?php esc_html_e( 'Direct-block score threshold', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<input type="number" id="wk-tms-reject-score" min="0" max="100" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'reject_score' ) ) ); ?>"
 									value="<?php echo esc_attr( (string) ( $tms['reject_score'] ?? 80 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '（0-100，默认 80）', 'wink-gatekeeper' ); ?></span>
-								<p class="description"><?php esc_html_e( '腾讯判定 Block 且分数 ≥ 此值才直接拦截；低于阈值降为入待审（人工复核）。实测恶意广告样本 99 分，默认 80 留出灰区缓冲。', 'wink-gatekeeper' ); ?></p>
+								<span class="wk-muted"><?php esc_html_e( '(0-100, default 80)', 'wink-wp-gatekeeper' ); ?></span>
+								<p class="description"><?php esc_html_e( 'Tencent must judge Block with a score ≥ this value for a direct block; below the threshold it drops to pending review (manual). Real malicious-ad samples scored 99 in testing, so the default 80 leaves a gray-zone buffer.', 'wink-wp-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="wk-tms-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-tms-timeout"><?php esc_html_e( 'Timeout', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<input type="number" id="wk-tms-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'timeout' ) ) ); ?>"
 									value="<?php echo esc_attr( (string) ( $tms['timeout'] ?? 8 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+								<span class="wk-muted"><?php esc_html_e( 'seconds (default 8)', 'wink-wp-gatekeeper' ); ?></span>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="wk-tms-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-tms-quota"><?php esc_html_e( 'Daily quota', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<input type="number" id="wk-tms-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'daily_quota' ) ) ); ?>"
 									value="<?php echo esc_attr( (string) ( $tms['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理', 'wink-gatekeeper' ); ?></span>
+								<span class="wk-muted"><?php esc_html_e( 'calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback”', 'wink-wp-gatekeeper' ); ?></span>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Failure fallback', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<?php $fail_mode = 'open' === ( $tms['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
 								<label style="display:block;margin-bottom:6px;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $fail_mode ); ?> />
-									<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'Pending review (default) — on cloud failure or exhausted quota, comments go to the pending queue for you to handle later', 'wink-wp-gatekeeper' ); ?>
 								</label>
 								<label style="display:block;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'tencent_tms', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $fail_mode ); ?> />
-									<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'Pass — on failure, neither blocked nor pended (local rules only)', 'wink-wp-gatekeeper' ); ?>
 								</label>
 							</td>
 						</tr>
@@ -3604,15 +3605,15 @@ final class SettingsPage {
 				'id="wk-tms-test-credentials"',
 				'id="wk-tms-test-result"',
 				wp_create_nonce( self::AJAX_TEST_CREDENTIALS_TMS ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'tencent_tms'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'One live call with normal text: green = credentials work (and the day\'s pause is lifted); red = wrong keys or no package; yellow = bad parameters. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<section class="wk-card" id="wk-green-config-area" data-wk-vendor="aliyun_green"<?php echo ( 'aliyun_green' === $cloud_selected ) ? '' : ' hidden'; ?>>
-			<h2><?php esc_html_e( '阿里云内容安全·文本审核增强版 PLUS · 配置', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Aliyun Content Security · Text Moderation PLUS · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
 
 			<?php
 			// 【W3·批B】privacy 行黄条 helper 化（判定/文案留编排位——DriverPrivacyTable 契约零变化）。
@@ -3622,56 +3623,56 @@ final class SettingsPage {
 			?>
 
 			<details class="wk-guide">
-				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Setup guide (expand on first configuration)', 'wink-wp-gatekeeper' ); ?></summary>
 				<ol>
-					<li><?php esc_html_e( '阿里云控制台开通「内容安全 · 文本审核增强版」（TextModerationPlus，Green 2022-03-02）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '准备 RAM AccessKey 对（可与验证码 2.0 共用同一 RAM 用户），并授予 AliyunYundunGreenWebFullAccess 权限。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '粘贴至下方（双 Service 名默认 nickname/comment_detection_pro，一般无需修改）→ 点「测试凭据」。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '判定映射（站长不可调）：RiskLevel none/low→放行、medium→入待审、high→直接拦截；分档界线在阿里控制台规则配置。如需 medium/low 中间态与小数置信分，请在内容安全控制台规则配置中开启细粒度检测。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Enable “Content Security · Text Moderation Plus” in the Aliyun console (TextModerationPlus, Green 2022-03-02).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Prepare a RAM AccessKey pair (shareable with the Captcha 2.0 RAM user) and grant it AliyunYundunGreenWebFullAccess.', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Paste below (the dual service names default to nickname/comment_detection_pro and rarely need changes) → click “Test credentials”.', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Verdict mapping (not admin-adjustable): RiskLevel none/low → pass, medium → pending review, high → direct block; the band boundaries live in the Aliyun console\'s rule config. For a medium/low middle band and decimal confidence scores, enable fine-grained detection in the Content Security console rules.', 'wink-wp-gatekeeper' ); ?></li>
 				</ol>
-				<p><a href="https://help.aliyun.com/zh/green/developer-reference/api-green-2022-03-02-textmoderationplus" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModerationPlus API 文档', 'wink-gatekeeper' ); ?></a></p>
+				<p><a href="https://help.aliyun.com/zh/green/developer-reference/api-green-2022-03-02-textmoderationplus" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'TextModerationPlus API documentation', 'wink-wp-gatekeeper' ); ?></a></p>
 			</details>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-green-ak-id"><?php esc_html_e( 'AccessKeyId', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-green-ak-id"><?php esc_html_e( 'AccessKeyId', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_id' ), '' !== (string) ( $green['access_key_id'] ?? '' ), 'AccessKeyId' ); ?>
-						<p class="description"><?php esc_html_e( 'RAM AccessKey（ACS3 签名用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'RAM AccessKey (for ACS3 signing). Server-side only, never exposed to the front end.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-green-ak-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-green-ak-secret"><?php esc_html_e( 'AccessKeySecret', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'aliyun_green', 'access_key_secret' ), '' !== (string) ( $green['access_key_secret'] ?? '' ), 'AccessKeySecret' ); ?>
-						<p class="description"><?php esc_html_e( '与 AccessKeyId 配对的密钥。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The key paired with the AccessKeyId.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-green-service-nickname"><?php esc_html_e( '昵称 Service 名', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-green-service-nickname"><?php esc_html_e( 'Nickname service name', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-green-service-nickname" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_nickname' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $green['service_nickname'] ?? 'nickname_detection_pro' ) ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( '昵称分送通道（默认 nickname_detection_pro）。昵称特化模型对短广告串命中更细；一般无需修改。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Nickname submission channel (default nickname_detection_pro). The nickname-tuned model catches short ad strings more precisely; rarely needs changes.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-green-service-comment"><?php esc_html_e( '正文 Service 名', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-green-service-comment"><?php esc_html_e( 'Body service name', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-green-service-comment" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'service_comment' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $green['service_comment'] ?? 'comment_detection_pro' ) ); ?>" class="regular-text" />
-						<p class="description"><?php esc_html_e( '邮箱+正文送审通道（默认 comment_detection_pro）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Email + body submission channel (default comment_detection_pro).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '双 Service 分送', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Dual-service submission', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'dual_dispatch' ) ) ); ?>" value="1" <?php checked( ! isset( $green['dual_dispatch'] ) || ! empty( $green['dual_dispatch'] ) ); ?> />
-							<?php esc_html_e( '昵称单独一调 + 邮箱/正文一调（默认，精度更好，成本 ×2 可忽略）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'One call for the nickname plus one for email/body (default; better accuracy, and the doubled cost is negligible)', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '关闭 = 兼容回退：按「昵称\\n邮箱\\n正文」拼接串单调一次（与其他云驱动同口径）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Off = compatibility fallback: one single call with “nickname\\nemail\\nbody” joined (same as the other cloud drivers).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -3680,37 +3681,37 @@ final class SettingsPage {
 			// 【W3·批B】⚙ 高级配置折叠（超时/日配额/故障处置收折叠——字段面零变化）。
 			self::advanced_fold(
 				'id="wk-green-advanced"',
-				__( '高级配置（超时 / 日配额 / 故障处置）', 'wink-gatekeeper' ),
+				__( 'Advanced (timeout / daily quota / failure handling)', 'wink-wp-gatekeeper' ),
 				static function () use ( $green ): void {
 					?>
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="wk-green-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-green-timeout"><?php esc_html_e( 'Timeout', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<input type="number" id="wk-green-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'timeout' ) ) ); ?>"
 									value="<?php echo esc_attr( (string) ( $green['timeout'] ?? 8 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+								<span class="wk-muted"><?php esc_html_e( 'seconds (default 8)', 'wink-wp-gatekeeper' ); ?></span>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="wk-green-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-green-quota"><?php esc_html_e( 'Daily quota', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<input type="number" id="wk-green-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'daily_quota' ) ) ); ?>"
 									value="<?php echo esc_attr( (string) ( $green['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理；双送按两次调用计量', 'wink-gatekeeper' ); ?></span>
+								<span class="wk-muted"><?php esc_html_e( 'calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback”; dual submission counts as two calls', 'wink-wp-gatekeeper' ); ?></span>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Failure fallback', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<?php $green_fail_mode = 'open' === ( $green['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
 								<label style="display:block;margin-bottom:6px;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $green_fail_mode ); ?> />
-									<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'Pending review (default) — on cloud failure or exhausted quota, comments go to the pending queue for you to handle later', 'wink-wp-gatekeeper' ); ?>
 								</label>
 								<label style="display:block;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'aliyun_green', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $green_fail_mode ); ?> />
-									<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'Pass — on failure, neither blocked nor pended (local rules only)', 'wink-wp-gatekeeper' ); ?>
 								</label>
 							</td>
 						</tr>
@@ -3726,14 +3727,14 @@ final class SettingsPage {
 				'id="wk-green-test-credentials"',
 				'id="wk-green-test-result"',
 				wp_create_nonce( self::AJAX_TEST_CREDENTIALS_ALIYUN_GREEN ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'aliyun_green'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'One live call with a normal short text: green = credentials work (and the day\'s pause is lifted); red = unauthorized / in arrears / not enabled (Code=408) or wrong key / signature; yellow = bad parameters or missing required fields. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 		<section class="wk-card" id="wk-baidu-config-area" data-wk-vendor="baidu"<?php echo ( 'baidu' === $cloud_selected ) ? '' : ' hidden'; ?>>
-			<h2><?php esc_html_e( '百度文本审核 · 配置', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Baidu Text Moderation · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
 
 			<?php
 			// 【W3·批B】privacy 行黄条 helper 化（判定/文案留编排位——DriverPrivacyTable 契约零变化）。
@@ -3743,29 +3744,29 @@ final class SettingsPage {
 			?>
 
 			<details class="wk-guide">
-				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Setup guide (expand on first configuration)', 'wink-wp-gatekeeper' ); ?></summary>
 				<ol>
-					<li><?php esc_html_e( '百度智能云控制台开通「内容审核 · 文本审核」（现行 v2 端点，文本审核按量计费）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '控制台「应用列表」创建应用获取 API Key 与 Secret Key（AppID 仅控制台标识，不参与请求）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '粘贴至下方 → 点「测试凭据」（正常文本实测应返回合规）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '判定映射（站长不可调）：conclusionType 1 合规→放行、2 不合规→直接拦截、3 疑似→入待审；access_token 由插件缓存复用（30 天有效期，无需手动管理）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Enable “Content Moderation · Text Moderation” in the Baidu AI Cloud console (current v2 endpoint, text moderation is pay-as-you-go).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Create an app under “Application List” in the console to get the API Key and Secret Key (the AppID is just a console label and never appears in requests).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Paste below → click “Test credentials” (a normal-text live call should return Compliant).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Verdict mapping (not admin-adjustable): conclusionType 1 compliant → pass, 2 non-compliant → direct block, 3 suspected → pending review; the access_token is cached and reused by the plugin (30-day validity, no manual management).', 'wink-wp-gatekeeper' ); ?></li>
 				</ol>
-				<p><a href="https://cloud.baidu.com/doc/ANTIPORN/s/Rk3h6xb3i" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '文本审核 v2 API 文档', 'wink-gatekeeper' ); ?></a></p>
+				<p><a href="https://cloud.baidu.com/doc/ANTIPORN/s/Rk3h6xb3i" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Text Moderation v2 API documentation', 'wink-wp-gatekeeper' ); ?></a></p>
 			</details>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-baidu-api-key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-baidu-api-key"><?php esc_html_e( 'API Key', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'api_key' ), '' !== (string) ( $baidu['api_key'] ?? '' ), 'API Key' ); ?>
-						<p class="description"><?php esc_html_e( '百度智能云应用 API Key（client_credentials 鉴权用）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Baidu AI Cloud app API Key (for client_credentials auth). Server-side only, never exposed to the front end.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-baidu-secret-key"><?php esc_html_e( 'Secret Key', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-baidu-secret-key"><?php esc_html_e( 'Secret Key', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'baidu', 'secret_key' ), '' !== (string) ( $baidu['secret_key'] ?? '' ), 'Secret Key' ); ?>
-						<p class="description"><?php esc_html_e( '与 API Key 配对的 Secret Key（access_token 有效期 30 天，由插件缓存复用）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The Secret Key paired with the API Key (the access_token is valid 30 days and cached/reused by the plugin).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -3774,37 +3775,37 @@ final class SettingsPage {
 			// 【W3·批B】⚙ 高级配置折叠（超时/日配额/故障处置收折叠——字段面零变化）。
 			self::advanced_fold(
 				'id="wk-baidu-advanced"',
-				__( '高级配置（超时 / 日配额 / 故障处置）', 'wink-gatekeeper' ),
+				__( 'Advanced (timeout / daily quota / failure handling)', 'wink-wp-gatekeeper' ),
 				static function () use ( $baidu ): void {
 					?>
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="wk-baidu-timeout"><?php esc_html_e( '超时', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-baidu-timeout"><?php esc_html_e( 'Timeout', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<input type="number" id="wk-baidu-timeout" min="1" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'timeout' ) ) ); ?>"
 									value="<?php echo esc_attr( (string) ( $baidu['timeout'] ?? 8 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '秒（默认 8）', 'wink-gatekeeper' ); ?></span>
+								<span class="wk-muted"><?php esc_html_e( 'seconds (default 8)', 'wink-wp-gatekeeper' ); ?></span>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="wk-baidu-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-baidu-quota"><?php esc_html_e( 'Daily quota', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<input type="number" id="wk-baidu-quota" min="0" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'daily_quota' ) ) ); ?>"
 									value="<?php echo esc_attr( (string) ( $baidu['daily_quota'] ?? 500 ) ); ?>" class="small-text" />
-								<span class="wk-muted"><?php esc_html_e( '次/天（0 = 不限）——达到后当日停用并按「故障降级」处理（计费防呆，立项书 §6.4）', 'wink-gatekeeper' ); ?></span>
+								<span class="wk-muted"><?php esc_html_e( 'calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback” (billing guard, project brief §6.4)', 'wink-wp-gatekeeper' ); ?></span>
 							</td>
 						</tr>
 						<tr>
-							<th scope="row"><?php esc_html_e( '故障降级', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Failure fallback', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<?php $baidu_fail_mode = 'open' === ( $baidu['fail_mode'] ?? 'review' ) ? 'open' : 'review'; ?>
 								<label style="display:block;margin-bottom:6px;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="review" <?php checked( 'review', $baidu_fail_mode ); ?> />
-									<?php esc_html_e( '入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'Pending review (default) — on cloud failure or exhausted quota, comments go to the pending queue for you to handle later', 'wink-wp-gatekeeper' ); ?>
 								</label>
 								<label style="display:block;">
 									<input type="radio" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'baidu', 'fail_mode' ) ) ); ?>" value="open" <?php checked( 'open', $baidu_fail_mode ); ?> />
-									<?php esc_html_e( '放行——故障时不拦不待审（仅本地规则生效）', 'wink-gatekeeper' ); ?>
+									<?php esc_html_e( 'Pass — on failure, neither blocked nor pended (local rules only)', 'wink-wp-gatekeeper' ); ?>
 								</label>
 							</td>
 						</tr>
@@ -3820,15 +3821,15 @@ final class SettingsPage {
 				'id="wk-baidu-test-credentials"',
 				'id="wk-baidu-test-result"',
 				wp_create_nonce( self::AJAX_TEST_CREDENTIALS_BAIDU ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'baidu'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'One live call with normal text: green = credentials work (and the day\'s pause is lifted); red = auth failed (wrong API Key / Secret Key or service not enabled); yellow = bad parameters or missing required fields. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<section class="wk-card" id="wk-review-deepseek-card" data-wk-vendor="deepseek"<?php echo ( 'deepseek' === $cloud_selected ) ? '' : ' hidden'; ?>>
-			<h2><?php esc_html_e( 'DeepSeek（AI 判定） · 配置', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'DeepSeek (AI verdict) · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
 
 			<?php
 			$deepseek_meta    = isset( $cloud_registered['deepseek'] ) ? $cloud_registered['deepseek'] : \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::registry_entry();
@@ -3840,56 +3841,56 @@ final class SettingsPage {
 			?>
 
 			<details class="wk-guide">
-				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Setup guide (expand on first configuration)', 'wink-wp-gatekeeper' ); ?></summary>
 				<ol>
-					<li><?php esc_html_e( 'DeepSeek 开放平台（platform.deepseek.com）创建 API Key 并充值（按量计费，判定一次约几百 token）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '粘贴 API Key 至下方 → 点「测试凭据」（余额探测，零费用——顺带看到余额数字）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '「低置信自动升级」默认开——说明见下方开关行（段级一次）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '判定映射（站长不可调）：置信 ≥0.8 高置信直取、<0.8 一律入待审；AI 判 pass 不替评论放行（只放大严）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Create an API Key on the DeepSeek platform (platform.deepseek.com) and top up (pay-as-you-go; one verdict costs roughly a few hundred tokens).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Paste the API Key below → click “Test credentials” (a zero-cost balance probe — you also get to see the balance).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( '“Low-confidence auto-upgrade” is on by default — see the switch row below (once per passage).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Verdict mapping (not admin-adjustable): confidence ≥0.8 is taken as high confidence, <0.8 always goes to pending review; an AI pass never approves a comment by itself (it only tightens, never loosens).', 'wink-wp-gatekeeper' ); ?></li>
 				</ol>
-				<p><a href="https://api-docs.deepseek.com/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'DeepSeek API 文档', 'wink-gatekeeper' ); ?></a></p>
+				<p><a href="https://api-docs.deepseek.com/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'DeepSeek API documentation', 'wink-wp-gatekeeper' ); ?></a></p>
 			</details>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-deepseek-api-key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-deepseek-api-key"><?php esc_html_e( 'API Key', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'deepseek', 'api_key' ), '' !== (string) ( $deepseek['api_key'] ?? '' ), 'API Key' ); ?>
-						<p class="description"><?php esc_html_e( '仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Server-side only, never exposed to the front end.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-deepseek-base-url"><?php esc_html_e( '接入地址', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-deepseek-base-url"><?php esc_html_e( 'Endpoint URL', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="url" id="wk-deepseek-base-url" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'base_url' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $deepseek['base_url'] ?? 'https://api.deepseek.com' ) ); ?>" class="regular-text code">
-						<p class="description"><?php esc_html_e( '预填官方地址，一般不用改。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Pre-filled with the official address; rarely needs changing.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-deepseek-model"><?php esc_html_e( '判定模型', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-deepseek-model"><?php esc_html_e( 'Verdict model', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<select id="wk-deepseek-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'model' ) ) ); ?>">
-							<option value="deepseek-flash" <?php selected( (string) ( $deepseek['model'] ?? 'deepseek-flash' ), 'deepseek-flash' ); ?>><?php esc_html_e( '标准（deepseek-flash，便宜快）', 'wink-gatekeeper' ); ?></option>
-							<option value="deepseek-reasoner" <?php selected( (string) ( $deepseek['model'] ?? '' ), 'deepseek-reasoner' ); ?>><?php esc_html_e( '深思（deepseek-reasoner，更强慢）', 'wink-gatekeeper' ); ?></option>
+							<option value="deepseek-flash" <?php selected( (string) ( $deepseek['model'] ?? 'deepseek-flash' ), 'deepseek-flash' ); ?>><?php esc_html_e( 'Standard (deepseek-flash, cheap and fast)', 'wink-wp-gatekeeper' ); ?></option>
+							<option value="deepseek-reasoner" <?php selected( (string) ( $deepseek['model'] ?? '' ), 'deepseek-reasoner' ); ?>><?php esc_html_e( 'Deep-think (deepseek-reasoner, stronger but slower)', 'wink-wp-gatekeeper' ); ?></option>
 						</select>
 					</td>
 				</tr>
 				<tr id="wk-deepseek-two-stage-row">
-					<th scope="row"><?php esc_html_e( '低置信自动升级', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Low-confidence auto-upgrade', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['two_stage'] ?? true ) ); ?>>
-							<?php esc_html_e( 'AI 拿不准的评论，自动换更擅长的「深思」模型再判一次，每条评论最多判两次', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Comments the AI is unsure about are automatically re-judged once by the better “deep-think” model, at most two verdicts per comment', 'wink-wp-gatekeeper' ); ?>
 						</label>
 					</td>
 				</tr>
 				<tr id="wk-deepseek-upgrade-model-row"<?php echo ! empty( $cloud['two_stage'] ?? true ) ? '' : ' hidden'; ?>>
-					<th scope="row"><label for="wk-deepseek-upgrade-model"><?php esc_html_e( '升级用模型', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-deepseek-upgrade-model"><?php esc_html_e( 'Upgrade model', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<select id="wk-deepseek-upgrade-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'upgrade_model' ) ) ); ?>">
-							<option value="deepseek-reasoner" <?php selected( (string) ( $cloud['upgrade_model'] ?? 'deepseek-reasoner' ), 'deepseek-reasoner' ); ?>><?php esc_html_e( '深思（deepseek-reasoner）', 'wink-gatekeeper' ); ?></option>
-							<option value="deepseek-flash" <?php selected( (string) ( $cloud['upgrade_model'] ?? '' ), 'deepseek-flash' ); ?>><?php esc_html_e( '标准（deepseek-flash）', 'wink-gatekeeper' ); ?></option>
+							<option value="deepseek-reasoner" <?php selected( (string) ( $cloud['upgrade_model'] ?? 'deepseek-reasoner' ), 'deepseek-reasoner' ); ?>><?php esc_html_e( 'Deep-think (deepseek-reasoner)', 'wink-wp-gatekeeper' ); ?></option>
+							<option value="deepseek-flash" <?php selected( (string) ( $cloud['upgrade_model'] ?? '' ), 'deepseek-flash' ); ?>><?php esc_html_e( 'Standard (deepseek-flash)', 'wink-wp-gatekeeper' ); ?></option>
 						</select>
 					</td>
 				</tr>
@@ -3903,26 +3904,27 @@ final class SettingsPage {
 			// 字段面零变化，$ds_* 取值上移闭包外）。
 			self::advanced_fold(
 				'id="wk-deepseek-advanced"',
-				__( '高级配置（降级方式 / 今日判定额度）', 'wink-gatekeeper' ),
+				__( 'Advanced (fallback / today\'s verdict quota)', 'wink-wp-gatekeeper' ),
 				static function () use ( $deepseek, $ds_used, $ds_quota ): void {
 					?>
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><?php esc_html_e( '降级方式', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Fallback behavior', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<select name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'fail_mode' ) ) ); ?>">
-									<option value="review" <?php selected( (string) ( $deepseek['fail_mode'] ?? 'review' ), 'review' ); ?>><?php esc_html_e( '出岔子时评论进待审区（推荐）', 'wink-gatekeeper' ); ?></option>
-									<option value="open" <?php selected( (string) ( $deepseek['fail_mode'] ?? '' ), 'open' ); ?>><?php esc_html_e( '出岔子时照常放行（不推荐）', 'wink-gatekeeper' ); ?></option>
+									<option value="review" <?php selected( (string) ( $deepseek['fail_mode'] ?? 'review' ), 'review' ); ?>><?php esc_html_e( 'On failure, comments go to pending review (recommended)', 'wink-wp-gatekeeper' ); ?></option>
+									<option value="open" <?php selected( (string) ( $deepseek['fail_mode'] ?? '' ), 'open' ); ?>><?php esc_html_e( 'On failure, comments pass as usual (not recommended)', 'wink-wp-gatekeeper' ); ?></option>
 								</select>
-								<p class="description"><?php esc_html_e( '超时 8 秒（防呆范围）；AI 判定只放大严：判 pass 也不会替评论放行。', 'wink-gatekeeper' ); ?></p>
+								<p class="description"><?php esc_html_e( '8-second timeout (guardrail range); the AI verdict only tightens: even a pass never approves a comment.', 'wink-wp-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 						<tr id="wk-deepseek-quota-line">
-							<th scope="row"><?php esc_html_e( '今日判定额度', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Today\'s verdict quota', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<input type="number" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'deepseek', 'daily_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) $ds_quota ); ?>" class="small-text" min="0">
-								<?php esc_html_e( '次（0=不限量）', 'wink-gatekeeper' ); ?>
-								<p class="description"><?php printf( esc_html__( '今日已判定 %1$d 次 · 额度剩 %2$s 次。', 'wink-gatekeeper' ), (int) $ds_used, 0 === $ds_quota ? '∞' : (string) max( 0, $ds_quota - $ds_used ) ); ?></p>
+								<?php esc_html_e( 'verdicts (0 = unlimited)', 'wink-wp-gatekeeper' ); ?>
+								<?php /* translators: 1: verdicts issued today, 2: remaining daily quota */ ?>
+								<p class="description"><?php printf( esc_html__( '%1$d verdicts issued today · %2$s left in quota.', 'wink-wp-gatekeeper' ), (int) $ds_used, 0 === $ds_quota ? '∞' : (string) max( 0, $ds_quota - $ds_used ) ); ?></p>
 							</td>
 						</tr>
 					</table>
@@ -3937,11 +3939,11 @@ final class SettingsPage {
 				'id="wk-deepseek-test-btn"',
 				'id="wk-deepseek-test-result"',
 				wp_create_nonce( self::AJAX_TEST_CREDENTIALS_DEEPSEEK ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'deepseek'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；黄 = 账户暂不可用（可能欠费）；红 = 密钥无效或连不上；黄 = API Key 未填。结果记录最近一次测试状态与时间。独立端点用模型列表探活（OpenAI 兼容、无标准余额 API）。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Balance probe (zero cost): green = credentials valid and account usable (balance shown); yellow = account temporarily unusable (possibly in arrears); red = invalid key or unreachable; yellow = API Key blank. The last test status and time are recorded. Custom endpoints are probed via the model list (OpenAI-compatible, no standard balance API).', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<?php
@@ -3954,7 +3956,7 @@ final class SettingsPage {
 		$oc_privacy = DriverConfigSpec::privacy_notice( $oc_meta, '自定义 OpenAI 兼容端点' );
 		?>
 		<section class="wk-card" id="wk-review-openai-custom-card" data-wk-vendor="openai_custom"<?php echo ( 'openai_custom' === $cloud_selected ) ? '' : ' hidden'; ?>>
-			<h2><?php esc_html_e( '自定义 OpenAI 兼容端点（AI 判定） · 配置', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Custom OpenAI-compatible endpoint (AI verdict) · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
 
 			<?php
 			// 【W3·批B】privacy 行黄条 helper 化（判定/文案留编排位——契约零变化）。
@@ -3964,53 +3966,53 @@ final class SettingsPage {
 			?>
 
 			<details class="wk-guide">
-				<summary><?php esc_html_e( '接入指引（首次配置请展开）', 'wink-gatekeeper' ); ?></summary>
+				<summary><?php esc_html_e( 'Setup guide (expand on first configuration)', 'wink-wp-gatekeeper' ); ?></summary>
 				<ol>
-					<li><?php esc_html_e( '端点需提供 chat/completions（OpenAI 兼容）——中转站/自建网关（LiteLLM 类）/任意兼容厂商皆可。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '填接入地址（注意路径前缀：插件在所填地址后拼 /chat/completions——OpenAI 官方族需填到 …/v1 为止）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '填 API Key 与模型名 → 点「测试凭据」（模型列表探活，零 token 消耗——泛端点无标准余额 API，不显示余额）。', 'wink-gatekeeper' ); ?></li>
-					<li><?php esc_html_e( '可达性与合规由站长自负：数据送你填的端点所在辖区（不支持内网地址——传输脊私网拒绝红线优先）。', 'wink-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'The endpoint must provide chat/completions (OpenAI-compatible) — relays / self-hosted gateways (LiteLLM-style) / any compatible vendor all work.', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Fill in the endpoint URL (mind the path prefix: the plugin appends /chat/completions to what you enter — for the official OpenAI family, stop at …/v1).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Fill in the API Key and model name → click “Test credentials” (model-list probe, zero tokens — generic endpoints have no standard balance API, so no balance is shown).', 'wink-wp-gatekeeper' ); ?></li>
+					<li><?php esc_html_e( 'Reachability and compliance are on you: data goes to the jurisdiction of the endpoint you enter (private-network addresses are not supported — the transport-layer private-address refusal red line wins).', 'wink-wp-gatekeeper' ); ?></li>
 				</ol>
 			</details>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-field-review-cloud-openai-custom-api_key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-field-review-cloud-openai-custom-api_key"><?php esc_html_e( 'API Key', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'review', 'cloud', 'openai_custom', 'api_key' ), '' !== (string) ( $openai_custom['api_key'] ?? '' ), 'API Key' ); ?>
-						<p class="description"><?php esc_html_e( '该端点签发的 API Key（中转站/网关各自发放）。仅服务端使用，绝不出前端。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The API Key issued by that endpoint (relays / gateways each issue their own). Server-side only, never exposed to the front end.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-openai-custom-base-url"><?php esc_html_e( '接入地址', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-openai-custom-base-url"><?php esc_html_e( 'Endpoint URL', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="url" id="wk-openai-custom-base-url" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'base_url' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $openai_custom['base_url'] ?? '' ) ); ?>" class="regular-text code"
 							placeholder="https://你的端点/v1" />
-						<p class="description"><?php esc_html_e( '填你的 OpenAI 兼容端点根地址——插件在其后拼接 /chat/completions。OpenAI 官方族填到 https://…/v1 为止；DeepSeek 官方填 https://api.deepseek.com（不带 /v1）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Enter the root URL of your OpenAI-compatible endpoint — the plugin appends /chat/completions to it. For the official OpenAI family stop at https://…/v1; for official DeepSeek use https://api.deepseek.com (without /v1).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-openai-custom-model"><?php esc_html_e( '判定模型', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-openai-custom-model"><?php esc_html_e( 'Verdict model', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-openai-custom-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'model' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $openai_custom['model'] ?? '' ) ); ?>" class="regular-text"
-							placeholder="<?php esc_attr_e( '填该端点支持的模型名', 'wink-gatekeeper' ); ?>" />
-						<p class="description"><?php esc_html_e( '模型名须与端点一致——点「测试凭据」可校验是否在可用列表（列表不含也可能仍可用，部分端点列表不全）。', 'wink-gatekeeper' ); ?></p>
+							placeholder="<?php esc_attr_e( 'Enter a model name this endpoint supports', 'wink-wp-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( 'The model name must match the endpoint — “Test credentials” can check it against the available list (it may still work if absent; some endpoints have incomplete lists).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr id="wk-openai-custom-two-stage-row">
-					<th scope="row"><?php esc_html_e( '低置信自动升级', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Low-confidence auto-upgrade', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="0" />
 							<input type="checkbox" id="wk-openai-custom-two-stage" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'two_stage' ) ) ); ?>" value="1" <?php checked( ! empty( $cloud['two_stage'] ?? true ) ); ?>>
-							<?php esc_html_e( 'AI 拿不准的评论，自动换更强的模型再判一次，每条评论最多判两次', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Comments the AI is unsure about are automatically re-judged once by a stronger model, at most two verdicts per comment', 'wink-wp-gatekeeper' ); ?>
 						</label>
 					</td>
 				</tr>
 				<tr id="wk-openai-custom-upgrade-model-row"<?php echo ! empty( $cloud['two_stage'] ?? true ) ? '' : ' hidden'; ?>>
-					<th scope="row"><label for="wk-openai-custom-upgrade-model"><?php esc_html_e( '升级用模型', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-openai-custom-upgrade-model"><?php esc_html_e( 'Upgrade model', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php /* 【M6·批E·R1 裁定】手填 text+留空短路（不走子树加键）：顶层
 							upgrade_model 为 deepseek/openai_custom 共用键——从 DeepSeek 切来
@@ -4018,8 +4020,8 @@ final class SettingsPage {
 							短路两段式（不发起 r2 调用）。 */ ?>
 						<input type="text" id="wk-openai-custom-upgrade-model" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'upgrade_model' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $cloud['upgrade_model'] ?? '' ) ); ?>" class="regular-text"
-							placeholder="<?php esc_attr_e( '填端点支持的更强模型名；留空=不升级', 'wink-gatekeeper' ); ?>" />
-						<p class="description"><?php esc_html_e( '与 DeepSeek 共用同一键：在 DeepSeek 用过的升级模型名会残留在这里——不用升级就清空（留空=不发起第二次判定）。', 'wink-gatekeeper' ); ?></p>
+							placeholder="<?php esc_attr_e( 'Enter a stronger model this endpoint supports; blank = no upgrade', 'wink-wp-gatekeeper' ); ?>" />
+						<p class="description"><?php esc_html_e( 'Shares the same key with DeepSeek: an upgrade model name used for DeepSeek lingers here — clear it if you do not want upgrades (blank = no second verdict).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -4032,26 +4034,27 @@ final class SettingsPage {
 			// 字段面零变化，$oc_* 取值上移闭包外）。
 			self::advanced_fold(
 				'id="wk-openai-custom-advanced"',
-				__( '高级配置（降级方式 / 今日判定额度）', 'wink-gatekeeper' ),
+				__( 'Advanced (fallback / today\'s verdict quota)', 'wink-wp-gatekeeper' ),
 				static function () use ( $openai_custom, $oc_used, $oc_quota ): void {
 					?>
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><?php esc_html_e( '降级方式', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Fallback behavior', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<select name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'fail_mode' ) ) ); ?>">
-									<option value="review" <?php selected( (string) ( $openai_custom['fail_mode'] ?? 'review' ), 'review' ); ?>><?php esc_html_e( '出岔子时评论进待审区（推荐）', 'wink-gatekeeper' ); ?></option>
-									<option value="open" <?php selected( (string) ( $openai_custom['fail_mode'] ?? '' ), 'open' ); ?>><?php esc_html_e( '出岔子时照常放行（不推荐）', 'wink-gatekeeper' ); ?></option>
+									<option value="review" <?php selected( (string) ( $openai_custom['fail_mode'] ?? 'review' ), 'review' ); ?>><?php esc_html_e( 'On failure, comments go to pending review (recommended)', 'wink-wp-gatekeeper' ); ?></option>
+									<option value="open" <?php selected( (string) ( $openai_custom['fail_mode'] ?? '' ), 'open' ); ?>><?php esc_html_e( 'On failure, comments pass as usual (not recommended)', 'wink-wp-gatekeeper' ); ?></option>
 								</select>
-								<p class="description"><?php esc_html_e( '超时默认 8 秒；AI 判定只放大严：判 pass 也不会替评论放行。', 'wink-gatekeeper' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Timeout defaults to 8 seconds; the AI verdict only tightens: even a pass never approves a comment.', 'wink-wp-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 						<tr id="wk-openai-custom-quota-line">
-							<th scope="row"><?php esc_html_e( '今日判定额度', 'wink-gatekeeper' ); ?></th>
+							<th scope="row"><?php esc_html_e( 'Today\'s verdict quota', 'wink-wp-gatekeeper' ); ?></th>
 							<td>
 								<input type="number" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'daily_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) $oc_quota ); ?>" class="small-text" min="0">
-								<?php esc_html_e( '次（0=不限量）', 'wink-gatekeeper' ); ?>
-								<p class="description"><?php printf( esc_html__( '今日已判定 %1$d 次 · 额度剩 %2$s 次。', 'wink-gatekeeper' ), (int) $oc_used, 0 === $oc_quota ? '∞' : (string) max( 0, $oc_quota - $oc_used ) ); ?></p>
+								<?php esc_html_e( 'verdicts (0 = unlimited)', 'wink-wp-gatekeeper' ); ?>
+								<?php /* translators: 1: verdicts issued today, 2: remaining daily quota */ ?>
+								<p class="description"><?php printf( esc_html__( '%1$d verdicts issued today · %2$s left in quota.', 'wink-wp-gatekeeper' ), (int) $oc_used, 0 === $oc_quota ? '∞' : (string) max( 0, $oc_quota - $oc_used ) ); ?></p>
 							</td>
 						</tr>
 					</table>
@@ -4066,11 +4069,11 @@ final class SettingsPage {
 				'id="wk-openai-custom-test-btn"',
 				'id="wk-openai-custom-test-result"',
 				wp_create_nonce( self::AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'openai_custom'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '模型列表探活（零 token）：绿 = 凭据可用（填了判定模型则顺带校验在不在列表）；黄 = 模型不在列表或必填缺；红 = 密钥被端点拒绝；灰 = 端点不提供 /models 或传输异常。泛端点无标准余额 API，不显示余额。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Model-list probe (zero tokens): green = credentials work (if a verdict model is filled in, it is also checked against the list); yellow = model not in the list or required fields missing; red = key rejected by the endpoint; gray = no /models or a transport error. Generic endpoints have no standard balance API, so no balance is shown. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<?php self::render_url_audit_card( $settings ); ?>
@@ -4078,7 +4081,7 @@ final class SettingsPage {
 		<!-- 【FIX-3】未配置空态说明行（对齐 Tab② unconfiguredNote 形态；JS 切换联动显隐）。 -->
 		<p id="wk-review-unconfigured-note" class="description<?php echo '' !== $cloud_selected ? ' hidden' : ''; ?>">
 			<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
-			<?php esc_html_e( '未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动后下方显示对应厂商配置区；各厂商配置独立保存、切换不清空已填。', 'wink-gatekeeper' ); ?>
+			<?php esc_html_e( 'Not configured = the cloud moderation stage is skipped (enabled + not configured matches Tab 2 semantics). Selecting a driver shows that vendor\'s settings below; each saves independently and switching does not clear fields.', 'wink-wp-gatekeeper' ); ?>
 		</p>
 
 			<?php
@@ -4122,8 +4125,8 @@ final class SettingsPage {
 		if ( IpResolver::proxy_header_conflict( $ip_source_mode, isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() ) ) {
 			self::notice_yellow_bar(
 				'warn',
-				'<strong>' . esc_html__( '检测到代理转发头但 IP 来源=直连', 'wink-gatekeeper' ) . '</strong>',
-				esc_html__( 'per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源（CDN 站点=custom_header、自建反代=xff/traverse），并在下方诊断面板核对解析结果。', 'wink-gatekeeper' ),
+				'<strong>' . esc_html__( 'Proxy forwarding headers detected but the IP source is direct', 'wink-wp-gatekeeper' ) . '</strong>',
+				esc_html__( 'per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely; choose an IP source that matches your deployment topology in the network settings (CDN sites = custom_header, self-hosted reverse proxies = xff/traverse), and verify the parsed result in the diagnostics panel below.', 'wink-wp-gatekeeper' ),
 				'',
 				'',
 				'wk-iprep-proxy-header-alert'
@@ -4157,20 +4160,20 @@ final class SettingsPage {
 		$whitelist_lines = AbuseIpdbService::whitelist_lines_from( $whitelist_raw );
 		$whitelist_bad   = ( new TrustedProxies( $whitelist_lines ) )->invalid_lines();
 		$modes   = array(
-			IpResolver::MODE_DIRECT        => __( '直连 direct（默认）', 'wink-gatekeeper' ),
-			IpResolver::MODE_XFF           => __( 'XFF 信任链（仅取最右）', 'wink-gatekeeper' ),
-			IpResolver::MODE_TRAVERSE      => __( 'traverse 链式回溯（自建反代多级）', 'wink-gatekeeper' ),
-			IpResolver::MODE_CUSTOM_HEADER => __( '自定义头 custom_header', 'wink-gatekeeper' ),
+			IpResolver::MODE_DIRECT        => __( 'Direct (default)', 'wink-wp-gatekeeper' ),
+			IpResolver::MODE_XFF           => __( 'XFF trust chain (rightmost only)', 'wink-wp-gatekeeper' ),
+			IpResolver::MODE_TRAVERSE      => __( 'traverse chain walk (multi-level self-hosted proxies)', 'wink-wp-gatekeeper' ),
+			IpResolver::MODE_CUSTOM_HEADER => __( 'custom_header', 'wink-wp-gatekeeper' ),
 		);
 		?>
 		<section class="wk-card" id="wk-iprep-source">
-			<h2 class="wk-sec-title"><?php esc_html_e( '真实 IP 来源', 'wink-gatekeeper' ); ?></h2>
-			<p class="description wk-muted"><?php esc_html_e( '这里决定「访客的真实 IP 从哪读」——验证码核验、登录计数、IP 信誉与上报全部链路都以它为准。先确认下方诊断面板解析对了，再往下配。', 'wink-gatekeeper' ); ?></p>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Real IP source', 'wink-wp-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( 'This decides “where a visitor\'s real IP is read from” — captcha verification, login counting, IP reputation, and reporting all follow it. Confirm the diagnostics panel below parses correctly before configuring further.', 'wink-wp-gatekeeper' ); ?></p>
 
 			<?php self::render_ip_diagnostic_panel( $settings ); // 【I4】I0 件原样挪入分区①——行为零改动只挪渲染位置。 ?>
 
 			<!-- 【M4UX G2】折叠区旁常显提示一行（用户原话整理）——引导核验后按需展开。 -->
-			<p class="description wk-muted"><?php esc_html_e( '请核对当前 IP 是否与您的真实出口一致，不一致请展开配置。', 'wink-gatekeeper' ); ?></p>
+			<p class="description wk-muted"><?php esc_html_e( 'Please check whether the current IP matches your actual egress address; if not, expand the configuration.', 'wink-wp-gatekeeper' ); ?></p>
 
 			<!-- 【M4UX G2】模式选择/自定义头/预设选择器/受信网段/白名单/CIDR 校验收进「高级设置」
 			 * 折叠（details/wk-guide F3-3 同款形态）——默认展开仅诊断面板（「当前生效」行+
@@ -4179,12 +4182,12 @@ final class SettingsPage {
 			// 【W3·批B】折叠迁 advanced_fold（details.adv ⚙ 目标形态；id 锚留编排位——htmlBlock 收口标记源抽取锁死解除，内容闭包承载）。
 			self::advanced_fold(
 				'id="wk-iprep-source-advanced"',
-				__( '高级设置（真实 IP 获取方式 / 自定义头 / 受信网段 / 白名单）', 'wink-gatekeeper' ),
+				__( 'Advanced (real-IP method / custom header / trusted ranges / allowlist)', 'wink-wp-gatekeeper' ),
 				static function () use ( $modes,  $mode,  $network,  $proxies,  $whitelist_raw,  $whitelist_bad ): void {
 					?>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-iprep-mode"><?php esc_html_e( '真实 IP 获取方式', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-mode"><?php esc_html_e( 'Real-IP retrieval method', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<select id="wk-iprep-mode" name="<?php echo esc_attr( self::field_name( array( 'network', 'ip_source' ) ) ); ?>">
 							<?php foreach ( $modes as $mode_key => $mode_label ) : ?>
@@ -4192,24 +4195,24 @@ final class SettingsPage {
 							<?php endforeach; ?>
 						</select>
 						<p class="description">
-							<?php esc_html_e( '适用拓扑：站点直连源站→direct；Cloudflare 等 CDN 托管→custom_header（头名填 CF-Connecting-IP）；自建反代多级→traverse，并在受信网段填反代出口。', 'wink-gatekeeper' ); ?>
-							<?php esc_html_e( 'traverse=REMOTE_ADDR 必须命中受信网段，再沿 XFF 从右往左跳过受信代理取第一个非受信 IP——不作默认：可直连源站的部署下回溯会把伪造链当真。', 'wink-gatekeeper' ); ?>
-							<?php esc_html_e( 'REMOTE_ADDR 不在受信网段时，转发头一律忽略（防伪造不变式）。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Matching topologies: site directly exposed → direct; behind Cloudflare or another CDN → custom_header (set the header name to CF-Connecting-IP); multi-level self-hosted reverse proxy → traverse, with the proxy egress filled into trusted ranges.', 'wink-wp-gatekeeper' ); ?>
+							<?php esc_html_e( 'traverse = REMOTE_ADDR must hit a trusted range, then walk the XFF right-to-left skipping trusted proxies and take the first untrusted IP — not the default: on deployments that can reach the origin directly, walking backwards would trust a forged chain.', 'wink-wp-gatekeeper' ); ?>
+							<?php esc_html_e( 'When REMOTE_ADDR is outside the trusted ranges, forwarding headers are ignored outright (anti-forgery invariant).', 'wink-wp-gatekeeper' ); ?>
 						</p>
 					</td>
 				</tr>
 				<tr id="wk-iprep-custom-header-row"<?php echo IpResolver::MODE_CUSTOM_HEADER !== $mode ? ' hidden' : ''; ?>>
 					<!-- 【M4UX UI-2-5】仅 ip_source=custom_header 时显示（PHP 初始态 + admin-brand.js 联动，bindVendorSwitcher 同款显隐模式）。 -->
-					<th scope="row"><label for="wk-iprep-custom-header"><?php esc_html_e( '自定义头名', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-custom-header"><?php esc_html_e( 'Custom header name', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-iprep-custom-header" class="regular-text" placeholder="CF-Connecting-IP"
 							name="<?php echo esc_attr( self::field_name( array( 'network', 'custom_header' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $network['custom_header'] ?? '' ) ); ?>" />
-						<p class="description"><?php esc_html_e( '真实 IP 获取方式=自定义头时生效（单值 IP 头——Cloudflare 官方头 CF-Connecting-IP 是权威覆写头，伪造面最小）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Takes effect when the real-IP method = custom header (a single-value IP header — Cloudflare\'s CF-Connecting-IP is the authoritative override header with the smallest forgery surface).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '受信网段', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Trusted ranges', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<!-- 预设选择器（定稿 §5.3：EdgeOne 官方无静态网段列表——UI 隐藏，I0 行为保持）。 -->
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'network', 'trusted_proxies', 'cloudflare' ) ) ); ?>" value="0" />
@@ -4218,36 +4221,36 @@ final class SettingsPage {
 							<?php
 							printf(
 								/* translators: 1: 快照核对日期 2: 网段条数 */
-								esc_html__( '使用 Cloudflare 官方段（%1$s 核对，v4+v6 共 %2$d 条）', 'wink-gatekeeper' ),
+								esc_html__( 'Use the official Cloudflare ranges (%1$s verified, %2$d entries for v4 + v6)', 'wink-wp-gatekeeper' ),
 								esc_html( (string) TrustedProxies::PRESET_VERIFIED ),
 								(int) count( TrustedProxies::CLOUDFLARE_V4 ) + count( TrustedProxies::CLOUDFLARE_V6 )
 							);
 							?>
 						</label>
-						<p class="description"><?php esc_html_e( 'EdgeOne 无官方静态网段列表（api.edgeone.ai/ips 动态发布、3–6 月轮换——空预设入选=静默无保护），故不提供预设；托管在 EdgeOne 的站点请在下方手填官方文档公布的回源网段。', 'wink-gatekeeper' ); ?></p>
-						<label class="screen-reader-text" for="wk-iprep-custom-cidr"><?php esc_html_e( '自定义受信网段', 'wink-gatekeeper' ); ?></label>
+						<p class="description"><?php esc_html_e( 'EdgeOne publishes no official static range list (api.edgeone.ai/ips is dynamic with 3–6 month rotation — shipping an empty preset would mean silent no-protection), so no preset is offered; sites behind EdgeOne should hand-enter the origin ranges published in the official docs below.', 'wink-wp-gatekeeper' ); ?></p>
+						<label class="screen-reader-text" for="wk-iprep-custom-cidr"><?php esc_html_e( 'Custom trusted ranges', 'wink-wp-gatekeeper' ); ?></label>
 						<textarea id="wk-iprep-custom-cidr" class="large-text" rows="4" placeholder="203.0.113.0/24&#10;2001:db8::/32"
 							name="<?php echo esc_attr( self::field_name( array( 'network', 'trusted_proxies', 'custom' ) ) ); ?>"><?php echo esc_textarea( (string) ( $proxies['custom'] ?? '' ) ); ?></textarea>
-						<p class="description"><?php esc_html_e( '每行一条 CIDR（或裸 IP，v4/v6）——通常是反代/负载均衡的出口网段。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'One CIDR per line (or a bare IP, v4/v6) — usually the egress ranges of your reverse proxy / load balancer.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
 						<!-- 【I5·定稿 §7 误伤防护·判定层】站长手动白名单——信誉判定豁免入口
 						 （与受信网段是两个东西：受信网段管解析信任链，白名单管信誉豁免）。 -->
-						<th scope="row"><label for="wk-iprep-whitelist"><?php esc_html_e( '白名单（信誉豁免）', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-iprep-whitelist"><?php esc_html_e( 'Allowlist (reputation exemption)', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<textarea id="wk-iprep-whitelist" class="large-text" rows="4" placeholder="8.8.8.8&#10;203.0.113.0/24&#10;2001:db8::/32"
 								name="<?php echo esc_attr( self::field_name( array( 'iprep', 'whitelist' ) ) ); ?>"><?php echo esc_textarea( $whitelist_raw ); ?></textarea>
-							<p class="description"><?php esc_html_e( '每行一个 IP 或 CIDR（v4/v6）——命中者永不查信誉、永不上报（判定与上报双通道同时豁免，零外呼）。', 'wink-gatekeeper' ); ?></p>
-							<p class="description"><?php esc_html_e( '与「受信网段」的区别：受信网段管解析信任链（决定信谁报来的转发头），白名单管信誉豁免（决定谁永不查信誉）——两者互不替代。', 'wink-gatekeeper' ); ?></p>
-							<p class="description"><?php esc_html_e( '误伤防护：搜索引擎爬虫、办公出口等被信誉库误伤的 IP 加在这里——访客直接放行，不会被强制过码。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'One IP or CIDR per line (v4/v6) — matches are never reputation-checked and never reported (exempt on both the verdict and reporting channels, zero outbound calls).', 'wink-wp-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Versus “trusted ranges”: trusted ranges govern the parsing trust chain (whose forwarded headers to believe), while the allowlist governs reputation exemption (who is never checked) — neither substitutes for the other.', 'wink-wp-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'False-positive guard: add IPs that reputation databases misjudge, such as search-engine crawlers or office egress addresses — those visitors pass straight through without a forced captcha.', 'wink-wp-gatekeeper' ); ?></p>
 							<?php if ( array() !== $whitelist_bad ) : ?>
 								<p class="description">
 									<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
 									<?php
 									printf(
 										/* translators: 1: 非法行数 2: 逗号连接的非法行原文 */
-										esc_html__( '白名单存在 %1$d 条非法行（保存时会被忽略，不生效）：%2$s', 'wink-gatekeeper' ),
+										esc_html__( 'The allowlist has %1$d invalid lines (ignored on save, no effect): %2$s', 'wink-wp-gatekeeper' ),
 										count( $whitelist_bad ),
 										esc_html( implode( '、', $whitelist_bad ) )
 									);
@@ -4255,17 +4258,17 @@ final class SettingsPage {
 								</p>
 							<?php endif; ?>
 							<p>
-								<button type="button" class="button" id="wk-iprep-whitelist-check"><?php esc_html_e( '校验白名单格式', 'wink-gatekeeper' ); ?></button>
+								<button type="button" class="button" id="wk-iprep-whitelist-check"><?php esc_html_e( 'Validate allowlist format', 'wink-wp-gatekeeper' ); ?></button>
 								<span id="wk-iprep-whitelist-result" class="wk-muted" aria-live="polite"></span>
 							</p>
 						</td>
 					</tr>
 				</table>
 			<p>
-				<button type="button" class="button" id="wk-iprep-cidr-check"><?php esc_html_e( '校验网段格式', 'wink-gatekeeper' ); ?></button>
+				<button type="button" class="button" id="wk-iprep-cidr-check"><?php esc_html_e( 'Validate range format', 'wink-wp-gatekeeper' ); ?></button>
 				<span id="wk-iprep-cidr-result" class="wk-muted" aria-live="polite"></span>
 			</p>
-			<p class="description"><?php esc_html_e( '校验为前端格式预检；非法行保存时由解析层跳过，并在上方诊断面板「自定义网段非法行」标出（校准工具：tools/api-smoke/refresh-presets.php）。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Validation is a front-end pre-check; invalid lines are skipped by the parsing layer on save and flagged under “Custom range invalid lines” in the diagnostics panel above (calibration tool: tools/api-smoke/refresh-presets.php).', 'wink-wp-gatekeeper' ); ?></p>
 					<?php
 				}
 			);
@@ -4293,58 +4296,58 @@ final class SettingsPage {
 		$halt       = DriverHealth::state_today( AbuseIpdbService::DRIVER_ID );
 		$health     = null !== $halt
 			? ( DriverHealth::STATE_QUOTA_EXHAUSTED === $halt
-				? __( '额度用完（当日停转——次日自动恢复）', 'wink-gatekeeper' )
-				: __( '配置问题（密钥被拒——当日停转；重存密钥并「测试凭据」绿态即解除）', 'wink-gatekeeper' ) )
-			: __( '正常', 'wink-gatekeeper' );
+				? __( 'Quota exhausted (paused for today — auto-resumes tomorrow)', 'wink-wp-gatekeeper' )
+				: __( 'Configuration problem (key rejected — paused for today; re-saving the key and getting a green “Test credentials” clears it)', 'wink-wp-gatekeeper' ) )
+			: __( 'Normal', 'wink-wp-gatekeeper' );
 		?>
 		<section class="wk-card" id="wk-iprep-check">
-			<h2 class="wk-sec-title"><?php esc_html_e( 'IP 信誉查询', 'wink-gatekeeper' ); ?></h2>
-			<p class="description wk-muted"><?php esc_html_e( '启用后，评论与登录判定前会向 AbuseIPDB 查询访客 IP 的信誉分——恶意 IP 强制访客先过人机验证再放行。', 'wink-gatekeeper' ); ?></p>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'IP reputation lookup', 'wink-wp-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( 'When enabled, before comment and login verdicts the visitor\'s IP reputation score is looked up at AbuseIPDB — malicious IPs must pass human verification before going through.', 'wink-wp-gatekeeper' ); ?></p>
 
 			<?php if ( $soft_hit ) : ?>
 				<?php
 				// 【W3·批B】迁段 notice_yellow_bar（软顶黄条——警示常显不折叠红线照守：黄条在折叠区外）。
 				self::notice_yellow_bar(
 					'warn',
-					'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html__( '当日查询配额已用尽——今日人机验证将临时对所有访客强制，次日自动恢复。', 'wink-gatekeeper' ) . '</strong>',
-					esc_html__( '软顶保护：当日查询计数达到软顶后不再外呼、一律按「不通过」从严处理——把最后配额留给缓冲，防信誉层对攻击者静默。', 'wink-gatekeeper' )
+					'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html__( 'Today\'s lookup quota is exhausted — human verification is temporarily enforced for all visitors today and auto-resumes tomorrow.', 'wink-wp-gatekeeper' ) . '</strong>',
+					esc_html__( 'Soft-cap protection: once the day\'s lookup count reaches the soft cap, no more outbound calls and everything is treated strictly as “fail” — the last slice of quota is reserved as a buffer so the reputation layer never goes silent on attackers.', 'wink-wp-gatekeeper' )
 				);
 				?>
 			<?php endif; ?>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( '启用', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Enable', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="0" />
 						<label>
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $iprep['enabled'] ) ); ?> />
-							<?php esc_html_e( '启用 IP 信誉查询（同时提升评论闸与登录闸两处防护——Tab② 联动开关默认开）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Enable IP reputation lookup (strengthens both the comment and login gates — the Tab 2 linked switch is on by default)', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '未启用时信任链跳过该项，不影响信用免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，出码验证）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'When disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail — a captcha is shown).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-iprep-driver"><?php esc_html_e( '服务商', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-driver"><?php esc_html_e( 'Provider', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<select id="wk-iprep-driver" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'driver' ) ) ); ?>">
-							<option value="abuseipdb" <?php selected( 'abuseipdb', (string) ( $iprep['driver'] ?? 'abuseipdb' ) ); ?>><?php esc_html_e( 'AbuseIPDB（IP 信誉查询）', 'wink-gatekeeper' ); ?></option>
+							<option value="abuseipdb" <?php selected( 'abuseipdb', (string) ( $iprep['driver'] ?? 'abuseipdb' ) ); ?>><?php esc_html_e( 'AbuseIPDB (IP reputation lookup)', 'wink-wp-gatekeeper' ); ?></option>
 						</select>
-						<p class="description"><?php esc_html_e( '当前可用的 IP 信誉服务商（更多厂商随后续里程碑接入）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'IP reputation providers currently available (more vendors in later milestones).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-field-iprep-abuseipdb-api_key"><?php esc_html_e( 'API Key', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-field-iprep-abuseipdb-api_key"><?php esc_html_e( 'API Key', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<?php self::password_field( array( 'iprep', 'abuseipdb', 'api_key' ), '' !== (string) ( $abuse['api_key'] ?? '' ), 'API Key' ); ?>
 						<p class="description">
-							<?php esc_html_e( 'AbuseIPDB 免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取。仅服务端使用，不回显已存值。默认软顶 900 / 日配额 950（各留 5% 缓冲）。', 'wink-gatekeeper' ); ?>
-							<a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noopener noreferrer"><?php esc_html_e( '获取 API Key', 'wink-gatekeeper' ); ?></a>
+							<?php esc_html_e( 'AbuseIPDB free tier: 1,000 lookups/day (agreed baseline). Register at abuseipdb.com. Server-side only; stored values are not echoed back. Defaults: soft cap 900 / daily quota 950 (a 5% buffer each).', 'wink-wp-gatekeeper' ); ?>
+							<a href="https://www.abuseipdb.com/account/api" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get an API Key', 'wink-wp-gatekeeper' ); ?></a>
 						</p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '健康状态', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Health status', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<p class="description">
 							<?php if ( null !== $halt ) : ?>
@@ -4356,7 +4359,7 @@ final class SettingsPage {
 							echo esc_html(
 								sprintf(
 									/* translators: 1: 停转态/正常 2: 装配态标签（未启用/已启用（AbuseIPDB）） */
-									__( '%1$s · %2$s', 'wink-gatekeeper' ),
+									__( '%1$s · %2$s', 'wink-wp-gatekeeper' ),
 									$health,
 									IpReputationService::state_label( $settings )
 								)
@@ -4372,73 +4375,73 @@ final class SettingsPage {
 			// 【W3·批B】折叠迁 advanced_fold（details.adv ⚙ 目标形态；id 锚留编排位——htmlBlock 收口标记源抽取锁死解除，内容闭包承载）。
 			self::advanced_fold(
 				'id="wk-iprep-advanced"',
-				__( '高级设置（阈值 / 软顶 / 日配额 / 缓存 / 超时）', 'wink-gatekeeper' ),
+				__( 'Advanced (thresholds / soft cap / daily quota / cache / timeout)', 'wink-wp-gatekeeper' ),
 				static function () use ( $abuse,  $iprep ): void {
 					?>
 				<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-iprep-malicious-score"><?php esc_html_e( '恶意阈值', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-malicious-score"><?php esc_html_e( 'Malicious threshold', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="range" id="wk-iprep-malicious-score" class="wk-score-slider" min="1" max="100" step="1"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'malicious_score' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $abuse['malicious_score'] ?? 85 ) ); ?>" />
 						<output for="wk-iprep-malicious-score"><?php echo esc_html( (string) ( $abuse['malicious_score'] ?? 85 ) ); ?></output>
-						<p class="description"><?php esc_html_e( '信誉分≥此值判恶意（默认 85）——强制访客过人机验证。AbuseIPDB 信誉分为多报告者聚合，单票不成黑 IP。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Scores ≥ this value count as malicious (default 85) — such visitors must pass human verification. AbuseIPDB scores aggregate multiple reporters; a single report does not blacklist an IP.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-iprep-suspect-score"><?php esc_html_e( '疑似阈值', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-suspect-score"><?php esc_html_e( 'Suspected threshold', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="range" id="wk-iprep-suspect-score" class="wk-score-slider" min="1" max="100" step="1"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'suspect_score' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $abuse['suspect_score'] ?? 60 ) ); ?>" />
 						<output for="wk-iprep-suspect-score"><?php echo esc_html( (string) ( $abuse['suspect_score'] ?? 60 ) ); ?></output>
-						<p class="description"><?php esc_html_e( '信誉分≥此值判可疑（默认 60）——与恶意阈值同为「不通过」档，强制验证码；两档差别仅在事件留档口径。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Scores ≥ this value count as suspected (default 60) — the same “fail” band as the malicious threshold, forcing a captcha; the two bands differ only in how events are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-iprep-soft-quota"><?php esc_html_e( '软顶', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-soft-quota"><?php esc_html_e( 'Soft cap', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-iprep-soft-quota" min="0" class="small-text"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'soft_quota' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $abuse['soft_quota'] ?? 900 ) ); ?>" />
-						<span class="wk-muted"><?php esc_html_e( '次/天（默认 900；0=不限）——当日达到后不再外呼、一律按「不通过」从严处理（宁可从严不可静默放行）。免费档 1000/天（拍板统一口径）留 5% 缓冲。', 'wink-gatekeeper' ); ?></span>
+						<span class="wk-muted"><?php esc_html_e( 'calls/day (default 900; 0 = unlimited) — once reached, no more outbound calls and everything is treated strictly as “fail” (better strict than silently waved through). The free tier\'s 1,000/day (agreed baseline) keeps a 5% buffer.', 'wink-wp-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-iprep-daily-quota"><?php esc_html_e( '日配额', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-daily-quota"><?php esc_html_e( 'Daily quota', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-iprep-daily-quota" min="0" class="small-text"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'daily_quota' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $abuse['daily_quota'] ?? 950 ) ); ?>" />
-						<span class="wk-muted"><?php esc_html_e( '次/天（默认 950）——免费档 1000/天（拍板统一口径）留 5% 缓冲；达到后当日停转（429 触发，次日自愈）。', 'wink-gatekeeper' ); ?></span>
+						<span class="wk-muted"><?php esc_html_e( 'calls/day (default 950) — a 5% buffer under the free tier\'s 1,000/day (agreed baseline); once reached, paused for the day (triggered by 429, self-heals the next day).', 'wink-wp-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-iprep-cache-minutes"><?php esc_html_e( '干净 IP 缓存', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-cache-minutes"><?php esc_html_e( 'Clean IP cache', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-iprep-cache-minutes" min="0" class="small-text"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'cache_minutes' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $abuse['cache_minutes'] ?? 1440 ) ); ?>" />
-						<span class="wk-muted"><?php esc_html_e( '分钟（默认 1440=24h）——查询判「通过」的 IP 结果缓存时长，省配额。', 'wink-gatekeeper' ); ?></span>
+						<span class="wk-muted"><?php esc_html_e( 'minutes (default 1440 = 24h) — how long IPs judged “pass” stay cached, saving quota.', 'wink-wp-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-iprep-negative-cache-minutes"><?php esc_html_e( '可疑 IP 缓存', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-negative-cache-minutes"><?php esc_html_e( 'Suspicious IP cache', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-iprep-negative-cache-minutes" min="0" class="small-text"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'negative_cache_minutes' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $iprep['negative_cache_minutes'] ?? 60 ) ); ?>" />
-						<span class="wk-muted"><?php esc_html_e( '分钟（默认 60=1h）——判「可疑/恶意」的短缓存，恶意 IP 可复查降级。', 'wink-gatekeeper' ); ?></span>
+						<span class="wk-muted"><?php esc_html_e( 'minutes (default 60 = 1h) — short cache for “suspected/malicious” verdicts, so a malicious IP can be re-checked and downgraded.', 'wink-wp-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-iprep-timeout"><?php esc_html_e( '查询超时', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-iprep-timeout"><?php esc_html_e( 'Lookup timeout', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="number" id="wk-iprep-timeout" min="1" max="5" class="small-text"
 							name="<?php echo esc_attr( self::field_name( array( 'iprep', 'abuseipdb', 'timeout' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $abuse['timeout'] ?? 1 ) ); ?>" />
-						<span class="wk-muted"><?php esc_html_e( '秒（1–5，默认 1）——超时按「不通过」从严处理（出码验证）；登录/评论预检/提交期三处共用此键。', 'wink-gatekeeper' ); ?></span>
+						<span class="wk-muted"><?php esc_html_e( 'seconds (1–5, default 1) — a timeout is treated strictly as “fail” (captcha shown); this one key is shared by login / comment pre-check / submission.', 'wink-wp-gatekeeper' ); ?></span>
 					</td>
 				</tr>
 				</table>
@@ -4454,11 +4457,11 @@ final class SettingsPage {
 				'id="wk-iprep-test-credentials"',
 				'id="wk-iprep-test-result"',
 				wp_create_nonce( self::AJAX_TEST_IPREP ),
-				__( '测试凭据', 'wink-gatekeeper' ),
+				__( 'Test credentials', 'wink-wp-gatekeeper' ),
 				'abuseipdb'
 			);
 			?>
-			<p class="description"><?php esc_html_e( '发一次最小查询实测（查询保留地址 127.0.0.2，几乎不耗配额）：绿 = HTTP 200 且响应 JSON 可解析（凭据可用——保留地址返回 isPublic:false 亦绿，验证的是凭据不是 IP）；红 = 401/402 密钥被拒；黄 = API Key 未填。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'One minimal live lookup (reserved address 127.0.0.2, nearly zero quota): green = HTTP 200 with parseable JSON (credentials work — isPublic:false from the reserved address is still green; it is the credentials being tested, not the IP); red = 401/402 key rejected; yellow = API Key blank. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
@@ -4486,8 +4489,8 @@ final class SettingsPage {
 		// 触发面声明表（路径显式展开——schema 键面即渲染面，I3 注记「schema 键全集」）。
 		$faces = array(
 			'captcha_failed' => array(
-				'title'          => __( 'T1 · 验证码有票核验失败', 'wink-gatekeeper' ),
-				'desc'           => __( '有人提交了伪造或重放的验证票据——「有票才报」：未完成验证的提交（无票）不触发。默认开。', 'wink-gatekeeper' ),
+				'title'          => __( 'T1 · Captcha ticket verification failed', 'wink-wp-gatekeeper' ),
+				'desc'           => __( 'Someone submitted a forged or replayed captcha ticket — “report only with a ticket”: submissions without completed verification (no ticket) never trigger it. On by default.', 'wink-wp-gatekeeper' ),
 				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'captcha_failed' ),
 				'threshold_path' => null, // T1 无阈值——直达四道闸.
 				'category_path'  => array( 'iprep', 'report', 'category_captcha_failed' ),
@@ -4496,8 +4499,8 @@ final class SettingsPage {
 				'category_value' => (int) ( $report['category_captcha_failed'] ?? 0 ),
 			),
 			'review_reject'  => array(
-				'title'          => __( 'T2 · 云端审核拒绝累计', 'wink-gatekeeper' ),
-				'desc'           => __( '同一 IP 被云端审核判「拒绝」24 小时内累计达 N 次（内容垃圾发布者形态）。默认关。', 'wink-gatekeeper' ),
+				'title'          => __( 'T2 · Cumulative cloud moderation rejections', 'wink-wp-gatekeeper' ),
+				'desc'           => __( 'The same IP judged “rejected” by cloud moderation N times within 24 hours (content-spammer pattern). Off by default.', 'wink-wp-gatekeeper' ),
 				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'review_reject' ),
 				'threshold_path' => array( 'iprep', 'report', 'triggers', 'review_reject_threshold' ),
 				'threshold_value' => (int) ( $triggers['review_reject_threshold'] ?? 5 ),
@@ -4507,8 +4510,8 @@ final class SettingsPage {
 				'category_value' => (int) ( $report['category_review_reject'] ?? 0 ),
 			),
 			'login_attempts' => array(
-				'title'          => __( 'T3 · 登录爆破（同 IP 计数饱和）', 'wink-gatekeeper' ),
-				'desc'           => __( '同一 IP 登录失败达到既有阈值（10 次/IP——沿登录闸现成计数，不单设阈值）。默认关。', 'wink-gatekeeper' ),
+				'title'          => __( 'T3 · Login brute force (per-IP count saturation)', 'wink-wp-gatekeeper' ),
+				'desc'           => __( 'Login failures from one IP reach the existing threshold (10/IP — reusing the login gate\'s own counter, no separate threshold). Off by default.', 'wink-wp-gatekeeper' ),
 				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'login_attempts' ),
 				'threshold_path' => null, // T3 沿用 LoginCounters 10 次/IP 不单设.
 				'category_path'  => array( 'iprep', 'report', 'category_login_attempts' ),
@@ -4517,8 +4520,8 @@ final class SettingsPage {
 				'category_value' => (int) ( $report['category_login_attempts'] ?? 0 ),
 			),
 			'local_rules_fail' => array(
-				'title'          => __( 'T4 · 本地规则拦截累计', 'wink-gatekeeper' ),
-				'desc'           => __( '同一 IP 被本地四规则闸（字数/无中文/禁词）拦 24 小时内累计达 N 次（预检与提交两处都计数）。默认关。', 'wink-gatekeeper' ),
+				'title'          => __( 'T4 · Cumulative local rule blocks', 'wink-wp-gatekeeper' ),
+				'desc'           => __( 'The same IP blocked by the four local rule gates (length / no-Chinese / banned words) N times within 24 hours (both pre-check and submission count). Off by default.', 'wink-wp-gatekeeper' ),
 				'toggle_path'    => array( 'iprep', 'report', 'triggers', 'local_rules_fail' ),
 				'threshold_path' => array( 'iprep', 'report', 'triggers', 'local_rules_fail_threshold' ),
 				'threshold_value' => (int) ( $triggers['local_rules_fail_threshold'] ?? 5 ),
@@ -4530,39 +4533,39 @@ final class SettingsPage {
 		);
 		?>
 		<section class="wk-card" id="wk-iprep-report">
-			<h2 class="wk-sec-title"><?php esc_html_e( '恶意行为上报', 'wink-gatekeeper' ); ?></h2>
-			<p class="description wk-muted"><?php esc_html_e( '可选能力：把确凿的恶意行为报告给 AbuseIPDB 社区信誉库，帮全世界的站点一起识别这些 IP。默认全关。', 'wink-gatekeeper' ); ?></p>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Malicious activity reporting', 'wink-wp-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( 'Optional capability: report confirmed malicious activity to the AbuseIPDB community reputation database, helping sites worldwide recognize these IPs. All off by default.', 'wink-wp-gatekeeper' ); ?></p>
 
 			<?php
 			// 【W3·批B】迁段 notice_yellow_bar（出境 PIPL 黄条——常显不折叠红线照守）。
 			self::notice_yellow_bar(
 				'warn',
-				'<strong>' . esc_html__( '启用后访客 IP 将提交至境外服务 AbuseIPDB。', 'wink-gatekeeper' ) . '</strong>',
-				esc_html__( '报告详情在 AbuseIPDB 公开可见（不含评论内容）；请自行评估数据出境合规（PIPL）。', 'wink-gatekeeper' )
+				'<strong>' . esc_html__( 'When enabled, visitor IPs are submitted to the overseas service AbuseIPDB.', 'wink-wp-gatekeeper' ) . '</strong>',
+				esc_html__( 'Report details are publicly visible on AbuseIPDB (no comment content); assess cross-border data compliance (PIPL) yourself.', 'wink-wp-gatekeeper' )
 			);
 			?>
 
 			<p class="description">
 				<?php if ( $self_ok ) : ?>
 					<span class="wk-dot wk-dot--ok" aria-hidden="true"></span>
-					<?php esc_html_e( '启用门禁：真实 IP 自检通过——上报具备启用条件。', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'Enablement gate: real-IP self-check passed — reporting is ready to enable.', 'wink-wp-gatekeeper' ); ?>
 				<?php else : ?>
 					<span class="wk-dot wk-dot--alert" aria-hidden="true"></span>
-					<strong><?php esc_html_e( '上报已强制失效：真实 IP 解析异常（NAT/反代共显）。', 'wink-gatekeeper' ); ?></strong>
-					<?php esc_html_e( '当前请求来源为私网/无法判定——向信誉库上报共享出口 IP 会污染库；在分区① 配好受信反代并保存后自动恢复（此门禁无开关，宁可少报）。', 'wink-gatekeeper' ); ?>
+					<strong><?php esc_html_e( 'Reporting has been force-disabled: real-IP resolution is abnormal (NAT / reverse proxy both present).', 'wink-wp-gatekeeper' ); ?></strong>
+					<?php esc_html_e( 'The current request comes from a private network / cannot be determined — reporting a shared egress IP would pollute the database; it auto-recovers once a trusted reverse proxy is configured in Section 1 and saved (this gate has no switch; better to under-report).', 'wink-wp-gatekeeper' ); ?>
 				<?php endif; ?>
 			</p>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( '上报总开关', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Reporting master switch', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'report', 'enabled' ) ) ); ?>" value="0" />
 						<label>
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'iprep', 'report', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $report['enabled'] ) ); ?> />
-							<?php esc_html_e( '启用恶意行为上报（高级设置里任一触发面命中才发送）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Enable malicious activity reporting (sent only when one of the trigger surfaces in Advanced fires)', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '独立于上方「IP 信誉查询」开关——只上报不查询；发送失败静默不影响拦截。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Independent of the “IP reputation lookup” switch above — reports only, no lookups; silent send failures never affect blocking.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -4572,7 +4575,7 @@ final class SettingsPage {
 			// 【W3·批B】折叠迁 advanced_fold（details.adv ⚙ 目标形态；id 锚留编排位——htmlBlock 收口标记源抽取锁死解除，内容闭包承载）。
 			self::advanced_fold(
 				'id="wk-iprep-report-advanced"',
-				__( '高级设置（触发面 T1–T4 / 备注 / 限流参数）', 'wink-gatekeeper' ),
+				__( 'Advanced (trigger surfaces T1–T4 / notes / rate-limit parameters)', 'wink-wp-gatekeeper' ),
 				static function () use ( $faces,  $triggers ): void {
 					?>
 				<table class="form-table" role="presentation">
@@ -4583,26 +4586,26 @@ final class SettingsPage {
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( $face['toggle_path'] ) ); ?>" value="0" />
 							<label>
 								<input type="checkbox" name="<?php echo esc_attr( self::field_name( $face['toggle_path'] ) ); ?>" value="1" <?php checked( ! empty( self::dig( $triggers, array( $face_key ), false ) ) ); ?> />
-								<?php esc_html_e( '启用此触发面', 'wink-gatekeeper' ); ?>
+								<?php esc_html_e( 'Enable this trigger surface', 'wink-wp-gatekeeper' ); ?>
 							</label>
 							<p class="description"><?php echo esc_html( $face['desc'] ); ?></p>
 							<?php if ( null !== $face['threshold_path'] ) : ?>
 								<p>
-									<label for="wk-iprep-threshold-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( '阈值 N（24h 窗累计）', 'wink-gatekeeper' ); ?></label>
+									<label for="wk-iprep-threshold-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( 'Threshold N (24h window cumulative)', 'wink-wp-gatekeeper' ); ?></label>
 									<input type="number" id="wk-iprep-threshold-<?php echo esc_attr( $face_key ); ?>" min="1" class="small-text"
 										name="<?php echo esc_attr( self::field_name( $face['threshold_path'] ) ); ?>"
 										value="<?php echo esc_attr( (string) ( $face['threshold_value'] ?? 5 ) ); ?>" />
 								</p>
 							<?php endif; ?>
 							<p>
-								<label for="wk-iprep-category-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( '上报类目', 'wink-gatekeeper' ); ?></label>
+								<label for="wk-iprep-category-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( 'Report category', 'wink-wp-gatekeeper' ); ?></label>
 								<select id="wk-iprep-category-<?php echo esc_attr( $face_key ); ?>"
 									name="<?php echo esc_attr( self::field_name( $face['category_path'] ) ); ?>">
 									<option value="0" <?php selected( 0, $face['category_value'] ); ?>>
 										<?php
 										printf(
 											/* translators: 1: 默认类目码 2: 默认类目名 */
-											esc_html__( '用默认（%1$d %2$s）', 'wink-gatekeeper' ),
+											esc_html__( 'Use the default (%1$d %2$s)', 'wink-wp-gatekeeper' ),
 											(int) AbuseIpdbCategories::default_for( $face_key ),
 											esc_html( AbuseIpdbCategories::label( AbuseIpdbCategories::default_for( $face_key ) ) )
 										);
@@ -4614,7 +4617,7 @@ final class SettingsPage {
 								</select>
 							</p>
 							<p>
-								<label class="screen-reader-text" for="wk-iprep-comment-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( '自定义上报备注', 'wink-gatekeeper' ); ?></label>
+								<label class="screen-reader-text" for="wk-iprep-comment-<?php echo esc_attr( $face_key ); ?>"><?php esc_html_e( 'Custom report note', 'wink-wp-gatekeeper' ); ?></label>
 								<textarea id="wk-iprep-comment-<?php echo esc_attr( $face_key ); ?>" class="large-text" rows="2"
 									name="<?php echo esc_attr( self::field_name( $face['comment_path'] ) ); ?>"
 									placeholder="<?php echo esc_attr( AbuseIpdbService::default_comment( $face_key ) ); ?>"><?php echo esc_textarea( $face['comment_value'] ); ?></textarea>
@@ -4623,40 +4626,40 @@ final class SettingsPage {
 					</tr>
 				<?php endforeach; ?>
 				<tr>
-					<th scope="row"><?php esc_html_e( '上报备注说明（T1–T4 共用）', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Report note description (shared by T1–T4)', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<!-- 【M4UX UI-2-1】Comment 说明收敛：foreach 外共享一条（此前逐面重复 ×4——V3 收口）；
 						 placeholder 说明只留 description（UI-2-2——输入框空值即回显默认短语）。 -->
 						<p class="description">
-							<?php esc_html_e( '备注留空=发送该触发面的默认英文短语（已回显在各输入框 placeholder）。发送时自动加前缀 [wink-wp-gatekeeper]（不可去除），超长自动截断（255 字符）。', 'wink-gatekeeper' ); ?>
-							<?php esc_html_e( '请勿填写站点敏感信息与个人数据——AbuseIPDB 报告详情公开可见（访客 IP 提交至境外服务，数据出境请自行评估 PIPL 合规）。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'A blank note sends that trigger surface\'s default English phrase (already echoed in each input\'s placeholder). The [wink-wp-gatekeeper] prefix is added automatically on send (not removable), and over-length notes are truncated (255 characters).', 'wink-wp-gatekeeper' ); ?>
+							<?php esc_html_e( 'Do not enter sensitive site information or personal data — AbuseIPDB report details are publicly visible (visitor IPs are submitted to an overseas service; assess cross-border PIPL compliance yourself).', 'wink-wp-gatekeeper' ); ?>
 						</p>
 						<p class="description">
-							<?php esc_html_e( '支持占位符 {event_no}（拦截事件编号）、{category}（本次上报的 AbuseIPDB 类目码）、{gate}（触发面 T1/T2/T3/T4）。使用示例：', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Placeholders supported: {event_no} (block event number), {category} (the AbuseIPDB category code for this report), {gate} (trigger surface T1/T2/T3/T4). Usage example:', 'wink-wp-gatekeeper' ); ?>
 						</p>
 						<!-- 【M4UX F3-4】示例块独立样式行（术语 code 与示例排版分离——消扁平混杂）。 -->
 						<code class="wk-example-line">Forged captcha ticket #{event_no} (category {category}, gate {gate})</code>
 						<p class="description">
-							<?php esc_html_e( '类目下拉的官方全表见', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'The official full category table for the dropdown is at ', 'wink-wp-gatekeeper' ); ?>
 							<a href="https://www.abuseipdb.com/categories" target="_blank" rel="noopener noreferrer">abuseipdb.com/categories</a>
-							<?php esc_html_e( '（AbuseIPDB 官方类目 1–23，下拉内已内置同表）。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( '(AbuseIPDB official categories 1–23; the same table is built into the dropdown).', 'wink-wp-gatekeeper' ); ?>
 						</p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php esc_html_e( '限流参数（只读）', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Rate-limit parameters (read-only)', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<p class="description">
 							<?php
 							printf(
 								/* translators: 1: 冷却分钟 2: 每小时次数 3: 每日上限 */
-								esc_html__( '每 IP 冷却 %1$d 分钟 · 全局限速 %2$d 次/小时 · 日顶 %3$d 次/日（上报独立池，不占查询配额）。', 'wink-gatekeeper' ),
+								esc_html__( 'Per-IP cooldown %1$d minutes · global rate limit %2$d/hour · daily ceiling %3$d/day (a separate reporting pool that does not eat lookup quota).', 'wink-wp-gatekeeper' ),
 								(int) ( $report['cooldown_minutes'] ?? 60 ),
 								(int) ( $report['hourly_limit'] ?? 60 ),
 								(int) ( $report['daily_cap'] ?? 500 )
 							);
 							?>
-							<?php esc_html_e( '冷却窗内重复触发免重报；10 分钟内触发超 20 次会在总览页提醒（可能有人在伪造票据灌水）。', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Repeated triggers inside the cooldown window are not re-reported; more than 20 triggers within 10 minutes raises a notice on the overview page (someone may be flooding with forged tickets).', 'wink-wp-gatekeeper' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -4678,14 +4681,14 @@ final class SettingsPage {
 	private static function render_iprep_zone_notes(): void {
 		?>
 		<section class="wk-card" id="wk-iprep-notes">
-			<h2 class="wk-sec-title"><?php esc_html_e( '判定的三种结果（人话版）', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Three possible verdicts (plain words)', 'wink-wp-gatekeeper' ); ?></h2>
 			<ul class="description">
-				<li><?php esc_html_e( '跳过（skip）：IP 信誉未启用，或本次恰好查不了（退避/停转/私网）——不参与判定，验证照常走，也不影响「老朋友」免验资格。', 'wink-gatekeeper' ); ?></li>
-				<li><?php esc_html_e( '通过（pass）：信誉良好——照常放行，访客无感。', 'wink-gatekeeper' ); ?></li>
-				<li><?php esc_html_e( '不通过（fail）：恶意/可疑 IP，或配置错、超时、报错、超阈值——一律从严：强制访客先过人机验证再放行。', 'wink-gatekeeper' ); ?></li>
+				<li><?php esc_html_e( 'Skip: IP reputation is disabled, or the lookup happens to be unavailable right now (backoff / paused / private network) — no say in the verdict, verification proceeds as usual, and “old friend” waiver eligibility is unaffected.', 'wink-wp-gatekeeper' ); ?></li>
+				<li><?php esc_html_e( 'Pass: good reputation — through as usual, invisible to the visitor.', 'wink-wp-gatekeeper' ); ?></li>
+				<li><?php esc_html_e( 'Fail: malicious / suspected IP, or misconfiguration, timeout, error, over-threshold — always strict: the visitor must pass human verification first.', 'wink-wp-gatekeeper' ); ?></li>
 			</ul>
-			<p class="description"><?php esc_html_e( '与信用免验的联动：IP 信誉判「不通过」时，就算是「老朋友」（信用免验通道）也会被要求先过一次码——新鲜判定压过信任凭证，过码后照常放行。', 'wink-gatekeeper' ); ?></p>
-			<p class="description"><?php esc_html_e( '当日查询配额用尽后，验证码将临时对所有访客强制——次日自动恢复，非故障。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Tie-in with the trusted-visitor waiver: when IP reputation says “fail”, even an “old friend” (waiver channel) is asked for one captcha — a fresh verdict outranks the trust voucher, and passage resumes as usual afterwards.', 'wink-wp-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'After the day\'s lookup quota is exhausted, the captcha is temporarily enforced for all visitors — it auto-resumes the next day; not a malfunction.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
@@ -4710,42 +4713,42 @@ final class SettingsPage {
 		);
 
 		$scope_labels = array(
-			'trusted' => __( '受信', 'wink-gatekeeper' ),
-			'public'  => __( '公网', 'wink-gatekeeper' ),
-			'private' => __( '私网', 'wink-gatekeeper' ),
-			'invalid' => __( '非法', 'wink-gatekeeper' ),
+			'trusted' => __( 'Trusted', 'wink-wp-gatekeeper' ),
+			'public'  => __( 'Public', 'wink-wp-gatekeeper' ),
+			'private' => __( 'Private', 'wink-wp-gatekeeper' ),
+			'invalid' => __( 'Invalid', 'wink-wp-gatekeeper' ),
 		);
 		$src_labels   = array(
-			IpResolver::SRC_DIRECT            => __( '直连', 'wink-gatekeeper' ),
-			IpResolver::SRC_XFF               => __( 'XFF 链', 'wink-gatekeeper' ),
-			IpResolver::SRC_HEADER            => __( '自定义头', 'wink-gatekeeper' ),
-			IpResolver::SRC_UNRESOLVED        => __( '未解析（回退）', 'wink-gatekeeper' ),
-			IpResolver::SRC_IGNORED_UNTRUSTED => __( '来源不受信·转发头已忽略', 'wink-gatekeeper' ),
+			IpResolver::SRC_DIRECT            => __( 'Direct', 'wink-wp-gatekeeper' ),
+			IpResolver::SRC_XFF               => __( 'XFF chain', 'wink-wp-gatekeeper' ),
+			IpResolver::SRC_HEADER            => __( 'Custom header', 'wink-wp-gatekeeper' ),
+			IpResolver::SRC_UNRESOLVED        => __( 'Unresolved (fallback)', 'wink-wp-gatekeeper' ),
+			IpResolver::SRC_IGNORED_UNTRUSTED => __( 'Source untrusted · forwarding headers ignored', 'wink-wp-gatekeeper' ),
 		);
 		$mode_labels  = array(
-			IpResolver::MODE_DIRECT        => __( '直连 direct', 'wink-gatekeeper' ),
-			IpResolver::MODE_XFF           => __( 'XFF 信任链（仅取最右）', 'wink-gatekeeper' ),
-			IpResolver::MODE_CUSTOM_HEADER => __( '自定义头 custom_header', 'wink-gatekeeper' ),
-			IpResolver::MODE_TRAVERSE      => __( 'traverse 链式回溯', 'wink-gatekeeper' ),
+			IpResolver::MODE_DIRECT        => __( 'direct', 'wink-wp-gatekeeper' ),
+			IpResolver::MODE_XFF           => __( 'XFF trust chain (rightmost only)', 'wink-wp-gatekeeper' ),
+			IpResolver::MODE_CUSTOM_HEADER => __( 'custom_header', 'wink-wp-gatekeeper' ),
+			IpResolver::MODE_TRAVERSE      => __( 'traverse chain walk', 'wink-wp-gatekeeper' ),
 		);
 		?>
 		<section class="wk-card" id="wk-iprep-diag">
-			<h2><?php esc_html_e( 'IP 检测诊断面板', 'wink-gatekeeper' ); ?></h2>
-			<p class="description wk-muted"><?php esc_html_e( '本面板展示「当前这次页面请求」的解析实况；下方手动查询会把所输 IP 发往四个服务商（AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb）——结果仅本次展示、不落库不缓存、不计调用次数。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'IP detection diagnostics panel', 'wink-wp-gatekeeper' ); ?></h2>
+			<p class="description wk-muted"><?php esc_html_e( 'This panel shows the parsing of the current page request as it happened; the manual query below sends the entered IP to four providers (AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb) — results are shown for this request only, never stored, cached, or counted.', 'wink-wp-gatekeeper' ); ?></p>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '本地解析区', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Local parsing', 'wink-wp-gatekeeper' ); ?></h3>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( 'REMOTE_ADDR', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'REMOTE_ADDR', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
-						<code><?php echo '' !== $panel['remote']['raw'] ? esc_html( $panel['remote']['raw'] ) : esc_html__( '（缺失）', 'wink-gatekeeper' ); ?></code>
+						<code><?php echo '' !== $panel['remote']['raw'] ? esc_html( $panel['remote']['raw'] ) : esc_html__( '(missing)', 'wink-wp-gatekeeper' ); ?></code>
 						<span class="wk-muted">
 							<?php
 							printf(
 								/* translators: 1: 作用域标注 2: 受信命中说明 */
-								esc_html__( '%1$s、%2$s', 'wink-gatekeeper' ),
+								esc_html__( '%1$s、%2$s', 'wink-wp-gatekeeper' ),
 								esc_html( $scope_labels[ $panel['remote']['scope'] ] ?? (string) $panel['remote']['scope'] ),
-								esc_html( $panel['remote']['trusted'] ? __( '命中受信网段', 'wink-gatekeeper' ) : __( '不在受信网段', 'wink-gatekeeper' ) )
+								esc_html( $panel['remote']['trusted'] ? __( 'In a trusted range', 'wink-wp-gatekeeper' ) : __( 'Not in a trusted range', 'wink-wp-gatekeeper' ) )
 							);
 							?>
 						</span>
@@ -4756,7 +4759,7 @@ final class SettingsPage {
 						<th scope="row"><?php echo esc_html( $header_row['name'] ); ?></th>
 						<td>
 							<?php if ( null === $header_row['raw'] ) : ?>
-								<span class="wk-muted"><?php esc_html_e( '（本请求未出现）', 'wink-gatekeeper' ); ?></span>
+								<span class="wk-muted"><?php esc_html_e( '(absent in this request)', 'wink-wp-gatekeeper' ); ?></span>
 							<?php else : ?>
 								<code><?php echo esc_html( (string) $header_row['raw'] ); ?></code>
 								<?php $items = array(); ?>
@@ -4777,18 +4780,18 @@ final class SettingsPage {
 					</tr>
 				<?php endforeach; ?>
 				<tr>
-					<th scope="row"><?php esc_html_e( '当前生效', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Currently in effect', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<strong><code><?php echo esc_html( '' !== $panel['effective']['ip'] ? $panel['effective']['ip'] : '—' ); ?></code></strong>
 						<?php if ( ! empty( $panel['effective']['whitelisted'] ) ) : ?>
 							<!-- 【I5】站长白名单命中徽标（AbuseIpdbService 步 0 同一判定函数）。 -->
-							<span class="wk-muted">· <?php esc_html_e( '白名单豁免', 'wink-gatekeeper' ); ?></span>
+							<span class="wk-muted">· <?php esc_html_e( 'Allowlist-exempt', 'wink-wp-gatekeeper' ); ?></span>
 						<?php endif; ?>
 						<span class="wk-muted">
 							<?php
 							printf(
 								/* translators: 1: 五态 ip_src 2: 获取模式 */
-								esc_html__( 'ip_src=%1$s · 模式=%2$s', 'wink-gatekeeper' ),
+								esc_html__( 'ip_src=%1$s · mode=%2$s', 'wink-wp-gatekeeper' ),
 								esc_html( ( $src_labels[ $panel['effective']['ip_src'] ] ?? (string) $panel['effective']['ip_src'] ) . '（' . $panel['effective']['ip_src'] . '）' ),
 								esc_html( $mode_labels[ $panel['mode'] ] ?? (string) $panel['mode'] )
 							);
@@ -4804,7 +4807,7 @@ final class SettingsPage {
 					<?php
 					printf(
 						/* translators: %s: 配置的自定义头名 */
-						esc_html__( '配置一致性：已配置自定义头「%s」但本请求没有该头——请核对当前拓扑（Wordfence「Configured but not valid」同款警示）。', 'wink-gatekeeper' ),
+						esc_html__( 'Configuration consistency: custom header “%s” is configured but absent in this request — please check your topology (same warning as Wordfence\'s “Configured but not valid”).', 'wink-wp-gatekeeper' ),
 						esc_html( $panel['custom_header'] )
 					);
 					?>
@@ -4821,13 +4824,13 @@ final class SettingsPage {
 					if ( null !== $panel['trusted']['verified'] ) {
 						$trusted_bits[] = sprintf(
 							/* translators: %s: 快照核对日期 */
-							__( '预设快照核对日期：%s', 'wink-gatekeeper' ),
+							__( 'Preset snapshot verified on: %s', 'wink-wp-gatekeeper' ),
 							(string) $panel['trusted']['verified']
 						);
 					}
 					echo esc_html( array() !== $trusted_bits
-						? __( '受信网段：', 'wink-gatekeeper' ) . implode( ' · ', $trusted_bits )
-						: __( '受信网段：（未启用任何预设或自定义网段——转发头一概不参与解析）', 'wink-gatekeeper' ) );
+						? __( 'Trusted ranges:', 'wink-wp-gatekeeper' ) . implode( ' · ', $trusted_bits )
+						: __( 'Trusted ranges: (no preset or custom ranges enabled — forwarded headers take no part in parsing)', 'wink-wp-gatekeeper' ) );
 					?>
 				</span>
 			</p>
@@ -4836,7 +4839,7 @@ final class SettingsPage {
 					<?php
 					printf(
 						/* translators: 1: 快照日期 2: 距今天数 */
-						esc_html__( '受信网段快照已超过 180 天（最后核对 %1$s，距今 %2$d 天）——网段可能过期，请校准（开发期工具 tools/api-smoke/refresh-presets.php 拉官方最新段 diff 后人工手改）。', 'wink-gatekeeper' ),
+						esc_html__( 'The trusted-range snapshot is over 180 days old (last verified %1$s, %2$d days ago) — ranges may be stale; recalibrate (dev tool tools/api-smoke/refresh-presets.php pulls the latest official ranges for a manual diff-and-edit).', 'wink-wp-gatekeeper' ),
 						esc_html( (string) $panel['trusted']['verified'] ),
 						(int) ( $panel['trusted']['age_days'] ?? 0 )
 					);
@@ -4849,23 +4852,23 @@ final class SettingsPage {
 					<?php
 					printf(
 						/* translators: %s: 非法行列表 */
-						esc_html__( '自定义网段非法行（已跳过）：%s', 'wink-gatekeeper' ),
+						esc_html__( 'Custom range invalid lines (skipped): %s', 'wink-wp-gatekeeper' ),
 						esc_html( implode( '、', $panel['trusted']['invalid'] ) )
 					);
 					?>
 				</p>
 			<?php endif; ?>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '手动聚合查询区', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Manual aggregate query', 'wink-wp-gatekeeper' ); ?></h3>
 			<p>
-				<label class="screen-reader-text" for="wk-ip-diag-ip"><?php esc_html_e( '要查询的 IP 地址', 'wink-gatekeeper' ); ?></label>
+				<label class="screen-reader-text" for="wk-ip-diag-ip"><?php esc_html_e( 'IP address to look up', 'wink-wp-gatekeeper' ); ?></label>
 				<input type="text" id="wk-ip-diag-ip" class="regular-text" placeholder="8.8.8.8 或 2001:db8::1" autocomplete="off" />
-				<button type="button" class="button" id="wk-ip-diag-query" data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_IP_DIAGNOSE ) ); ?>"><?php esc_html_e( '查询四源', 'wink-gatekeeper' ); ?></button>
+				<button type="button" class="button" id="wk-ip-diag-query" data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_IP_DIAGNOSE ) ); ?>"><?php esc_html_e( 'Sources to query', 'wink-wp-gatekeeper' ); ?></button>
 				<span id="wk-ip-diag-status" class="wk-muted" aria-live="polite"></span>
 			</p>
 			<div id="wk-ip-diag-result" class="wk-ip-diag-grid"></div>
 			<p class="description wk-muted">
-				<?php esc_html_e( '威胁组：AbuseIPDB（评分/用途/ISP/Tor）· StopForumSpam（黑名单出现/频次）· ip.nc.gy（代理/VPN/Tor/机房/CDN/匿名六旗）；地理组：ip.sb（归属地/ISP/ASN）。查询超时 3 秒/源；任一源失败仅该卡片失败，其余照常出数。', 'wink-gatekeeper' ); ?>
+				<?php esc_html_e( 'Threat group: AbuseIPDB (score / usage / ISP / Tor) · StopForumSpam (blacklist hits / frequency) · ip.nc.gy (proxy / VPN / Tor / hosting / CDN / anonymity — six flags); geo group: ip.sb (location / ISP / ASN). 3-second timeout per source; a failing source fails only its own card while the rest still report.', 'wink-wp-gatekeeper' ); ?>
 			</p>
 		</section>
 		<?php
@@ -4885,7 +4888,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_IP_DIAGNOSE, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -4893,7 +4896,7 @@ final class SettingsPage {
 		$ip_raw = isset( $post['ip'] ) && is_string( $post['ip'] ) ? trim( $post['ip'] ) : '';
 		$ip     = IpResolver::normalize( $ip_raw );
 		if ( null === $ip ) {
-			wp_send_json_error( array( 'message' => __( 'IP 格式无效。', 'wink-gatekeeper' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Invalid IP format.', 'wink-wp-gatekeeper' ) ), 400 );
 		}
 
 		$stored  = get_option( self::OPTION_NAME, array() );
@@ -4911,7 +4914,7 @@ final class SettingsPage {
 			);
 			if ( 'abuseipdb' === $id ) {
 				if ( '' === $api_key ) {
-					$cards[ $id ] = array( 'ok' => false, 'rows' => array(), 'error' => __( '未配置 API Key（Tab④ 分区二）', 'wink-gatekeeper' ) );
+					$cards[ $id ] = array( 'ok' => false, 'rows' => array(), 'error' => __( 'No API Key configured (Tab 4, section 2)', 'wink-wp-gatekeeper' ) );
 					continue;
 				}
 				$args['headers'] = array(
@@ -4950,7 +4953,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_IPREP, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -5037,7 +5040,7 @@ final class SettingsPage {
 	 */
 	public static function handle_die_preview(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( self::ACTION_DIE_PREVIEW );
 
@@ -5081,7 +5084,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_DEEPSEEK, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -5128,7 +5131,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_URL_AUDIT, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -5185,7 +5188,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_CREDENTIALS_OPENAI_CUSTOM, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -5244,7 +5247,7 @@ final class SettingsPage {
 		$op     = str_replace( 'wink_gatekeeper_audit_', '', $op );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( 'wink_gatekeeper_audit_' . $op );
 
@@ -5314,29 +5317,29 @@ final class SettingsPage {
 		$chain_empty      = ( ! ( 'custom' === $ua_provider_mode && '' !== $ua_own_key ) ) && '' === trim( $cloud_ds_key );
 		?>
 		<section class="wk-card" id="wk-review-url-audit-card">
-			<h2><?php esc_html_e( '网址核查（增强层——关闭时评论防护照常，零行为变化）', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'URL check (enhancement layer — with it off, comment protection is unchanged, zero behavior difference)', 'wink-wp-gatekeeper' ); ?></h2>
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( '启用网址核查', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Enable the URL check', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'enabled' ) ) ); ?>" value="0" />
 							<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'enabled' ) ) ); ?>" value="1" <?php checked( $enabled ); ?>>
-							<?php esc_html_e( '评论者填的网站地址，先试着打开看一眼，再交给 AI 判定该网站是否有问题（赌博/诈骗/钓鱼等）', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'The website a commenter fills in is first opened for a look, then the AI judges whether the site is problematic (gambling / scams / phishing, etc.)', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '只放大严：网址没问题也不会替评论放行。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Only tightens: a clean URL never approves a comment by itself.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><span id="wk-url-audit-profile-group"><?php esc_html_e( '处置档位', 'wink-gatekeeper' ); ?></span></th>
+					<th scope="row"><span id="wk-url-audit-profile-group"><?php esc_html_e( 'Handling level', 'wink-wp-gatekeeper' ); ?></span></th>
 					<td>
 						<dl>
-							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="conservative" <?php checked( $profile, 'conservative' ); ?>> <?php esc_html_e( '保守（默认）——违规不自动进垃圾箱，只出报告和标记；网址没看清的会先进待审等你判定', 'wink-gatekeeper' ); ?></label></dt>
-							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="balanced" <?php checked( $profile, 'balanced' ); ?>> <?php esc_html_e( '均衡（推荐）——证据确凿的自动进垃圾箱（可一键撤销），其余进待审等你复核', 'wink-gatekeeper' ); ?></label></dt>
-							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="aggressive" <?php checked( $profile, 'aggressive' ); ?>> <?php esc_html_e( '激进——拿不太准的也自动进垃圾箱，没看清的进待审；垃圾评论洪水期应急用，用完建议切回来', 'wink-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="conservative" <?php checked( $profile, 'conservative' ); ?>> <?php esc_html_e( 'Conservative (default) — violations are not auto-spammed, only reported and flagged; unclear URLs go to pending review for your call', 'wink-wp-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="balanced" <?php checked( $profile, 'balanced' ); ?>> <?php esc_html_e( 'Balanced (recommended) — clear-cut violations are auto-spammed (one-click undo), the rest go to pending review', 'wink-wp-gatekeeper' ); ?></label></dt>
+							<dt><label><input type="radio" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'profile' ) ) ); ?>" value="aggressive" <?php checked( $profile, 'aggressive' ); ?>> <?php esc_html_e( 'Aggressive — even not-so-sure cases are auto-spammed, unclear ones go to pending review; for emergencies during spam floods, switch back afterwards', 'wink-wp-gatekeeper' ); ?></label></dt>
 						</dl>
-						<p class="description"><?php esc_html_e( '「证据确凿」的门槛由系统掌握，界面不提供旋钮——只放大严。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The “clear-cut evidence” bar is system-controlled with no UI knob — it only tightens.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -5347,7 +5350,7 @@ final class SettingsPage {
 			// id= 起标记字面量留本位——M6B 系 blockBetween 契约）。
 			self::advanced_fold(
 				'id="wk-url-audit-advanced"',
-				__( '高级（默认收起）', 'wink-gatekeeper' ),
+				__( 'Advanced (collapsed by default)', 'wink-wp-gatekeeper' ),
 				static function () use ( $ua, $ua_provider, $ua_provider_mode ): void {
 					?>
 					<table class="form-table" role="presentation">
@@ -5355,22 +5358,22 @@ final class SettingsPage {
 					 * （N2：搜索属高级配置；字段 name 零变化=schema 零变化；bocha.enabled
 					 * hidden 0 伴随域照查）。 */ ?>
 					<tr id="wk-url-audit-bocha-row">
-						<th scope="row"><?php esc_html_e( '核查前先搜一搜', 'wink-gatekeeper' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Search before checking', 'wink-wp-gatekeeper' ); ?></th>
 						<td>
 							<label>
 								<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="0" />
 								<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['bocha']['enabled'] ) ); ?>>
-								<?php esc_html_e( '打不开网页时，搜索结果也能当判定线索，减少「没看清」的次数（默认关）', 'wink-gatekeeper' ); ?>
+								<?php esc_html_e( 'When a page will not open, search results can still serve as clues, reducing “could not tell” cases (off by default)', 'wink-wp-gatekeeper' ); ?>
 							</label>
 							<?php self::password_field( array( 'url_audit', 'bocha', 'api_key' ), '' !== (string) ( $ua['bocha']['api_key'] ?? '' ), '博查 API Key' ); ?>
 							<p>
-								<label for="wk-url-audit-search-source"><?php esc_html_e( '搜索源', 'wink-gatekeeper' ); ?></label>
+								<label for="wk-url-audit-search-source"><?php esc_html_e( 'Search source', 'wink-wp-gatekeeper' ); ?></label>
 								<select id="wk-url-audit-search-source" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'search_source' ) ) ); ?>">
-									<option value="bocha" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'bocha' ); ?>><?php esc_html_e( '博查网页搜索（默认——需上方博查 Key，按次计费独立计量）', 'wink-gatekeeper' ); ?></option>
-									<option value="deepseek" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页搜索（用上方 LLM提供商的凭证——按成功次计费）', 'wink-gatekeeper' ); ?></option>
+									<option value="bocha" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'bocha' ); ?>><?php esc_html_e( 'Bocha web search (default — needs the Bocha key above; per-call billing, metered separately)', 'wink-wp-gatekeeper' ); ?></option>
+									<option value="deepseek" <?php selected( (string) ( $ua['search_source'] ?? 'bocha' ), 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek web search (uses the LLM provider\'s credentials above — billed per success)', 'wink-wp-gatekeeper' ); ?></option>
 								</select>
 							</p>
-							<p class="description"><?php esc_html_e( '选博查需在博查开放平台（bocha.cn）申请 API Key（按次计费、独立计量）；选 DeepSeek 则跟随上方 LLM提供商的凭证（无需额外 Key，按成功次数计费）。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Bocha requires an API Key from the Bocha open platform (bocha.cn; per-call billing, metered separately); DeepSeek follows the LLM provider\'s credentials above (no extra key, billed per success).', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -5387,35 +5390,35 @@ final class SettingsPage {
 						<tr>
 							<!-- 【M6·批H·H-5】行标签改「LLM提供商」（用户 2026-11-16）；
 							 * inherit 选项文案与抓取服务商统一为「跟随云端审核」语义（§0-5）。 -->
-							<th scope="row"><label for="wk-url-audit-provider-mode"><?php esc_html_e( 'LLM提供商', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-url-audit-provider-mode"><?php esc_html_e( 'LLM provider', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<select id="wk-url-audit-provider-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'mode' ) ) ); ?>">
-									<option value="inherit" <?php selected( $ua_provider_mode, 'inherit' ); ?>><?php esc_html_e( '跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行判定）', 'wink-gatekeeper' ); ?></option>
-									<option value="custom" <?php selected( $ua_provider_mode, 'custom' ); ?>><?php esc_html_e( '独立凭证（网址核查专用）', 'wink-gatekeeper' ); ?></option>
+									<option value="inherit" <?php selected( $ua_provider_mode, 'inherit' ); ?>><?php esc_html_e( 'Follow cloud moderation (default — when cloud moderation is DeepSeek, verdicts use the same configuration)', 'wink-wp-gatekeeper' ); ?></option>
+									<option value="custom" <?php selected( $ua_provider_mode, 'custom' ); ?>><?php esc_html_e( 'Separate credentials (for the URL check)', 'wink-wp-gatekeeper' ); ?></option>
 								</select>
-								<p class="description"><?php esc_html_e( '跟随（默认）：云端审核为 DeepSeek 时，判定与网页抓取都用 DeepSeek（同一份凭证）；云端审核是其他驱动时，判定走其配置、网页抓取不会自动启用（抓取未配置——需要抓取请在下方「网页抓取服务商」手动选择）。独立：网址核查用单独的 DeepSeek 凭证（与评论云端审核互不影响，想用不同的账号/额度时才需要选独立）。', 'wink-gatekeeper' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Follow (default): when cloud moderation is DeepSeek, both verdicts and page fetching use DeepSeek (one set of credentials); with another driver, verdicts use its configuration and page fetching does not auto-enable (unconfigured — pick one manually under “Fetch provider” below). Separate: the URL check uses its own DeepSeek credentials (independent of comment cloud moderation; only needed for a different account/quota).', 'wink-wp-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 				</table>
 				<table class="form-table" role="presentation" id="wk-url-audit-provider-rows"<?php echo 'custom' === $ua_provider_mode ? '' : ' hidden'; ?>>
 					<tr>
-						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( '独立凭证 API Key', 'wink-gatekeeper' ); ?></span></th>
+						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( 'Separate-credentials API Key', 'wink-wp-gatekeeper' ); ?></span></th>
 						<td>
 							<?php self::password_field( array( 'url_audit', 'provider', 'api_key' ), '' !== (string) ( $ua_provider['api_key'] ?? '' ), '网址核查 API Key' ); ?>
-							<p class="description"><?php esc_html_e( 'DeepSeek 开放平台的 API Key（与 Tab③ 云端审核可不同账号）。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'An API Key from the DeepSeek platform (may be a different account from Tab 3 cloud moderation).', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="wk-url-audit-provider-base-url"><?php esc_html_e( '独立凭证接入地址', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-url-audit-provider-base-url"><?php esc_html_e( 'Separate-credentials endpoint', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<input type="url" id="wk-url-audit-provider-base-url" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'base_url' ) ) ); ?>"
 								value="<?php echo esc_attr( (string) ( $ua_provider['base_url'] ?? '' ) ); ?>" class="regular-text code"
 								placeholder="https://api.deepseek.com" />
-							<p class="description"><?php esc_html_e( '留空用官方地址（一般不用改）。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Leave blank to use the official address (rarely needs changing).', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="wk-url-audit-provider-model"><?php esc_html_e( '独立凭证判定模型', 'wink-gatekeeper' ); ?></label></th>
+						<th scope="row"><label for="wk-url-audit-provider-model"><?php esc_html_e( 'Separate-credentials verdict model', 'wink-wp-gatekeeper' ); ?></label></th>
 						<td>
 							<?php /* 【M6·批E·E-4】改手填 text（原 DeepSeek 静态两选项 select 退役——
 								独立端点可为任意 OpenAI 兼容端点）；空=标准档回落语义保留
@@ -5423,12 +5426,12 @@ final class SettingsPage {
 								显示空值不虚构已存模型名）。 */ ?>
 							<input type="text" id="wk-url-audit-provider-model" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'provider', 'model' ) ) ); ?>"
 								value="<?php echo esc_attr( (string) ( $ua_provider['model'] ?? '' ) ); ?>" class="regular-text"
-								placeholder="<?php esc_attr_e( '手填模型名（OpenAI 兼容端点填其支持的模型）', 'wink-gatekeeper' ); ?>" />
-							<p class="description"><?php esc_html_e( '模型名须与端点一致；留空=标准档（deepseek-flash 回落——DeepSeek 端点可直接留空）。', 'wink-gatekeeper' ); ?></p>
+								placeholder="<?php esc_attr_e( 'Enter the model name manually (for OpenAI-compatible endpoints, one it supports)', 'wink-wp-gatekeeper' ); ?>" />
+							<p class="description"><?php esc_html_e( 'The model name must match the endpoint; blank = Standard (deepseek-flash fallback — DeepSeek endpoints can stay blank).', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( '测试独立凭证', 'wink-gatekeeper' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Test separate credentials', 'wink-wp-gatekeeper' ); ?></th>
 						<td>
 							<?php /* 【M6·批B·B-3】独立凭据测试（N4 范围边界：DeepSeek 协议族同用
 							 * 余额探测，base_url 跟随其配置）。【M6·批E·E-4】按 base_url 分流：
@@ -5439,11 +5442,11 @@ final class SettingsPage {
 								'id="wk-url-audit-provider-test-btn"',
 								'id="wk-url-audit-provider-test-result"',
 								wp_create_nonce( self::AJAX_TEST_CREDENTIALS_URL_AUDIT ),
-								__( '测试凭据', 'wink-gatekeeper' ),
+								__( 'Test credentials', 'wink-wp-gatekeeper' ),
 								'url_audit_provider'
 							);
 							?>
-							<p class="description"><?php esc_html_e( '官方地址=余额探测（零费用，显示余额）；其他地址=模型列表探活（零 token）。绿 = 凭据可用；红 = 密钥被拒或连不上。结果记录最近一次测试状态与时间。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Official address = balance probe (zero cost, shows the balance); other addresses = model-list probe (zero tokens). Green = credentials work; red = key rejected or unreachable. The last test status and time are recorded.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -5456,48 +5459,48 @@ final class SettingsPage {
 				?>
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="wk-url-audit-fetcher-mode"><?php esc_html_e( '网页抓取服务商', 'wink-gatekeeper' ); ?></label></th>
+							<th scope="row"><label for="wk-url-audit-fetcher-mode"><?php esc_html_e( 'Fetch provider', 'wink-wp-gatekeeper' ); ?></label></th>
 							<td>
 								<select id="wk-url-audit-fetcher-mode" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'fetcher', 'mode' ) ) ); ?>">
 									<!-- 【M6·批H·H-5】inherit 文案与 LLM提供商行统一「跟随云端审核」语义
 									 * +末句保留抓取自身动作说明；【M6·批H·H-1】新语义如实入文案。 -->
-									<option value="inherit" <?php selected( $fetcher_mode, 'inherit' ); ?>><?php esc_html_e( '跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行抓取；其他驱动时抓取未配置，本站直抓不自动启用）', 'wink-gatekeeper' ); ?></option>
-									<option value="self" <?php selected( $fetcher_mode, 'self' ); ?>><?php esc_html_e( '本站直接打开（免费）', 'wink-gatekeeper' ); ?></option>
-									<option value="deepseek" <?php selected( $fetcher_mode, 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek 网页抓取（按次计费 ¥5/1000 次）', 'wink-gatekeeper' ); ?></option>
+									<option value="inherit" <?php selected( $fetcher_mode, 'inherit' ); ?>><?php esc_html_e( 'Follow cloud moderation (default — when cloud moderation is DeepSeek, fetching uses the same configuration; with another driver, fetching is unconfigured and direct fetching from this site does not auto-enable)', 'wink-wp-gatekeeper' ); ?></option>
+									<option value="self" <?php selected( $fetcher_mode, 'self' ); ?>><?php esc_html_e( 'Open directly from this site (free)', 'wink-wp-gatekeeper' ); ?></option>
+									<option value="deepseek" <?php selected( $fetcher_mode, 'deepseek' ); ?>><?php esc_html_e( 'DeepSeek page fetching (pay-per-use ¥5/1,000)', 'wink-wp-gatekeeper' ); ?></option>
 								</select>
-								<p class="description"><?php esc_html_e( '选 DeepSeek 抓取时，本站服务器不再直接打开评论者的网址——由 DeepSeek 代为抓取正文（对打不开/反爬的站点成功率高很多，如某些成人站、强反爬站），按成功次数计费。本站直接打开不花钱但会暴露源站 IP，且遇到反爬站容易「没看清」——默认不自动启用，需在此手动选择。', 'wink-gatekeeper' ); ?></p>
+								<p class="description"><?php esc_html_e( 'With DeepSeek fetching, your server no longer opens commenters\' URLs itself — DeepSeek fetches the content instead (a much better success rate on blocked / anti-scraping sites, e.g. certain adult or heavily protected sites), billed per success. Direct opening is free but exposes your origin IP and often “cannot tell” on anti-scraping sites — it is never auto-enabled; select it here manually.', 'wink-wp-gatekeeper' ); ?></p>
 							</td>
 						</tr>
 					</table>
 				<table class="form-table" role="presentation" id="wk-url-audit-fetcher-rows"<?php echo 'deepseek' === $fetcher_mode ? '' : ' hidden'; ?>>
 					<tr>
-						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( '抓取专用 DeepSeek Key', 'wink-gatekeeper' ); ?></span></th>
+						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( 'DeepSeek key for fetching', 'wink-wp-gatekeeper' ); ?></span></th>
 						<td>
 							<?php self::password_field( array( 'url_audit', 'fetcher', 'api_key' ), '' !== (string) ( $ua['fetcher']['api_key'] ?? '' ), '抓取专用 DeepSeek Key' ); ?>
-							<p class="description"><?php esc_html_e( '留空=用上方「LLM提供商」的 Key（一般不用填）。想给网页抓取单独用一个 DeepSeek 账号时才填。', 'wink-gatekeeper' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Blank = use the “LLM provider” key above (usually leave it empty). Fill it in only to give page fetching its own DeepSeek account.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 				</table>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( '日额度', 'wink-gatekeeper' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Daily allowance', 'wink-wp-gatekeeper' ); ?></th>
 						<td>
-							<label><?php esc_html_e( '批量车道', 'wink-gatekeeper' ); ?> <input type="number" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'batch_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $ua['batch_quota'] ?? 50 ) ); ?>" class="small-text" min="0"> <?php esc_html_e( '次', 'wink-gatekeeper' ); ?></label>
-							<label><?php esc_html_e( '新评论车道', 'wink-gatekeeper' ); ?> <input type="number" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'incr_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $ua['incr_quota'] ?? 100 ) ); ?>" class="small-text" min="0"> <?php esc_html_e( '次（0=不限量）', 'wink-gatekeeper' ); ?></label>
-							<p class="description"><?php esc_html_e( '额度用完：批量车道先停、新评论照常防护，次日自动恢复。', 'wink-gatekeeper' ); ?></p>
+							<label><?php esc_html_e( 'Batch lane', 'wink-wp-gatekeeper' ); ?> <input type="number" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'batch_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $ua['batch_quota'] ?? 50 ) ); ?>" class="small-text" min="0"> <?php esc_html_e( 'times', 'wink-wp-gatekeeper' ); ?></label>
+							<label><?php esc_html_e( 'New-comment lane', 'wink-wp-gatekeeper' ); ?> <input type="number" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'incr_quota' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $ua['incr_quota'] ?? 100 ) ); ?>" class="small-text" min="0"> <?php esc_html_e( 'verdicts (0 = unlimited)', 'wink-wp-gatekeeper' ); ?></label>
+							<p class="description"><?php esc_html_e( 'When the quota runs out: the batch lane stops first, new comments stay protected, and everything auto-resumes the next day.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'robots 禁爬声明', 'wink-gatekeeper' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'robots disallow rules', 'wink-wp-gatekeeper' ); ?></th>
 						<td>
-							<label><input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="0" /><input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['robots_comply'] ) ); ?>> <?php esc_html_e( '遵守网站的 robots 禁爬声明（默认关——开了会多「没看清」）', 'wink-gatekeeper' ); ?></label>
+							<label><input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="0" /><input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'robots_comply' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['robots_comply'] ) ); ?>> <?php esc_html_e( 'Honor the site\'s robots disallow rules (off by default — honoring them means more “could not tell” cases)', 'wink-wp-gatekeeper' ); ?></label>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( '核查记录缓存', 'wink-gatekeeper' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Check-record cache', 'wink-wp-gatekeeper' ); ?></th>
 						<td>
 							<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_PURGE ), \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_PURGE ) ); ?>"
-								onclick="return confirm('<?php echo esc_js( __( '清空全部网址核查记录？下次遇到同一网址会重新核查（消耗额度）。', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '清空网址核查记录缓存', 'wink-gatekeeper' ); ?></a>
+								onclick="return confirm('<?php echo esc_js( __( 'Clear all URL check records? The next encounter with the same URL will be checked again (uses quota).', 'wink-wp-gatekeeper' ) ); ?>');"><?php esc_html_e( 'Clear the URL check record cache', 'wink-wp-gatekeeper' ); ?></a>
 						</td>
 					</tr>
 				</table>
@@ -5514,8 +5517,8 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				esc_html__( '网页抓取未配置——本站直抓因暴露源站 IP 默认不自动启用，请在', 'wink-gatekeeper' )
-					. '<a href="#wk-url-audit-advanced">' . esc_html__( '高级区的「网页抓取服务商」手动选择', 'wink-gatekeeper' ) . '</a>。',
+				esc_html__( 'Page fetching is unconfigured — direct fetching from this site is not auto-enabled because it exposes the origin IP; please ', 'wink-wp-gatekeeper' )
+					. '<a href="#wk-url-audit-advanced">' . esc_html__( 'pick one manually under “Fetch provider” in the advanced section', 'wink-wp-gatekeeper' ) . '</a>。',
 				'',
 				'',
 				'wk-url-audit-fetcher-unconfigured-notice'
@@ -5533,7 +5536,8 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				sprintf( esc_html__( 'DeepSeek 网页抓取已连续 %d 次未成功——网址核查可能无法正常判定，请检查凭据、余额与端点状态。', 'wink-gatekeeper' ), (int) $fetch_streak['n'] ),
+			/* translators: %d: consecutive failed page-fetch attempts */
+				sprintf( esc_html__( 'DeepSeek page fetching has failed %d times in a row — URL check verdicts may not work properly; check credentials, balance, and endpoint status.', 'wink-wp-gatekeeper' ), (int) $fetch_streak['n'] ),
 				'',
 				'',
 				'wk-url-audit-fetch-streak-notice'
@@ -5549,10 +5553,10 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				esc_html__( '网址核查已启用，但 AI 判定（DeepSeek）还没有配置——核查无法完成判定。', 'wink-gatekeeper' )
-					. '<a href="#wk-review-deepseek-card">' . esc_html__( '到上方 DeepSeek 配置区填写 API Key', 'wink-gatekeeper' ) . '</a>'
-					. esc_html__( '，或在', 'wink-gatekeeper' )
-					. '<a href="#wk-url-audit-advanced">' . esc_html__( '下方「高级」里为网址核查单独配置', 'wink-gatekeeper' ) . '</a>。',
+				esc_html__( 'The URL check is enabled but the AI verdict (DeepSeek) is not configured yet — checks cannot reach a verdict.', 'wink-wp-gatekeeper' )
+					. '<a href="#wk-review-deepseek-card">' . esc_html__( 'enter an API Key in the DeepSeek section above', 'wink-wp-gatekeeper' ) . '</a>'
+					. esc_html__( ', or ', 'wink-wp-gatekeeper' )
+					. '<a href="#wk-url-audit-advanced">' . esc_html__( 'set up separate credentials for the URL check under “Advanced” below', 'wink-wp-gatekeeper' ) . '</a>。',
 				'',
 				'',
 				'wk-url-audit-unconfigured-notice'
@@ -5566,7 +5570,7 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				esc_html__( '网站字段收集已关闭——新评论没有网址可核查，本功能对新评论自动失效；存量网址仍可在工具页「存量网址核查」中处理。', 'wink-gatekeeper' ),
+				esc_html__( 'Website-field collection is off — new comments carry no URL to check, so this feature auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page.', 'wink-wp-gatekeeper' ),
 				'',
 				'',
 				'wk-url-audit-inert-notice'
@@ -5611,7 +5615,7 @@ final class SettingsPage {
 	 */
 	public static function handle_url_audit_purge(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_PURGE );
 
@@ -5628,7 +5632,7 @@ final class SettingsPage {
 	 */
 	public static function handle_url_audit_host_purge(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( 'wink_gatekeeper_url_host_purge' );
 
@@ -5653,7 +5657,7 @@ final class SettingsPage {
 	 */
 	public static function handle_url_audit_backlog(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG );
 
@@ -5674,19 +5678,19 @@ final class SettingsPage {
 		$defaults = Copywork::defaults();
 		?>
 		<section class="wk-card">
-			<h2><?php esc_html_e( '全局：联系邮箱', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Global: contact email', 'wink-wp-gatekeeper' ); ?></h2>
 			<p class="description">
 				<input type="email" name="<?php echo esc_attr( self::field_name( array( 'brand', 'contact_email' ) ) ); ?>" value="<?php echo esc_attr( (string) $settings['brand']['contact_email'] ); ?>" class="regular-text" placeholder="webmaster@example.com" />
-				<?php esc_html_e( '出现在 captcha_failed / ip_malicious 等默认文案的「联系站长」处（{contact_email} 占位符）。', 'wink-gatekeeper' ); ?>
+				<?php esc_html_e( 'Fills the “contact the site owner” spot in default copy such as captcha_failed / ip_malicious (the {contact_email} placeholder).', 'wink-wp-gatekeeper' ); ?>
 			</p>
 		</section>
 
 		<section class="wk-card">
-			<h2><?php esc_html_e( '拦截文案与页面标题', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Block messages and page titles', 'wink-wp-gatekeeper' ); ?></h2>
 			<p class="wk-muted">
 				<?php
 				// 语气三原则常驻小抄（03 Tab⑤）——不折叠常显。
-				esc_html_e( '语气三原则：只调侃行为 / 留台阶 / 带下一步。', 'wink-gatekeeper' );
+				esc_html_e( 'Three tone rules: tease the behavior only / leave a way out / point to the next step.', 'wink-wp-gatekeeper' );
 				?>
 			</p>
 			<!-- 【M4UX G3】拦截文案组默认整组折叠（details/wk-guide 既有形态）——
@@ -5695,28 +5699,28 @@ final class SettingsPage {
 			// 【W3·批B】文案折叠迁 advanced_fold（G3a：折叠组形态收口；占位符说明/恢复默认钮/文案表随组折叠原样，id 锚留编排位）。
 			self::advanced_fold(
 				'id="wk-copy-advanced"',
-				__( '高级设置（拦截文案 / 页面标题 / 占位符说明）', 'wink-gatekeeper' ),
+				__( 'Advanced (block messages / page titles / placeholder reference)', 'wink-wp-gatekeeper' ),
 				static function () use ( $settings, $defaults ): void {
 					?>
 			<dl class="wk-placeholder-list">
 				<!-- 【M4UX UI-3-1·定稿 §3】占位符逐个定义（原一行罗列退役）；{rule} 附 Labels 映射示例。 -->
 				<dt><code>{min_length}</code> / <code>{max_length}</code></dt>
-				<dd><?php esc_html_e( '本地字数闸的实际判定值（Tab③「字数下限 / 字数上限」当前配置）。', 'wink-gatekeeper' ); ?></dd>
+				<dd><?php esc_html_e( 'The local length gate\'s actual verdict values (the current “Minimum length / Maximum length” settings on Tab 3).', 'wink-wp-gatekeeper' ); ?></dd>
 				<dt><code>{event_no}</code></dt>
-				<dd><?php esc_html_e( '本次拦截的事件编号——可拿它去 Tab⑥ 事件流对号查详情。', 'wink-gatekeeper' ); ?></dd>
+				<dd><?php esc_html_e( 'The event number of this block — use it to look up details in the Tab 6 event stream.', 'wink-wp-gatekeeper' ); ?></dd>
 				<dt><code>{rule}</code></dt>
 				<dd>
-					<?php esc_html_e( '命中规则键的人话名（由 Labels 映射表翻译，未收录键原样显示键名；命中的具体关键词仅站长在事件流可见）。映射示例：', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'The human-readable name of the matched rule key (translated by the Labels map; unmapped keys display as-is; the actual keyword hit is visible to admins only in the event stream). Mapping examples:', 'wink-wp-gatekeeper' ); ?>
 					<!-- 【M4UX F3-4】映射示例独立样式行（术语 code 与示例排版分离）。 -->
 					<code class="wk-example-line"><?php echo esc_html( 'remote_semantic → 「服务商拒绝了（查配置或欠费）」 · banned_word → 「命中关键词黑名单」' ); ?></code>
 				</dd>
 				<dt><code>{time}</code></dt>
-				<dd><?php esc_html_e( '拦截发生时间（站点时区）。', 'wink-gatekeeper' ); ?></dd>
+				<dd><?php esc_html_e( 'When the block happened (site timezone).', 'wink-wp-gatekeeper' ); ?></dd>
 				<dt><code>{contact_email}</code></dt>
-				<dd><?php esc_html_e( '上方「联系邮箱」的值（未填写则该占位符整句省略）。', 'wink-gatekeeper' ); ?></dd>
+				<dd><?php esc_html_e( 'The “contact email” value from above (if blank, the whole sentence with this placeholder is omitted).', 'wink-wp-gatekeeper' ); ?></dd>
 			</dl>
-			<button type="button" class="button" id="wk-copy-restore-defaults" data-confirm="<?php echo esc_attr__( '确认恢复全部文案为默认？未保存的修改将丢失。', 'wink-gatekeeper' ); ?>">
-				<?php esc_html_e( '恢复默认文案', 'wink-gatekeeper' ); ?>
+			<button type="button" class="button" id="wk-copy-restore-defaults" data-confirm="<?php echo esc_attr__( 'Restore all copy to defaults? Unsaved changes will be lost.', 'wink-wp-gatekeeper' ); ?>">
+				<?php esc_html_e( 'Restore default copy', 'wink-wp-gatekeeper' ); ?>
 			</button>
 
 			<table class="form-table" role="presentation">
@@ -5727,11 +5731,11 @@ final class SettingsPage {
 							<span class="wk-muted"><?php echo esc_html( self::copy_scene_label( $key ) ); ?></span>
 						</th>
 						<td>
-							<label class="screen-reader-text" for="wk-copy-message-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( sprintf( /* translators: %s: 规则键 */ __( '%s 拦截文案', 'wink-gatekeeper' ), $key ) ); ?></label>
+							<label class="screen-reader-text" for="wk-copy-message-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( sprintf( /* translators: %s: 规则键 */ __( '%s block message', 'wink-wp-gatekeeper' ), $key ) ); ?></label>
 							<textarea id="wk-copy-message-<?php echo esc_attr( $key ); ?>" class="large-text" rows="2"
 								name="<?php echo esc_attr( self::field_name( array( 'copy', 'messages', $key ) ) ); ?>"
 								placeholder="<?php echo esc_attr( $defaults['messages'][ $key ] ); ?>"><?php echo esc_textarea( (string) $settings['copy']['messages'][ $key ] ); ?></textarea>
-							<label class="screen-reader-text" for="wk-copy-title-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( sprintf( /* translators: %s: 规则键 */ __( '%s 页面标题', 'wink-gatekeeper' ), $key ) ); ?></label>
+							<label class="screen-reader-text" for="wk-copy-title-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( sprintf( /* translators: %s: 规则键 */ __( '%s page title', 'wink-wp-gatekeeper' ), $key ) ); ?></label>
 							<input type="text" id="wk-copy-title-<?php echo esc_attr( $key ); ?>" class="regular-text"
 								name="<?php echo esc_attr( self::field_name( array( 'copy', 'titles', $key ) ) ); ?>"
 								placeholder="<?php echo esc_attr( $defaults['titles'][ $key ] ); ?>"
@@ -5747,25 +5751,25 @@ final class SettingsPage {
 		</section>
 
 		<section class="wk-card">
-			<h2><?php esc_html_e( '拦截页自定义', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Block page customization', 'wink-wp-gatekeeper' ); ?></h2>
 			<p class="wk-muted">
 				<?php
 				// 【v1.5·B1】站长自定义拦截页覆盖位（Wordfence blockCustomText 先例）。
-				esc_html_e( '作用于品牌整页拦截页的标题与正文（全部场景共用）。留空 = 使用各场景默认文案。占位符：{event_no} {rule} {time} {contact_email}——{rule} 只显示规则键名。', 'wink-gatekeeper' );
+				esc_html_e( 'Applies to the title and body of the branded full-page block page (shared by all scenarios). Blank = each scenario\'s default copy. Placeholders: {event_no} {rule} {time} {contact_email} — {rule} shows the rule key only.', 'wink-wp-gatekeeper' );
 				?>
 			</p>
-			<p class="description"><?php esc_html_e( '正文末常驻品牌署名行「Wink WP 保安」——点「查看效果」即可在实渲染预览中看到（W3 批 B 落位）。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'A permanent brand signature line “Wink WP Guard” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B).', 'wink-wp-gatekeeper' ); ?></p>
 			<p>
 				<!-- 【M4UX G3】「查看效果」——新标签页打开拦截页实渲染预览（admin action
 				 * wink_gatekeeper_die_preview：manage_options+nonce 双闸，零落库零事件零统计）。 -->
 				<a class="button button-secondary" id="wk-die-preview" target="_blank" rel="noopener"
 					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_DIE_PREVIEW ), self::ACTION_DIE_PREVIEW ) ); ?>">
-					<?php esc_html_e( '查看效果', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'Preview', 'wink-wp-gatekeeper' ); ?>
 				</a>
 			</p>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="wk-copy-die-page-title"><?php esc_html_e( '拦截页标题', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-copy-die-page-title"><?php esc_html_e( 'Block page title', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="text" id="wk-copy-die-page-title" class="regular-text"
 							name="<?php echo esc_attr( self::field_name( array( 'copy', 'die_page_title' ) ) ); ?>"
@@ -5773,7 +5777,7 @@ final class SettingsPage {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="wk-copy-die-page-message"><?php esc_html_e( '拦截页正文', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-copy-die-page-message"><?php esc_html_e( 'Block page body', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<textarea id="wk-copy-die-page-message" class="large-text" rows="3"
 							name="<?php echo esc_attr( self::field_name( array( 'copy', 'die_page_message' ) ) ); ?>"><?php echo esc_textarea( (string) $settings['copy']['die_page_message'] ); ?></textarea>
@@ -5783,17 +5787,17 @@ final class SettingsPage {
 		</section>
 
 			<section class="wk-card">
-				<h2><?php esc_html_e( '云端标签映射（只读预览）', 'wink-gatekeeper' ); ?></h2>
+				<h2><?php esc_html_e( 'Cloud label mapping (read-only preview)', 'wink-wp-gatekeeper' ); ?></h2>
 				<p class="wk-muted">
 					<?php
 					// 【v1.5·F4-3】映射表只读预览（落点=Copywork 键值表，映射键名不可改）；
 					// 文案可经 wink_gatekeeper_error_messages filter 覆盖，未收录标签原样显示。
-					esc_html_e( '拦截页「命中规则」证据行对云端驱动的原始 Label,Score 做人类可读映射（驱动人类名前缀 + 标签中文 + 置信）。未收录标签原样显示。', 'wink-gatekeeper' );
+					esc_html_e( 'The block page\'s “matched rule” evidence line maps raw Label,Score from cloud drivers into human-readable form (provider name prefix + translated label + confidence). Unmapped labels display as-is.', 'wink-wp-gatekeeper' );
 					?>
 				</p>
 				<p class="description">
 					<!-- 【M4UX UI-3-2·定稿 §3】统一表说明行（用户提问「云端标签映射是否跨驱动」——是）。 -->
-					<?php esc_html_e( '此表为全部云端驱动共用的一张映射表：各驱动返回的 reason 已统一为 Label,Score 形态，故一张表同时服务腾讯 TMS / 阿里 Green / 百度全部云端驱动，无需按驱动分表。', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'One shared table for all cloud drivers: each driver\'s reason is already normalized to Label,Score form, so one table serves Tencent TMS / Aliyun Green / Baidu alike — no per-driver tables needed.', 'wink-wp-gatekeeper' ); ?>
 				</p>
 			<table class="form-table" role="presentation">
 				<?php foreach ( Copywork::cloud_labels() as $label_key => $zh ) : ?>
@@ -5815,14 +5819,14 @@ final class SettingsPage {
 	 */
 	private static function copy_scene_label( string $key ): string {
 		$labels = array(
-			'too_short'       => __( '字数闸：评论过短', 'wink-gatekeeper' ),
-			'too_long'        => __( '字数闸：评论过长', 'wink-gatekeeper' ),
-			'no_chinese'      => __( '中文闸：缺中文', 'wink-gatekeeper' ),
-			'banned_word'     => __( '关键词/正则命中', 'wink-gatekeeper' ),
-			'captcha_failed'  => __( '验证码核验失败', 'wink-gatekeeper' ),
-			'captcha_missing' => __( '未完成验证就提交', 'wink-gatekeeper' ),
-			'ip_malicious'    => __( 'IP 恶意分拦截', 'wink-gatekeeper' ),
-			'cloud_error'     => __( '云审核故障已入待审', 'wink-gatekeeper' ),
+			'too_short'       => __( 'Length gate: comment too short', 'wink-wp-gatekeeper' ),
+			'too_long'        => __( 'Length gate: comment too long', 'wink-wp-gatekeeper' ),
+			'no_chinese'      => __( 'Chinese gate: no Chinese present', 'wink-wp-gatekeeper' ),
+			'banned_word'     => __( 'Keyword / regex match', 'wink-wp-gatekeeper' ),
+			'captcha_failed'  => __( 'Captcha verification failed', 'wink-wp-gatekeeper' ),
+			'captcha_missing' => __( 'Submitted without completing verification', 'wink-wp-gatekeeper' ),
+			'ip_malicious'    => __( 'Blocked by malicious IP score', 'wink-wp-gatekeeper' ),
+			'cloud_error'     => __( 'Cloud moderation failure, sent to pending review', 'wink-wp-gatekeeper' ),
 		);
 		return $labels[ $key ] ?? $key;
 	}
@@ -5887,13 +5891,13 @@ final class SettingsPage {
 		$spam_count = \WinkGatekeeper\Stats\StatsCache::archived_spam_count();
 		?>
 		<section class="wk-card wk-card--metric" id="wk-stats-overview">
-			<h2 class="wk-sec-title"><?php esc_html_e( '今日速览', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Today at a glance', 'wink-wp-gatekeeper' ); ?></h2>
 			<p class="wk-metric"><span class="wk-metric__num"><?php echo esc_html( (string) $today_reject ); ?></span></p>
 			<p>
 				<?php
 				echo esc_html( sprintf(
 					/* translators: 1: 今日拦下, 2: 转人工复核, 3: 出错 */
-					__( '今日拦下 %1$d 次 · 转人工复核 %2$d 条 · 出错 %3$d 次', 'wink-gatekeeper' ),
+					__( '%1$d blocked today · %2$d to manual review · %3$d errors', 'wink-wp-gatekeeper' ),
 					$today_reject,
 					$review_n,
 					$today_error
@@ -5902,7 +5906,7 @@ final class SettingsPage {
 			</p>
 			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::cumulative_line( (string) number_format_i18n( (int) ( $cache['total']['reject'] ?? 0 ) ), '次', $since_date ) ); ?></p>
 			<?php if ( empty( $settings['stats']['enabled'] ) ) : ?>
-				<p class="wk-muted"><strong><?php esc_html_e( '计数已停用', 'wink-gatekeeper' ); ?></strong><?php esc_html_e( '——统计开关关闭期间的拦截不计入读数，事件表照常落库（拦截明细以本页为准）。', 'wink-gatekeeper' ); ?></p>
+				<p class="wk-muted"><strong><?php esc_html_e( 'Counting disabled', 'wink-wp-gatekeeper' ); ?></strong><?php esc_html_e( '— blocks during statistics-off periods are not counted, while the event table still records them (this page is authoritative for block details).', 'wink-wp-gatekeeper' ); ?></p>
 			<?php endif; ?>
 		</section>
 
@@ -5912,12 +5916,12 @@ final class SettingsPage {
 					<?php
 					echo esc_html( sprintf(
 						/* translators: 1: 留档条数, 2: 阈值 */
-						__( '本插件拦截留档已 %1$s 条（阈值 %2$s）——WP 原生垃圾清理（默认 30 天）会自动处理，或到垃圾评论分类手动清空；也可在设置中关闭留档。', 'wink-gatekeeper' ),
+						__( 'This plugin\'s block archive holds %1$s entries (threshold %2$s) — WP\'s native spam cleanup (30 days by default) handles it automatically, or clear it manually under the Spam category; archiving can also be disabled in settings.', 'wink-wp-gatekeeper' ),
 						number_format_i18n( $spam_count ),
 						number_format_i18n( \WinkGatekeeper\Stats\InterceptDigest::SPAM_WARN_THRESHOLD )
 					) );
 					?>
-					<a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php esc_html_e( '查看垃圾评论分类', 'wink-gatekeeper' ); ?></a>
+					<a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php esc_html_e( 'View the Spam category', 'wink-wp-gatekeeper' ); ?></a>
 				</p>
 			</section>
 		<?php endif; ?>
@@ -5943,14 +5947,14 @@ final class SettingsPage {
 		$ip_captcha    = (int) ( $split_today['ip_captcha'] ?? 0 );
 		?>
 		<section class="wk-card" id="wk-stats-comment">
-			<h2 class="wk-sec-title"><?php esc_html_e( '评论防护', 'wink-gatekeeper' ); ?><?php echo self::stats_config_hint( $cards ); // phpcs:ignore WordPress.Security.EscapeOutput -- 内部组装已转义。 ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Comment protection', 'wink-wp-gatekeeper' ); ?><?php echo self::stats_config_hint( $cards ); // phpcs:ignore WordPress.Security.EscapeOutput -- 内部组装已转义。 ?></h2>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '今日概览', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Today\'s overview', 'wink-wp-gatekeeper' ); ?></h3>
 			<p>
 				<?php
 				echo esc_html( sprintf(
 					/* translators: 1: 拦下, 2: 转人工复核, 3: 出错 */
-					__( '拦下 %1$d 条 · 转人工复核 %2$d 条 · 出错 %3$d 次', 'wink-gatekeeper' ),
+					__( '%1$d blocked · %2$d to manual review · %3$d errors', 'wink-wp-gatekeeper' ),
 					(int) ( $comment['reject'] ?? 0 ),
 					(int) ( $split_today['review'] ?? 0 ),
 					(int) ( $comment['error'] ?? 0 )
@@ -5961,12 +5965,12 @@ final class SettingsPage {
 				<?php
 				echo esc_html( sprintf(
 					/* translators: %s: 累计行（含窗口标注） */
-					__( '转人工复核=进了待审区，等你处理。%s', 'wink-gatekeeper' ),
+					__( '“To manual review” means it sits in the pending queue awaiting you. %s', 'wink-wp-gatekeeper' ),
 					\WinkGatekeeper\Stats\Labels::cumulative_line( (string) number_format_i18n( (int) ( $comment_total['reject'] ?? 0 ) ), '条', $since_date )
 				) );
 				?>
 			</p>
-			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: %d: IP 风控强制验证码次数 */ __( 'IP 信誉强制验证码 %d 次（单列口径——不计入上方转人工复核数字）。', 'wink-gatekeeper' ), $ip_captcha ) ); ?></p>
+			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: %d: IP 风控强制验证码次数 */ __( '%d IP-reputation-enforced captchas (counted separately — not included in the manual-review figures above).', 'wink-wp-gatekeeper' ), $ip_captcha ) ); ?></p>
 
 			<?php
 			/* 【M5·U5】网址核查统计行（UI 块 3.3——与 IP 风控单列行同位形态；K8/K9/K10 口径）：
@@ -5976,7 +5980,8 @@ final class SettingsPage {
 				?>
 			<p id="wk-stats-url-line" class="wk-muted"><?php
 				printf(
-					esc_html__( '网址核查：今日核查 %1$d 条 · 自动标垃圾 %2$d 条 · 待你复核 %3$d 条（核查=网址被打开看过；自动标垃圾可撤销）', 'wink-gatekeeper' ),
+				/* translators: 1: URLs checked today, 2: auto-marked as spam, 3: awaiting your review */
+					esc_html__( 'URL check: %1$d checked today · %2$d auto-spammed · %3$d awaiting your review (checked = the URL was opened and looked at; auto-spam is undoable)', 'wink-wp-gatekeeper' ),
 					(int) $url_stats['today_checked'],
 					(int) $url_stats['auto_rejected'],
 					(int) $url_stats['pending_review']
@@ -5994,7 +5999,7 @@ final class SettingsPage {
 			<p id="wk-stats-url-search-line" class="wk-muted"><?php
 				printf(
 					/* translators: %d: 今日 DeepSeek 搜索成功次数 */
-					esc_html__( '网址核查搜索（DeepSeek）：今日 %1$d 次（按成功次数计费，打不开网页时的搜索线索）', 'wink-gatekeeper' ),
+					esc_html__( 'URL check search (DeepSeek): %1$d today (billed per success; search clues for pages that will not open)', 'wink-wp-gatekeeper' ),
 					(int) $url_search_used
 				);
 				?></p>
@@ -6009,35 +6014,35 @@ final class SettingsPage {
 			<p id="wk-stats-url-fetch-line" class="wk-muted"><?php
 				printf(
 					/* translators: %d: 今日 DeepSeek 网页抓取成功次数 */
-					esc_html__( '网页抓取（DeepSeek 代开网页）：今日 %1$d 次（按成功次数计费——选「DeepSeek 网页抓取」时第三方打开网页看过）', 'wink-gatekeeper' ),
+					esc_html__( 'Page fetching (DeepSeek opens pages for you): %1$d today (billed per success — with “DeepSeek page fetching” selected, the third party opened and viewed the page)', 'wink-wp-gatekeeper' ),
 					(int) $url_fetch_used
 				);
 				?></p>
 			<?php endif; ?>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '谁拦的（按拦截链顺序）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Who blocked it (in chain order)', 'wink-wp-gatekeeper' ); ?></h3>
 			<div class="wk-driver-card">
-				<p><strong><?php echo esc_html( (string) $local_rules['label'] ); ?></strong> <span class="wk-muted"><?php esc_html_e( '——字数 / 关键词 / 中文检查，不花钱', 'wink-gatekeeper' ); ?></span></p>
+				<p><strong><?php echo esc_html( (string) $local_rules['label'] ); ?></strong> <span class="wk-muted"><?php esc_html_e( '— length / keyword / Chinese checks, costs nothing', 'wink-wp-gatekeeper' ); ?></span></p>
 				<p><?php echo esc_html( (string) $local_rules['line'] ); ?></p>
 				<p class="wk-muted"><?php echo esc_html( (string) $local_rules['total_line'] ); ?></p>
 			</div>
 
-			<h4 class="wk-defense-group"><?php esc_html_e( '人机验证防线（第三方，按次计费）', 'wink-gatekeeper' ); ?></h4>
+			<h4 class="wk-defense-group"><?php esc_html_e( 'Human verification line (third party, pay-per-use)', 'wink-wp-gatekeeper' ); ?></h4>
 			<?php foreach ( $cards as $card ) : ?>
 				<?php if ( 'captcha' === ( $card['type'] ?? '' ) ) { self::render_driver_card( $card ); } ?>
 			<?php endforeach; ?>
 
-			<h4 class="wk-defense-group"><?php esc_html_e( '云端审核防线（第三方，按次计费）', 'wink-gatekeeper' ); ?></h4>
+			<h4 class="wk-defense-group"><?php esc_html_e( 'Cloud moderation line (third party, pay-per-use)', 'wink-wp-gatekeeper' ); ?></h4>
 			<?php foreach ( $cards as $card ) : ?>
 				<?php if ( 'review' === ( $card['type'] ?? '' ) ) { self::render_driver_card( $card ); } ?>
 			<?php endforeach; ?>
 
 			<?php /* 【v1.7·M3-IP·定稿 §9】IP 信誉防线组——registry type='ip' 驱动卡（动作名 Labels「信誉查询」）。 */ ?>
-			<h4 class="wk-defense-group"><?php esc_html_e( 'IP 信誉防线（第三方，按次计费）', 'wink-gatekeeper' ); ?></h4>
+			<h4 class="wk-defense-group"><?php esc_html_e( 'IP reputation line (third party, pay-per-use)', 'wink-wp-gatekeeper' ); ?></h4>
 			<?php foreach ( $cards as $card ) : ?>
 				<?php if ( 'ip' === ( $card['type'] ?? '' ) ) { self::render_driver_card( $card ); } ?>
 			<?php endforeach; ?>
-			<p class="wk-muted"><?php esc_html_e( '放行=推算值（今日动作数−拦下−转人工−出错）。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( 'Passed = derived figure (today\'s actions − blocked − manual review − errors).', 'wink-wp-gatekeeper' ); ?></p>
 
 			<?php
 			/* 【M6·批H·H-9】网址核查今日处置数据源（meta 反查——零新事件零写放大，事件表
@@ -6051,13 +6056,13 @@ final class SettingsPage {
 				?>
 			<?php /* 【M6·批H4·H4-4】复核块套防线组标题（手测二轮⑭打回：裸卡与四道防线
 			 * 「h4 分组+卡」节奏不齐观感诡异——对齐组结构）。 */ ?>
-			<h4 class="wk-defense-group"><?php esc_html_e( '发布后复核防线（网址核查）', 'wink-gatekeeper' ); ?></h4>
+			<h4 class="wk-defense-group"><?php esc_html_e( 'Post-publish review line (URL check)', 'wink-wp-gatekeeper' ); ?></h4>
 			<div class="wk-driver-card" id="wk-stats-url-intercept-block">
-				<p><strong><?php echo esc_html__( '网址核查（复核处置）', 'wink-gatekeeper' ); // phpcs:ignore WordPress.Security.EscapeOutput -- esc_html__ 已转义。 ?></strong> <span class="wk-muted"><?php esc_html_e( '——评论发布后复核网址；判违规与没看清都拦下等你复核', 'wink-gatekeeper' ); ?></span></p>
+				<p><strong><?php echo esc_html__( 'URL check (review handling)', 'wink-wp-gatekeeper' ); // phpcs:ignore WordPress.Security.EscapeOutput -- esc_html__ 已转义。 ?></strong> <span class="wk-muted"><?php esc_html_e( '— URLs are re-checked after the comment is published; both violations and unclear ones are held for your review', 'wink-wp-gatekeeper' ); ?></span></p>
 				<p><?php
 					printf(
 						/* translators: 1: spam 2: hold */
-						esc_html__( '今日判进垃圾箱 %1$d 条 · 转待审 %2$d 条', 'wink-gatekeeper' ),
+						esc_html__( '%1$d sent to Spam today · %2$d to pending review', 'wink-wp-gatekeeper' ),
 						(int) $url_disposal['spam'],
 						(int) $url_disposal['hold']
 					);
@@ -6065,7 +6070,7 @@ final class SettingsPage {
 			</div>
 			<?php endif; ?>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '最近拦下的评论（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Recently blocked comments (last 10)', 'wink-wp-gatekeeper' ); ?></h3>
 			<?php
 			/* 【M6·批H·H-9】网址核查今日处置汇总行（区头部——「网址核查今日处置 N 条
 			 * （垃圾箱 X·待审 Y）→ 查看详情」深链工具页报告锚）。 */
@@ -6074,12 +6079,12 @@ final class SettingsPage {
 			<p id="wk-stats-url-disposal-line" class="wk-muted"><?php
 				printf(
 					/* translators: 1: total 2: spam 3: hold */
-					esc_html__( '网址核查今日处置 %1$d 条（垃圾箱 %2$d · 待审 %3$d）', 'wink-gatekeeper' ),
+					esc_html__( 'URL check handled %1$d today (Spam %2$d · pending %3$d)', 'wink-wp-gatekeeper' ),
 					(int) $url_disposal['total'],
 					(int) $url_disposal['spam'],
 					(int) $url_disposal['hold']
 				);
-				?><a href="<?php echo esc_url( self::tab_url( 'tools' ) . '#wk-tools-url-audit-report' ); ?>"><?php esc_html_e( '→ 查看详情', 'wink-gatekeeper' ); ?></a></p>
+				?><a href="<?php echo esc_url( self::tab_url( 'tools' ) . '#wk-tools-url-audit-report' ); ?>"><?php esc_html_e( '→ View details', 'wink-wp-gatekeeper' ); ?></a></p>
 			<?php endif; ?>
 			<?php self::render_comment_recent_table(); ?>
 		</section>
@@ -6110,14 +6115,14 @@ final class SettingsPage {
 		$cards = self::stats_driver_cards( 'login' );
 		?>
 		<section class="wk-card" id="wk-stats-login">
-			<h2 class="wk-sec-title"><?php esc_html_e( '登录防护（登录 / 注册 / 找回密码 三张门）', 'wink-gatekeeper' ); ?><?php echo self::stats_config_hint( $cards ); // phpcs:ignore WordPress.Security.EscapeOutput -- 内部组装已转义。 ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Login protection (three gates: login / registration / password recovery)', 'wink-wp-gatekeeper' ); ?><?php echo self::stats_config_hint( $cards ); // phpcs:ignore WordPress.Security.EscapeOutput -- 内部组装已转义。 ?></h2>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '今日概览', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Today\'s overview', 'wink-wp-gatekeeper' ); ?></h3>
 			<p>
 				<?php
 				echo esc_html( sprintf(
 					/* translators: 1: 拦下, 2: 验证放行, 3: 密码输错, 4: 窗口分钟 */
-					__( '今日拦下 %1$d 次 · 验证放行 %2$d 人 · 密码输错 %3$d 次（%4$d 分钟内同账号）', 'wink-gatekeeper' ),
+					__( '%1$d blocked today · %2$d passed via verification · %3$d wrong passwords (same account within %4$d minutes)', 'wink-wp-gatekeeper' ),
 					(int) ( $today_overview['reject'] ?? 0 ),
 					(int) ( $today_overview['passed'] ?? 0 ),
 					(int) ( $today_overview['attempts'] ?? 0 ),
@@ -6125,16 +6130,16 @@ final class SettingsPage {
 				) );
 				?>
 			</p>
-			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: 1: 累计拦下, 2: 累计密码输错 */ __( '累计拦下 %1$d 次 · 密码输错 %2$d 次', 'wink-gatekeeper' ), (int) ( $total_overview['reject'] ?? 0 ), (int) ( $total_overview['attempts'] ?? 0 ) ) ); ?></p>
+			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: 1: 累计拦下, 2: 累计密码输错 */ __( '%1$d blocked cumulatively · %2$d wrong passwords', 'wink-wp-gatekeeper' ), (int) ( $total_overview['reject'] ?? 0 ), (int) ( $total_overview['attempts'] ?? 0 ) ) ); ?></p>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '三张门分账', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Breakdown by gate', 'wink-wp-gatekeeper' ); ?></h3>
 			<table class="wk-table">
 				<thead>
 					<tr>
 						<th scope="col"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::gate_word( 'login' ) ); ?>/<?php echo esc_html( \WinkGatekeeper\Stats\Labels::gate_word( 'register' ) ); ?>/<?php echo esc_html( \WinkGatekeeper\Stats\Labels::gate_word( 'lostpassword' ) ); ?></th>
-						<th scope="col"><?php esc_html_e( '今日拦下', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '累计拦下', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '说明', 'wink-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Blocked today', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Blocked cumulatively', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Notes', 'wink-wp-gatekeeper' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -6149,12 +6154,12 @@ final class SettingsPage {
 				</tbody>
 			</table>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '谁拦的（按服务商口径）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Who blocked it (by provider)', 'wink-wp-gatekeeper' ); ?></h3>
 			<?php foreach ( $cards as $card ) : ?>
 				<?php self::render_driver_card( $card ); ?>
 			<?php endforeach; ?>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '最近拦下的登录尝试（最近 10 条）', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Recently blocked login attempts (last 10)', 'wink-wp-gatekeeper' ); ?></h3>
 			<?php self::render_account_recent_table(); ?>
 		</section>
 		<?php
@@ -6174,9 +6179,9 @@ final class SettingsPage {
 		$events = \WinkGatekeeper\Stats\EventsTable::recent_account_rejects( \WinkGatekeeper\Stats\InterceptDigest::RECENT_LIMIT );
 		$rows   = \WinkGatekeeper\Stats\InterceptDigest::account_reject_rows( $events );
 		?>
-		<p class="wk-muted"><?php esc_html_e( '只显示特征与结果，不显示账号与 IP；结果=出码拦下/未过码拦下两态（放行不进本表）；为什么拦=触发归因（同一账号连错太多次等）或验证码结果。', 'wink-gatekeeper' ); ?></p>
+		<p class="wk-muted"><?php esc_html_e( 'Only characteristics and outcomes are shown, never accounts or IPs; outcome = stopped-by-captcha / stopped-without-captcha (passes never enter this table); why blocked = trigger attribution (too many consecutive failures for one account, etc.) or the captcha result.', 'wink-wp-gatekeeper' ); ?></p>
 		<?php if ( array() === $rows ) : ?>
-			<p class="wk-muted"><?php esc_html_e( '最近没拦过任何登录尝试——这是好状态。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( 'No login attempts blocked recently — that is a good state.', 'wink-wp-gatekeeper' ); ?></p>
 		<?php else : ?>
 			<?php /* 【W3·批B·四改三】登录流水列面=现数据面（Q3 统筹代裁——原型账号/IP 两打码列
 			 * 现码无数据源且踩 PIPL 红线〔InterceptDigest.php:182 IP 哈希省略〕，不虚构列；
@@ -6185,11 +6190,11 @@ final class SettingsPage {
 			<table class="wk-table">
 				<thead>
 					<tr>
-						<th scope="col"><?php esc_html_e( '时间', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '结果', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '哪张门', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '为什么拦', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '事件编号', 'wink-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Time', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Result', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Gate', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Why blocked', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Event No.', 'wink-wp-gatekeeper' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -6248,11 +6253,11 @@ final class SettingsPage {
 		$fault_rows = \WinkGatekeeper\Stats\InterceptDigest::fault_timeline_rows( $fault_events, $health_events, $driver_labels );
 		?>
 		<section class="wk-card" id="wk-stats-faults">
-			<h2 class="wk-sec-title"><?php esc_html_e( '报错历史（和第三方服务商打交道时出的岔子）', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Error history (things that went wrong with third-party providers)', 'wink-wp-gatekeeper' ); ?></h2>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '今日出错', 'wink-gatekeeper' ); ?></h3>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Errors today', 'wink-wp-gatekeeper' ); ?></h3>
 			<p>
-				<?php echo esc_html( sprintf( /* translators: %d: 今日出错次数 */ __( '%d 次', 'wink-gatekeeper' ), $fault_total ) ); ?>
+				<?php echo esc_html( sprintf( /* translators: %d: 今日出错次数 */ _x( '%d errors', 'error-count', 'wink-wp-gatekeeper' ), $fault_total ) ); ?>
 			</p>
 			<?php if ( array() !== $fault_dist ) : ?>
 				<p class="wk-muted">
@@ -6266,23 +6271,23 @@ final class SettingsPage {
 					?>
 				</p>
 			<?php else : ?>
-				<p class="wk-muted"><?php esc_html_e( '今日没出过错——各防线都正常。', 'wink-gatekeeper' ); ?></p>
+				<p class="wk-muted"><?php esc_html_e( 'No errors today — every line is healthy.', 'wink-wp-gatekeeper' ); ?></p>
 			<?php endif; ?>
 
-			<h3 class="wk-sub-title"><?php esc_html_e( '最近报错（全闸，含服务商暂停与恢复）', 'wink-gatekeeper' ); ?></h3>
-			<p class="wk-muted"><?php esc_html_e( '四张门和服务商的岔子都在一张时间线上；服务商当日暂停与次日恢复也会留痕在此。', 'wink-gatekeeper' ); ?></p>
+			<h3 class="wk-sub-title"><?php esc_html_e( 'Recent errors (all gates, including provider pauses and recoveries)', 'wink-wp-gatekeeper' ); ?></h3>
+			<p class="wk-muted"><?php esc_html_e( 'Incidents from all four gates and every provider share one timeline; a provider\'s same-day pause and next-day recovery are logged here too.', 'wink-wp-gatekeeper' ); ?></p>
 			<?php if ( array() === $fault_rows ) : ?>
-				<p class="wk-muted"><?php esc_html_e( '最近没出过错——一切正常。', 'wink-gatekeeper' ); ?></p>
+				<p class="wk-muted"><?php esc_html_e( 'No recent errors — all is well.', 'wink-wp-gatekeeper' ); ?></p>
 			<?php else : ?>
 				<table class="wk-table">
 					<thead>
 						<tr>
-							<th scope="col"><?php esc_html_e( '时间', 'wink-gatekeeper' ); ?></th>
-							<th scope="col"><?php esc_html_e( '事件编号', 'wink-gatekeeper' ); ?></th>
-							<th scope="col"><?php esc_html_e( '哪个门', 'wink-gatekeeper' ); ?></th>
-							<th scope="col"><?php esc_html_e( '哪个服务商', 'wink-gatekeeper' ); ?></th>
-							<th scope="col"><?php esc_html_e( '出了什么岔子', 'wink-gatekeeper' ); ?></th>
-							<th scope="col"><?php esc_html_e( '当时怎么处理', 'wink-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'Time', 'wink-wp-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'Event No.', 'wink-wp-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'Which gate', 'wink-wp-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'Which provider', 'wink-wp-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'What went wrong', 'wink-wp-gatekeeper' ); ?></th>
+							<th scope="col"><?php esc_html_e( 'How it was handled', 'wink-wp-gatekeeper' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -6304,7 +6309,7 @@ final class SettingsPage {
 									<?php endif; ?>
 									<?php if ( array() !== $fault_row['raw'] ) : ?>
 										<details class="wk-fault-raw">
-											<summary><?php esc_html_e( '展开看服务商原始回复（排障用，已脱敏）', 'wink-gatekeeper' ); ?></summary>
+											<summary><?php esc_html_e( 'Expand to see the provider\'s raw reply (for troubleshooting, redacted)', 'wink-wp-gatekeeper' ); ?></summary>
 											<pre><?php echo esc_textarea( (string) wp_json_encode( $fault_row['raw'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) ); ?></pre>
 										</details>
 									<?php endif; ?>
@@ -6331,15 +6336,15 @@ final class SettingsPage {
 		$export_empty = isset( $_GET['wk-export-empty'] ) && '1' === sanitize_key( wp_unslash( (string) $_GET['wk-export-empty'] ) );
 		?>
 		<section class="wk-card" id="wk-stats-records">
-			<h2 class="wk-sec-title"><?php esc_html_e( '拦截记录流水（查全部记录 / 导出）', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Block record ledger (browse all records / export)', 'wink-wp-gatekeeper' ); ?></h2>
 			<?php if ( $export_empty ) : ?>
-				<?php self::notice_yellow_bar( 'warn', '', esc_html__( '今天还没有拦截记录——没有生成导出文件；有拦下记录后再来导出当日流水。', 'wink-gatekeeper' ) ); ?>
+				<?php self::notice_yellow_bar( 'warn', '', esc_html__( 'No block records today — no export file was generated; export today\'s ledger once there are records.', 'wink-wp-gatekeeper' ) ); ?>
 			<?php endif; ?>
-			<p class="wk-muted"><?php esc_html_e( '每一条拦下、转人工复核、报错都有编号（如 WK-20261112-0042）。访客报障时报编号即可精确定位。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( 'Every block, manual review, and error has a number (e.g. WK-20261112-0042). When a visitor reports a problem, the number pinpoints it.', 'wink-wp-gatekeeper' ); ?></p>
 			<p>
-				<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_EXPORT_CSV ), self::ACTION_EXPORT_CSV ) ); ?>"><?php esc_html_e( '导出当日拦截流水（CSV）', 'wink-gatekeeper' ); ?></a>
+				<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_EXPORT_CSV ), self::ACTION_EXPORT_CSV ) ); ?>"><?php esc_html_e( 'Export today\'s block ledger (CSV)', 'wink-wp-gatekeeper' ); ?></a>
 			</p>
-			<p class="description"><?php esc_html_e( '导出只含当天的拦下记录：时间 / 结果 / 哪张门 / 原因 / 事件编号——不含账号、邮箱、评论正文与 IP（隐私最小化，与登录流水同一口径）。', 'wink-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'The export contains only today\'s blocked records: time / result / gate / reason / event number — no accounts, emails, comment bodies, or IPs (privacy-minimized, same policy as the login ledger).', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
@@ -6354,32 +6359,32 @@ final class SettingsPage {
 	private static function render_stats_settings_card( array $settings ): void {
 		?>
 		<section class="wk-card" id="wk-stats-settings">
-			<h2 class="wk-sec-title"><?php esc_html_e( '统计设置 · 清零', 'wink-gatekeeper' ); ?></h2>
+			<h2 class="wk-sec-title"><?php esc_html_e( 'Statistics settings · Reset', 'wink-wp-gatekeeper' ); ?></h2>
 			<p>
 				<label>
 					<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'stats', 'enabled' ) ) ); ?>" value="0" />
 					<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'stats', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $settings['stats']['enabled'] ) ); ?> />
-					<?php esc_html_e( '开启统计计数（关掉后本页数字停止增长，拦截照常工作）', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'Enable statistics counting (turned off, the numbers on this page stop growing while blocking continues)', 'wink-wp-gatekeeper' ); ?>
 				</label>
 			</p>
 			<p>
 				<label>
 					<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'stats', 'raw_capture' ) ) ); ?>" value="0" />
 					<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'stats', 'raw_capture' ) ) ); ?>" value="1" <?php checked( ! empty( $settings['stats']['raw_capture'] ) ); ?> />
-					<?php esc_html_e( '记录服务商原始回复（排障用，出错时多存一段返回内容）', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'Record providers\' raw replies (for troubleshooting; stores an extra chunk of the response on errors)', 'wink-wp-gatekeeper' ); ?>
 				</label>
 				<br />
 				<label>
-					<?php esc_html_e( '保存长度上限（字）', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'Storage length cap (characters)', 'wink-wp-gatekeeper' ); ?>
 					<input type="number" min="128" max="2048" name="<?php echo esc_attr( self::field_name( array( 'stats', 'raw_max_bytes' ) ) ); ?>" value="<?php echo esc_attr( (string) ( $settings['stats']['raw_max_bytes'] ?? 512 ) ); ?>" class="small-text" />
-					<span class="wk-muted"><?php esc_html_e( '（128–2048，默认 512；正文与错误消息各自截断）', 'wink-gatekeeper' ); ?></span>
+					<span class="wk-muted"><?php esc_html_e( '(128–2048, default 512; body and error messages are truncated separately)', 'wink-wp-gatekeeper' ); ?></span>
 				</label>
 			</p>
-			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: %s: 清零范围 */ __( '「清空全部统计」会清掉%s，不可恢复。', 'wink-gatekeeper' ), \WinkGatekeeper\Stats\Labels::reset_scope_word() ) ); ?></p>
+			<p class="wk-muted"><?php echo esc_html( sprintf( /* translators: %s: 清零范围 */ __( '“Clear all statistics” will wipe %s — unrecoverable.', 'wink-wp-gatekeeper' ), \WinkGatekeeper\Stats\Labels::reset_scope_word() ) ); ?></p>
 			<button type="button" class="button button-danger" id="wk-stats-reset"
 				data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_RESET_STATS ) ); ?>"
-				data-confirm="<?php echo esc_attr__( '确认清空？所有统计数字和拦截记录将被清掉，不可恢复。', 'wink-gatekeeper' ); ?>">
-				<?php esc_html_e( '清空全部统计', 'wink-gatekeeper' ); ?>
+				data-confirm="<?php echo esc_attr__( 'Confirm the wipe? All statistics and block records will be cleared, unrecoverable.', 'wink-wp-gatekeeper' ); ?>">
+				<?php esc_html_e( 'Clear all statistics', 'wink-wp-gatekeeper' ); ?>
 			</button>
 			<span id="wk-stats-reset-result" aria-live="polite"></span>
 		</section>
@@ -6404,7 +6409,7 @@ final class SettingsPage {
 	 */
 	public static function handle_export_csv(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( '权限不足。', 'wink-gatekeeper' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wink-wp-gatekeeper' ), 403 );
 		}
 		check_admin_referer( self::ACTION_EXPORT_CSV );
 
@@ -6428,7 +6433,7 @@ final class SettingsPage {
 		header( 'Content-Disposition: attachment; filename=' . $filename );
 		$out = fopen( 'php://output', 'w' );
 		if ( false === $out ) {
-			wp_die( esc_html__( '导出流打开失败。', 'wink-gatekeeper' ), 500 );
+			wp_die( esc_html__( 'Failed to open the export stream.', 'wink-wp-gatekeeper' ), 500 );
 		}
 		fwrite( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM（Excel 中文表头兼容）。
 		fputcsv( $out, \WinkGatekeeper\Stats\InterceptDigest::EXPORT_CSV_COLUMNS );
@@ -6565,7 +6570,7 @@ final class SettingsPage {
 		foreach ( $cards as $hint_card ) {
 			if ( empty( $hint_card['enabled'] ) && '' !== (string) ( $hint_card['config_tab'] ?? '' ) ) {
 				return ' · <a class="wk-config-link" href="' . esc_url( self::tab_url( (string) $hint_card['config_tab'] ) ) . '">'
-					. esc_html( __( '去配置', 'wink-gatekeeper' ) ) . '</a>';
+					. esc_html( __( 'Configure', 'wink-wp-gatekeeper' ) ) . '</a>';
 			}
 		}
 		return '';
@@ -6634,21 +6639,21 @@ final class SettingsPage {
 
 		$rows = \WinkGatekeeper\Stats\InterceptDigest::rows( $events, $comments_by_id );
 		?>
-		<p class="wk-muted"><?php esc_html_e( '昵称/邮箱打码展示，原文在留档链接查看；机器人试探（假提交探测）不留评论，不进此表。', 'wink-gatekeeper' ); ?></p>
+		<p class="wk-muted"><?php esc_html_e( 'Nicknames/emails are masked here; see the archive link for the originals. Bot probes (fake-submit detection) leave no comment and never enter this table.', 'wink-wp-gatekeeper' ); ?></p>
 		<?php if ( array() === $rows ) : ?>
-			<p class="wk-muted"><?php esc_html_e( '最近没拦过任何评论——这是好状态。', 'wink-gatekeeper' ); ?></p>
+			<p class="wk-muted"><?php esc_html_e( 'No comments blocked recently — that is a good state.', 'wink-wp-gatekeeper' ); ?></p>
 		<?php else : ?>
 			<table class="wk-table">
 				<thead>
 					<tr>
-						<th scope="col"><?php esc_html_e( '时间', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '事件编号', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '哪道防线拦的', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '原因', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '昵称', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '邮箱', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '说了什么', 'wink-gatekeeper' ); ?></th>
-						<th scope="col"><?php esc_html_e( '留档', 'wink-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Time', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Event No.', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Which line blocked it', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Reason', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Nickname', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Email', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'What was said', 'wink-wp-gatekeeper' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Archive', 'wink-wp-gatekeeper' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -6663,11 +6668,11 @@ final class SettingsPage {
 							<td><?php echo esc_html( (string) $row['excerpt'] ); ?></td>
 							<td>
 								<?php if ( null !== $row['edit_url'] ) : ?>
-									<a href="<?php echo esc_url( admin_url( (string) $row['edit_url'] ) ); ?>"><?php esc_html_e( '查看留档', 'wink-gatekeeper' ); ?></a>
+									<a href="<?php echo esc_url( admin_url( (string) $row['edit_url'] ) ); ?>"><?php esc_html_e( 'View archive', 'wink-wp-gatekeeper' ); ?></a>
 								<?php elseif ( null !== $row['comment_id'] ) : ?>
-									<span class="wk-muted">#<?php echo esc_html( (string) $row['comment_id'] ); ?><?php esc_html_e( '（评论已删除）', 'wink-gatekeeper' ); ?></span>
+									<span class="wk-muted">#<?php echo esc_html( (string) $row['comment_id'] ); ?><?php esc_html_e( '(comment deleted)', 'wink-wp-gatekeeper' ); ?></span>
 								<?php else : ?>
-									<span class="wk-muted"><?php esc_html_e( '未留档', 'wink-gatekeeper' ); ?></span>
+									<span class="wk-muted"><?php esc_html_e( 'Not archived', 'wink-wp-gatekeeper' ); ?></span>
 								<?php endif; ?>
 							</td>
 						</tr>
@@ -6676,7 +6681,7 @@ final class SettingsPage {
 			</table>
 		<?php endif; ?>
 			<p class="wk-table-foot">
-				<a class="button" href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php esc_html_e( '查看垃圾评论分类', 'wink-gatekeeper' ); ?></a>
+				<a class="button" href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php esc_html_e( 'View the Spam category', 'wink-wp-gatekeeper' ); ?></a>
 			</p>
 		<?php
 	}
@@ -6690,12 +6695,12 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_RESET_STATS, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		\WinkGatekeeper\Stats\StatsCache::reset_all();
 
-		wp_send_json_success( array( 'message' => __( '统计已重置。', 'wink-gatekeeper' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Statistics reset.', 'wink-wp-gatekeeper' ) ) );
 	}
 
 	/* -------------------------------------------------------------------
@@ -6725,7 +6730,7 @@ final class SettingsPage {
 	private static function render_tab_tools(): void {
 		?>
 		<section class="wk-card" id="wk-tools-existing-audit-card">
-			<h2><?php esc_html_e( '历史评论体检', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Existing comment audit', 'wink-wp-gatekeeper' ); ?></h2>
 			<?php
 			/* 【M6·批H4·H4-2】状态取值+运行中黄条上移卡顶（h2 后第一元素——与网址核查
 			 * 黄条同位；手测二轮⑫打回：原在中部状态行位观感割裂）。 */
@@ -6742,38 +6747,38 @@ final class SettingsPage {
 				// 不再出现「当前服务商：-」裸占位。
 				$driver_id = (string) ( $prog['driver'] ?? '' );
 				if ( '' === $driver_id ) {
-					$driver_id = __( '未配置（服务商未配置——发起后无法送审）', 'wink-gatekeeper' );
+					$driver_id = __( 'Not configured (no provider configured — submissions cannot be sent for review)', 'wink-wp-gatekeeper' );
 				}
 				$line = sprintf(
 					/* translators: 1: processed 2: total 3: driver id */
-					__( '进行中（%1$d / %2$d）· 当前服务商：%3$s', 'wink-gatekeeper' ),
+					__( 'In progress (%1$d / %2$d) · current provider: %3$s', 'wink-wp-gatekeeper' ),
 					(int) ( $prog['processed'] ?? 0 ),
 					(int) ( $prog['total'] ?? 0 ),
 					esc_html( $driver_id )
 				);
-				$actions['pause'] = __( '暂停', 'wink-gatekeeper' );
+				$actions['pause'] = __( 'Pause', 'wink-wp-gatekeeper' );
 				if ( 'quota_paused' === $st ) {
-					$line .= ' ' . __( '——今日额度已用完，次日自动恢复。', 'wink-gatekeeper' );
+					$line .= ' ' . __( '— today\'s quota is used up; it auto-resumes tomorrow.', 'wink-wp-gatekeeper' );
 				}
 			} elseif ( 'paused' === $st ) {
 				$line = sprintf(
 					/* translators: 1: processed 2: total */
-					__( '已暂停（%1$d / %2$d）', 'wink-gatekeeper' ),
+					__( 'Paused (%1$d / %2$d)', 'wink-wp-gatekeeper' ),
 					(int) ( $prog['processed'] ?? 0 ),
 					(int) ( $prog['total'] ?? 0 )
 				);
-				$actions['resume'] = __( '继续', 'wink-gatekeeper' );
+				$actions['resume'] = __( 'Resume', 'wink-wp-gatekeeper' );
 			} elseif ( 'completed' === $st ) {
 				$line = sprintf(
 					/* translators: 1: finished time */
-					__( '上次完成于 %1$s', 'wink-gatekeeper' ),
+					__( 'Last completed on %1$s', 'wink-wp-gatekeeper' ),
 					esc_html( date_i18n( 'Y-m-d H:i', (int) ( $prog['finished_at'] ?? 0 ) ) )
 				);
-				$actions['reset'] = __( '重新体检', 'wink-gatekeeper' );
+				$actions['reset'] = __( 'Re-run audit', 'wink-wp-gatekeeper' );
 			} else {
-				$line = __( '还没体检过', 'wink-gatekeeper' );
+				$line = __( 'No audit run yet', 'wink-wp-gatekeeper' );
 				if ( $has_driver ) {
-					$actions['start'] = __( '开始体检', 'wink-gatekeeper' );
+					$actions['start'] = __( 'Start audit', 'wink-wp-gatekeeper' );
 				}
 			}
 			/* 【M6·批H3·H3-B】运行中黄条统一（手测反馈 B）：running/quota_paused 态
@@ -6793,7 +6798,7 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				esc_html__( '云端审核还没配置——先到 Tab③ 配置并启用服务商，再发起体检。', 'wink-gatekeeper' ),
+				esc_html__( 'Cloud moderation is not configured yet — configure and enable a provider on Tab 3 first, then start the audit.', 'wink-wp-gatekeeper' ),
 				'',
 				'',
 				'wk-tools-audit-no-driver-notice'
@@ -6805,11 +6810,11 @@ final class SettingsPage {
 			// 送审红线注「昵称+正文」锚原样保留在编排体内）。
 			self::advanced_fold(
 				'id="wk-tools-audit-advanced"',
-				__( '高级说明（送审范围 / 处置方式）', 'wink-gatekeeper' ),
+				__( 'Advanced notes (submission scope / handling)', 'wink-wp-gatekeeper' ),
 				static function (): void {
 					?>
-					<p class="wk-muted"><?php esc_html_e( '把站里已有的评论整体交服务商再查一遍：判违规的进垃圾箱、没看清的进待审，都能手动恢复；没问题的不动。报告就展示在本卡下方。', 'wink-gatekeeper' ); ?></p>
-					<p class="wk-muted"><?php esc_html_e( '红线注：体检只按「昵称+正文」送审，邮箱与网址不进入送审内容（邮箱剔除纪律；网址核查是另一条线）。', 'wink-gatekeeper' ); ?></p>
+					<p class="wk-muted"><?php esc_html_e( 'Hands all existing comments to the provider for another pass: violations go to Spam, unclear ones to pending review — both recoverable by hand; clean ones are left alone. The report appears just below this card.', 'wink-wp-gatekeeper' ); ?></p>
+					<p class="wk-muted"><?php esc_html_e( 'Red line: the audit submits “nickname + body” only — emails and URLs never enter the submission (email-exclusion discipline; the URL check is a separate line).', 'wink-wp-gatekeeper' ); ?></p>
 					<?php
 				}
 			);
@@ -6819,9 +6824,9 @@ final class SettingsPage {
 				<?php
 				$confirm = '';
 				if ( 'start' === $op ) {
-					$confirm = __( '按当前启用的服务商送审，消耗按次额度——确定开始？判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。', 'wink-gatekeeper' );
+					$confirm = __( 'Submissions go to the currently enabled provider and consume per-call quota — start now? Violations go to Spam, unclear ones to pending review (both recoverable by hand).', 'wink-wp-gatekeeper' );
 				} elseif ( 'reset' === $op ) {
-					$confirm = __( '重新体检=清掉上次标记重来，已处理结果作废——确定？', 'wink-gatekeeper' );
+					$confirm = __( 'Re-running the audit wipes the previous marks and starts over; processed results are voided — sure?', 'wink-wp-gatekeeper' );
 				}
 				?>
 				<a class="button" <?php echo 'start' === $op ? 'id="wk-tools-audit-start-btn" ' : ''; ?>href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . constant( __CLASS__ . '::ACTION_AUDIT_' . strtoupper( $op ) ) ), constant( __CLASS__ . '::ACTION_AUDIT_' . strtoupper( $op ) ) ) ); ?>"
@@ -6829,7 +6834,7 @@ final class SettingsPage {
 			<?php endforeach; ?>
 			<?php if ( 'paused' === $st ) : ?>
 				<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::ACTION_AUDIT_RESET ), self::ACTION_AUDIT_RESET ) ); ?>"
-					onclick="return confirm('<?php echo esc_js( __( '重新体检=清掉上次标记重来，已处理结果作废——确定？', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '重新体检', 'wink-gatekeeper' ); ?></a>
+					onclick="return confirm('<?php echo esc_js( __( 'Re-running the audit wipes the previous marks and starts over; processed results are voided — sure?', 'wink-wp-gatekeeper' ) ); ?>');"><?php esc_html_e( 'Re-run audit', 'wink-wp-gatekeeper' ); ?></a>
 			<?php endif; ?>
 			</p>
 		</section>
@@ -6848,16 +6853,16 @@ final class SettingsPage {
 		// 【W3·批A】迁段 report_card（视图组装留编排位——文案/锚 id/票面词/动作链接/
 		// 原因行的 esc+截断全部不迁位，XSS 红线面照旧；helper 只负责结构形态）。
 		$st_words = array(
-			'running'      => __( '进行中', 'wink-gatekeeper' ),
-			'paused'       => __( '已暂停', 'wink-gatekeeper' ),
-			'quota_paused' => __( '今日额度用完已暂停（次日自动恢复）', 'wink-gatekeeper' ),
-			'completed'    => __( '已完成', 'wink-gatekeeper' ),
+			'running'      => _x( 'In progress', 'audit-running', 'wink-wp-gatekeeper' ),
+			'paused'       => __( 'Paused', 'wink-wp-gatekeeper' ),
+			'quota_paused' => __( 'Paused — today\'s quota is used up (auto-resumes tomorrow)', 'wink-wp-gatekeeper' ),
+			'completed'    => __( 'Completed', 'wink-wp-gatekeeper' ),
 		);
 		$st_word      = $st_words[ (string) ( $rep_prog['status'] ?? 'idle' ) ] ?? (string) ( $rep_prog['status'] ?? 'idle' );
-		$driver_label = '' !== $rep_view['driver'] ? $rep_view['driver'] : __( '未配置', 'wink-gatekeeper' );
+		$driver_label = '' !== $rep_view['driver'] ? $rep_view['driver'] : __( 'Not configured', 'wink-wp-gatekeeper' );
 		$meta_line    = sprintf(
 			/* translators: 1: 服务商 2: 发起时间 3: 状态词 */
-			__( '服务商：%1$s · 发起：%2$s · %3$s', 'wink-gatekeeper' ),
+			__( 'Provider: %1$s · started: %2$s · %3$s', 'wink-wp-gatekeeper' ),
 			$driver_label,
 			$rep_view['started_at'] > 0 ? date_i18n( 'Y-m-d H:i', $rep_view['started_at'] ) : '—',
 			$st_word
@@ -6865,22 +6870,22 @@ final class SettingsPage {
 		if ( 'completed' === $rep_view['state'] && $rep_view['finished_at'] > 0 ) {
 			$meta_line .= ' · ' . sprintf(
 				/* translators: %s: 完成时间 */
-				__( '完成：%s', 'wink-gatekeeper' ),
+				__( 'Completed: %s', 'wink-wp-gatekeeper' ),
 				date_i18n( 'Y-m-d H:i', $rep_view['finished_at'] )
 			);
 		} elseif ( 'running' === $rep_view['state'] && $rep_view['total'] > 0 ) {
 			$meta_line .= ' · ' . sprintf(
 				/* translators: 1: processed 2: total */
-				__( '已体检 %1$d / %2$d 条', 'wink-gatekeeper' ),
+				__( '%1$d of %2$d comments audited', 'wink-wp-gatekeeper' ),
 				$rep_view['processed'],
 				$rep_view['total']
 			);
 		}
-		$recovery_line = esc_html__( '判违规进垃圾箱、没看清进待审，都能手动恢复。', 'wink-gatekeeper' );
+		$recovery_line = esc_html__( 'Violations go to Spam, unclear ones to pending review — both recoverable by hand.', 'wink-wp-gatekeeper' );
 		if ( $rep_view['caliber']['gone'] > 0 || $rep_view['caliber']['error'] > 0 ) {
 			$recovery_line .= ' ' . esc_html( sprintf(
 				/* translators: 1: 评论已删条数 2: 出错条数 */
-				__( '另：评论已删除 %1$d 条 · 出错 %2$d 条。', 'wink-gatekeeper' ),
+				__( 'Also: %1$d comments deleted · %2$d errors.', 'wink-wp-gatekeeper' ),
 				$rep_view['caliber']['gone'],
 				$rep_view['caliber']['error']
 			) );
@@ -6901,45 +6906,45 @@ final class SettingsPage {
 			// XSS 红线：原因=攻击者可控（AI 原文/驱动透传）——转义+截断（编排在位）。
 			$reasons_html = '<p>' . esc_html( implode( ' · ', $parts ) ) . '</p>';
 		} else {
-			$reasons_html = '<p class="wk-muted">' . esc_html__( '暂无命中', 'wink-gatekeeper' ) . '</p>';
+			$reasons_html = '<p class="wk-muted">' . esc_html__( 'No matches', 'wink-wp-gatekeeper' ) . '</p>';
 		}
 		self::report_card( array(
 			'state'           => (string) $rep_view['state'],
 			'section_id'      => 'wk-tools-existing-audit-report',
-			'title'           => __( '存量审核报告（历史评论体检）', 'wink-gatekeeper' ),
+			'title'           => __( 'Existing-comment audit report', 'wink-wp-gatekeeper' ),
 			'empty_id'        => 'wk-tools-existing-report-empty',
-			'empty_text'      => __( '还没体检过历史评论——点上方「开始体检」发起，报告会展示在这里。', 'wink-gatekeeper' ),
+			'empty_text'      => __( 'No existing-comment audit yet — click “Start audit” above and the report will appear here.', 'wink-wp-gatekeeper' ),
 			'meta_id'         => 'wk-tools-existing-report-meta',
 			'meta_text'       => $meta_line,
 			'tickets_class'   => 'wk-report-tickets',
 			'caliber_id'      => 'wk-tools-existing-audit-caliber',
 			'tickets'         => array(
 				array(
-					'name' => __( '没问题（pass）', 'wink-gatekeeper' ),
-					'main' => sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pass'] ) ),
-					'sub'  => __( '已核无问题——评论状态不动', 'wink-gatekeeper' ),
+					'name' => __( 'Clean (pass)', 'wink-wp-gatekeeper' ),
+					'main' => sprintf( /* translators: %s: 条数 */ __( '%s items', 'wink-wp-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pass'] ) ),
+					'sub'  => __( 'Verified clean — comment status unchanged', 'wink-wp-gatekeeper' ),
 				),
 				array(
-					'name' => __( '待审核（没看清，不下结论）', 'wink-gatekeeper' ),
-					'main' => sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pending'] ) ),
-					'sub'  => __( '已进待审队列等你过目', 'wink-gatekeeper' ),
+					'name' => __( 'Pending review (could not tell, no verdict)', 'wink-wp-gatekeeper' ),
+					'main' => sprintf( /* translators: %s: 条数 */ __( '%s items', 'wink-wp-gatekeeper' ), number_format_i18n( $rep_view['caliber']['pending'] ) ),
+					'sub'  => __( 'Sitting in the pending queue for your review', 'wink-wp-gatekeeper' ),
 				),
 				array(
-					'name' => __( '垃圾箱（判违规）', 'wink-gatekeeper' ),
-					'main' => sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $rep_view['caliber']['spam'] ) ),
-					'sub'  => __( '已进垃圾箱', 'wink-gatekeeper' ),
+					'name' => __( 'Spam (verdict: violation)', 'wink-wp-gatekeeper' ),
+					'main' => sprintf( /* translators: %s: 条数 */ __( '%s items', 'wink-wp-gatekeeper' ), number_format_i18n( $rep_view['caliber']['spam'] ) ),
+					'sub'  => __( 'Moved to Spam', 'wink-wp-gatekeeper' ),
 				),
 			),
 			'actions_html'    => '<a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ) . '">'
 				. esc_html( sprintf(
 					/* translators: %d: 待审核条数 */
-					__( '去待审队列处理（%d 条）→', 'wink-gatekeeper' ),
+					__( 'Handle the pending queue (%d) →', 'wink-wp-gatekeeper' ),
 					$rep_view['caliber']['pending']
 				) )
 				. '</a> · <a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ) . '">'
 				. esc_html( sprintf(
 					/* translators: %d: 垃圾箱条数 */
-					__( '去垃圾箱查看（%d 条）→', 'wink-gatekeeper' ),
+					__( 'View Spam (%d) →', 'wink-wp-gatekeeper' ),
 					$rep_view['caliber']['spam']
 				) )
 				. '</a>',
@@ -6947,7 +6952,7 @@ final class SettingsPage {
 			'reasons_id'      => 'wk-tools-existing-audit-reasons',
 			'reasons_summary' => sprintf(
 				/* translators: %d: 原因类数 */
-				__( '原因明细（%d 类）', 'wink-gatekeeper' ),
+				__( 'Reason breakdown (%d kinds)', 'wink-wp-gatekeeper' ),
 				count( $reasons )
 			),
 			'reasons_html'    => $reasons_html,
@@ -6970,14 +6975,14 @@ final class SettingsPage {
 		$url_view = $backlog_worker->backlog_report_data();
 		?>
 		<section class="wk-card" id="wk-tools-url-audit-card">
-			<h2><?php esc_html_e( '存量网址核查', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Existing URL check', 'wink-wp-gatekeeper' ); ?></h2>
 			<?php if ( 'running' === $url_view['state'] ) : ?>
 			<?php
 			// 【W3·批B】迁段 notice_yellow_bar（批H-7 同源黄条——id 锚留编排位）。
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				esc_html__( '存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）；完成后可看下方报告。', 'wink-gatekeeper' ),
+				esc_html__( 'Existing URL check in progress… advances automatically within the daily quota (violations to Spam, unclear ones to pending review, both recoverable by hand); the report appears below when done.', 'wink-wp-gatekeeper' ),
 				'',
 				'',
 				'wk-tools-url-audit-running-bar'
@@ -6989,11 +6994,11 @@ final class SettingsPage {
 			// 真实键在 Tab③ url_audit 高级区，本卡为联动展示不另造键——零新键）。
 			self::advanced_fold(
 				'id="wk-tools-url-audit-advanced"',
-				__( '高级说明（每日推进额度 / 重查口径）', 'wink-gatekeeper' ),
+				__( 'Advanced notes (daily advance quota / re-check policy)', 'wink-wp-gatekeeper' ),
 				static function (): void {
 					?>
-					<p class="wk-muted"><?php esc_html_e( '把站里已有评论中的网站地址交「网址核查」全部重查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。', 'wink-gatekeeper' ); ?></p>
-					<p class="wk-muted"><?php esc_html_e( '每日额度用完自动暂停（次日自动接着查）：判违规的进垃圾箱、没看清的进待审，都能手动恢复。', 'wink-gatekeeper' ); ?></p>
+					<p class="wk-muted"><?php esc_html_e( 'Hands every website URL in existing comments to the “URL check” for a full re-pass (open the page + AI verdict on whether the site is problematic). The everyday URL check only covers new comments — this button is for digging through history, with predictable cost.', 'wink-wp-gatekeeper' ); ?></p>
+					<p class="wk-muted"><?php esc_html_e( 'Pauses automatically when the daily quota runs out (continues the next day): violations to Spam, unclear ones to pending review, both recoverable by hand.', 'wink-wp-gatekeeper' ); ?></p>
 					<?php
 				}
 			);
@@ -7006,7 +7011,7 @@ final class SettingsPage {
 			self::notice_yellow_bar(
 				'warn',
 				'',
-				esc_html__( '网址核查未开启——先到「云端审核」页开启「网址核查」，再回来发起存量核查。', 'wink-gatekeeper' ),
+				esc_html__( 'The URL check is off — enable “URL check” on the “Cloud moderation” tab first, then come back to start the existing-URL check.', 'wink-wp-gatekeeper' ),
 				'',
 				'',
 				'wk-tools-url-audit-off-notice'
@@ -7015,17 +7020,17 @@ final class SettingsPage {
 			<?php endif; ?>
 			<p id="wk-tools-url-audit-state-line" class="wk-muted">
 				<?php if ( ! $url_audit_on ) : ?>
-					<?php esc_html_e( '（开启后这里可发起存量核查。）', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( '(Once enabled, you can start the existing-URL check here.)', 'wink-wp-gatekeeper' ); ?>
 				<?php elseif ( $backlog_count > 0 ) : ?>
 					<?php
 					printf(
 						/* translators: %s: 待核查条数。 */
-						esc_html__( '已排队 %s 条待核查（按每日额度自动推进）。', 'wink-gatekeeper' ),
+						esc_html__( '%s URLs queued for checking (advances automatically within the daily quota).', 'wink-wp-gatekeeper' ),
 						esc_html( number_format_i18n( $backlog_count ) )
 					);
 					?>
 				<?php else : ?>
-					<?php esc_html_e( '没有待核查的存量网址——点下方按钮可把带网址的已批准评论全部重查一遍。', 'wink-gatekeeper' ); ?>
+					<?php esc_html_e( 'No existing URLs waiting — the button below re-queues every approved comment that carries a URL.', 'wink-wp-gatekeeper' ); ?>
 				<?php endif; ?>
 			</p>
 			<?php if ( $backlog_added >= 0 ) : ?>
@@ -7033,17 +7038,17 @@ final class SettingsPage {
 				echo esc_html( $backlog_added > 0
 					? sprintf(
 						/* translators: %s: 本次入队条数 */
-						__( '已入队 %s 条·开始核查（按每日额度自动推进，可离开此页）。', 'wink-gatekeeper' ),
+						__( '%s queued · checking starts (advances automatically within the daily quota; you can leave this page).', 'wink-wp-gatekeeper' ),
 						number_format_i18n( $backlog_added )
 					)
-					: __( '没有新发现需核查的存量网址——可能都已在队列中。', 'wink-gatekeeper' ) );
+					: __( 'No newly found existing URLs to check — they may already be queued.', 'wink-wp-gatekeeper' ) );
 			?></strong></p>
 			<?php endif; ?>
 			<?php if ( $url_audit_on ) : ?>
 			<p>
 				<a class="button" id="wk-tools-url-audit-start-btn"
 					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG ), \WinkGatekeeper\UrlAudit\UrlAuditWorker::ACTION_BACKLOG ) ); ?>"
-					onclick="return confirm('<?php echo esc_js( __( '全部重查一遍？将忽略历史结果（网站内容可能已变化），把带网址的已批准评论重新排队核查，按每日额度逐条进行（消耗额度）。判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '开始存量网址核查（全部重查一遍——忽略历史结果，网站内容可能已变化）', 'wink-gatekeeper' ); ?></a>
+					onclick="return confirm('<?php echo esc_js( __( 'Re-check everything? Historical results are ignored (site content may have changed), approved comments with URLs are re-queued, and checks proceed one by one within the daily quota (consuming quota). Violations go to Spam, unclear ones to pending review (both recoverable by hand).', 'wink-wp-gatekeeper' ) ); ?>');"><?php esc_html_e( 'Start the existing URL check (re-check everything — historical results ignored, site content may have changed)', 'wink-wp-gatekeeper' ); ?></a>
 			</p>
 			<?php endif; ?>
 		</section>
@@ -7055,15 +7060,15 @@ final class SettingsPage {
 		 * 【M6·批H·H-7】$url_view 已前置（操作卡运行中黄条同源）——本卡直接消费。 */
 		?>
 		<section class="wk-card" id="wk-tools-url-audit-report">
-			<h2><?php esc_html_e( '存量网址核查报告', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Existing URL check report', 'wink-wp-gatekeeper' ); ?></h2>
 			<?php if ( 'empty' === $url_view['state'] ) : ?>
-				<p id="wk-tools-url-report-empty" class="wk-muted"><?php esc_html_e( '还没运行过存量网址核查——点上方「开始存量网址核查」发起，报告会展示在这里。', 'wink-gatekeeper' ); ?></p>
+				<p id="wk-tools-url-report-empty" class="wk-muted"><?php esc_html_e( 'No existing URL check has run yet — click “Start the existing URL check” above and the report will appear here.', 'wink-wp-gatekeeper' ); ?></p>
 			<?php else : ?>
 				<p id="wk-tools-url-report-meta" class="wk-muted"><?php
 					if ( 'running' === $url_view['state'] ) {
 						echo esc_html( sprintf(
 							/* translators: 1: 发起时间 2: 已核查数 3: 共数 4: 队列残留数 */
-							__( '发起：%1$s · 进行中——已核查 %2$d / %3$d 条 · 队列残留 %4$d 条（按每日额度自动推进）', 'wink-gatekeeper' ),
+							__( 'Started: %1$s · in progress — %2$d of %3$d checked · %4$d left in queue (advances automatically within the daily quota)', 'wink-wp-gatekeeper' ),
 							$url_view['started_at'] > 0 ? date_i18n( 'Y-m-d H:i', $url_view['started_at'] ) : '—',
 							$url_view['judged'],
 							$url_view['enqueued'],
@@ -7072,7 +7077,7 @@ final class SettingsPage {
 					} else {
 						echo esc_html( sprintf(
 							/* translators: 1: 发起时间 2: 完成时间 3: 共数 */
-							__( '发起：%1$s · 完成：%2$s · 共核查 %3$d 条（本轮全部收口）', 'wink-gatekeeper' ),
+							__( 'Started: %1$s · completed: %2$s · %3$d checked in total (this round fully wrapped up)', 'wink-wp-gatekeeper' ),
 							$url_view['started_at'] > 0 ? date_i18n( 'Y-m-d H:i', $url_view['started_at'] ) : '—',
 							$url_view['finished_at'] > 0 ? date_i18n( 'Y-m-d H:i', $url_view['finished_at'] ) : '—',
 							$url_view['judged']
@@ -7081,42 +7086,42 @@ final class SettingsPage {
 				?></p>
 				<div class="wk-report-tickets" id="wk-tools-url-audit-caliber">
 					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '没问题（pass）', 'wink-gatekeeper' ); ?></strong></p>
-						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $url_view['caliber']['pass'] ) ) ); ?></p>
-						<p class="wk-muted"><?php esc_html_e( '网站核过没问题——评论状态不动', 'wink-gatekeeper' ); ?></p>
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( 'Clean (pass)', 'wink-wp-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s items', 'wink-wp-gatekeeper' ), number_format_i18n( $url_view['caliber']['pass'] ) ) ); ?></p>
+						<p class="wk-muted"><?php esc_html_e( 'Site verified clean — comment status unchanged', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '待审核（没看清，不下结论）', 'wink-gatekeeper' ); ?></strong></p>
-						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $url_view['caliber']['pending'] ) ) ); ?></p>
-						<p class="wk-muted"><?php esc_html_e( '已进待审队列等你过目', 'wink-gatekeeper' ); ?></p>
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( 'Pending review (could not tell, no verdict)', 'wink-wp-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s items', 'wink-wp-gatekeeper' ), number_format_i18n( $url_view['caliber']['pending'] ) ) ); ?></p>
+						<p class="wk-muted"><?php esc_html_e( 'Sitting in the pending queue for your review', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 					<div class="wk-report-ticket">
-						<p class="wk-report-ticket__name"><strong><?php esc_html_e( '垃圾箱（判违规）', 'wink-gatekeeper' ); ?></strong></p>
-						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s 条', 'wink-gatekeeper' ), number_format_i18n( $url_view['caliber']['spam'] ) ) ); ?></p>
-						<p class="wk-muted"><?php esc_html_e( '已进垃圾箱', 'wink-gatekeeper' ); ?></p>
+						<p class="wk-report-ticket__name"><strong><?php esc_html_e( 'Spam (verdict: violation)', 'wink-wp-gatekeeper' ); ?></strong></p>
+						<p class="wk-report-ticket__main"><?php echo esc_html( sprintf( /* translators: %s: 条数 */ __( '%s items', 'wink-wp-gatekeeper' ), number_format_i18n( $url_view['caliber']['spam'] ) ) ); ?></p>
+						<p class="wk-muted"><?php esc_html_e( 'Moved to Spam', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 				</div>
 				<p class="wk-overview-actions">
 					<a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ); ?>"><?php
 						echo esc_html( sprintf(
 							/* translators: %d: 待审核条数 */
-							__( '去待审队列处理（%d 条）→', 'wink-gatekeeper' ),
+							__( 'Handle the pending queue (%d) →', 'wink-wp-gatekeeper' ),
 							$url_view['caliber']['pending']
 						) );
 					?></a>
 					· <a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php
 						echo esc_html( sprintf(
 							/* translators: %d: 垃圾箱条数 */
-							__( '去垃圾箱查看（%d 条）→', 'wink-gatekeeper' ),
+							__( 'View Spam (%d) →', 'wink-wp-gatekeeper' ),
 							$url_view['caliber']['spam']
 						) );
 					?></a>
 				</p>
-				<p class="wk-muted"><?php esc_html_e( '判违规进垃圾箱、没看清进待审，都能手动恢复。', 'wink-gatekeeper' ); ?><?php
+				<p class="wk-muted"><?php esc_html_e( 'Violations go to Spam, unclear ones to pending review — both recoverable by hand.', 'wink-wp-gatekeeper' ); ?><?php
 					if ( $url_view['gone'] > 0 ) {
 						echo ' ' . esc_html( sprintf(
 							/* translators: %d: 评论已删条数 */
-							__( '另：评论已删除 %d 条。', 'wink-gatekeeper' ),
+							__( 'Also: %d comments deleted.', 'wink-wp-gatekeeper' ),
 							$url_view['gone']
 						) );
 					}
@@ -7131,7 +7136,7 @@ final class SettingsPage {
 				<details id="wk-tools-url-audit-reasons">
 					<summary><?php echo esc_html( sprintf(
 						/* translators: %d: 原因类数 */
-						__( '原因明细（%d 类）', 'wink-gatekeeper' ),
+						__( 'Reason breakdown (%d kinds)', 'wink-wp-gatekeeper' ),
 						count( $url_reasons )
 					) ); ?></summary>
 					<?php if ( array() !== $url_reasons ) : ?>
@@ -7139,7 +7144,7 @@ final class SettingsPage {
 							$url_parts = array();
 							foreach ( $url_reasons as $url_reason_row ) {
 								$url_prefix = 'search' === (string) ( $url_reason_row['evidence'] ?? '' )
-									? __( '网址打不开，依据搜索线索判定', 'wink-gatekeeper' )
+									? __( 'URL would not open; judged from search clues', 'wink-wp-gatekeeper' )
 									: '';
 							$url_parts[] = sprintf(
 								'%2$s「%1$s」%3$d 条 → %4$s',
@@ -7152,7 +7157,7 @@ final class SettingsPage {
 							echo esc_html( implode( ' · ', $url_parts ) ); // XSS 红线：单次转义收口。
 						?></p>
 					<?php else : ?>
-						<p class="wk-muted"><?php esc_html_e( '暂无命中', 'wink-gatekeeper' ); ?></p>
+						<p class="wk-muted"><?php esc_html_e( 'No matches', 'wink-wp-gatekeeper' ); ?></p>
 					<?php endif; ?>
 				</details>
 				<?php
@@ -7162,9 +7167,9 @@ final class SettingsPage {
 				if ( array() !== $host_rows ) :
 					?>
 				<details id="wk-tools-url-audit-hosts">
-					<summary><?php esc_html_e( '按网站归堆（网址核查判违规）', 'wink-gatekeeper' ); ?></summary>
+					<summary><?php esc_html_e( 'Grouped by site (URL check violations)', 'wink-wp-gatekeeper' ); ?></summary>
 					<table class="widefat striped" style="max-width:640px;">
-						<thead><tr><th><?php esc_html_e( '网站', 'wink-gatekeeper' ); ?></th><th><?php esc_html_e( '命中评论', 'wink-gatekeeper' ); ?></th><th><?php esc_html_e( '判违规', 'wink-gatekeeper' ); ?></th><th><?php esc_html_e( '建议', 'wink-gatekeeper' ); ?></th></tr></thead>
+						<thead><tr><th><?php esc_html_e( 'Website', 'wink-wp-gatekeeper' ); ?></th><th><?php esc_html_e( 'Comments hit', 'wink-wp-gatekeeper' ); ?></th><th><?php esc_html_e( 'Violation', 'wink-wp-gatekeeper' ); ?></th><th><?php esc_html_e( 'Suggestion', 'wink-wp-gatekeeper' ); ?></th></tr></thead>
 						<tbody>
 						<?php foreach ( $host_rows as $host_row ) : ?>
 							<tr>
@@ -7172,7 +7177,7 @@ final class SettingsPage {
 								<td><?php echo (int) $host_row['hits']; ?></td>
 								<td><?php echo (int) $host_row['rejects']; ?></td>
 								<td>
-									<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wink_gatekeeper_url_host_purge&host=' . rawurlencode( (string) $host_row['host'] ) ), 'wink_gatekeeper_url_host_purge' ) ); ?>" onclick="return confirm('<?php echo esc_js( __( '清空此站的网址核查缓存并重新核查？', 'wink-gatekeeper' ) ); ?>');"><?php esc_html_e( '重新核查此站', 'wink-gatekeeper' ); ?></a>
+									<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wink_gatekeeper_url_host_purge&host=' . rawurlencode( (string) $host_row['host'] ) ), 'wink_gatekeeper_url_host_purge' ) ); ?>" onclick="return confirm('<?php echo esc_js( __( 'Clear this site\'s URL check cache and re-check it?', 'wink-wp-gatekeeper' ) ); ?>');"><?php esc_html_e( 'Re-check this site', 'wink-wp-gatekeeper' ); ?></a>
 								</td>
 							</tr>
 						<?php endforeach; ?>
@@ -7183,16 +7188,16 @@ final class SettingsPage {
 			<?php endif; ?>
 		</section>
 		<section class="wk-card wk-card--ghost">
-			<h2><?php esc_html_e( '导入/导出设置', 'wink-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></h2>
-			<p class="wk-muted"><?php esc_html_e( 'JSON 导出（默认不含密钥）/ 导入校验（schema 版本校验）。M4 实装（F27）。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'Import/export settings', 'wink-wp-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<p class="wk-muted"><?php esc_html_e( 'JSON export (keys excluded by default) / import validation (schema version check). Implemented in M4 (F27).', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 		<section class="wk-card wk-card--ghost">
-			<h2><?php esc_html_e( '驱动自检与降级演练', 'wink-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></h2>
-			<p class="wk-muted"><?php esc_html_e( '密钥试调用、前端 JS 可达性探测、真实 IP 自检（CIDR 校验 + 解析预览）、降级演练。M3/M4 实装（F28/F33）。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'Driver self-check and fallback drills', 'wink-wp-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<p class="wk-muted"><?php esc_html_e( 'Key trial calls, front-end JS reachability probes, real-IP self-check (CIDR validation + parsing preview), fallback drills. Implemented in M3/M4 (F28/F33).', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 		<section class="wk-card wk-card--ghost">
-			<h2><?php esc_html_e( '系统信息', 'wink-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></h2>
-			<p class="wk-muted"><?php esc_html_e( 'PHP/WP 版本要求检查卡片（沿上游 baby_wp_check_requirements 交互）。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'System info', 'wink-wp-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<p class="wk-muted"><?php esc_html_e( 'PHP/WP version requirement check card (following upstream baby_wp_check_requirements behavior).', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 		<?php
 	}
@@ -7231,12 +7236,12 @@ final class SettingsPage {
 		 * 充实装）/ 卡6 网站字段 / 卡7 头像来源（原两卡零重排——DOM 锚全保）。 */ ?>
 
 		<section class="wk-card wk-card--ghost">
-			<h2><?php esc_html_e( 'RSS 防护', 'wink-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></h2>
-			<p class="wk-muted"><?php esc_html_e( '对 RSS/Atom 订阅源限流、feed 摘要化（全文改摘要）等 feed 请求管控——默认全关、开了才生效。规划位：当前零控件零行为，实装后转实线卡。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'RSS protection', 'wink-wp-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<p class="wk-muted"><?php esc_html_e( 'Feed request controls such as RSS/Atom feed rate limiting and excerpting feeds (full text → excerpt) — all off by default, effective only when enabled. Placeholder: zero controls and zero behavior today; becomes a live card once implemented.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<section class="wk-card" id="wk-xmlrpc-control-card">
-			<h2><?php esc_html_e( 'XML-RPC 管控', 'wink-gatekeeper' ); ?> <span class="badge b-dim"><?php esc_html_e( '现行控件自 Tab② 登录保护卡搬位扩展', 'wink-gatekeeper' ); ?></span></h2>
+			<h2><?php esc_html_e( 'XML-RPC controls', 'wink-wp-gatekeeper' ); ?> <span class="badge b-dim"><?php esc_html_e( 'Current controls moved over and extended from the Tab 2 login protection card', 'wink-wp-gatekeeper' ); ?></span></h2>
 			<div class="switch-row">
 				<?php /* 【W3·批B·Q4 代裁】gates.login.xmlrpc_login 同键副本（反选形态同款两处渲染
 				 * 同 name——hidden 恒 1 勾选提交 0；Tab② 登录保护卡保留原行，本卡为管控中心副本；
@@ -7244,77 +7249,77 @@ final class SettingsPage {
 				<?php $xmlrpc_login = isset( $settings['gates']['login']['xmlrpc_login'] ) ? (bool) $settings['gates']['login']['xmlrpc_login'] : false; ?>
 				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'xmlrpc_login' ) ) ); ?>" value="1" />
 				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'gates', 'login', 'xmlrpc_login' ) ) ); ?>" value="0" <?php checked( false, $xmlrpc_login ); ?> />
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '彻底关闭 XML-RPC 登录', 'wink-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( '推荐加固', 'wink-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( '登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；使用博客客户端发布工具的站长取消勾选并保存以开启。与 Tab②「登录保护」卡为同一开关（任一处保存即生效）。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Fully disable XML-RPC logins', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Recommended hardening', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'Login-type XML-RPC methods (wp.getUsersBlogs, credentials carried by system.multicall, etc.) get an across-the-board 405; publishers using blog-client tools should untick and save to re-enable. Same switch as the Tab 2 “Login protection” card (saving in either place takes effect).', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 			<div class="switch-row">
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '整体关闭 XML-RPC', 'wink-gatekeeper' ); ?></b><span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( '含 pingback 与全部认证方法的整体 405——比仅关登录更彻底，适合完全不用 XML-RPC 的站。规划位：当前零控件零行为。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Shut down XML-RPC entirely', 'wink-wp-gatekeeper' ); ?></b><span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'An across-the-board 405 including pingback and every authenticated method — more thorough than disabling logins only, for sites that never use XML-RPC. Placeholder: zero controls and zero behavior today.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 			<div class="switch-row">
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Pingback 关闭', 'wink-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( '防反射滥用', 'wink-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( '关闭 pingback 防反射攻击滥用。规划位：当前零控件零行为。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Pingback off', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Anti-reflection abuse', 'wink-wp-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'Turn pingback off to prevent reflection-attack abuse. Placeholder: zero controls and zero behavior today.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 		</section>
 
 		<section class="wk-card wk-card--ghost">
-			<h2><?php esc_html_e( 'REST API 管控', 'wink-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></h2>
-			<p class="wk-muted"><?php esc_html_e( '关闭未登录用户枚举（/wp/v2/users）、REST 计入登录闸失败计数等收窄面管控——取舍声明：收窄面而非关停面。规划位：当前零控件零行为，实装后转实线卡。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'REST API controls', 'wink-wp-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<p class="wk-muted"><?php esc_html_e( 'Narrowing controls such as disabling unauthenticated user enumeration (/wp/v2/users) and counting REST attempts in the login gate\'s failure counter — trade-off statement: narrowing, not shutting down. Placeholder: zero controls and zero behavior today; becomes a live card once implemented.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<section class="wk-card wk-card--ghost">
-			<h2><?php esc_html_e( 'UA / HTTP 头规则', 'wink-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></h2>
-			<p class="wk-muted"><?php esc_html_e( '按请求头（UA 等）放行/拦截的自定义规则行——与 Tab④ IP 信誉白名单的分工：这条管「请求长啥样」、那条管「IP 是谁」。规划位：当前零控件零行为，实装后转实线卡。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'UA / HTTP header rules', 'wink-wp-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<p class="wk-muted"><?php esc_html_e( 'Custom allow/block rule rows by request headers (UA etc.) — division of labor with the Tab 4 IP reputation allowlist: these rules govern “what the request looks like”, that one governs “who the IP is”. Placeholder: zero controls and zero behavior today; becomes a live card once implemented.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
 		<section class="wk-card" id="wk-coexist-card">
-			<h2><?php esc_html_e( '与其他防护的共存（coexist）', 'wink-gatekeeper' ); ?> <span class="badge b-ok"><?php esc_html_e( '检测即让位 · 不打架', 'wink-gatekeeper' ); ?></span></h2>
+			<h2><?php esc_html_e( 'Coexistence with other security plugins', 'wink-wp-gatekeeper' ); ?> <span class="badge b-ok"><?php esc_html_e( 'Detect and yield · no fights', 'wink-wp-gatekeeper' ); ?></span></h2>
 			<?php /* 【W3·批B】coexist 共存卡新接线：hCaptcha 两 yield 开关=实键（coexist 子树
 			 * schema/sanitize 既有通道此前无渲染面——同键登记型新接线，默认开=现行行为一致：
 			 * 闸侧 02 §3.4 让位逻辑已在场，本卡只补显隐口径）。 */ ?>
 			<div class="switch-row">
 				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_comment' ) ) ); ?>" value="0" />
 				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_comment' ) ) ); ?>" value="1" <?php checked( ! isset( $settings['coexist']['hcaptcha_yield_comment'] ) || ! empty( $settings['coexist']['hcaptcha_yield_comment'] ) ); ?> />
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '检测到 hCaptcha 接管评论', 'wink-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( '验证码让位', 'wink-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( '官方 hCaptcha 插件接管评论验证码时，本插件验证码让位（黄条提示；登录/注册/找回仍由本插件把守）。默认开。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'hCaptcha detected handling comments', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Captcha yields', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'When the official hCaptcha plugin takes over comment captchas, this plugin\'s captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 			<div class="switch-row">
 				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_login' ) ) ); ?>" value="0" />
 				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_login' ) ) ); ?>" value="1" <?php checked( ! isset( $settings['coexist']['hcaptcha_yield_login'] ) || ! empty( $settings['coexist']['hcaptcha_yield_login'] ) ); ?> />
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '检测到 hCaptcha 接管登录', 'wink-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( '验证码让位', 'wink-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( '官方 hCaptcha 插件接管登录验证码时，本插件登录验证码让位。默认开——与评论让位开关各自独立。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'hCaptcha detected handling logins', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Captcha yields', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'When the official hCaptcha plugin takes over the login captcha, this plugin\'s login captcha yields. On by default — independent of the comment-yield switch.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 			<div class="switch-row">
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '检测到 Akismet 在场', 'wink-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( '关键词闸去重', 'wink-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( 'Akismet 已把同名垃圾扔进其队列时，本插件站内规矩不再重复出码拦截（判定留痕仍全量落本插件事件表）。规划行——审计底稿 docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md，施工拍板后实装；检测即让位、不代改对方配置。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Akismet detected', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Keyword gate deduplication', 'wink-wp-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'When Akismet has already tossed the same spam into its queue, this plugin\'s built-in rules skip re-challenging (the decision is still fully logged to this plugin\'s event table). Planned row — audit notes in docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md, to be implemented after sign-off; detect and yield, never touching the other plugin\'s config.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 			<div class="switch-row">
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( '检测到 Wordfence 在场', 'wink-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( '登录出码互斥提示', 'wink-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( '规划 · 待施工', 'wink-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( '两家都开登录验证时访客可能连过两道码——检测行提示「登录出码由谁把守」并给出建议（留一家，或一家让位）。规划行——提示性，不代改对方配置。', 'wink-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Wordfence detected', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Login captcha exclusivity notice', 'wink-wp-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'With both plugins verifying logins, visitors may face two captchas in a row — the detection row notes “who guards the login captcha” with a recommendation (keep one, or let one yield). Planned row — informational only, never touching the other plugin\'s config.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 		</section>
 
 		<section class="wk-card" id="wk-site-fields-card">
-			<h2><?php esc_html_e( '评论「网站」字段', 'wink-gatekeeper' ); ?></h2>
-			<p id="wk-site-fields-constant-note" class="wk-muted"><?php esc_html_e( '评论者可以填一个自己的网站。无论下面开关怎么设，后台评论区始终显示这个网址供你识别来访者；已存的网址不会删除。', 'wink-gatekeeper' ); ?></p>
+			<h2><?php esc_html_e( 'The comment “Website” field', 'wink-wp-gatekeeper' ); ?></h2>
+			<p id="wk-site-fields-constant-note" class="wk-muted"><?php esc_html_e( 'Commenters may fill in their own website. Whatever the switches below say, the admin comments screen always shows this URL so you can identify visitors; stored URLs are never deleted.', 'wink-wp-gatekeeper' ); ?></p>
 
 			<table class="form-table">
 				<tr id="wk-site-field-collect-row">
-					<th scope="row"><?php esc_html_e( '收集新评论的网站字段', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Collect the website field on new comments', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="wink_gatekeeper_settings[comments][site_field][enabled]" value="0" />
 							<input type="checkbox" name="wink_gatekeeper_settings[comments][site_field][enabled]" value="1" <?php checked( $collect_enabled ); ?>>
-							<?php esc_html_e( '评论表单出现「网站」一栏，新评论保存网址', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'A “Website” field appears on the comment form and new comments store the URL', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '不勾选（默认）时，评论表单不出现该栏、提交的网址一律丢弃——防止垃圾提交程序试探采集。已发表评论不受影响。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Unticked (default): the field never appears and any submitted URL is discarded — keeping spam-submit bots from probing it. Published comments are unaffected.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<?php if ( ! $collect_enabled && $url_audit_exists ) : ?>
@@ -7326,51 +7331,51 @@ final class SettingsPage {
 						self::notice_yellow_bar(
 							'warn',
 							'',
-							esc_html__( '网站字段收集已关闭——网址核查对新评论自动失效，存量网址仍可在工具页的「存量网址核查」中处理。', 'wink-gatekeeper' )
+							esc_html__( 'Website-field collection is off — the URL check auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page.', 'wink-wp-gatekeeper' )
 						);
 						?>
 					</td>
 				</tr>
 				<?php endif; ?>
 				<tr id="wk-site-field-delink-row">
-					<th scope="row"><?php esc_html_e( '前台评论者名字保留可点链接', 'wink-gatekeeper' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Keep commenter names clickable on the front end', 'wink-wp-gatekeeper' ); ?></th>
 					<td>
 						<label>
 							<input type="hidden" name="wink_gatekeeper_settings[comments][site_link][enabled]" value="0" />
 							<input type="checkbox" name="wink_gatekeeper_settings[comments][site_link][enabled]" value="1" <?php checked( $link_enabled ); ?>>
-							<?php esc_html_e( '前台评论区的评论者名字显示为可点开的链接', 'wink-gatekeeper' ); ?>
+							<?php esc_html_e( 'Commenter names in front-end comment areas display as clickable links', 'wink-wp-gatekeeper' ); ?>
 						</label>
-						<p class="description"><?php esc_html_e( '不勾选（默认）时只显示名字本身。你自己在后台看评论时始终是可点链接。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Unticked (default): only the name itself is shown. Names are always clickable for you in the admin.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
 		</section>
 
 		<section class="wk-card" id="wk-avatar-card">
-			<h2><?php esc_html_e( '评论者头像来源', 'wink-gatekeeper' ); ?></h2>
+			<h2><?php esc_html_e( 'Commenter avatar source', 'wink-wp-gatekeeper' ); ?></h2>
 			<table class="form-table">
 				<tr>
-					<th scope="row"><label for="wk-avatar-source-select"><?php esc_html_e( '头像来源', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-avatar-source-select"><?php esc_html_e( 'Avatar source', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<select id="wk-avatar-source-select" name="wink_gatekeeper_settings[avatar][source]">
-							<option value="official" <?php selected( $avatar_source, 'official' ); ?>><?php esc_html_e( '未配置（用 WordPress 官方源）', 'wink-gatekeeper' ); ?></option>
-							<option value="cravatar" <?php selected( $avatar_source, 'cravatar' ); ?>><?php esc_html_e( 'Cravatar（国内镜像，官方兼容）', 'wink-gatekeeper' ); ?></option>
-							<option value="weavatar" <?php selected( $avatar_source, 'weavatar' ); ?>><?php esc_html_e( 'WeAvatar（国内镜像，多级匹配）', 'wink-gatekeeper' ); ?></option>
-							<option value="sepcc" <?php selected( $avatar_source, 'sepcc' ); ?>><?php esc_html_e( 'sep.cc（国内镜像）', 'wink-gatekeeper' ); ?></option>
-							<option value="custom" <?php selected( $avatar_source, 'custom' ); ?>><?php esc_html_e( '自定义地址', 'wink-gatekeeper' ); ?></option>
+							<option value="official" <?php selected( $avatar_source, 'official' ); ?>><?php esc_html_e( 'Not configured (WordPress official source)', 'wink-wp-gatekeeper' ); ?></option>
+							<option value="cravatar" <?php selected( $avatar_source, 'cravatar' ); ?>><?php esc_html_e( 'Cravatar (mainland mirror, officially compatible)', 'wink-wp-gatekeeper' ); ?></option>
+							<option value="weavatar" <?php selected( $avatar_source, 'weavatar' ); ?>><?php esc_html_e( 'WeAvatar (mainland mirror, multi-level matching)', 'wink-wp-gatekeeper' ); ?></option>
+							<option value="sepcc" <?php selected( $avatar_source, 'sepcc' ); ?>><?php esc_html_e( 'sep.cc (mainland mirror)', 'wink-wp-gatekeeper' ); ?></option>
+							<option value="custom" <?php selected( $avatar_source, 'custom' ); ?>><?php esc_html_e( 'Custom URL', 'wink-wp-gatekeeper' ); ?></option>
 						</select>
-						<p class="description"><?php esc_html_e( '国内访客加载官方源可能很慢或失败；选用国内镜像可提速。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'The official source may load slowly or fail for mainland visitors; a mainland mirror speeds it up.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 				<tr id="wk-avatar-custom-base-row"<?php echo 'custom' === $avatar_source ? '' : ' hidden'; ?>>
-					<th scope="row"><label for="wk-avatar-custom-base"><?php esc_html_e( '自定义地址', 'wink-gatekeeper' ); ?></label></th>
+					<th scope="row"><label for="wk-avatar-custom-base"><?php esc_html_e( 'Custom URL', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
 						<input type="url" id="wk-avatar-custom-base" name="wink_gatekeeper_settings[avatar][custom_base]" class="regular-text code" value="<?php echo esc_attr( $avatar_custom ); ?>" placeholder="https://example.com/avatar/">
-						<p class="description"><?php esc_html_e( '须以 https:// 开头、以 /avatar/ 结尾——按镜像站说明填写；地址不合法时不改写头像来源（用官方源）。', 'wink-gatekeeper' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Must start with https:// and end with /avatar/ — follow the mirror\'s instructions; an invalid address leaves the avatar source unchanged (official source used).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
 			</table>
-			<p id="wk-avatar-switch-note" class="wk-muted"><?php esc_html_e( '切换头像来源后，已缓存的旧头像可能过一段时间才更新，不是故障。', 'wink-gatekeeper' ); ?></p>
+			<p id="wk-avatar-switch-note" class="wk-muted"><?php esc_html_e( 'After switching avatar sources, cached old avatars may take a while to refresh — not a malfunction.', 'wink-wp-gatekeeper' ); ?></p>
 			<?php
 			// 【W3·批B】测试迁 test_credential_btn（五态徽标「未测试」初态统一——测的是镜像通
 			// 不通非密钥，AJAX_TEST_AVATAR 双闸/零计量语义不变；id 锚/nonce 字面量留编排位）。
@@ -7378,7 +7383,7 @@ final class SettingsPage {
 				'id="wk-avatar-test-btn"',
 				'id="wk-avatar-test-result"',
 				wp_create_nonce( self::AJAX_TEST_AVATAR ),
-				__( '测试当前头像来源', 'wink-gatekeeper' ),
+				__( 'Test the current avatar source', 'wink-wp-gatekeeper' ),
 				'avatar'
 			);
 			?>
@@ -7400,7 +7405,7 @@ final class SettingsPage {
 		check_ajax_referer( self::AJAX_TEST_AVATAR, 'nonce' );
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( '权限不足：需要 manage_options。', 'wink-gatekeeper' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions: manage_options required.', 'wink-wp-gatekeeper' ) ), 403 );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- check_ajax_referer 已验。
@@ -7414,7 +7419,7 @@ final class SettingsPage {
 				// custom 但地址非法：给「缺参数」黄态（逐字段指出，同凭据测试黄态语义）。
 				wp_send_json_success( array(
 					'state'   => 'yellow',
-					'message' => __( '自定义地址不合法：须以 https:// 开头、以 /avatar/ 结尾。', 'wink-gatekeeper' ),
+					'message' => __( 'Invalid custom URL: it must start with https:// and end with /avatar/.', 'wink-wp-gatekeeper' ),
 				) );
 			}
 			// official：探测官方源（对照形态——官方源慢时正好引导切镜像）。
@@ -7441,20 +7446,20 @@ final class SettingsPage {
 		$messages = array(
 			'ok'   => sprintf(
 				/* translators: %s: 响应耗时秒。 */
-				__( '正常（%.1f 秒）', 'wink-gatekeeper' ),
+				__( 'OK (%.1f s)', 'wink-wp-gatekeeper' ),
 				$seconds
 			),
 			'slow' => sprintf(
 				/* translators: %s: 响应耗时秒。 */
-				__( '能用但慢（%.1f 秒）', 'wink-gatekeeper' ),
+				__( 'Works but slow (%.1f s)', 'wink-wp-gatekeeper' ),
 				$seconds
 			),
-			'fail' => __( '连不上该镜像（或返回的不是图片）。', 'wink-gatekeeper' ),
+			'fail' => __( 'Cannot reach this mirror (or the response is not an image).', 'wink-wp-gatekeeper' ),
 		);
 
 		wp_send_json_success( array(
 			'state'   => $state,
-			'message' => $messages[ $state ] ?? (string) __( '测试失败。', 'wink-gatekeeper' ),
+			'message' => $messages[ $state ] ?? (string) __( 'Test failed.', 'wink-wp-gatekeeper' ),
 			'source'  => $source,
 		) );
 	}

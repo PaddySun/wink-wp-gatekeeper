@@ -62,7 +62,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function esc_html__( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -75,7 +75,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -101,7 +101,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return void
 		 */
-		function esc_attr_e( string $text, string $domain = 'wink-gatekeeper' ): void {
+		function esc_attr_e( string $text, string $domain = 'wink-wp-gatekeeper' ): void {
 			echo htmlspecialchars( $text, ENT_QUOTES );
 		}
 	}
@@ -699,7 +699,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_classify_green_without_model(): void {
 			$state = CredentialProbe::classify_openai_custom_models( RemoteResult::classify( self::modelsResponse( array( 'a', 'b' ) ) ) );
 			self::assertSame( 'green', $state['state'], '未传模型=纯探活绿' );
-			self::assertStringNotContainsString( '在可用列表', $state['message'], '无模型校验语义不出现' );
+			self::assertStringNotContainsString( 'The model name must match the endpoint — “Test credentials” can check it against the available list (it may still work if absent; some endpoints have incomplete lists).', $state['message'], '无模型校验语义不出现' );
 		}
 
 		public function test_classify_red_401_403(): void {
@@ -718,7 +718,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( '402', $state['message'] );
 			self::assertStringContainsString( '计费口径', $state['message'], '计费口径由服务方定义（中性化——泛端点无统一计费语义）' );
 			self::assertStringNotContainsString( 'DeepSeek', $state['message'] );
-			self::assertStringNotContainsString( '充值', $state['message'], '不指引特定厂商控制台' );
+			self::assertStringNotContainsString( 'Create an API Key on the DeepSeek platform (platform.deepseek.com) and top up (pay-as-you-go; one verdict costs roughly a few hundred tokens).', $state['message'], '不指引特定厂商控制台' );
 		}
 
 		public function test_classify_yellow_model_missing_not_red(): void {
@@ -810,8 +810,8 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( 'id="wk-url-audit-provider-model"', $html, 'custom 档判定模型锚点保持' );
 			self::assertStringContainsString( '<input type="text" id="wk-url-audit-provider-model"', $html, '改手填 text（原静态两选项 select 退役）' );
 			self::assertStringNotContainsString( '<select id="wk-url-audit-provider-model"', $html, 'select 形态退役' );
-			self::assertStringContainsString( '留空=标准档', $html, '空=标准档回落语义保留（provider_config 回落同源）' );
-			self::assertStringContainsString( '模型列表探活', $html, '测试按钮 description 注明分流口径（官方=余额/其他=模型列表）' );
+			self::assertStringContainsString( 'The model name must match the endpoint; blank = Standard (deepseek-flash fallback — DeepSeek endpoints can stay blank).', $html, '空=标准档回落语义保留（provider_config 回落同源）' );
+			self::assertStringContainsString( 'model-list probe (zero tokens)', $html, '测试按钮 description 注明分流口径（官方=余额/其他=模型列表）' );
 		}
 
 		private static function renderUrlCard( array $settings ): string {
@@ -850,7 +850,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( '<input type="text" id="wk-openai-custom-model"', $card, '判定模型=手填 text（无静态下拉）' );
 			self::assertStringNotContainsString( '<select id="wk-openai-custom-model"', $card, '无静态模型下拉' );
 			self::assertStringContainsString( '<input type="text" id="wk-openai-custom-upgrade-model"', $card, '升级用模型=手填 text（R1 裁定）' );
-			self::assertStringContainsString( '留空=不升级', $card, '留空短路占位说明' );
+			self::assertStringContainsString( 'Enter a stronger model this endpoint supports; blank = no upgrade', $card, '留空短路占位说明' );
 			self::assertStringContainsString( 'daily_total_for', $card, '今日已判计数（Usage 键换 openai_custom）' );
 			self::assertStringContainsString( "'openai_custom'", $card, '计量键=openai_custom' );
 		}

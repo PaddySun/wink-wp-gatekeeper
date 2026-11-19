@@ -68,10 +68,10 @@ final class UiTab4IpDiagContractTest extends TestCase {
 		$body = self::functionBody( self::settings_src(), 'render_ip_diagnostic_panel' );
 
 		foreach ( array(
-			'IP 检测诊断面板',
-			'本地解析区',
-			'手动聚合查询区',
-			'发往',                          // 出境说明一行（手动查询会把该 IP 发往以上服务商）.
+			'IP detection diagnostics panel',
+			'Local parsing',
+			'Manual aggregate query',
+			'sends the entered IP',                          // 出境说明一行（手动查询会把该 IP 发往以上服务商）.
 			'AbuseIPDB',
 			'StopForumSpam',
 			'ip.nc.gy',

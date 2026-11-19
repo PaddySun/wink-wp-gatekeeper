@@ -1230,7 +1230,7 @@ final class CommentGate extends AbstractGate {
 			}
 			return new \WP_Error(
 				'wink_gatekeeper_blocked',
-				isset( $result['message'] ) ? $result['message'] : __( '评论未通过验证。', 'wink-gatekeeper' ),
+				isset( $result['message'] ) ? $result['message'] : __( 'The comment did not pass verification.', 'wink-wp-gatekeeper' ),
 				array( 'status' => 403 )
 			);
 		}

@@ -321,17 +321,17 @@ namespace WinkGatekeeper\Tests {
 			// 空数据回跳态：黄条在场。
 			$_GET['wk-export-empty'] = '1';
 			$out                     = self::renderPrivate( 'render_stats_records_card' );
-			self::assertStringContainsString( '今天还没有拦截记录', $out, '空数据黄条文案（不输出文件提示）' );
+			self::assertStringContainsString( 'No block records today — no export file was generated; export today\'s ledger once there are records.', $out, '空数据黄条文案（不输出文件提示）' );
 			self::assertStringContainsString( 'admin-post.php?action=wink_gatekeeper_export_csv', $out, '导出钮=GET 链接（die_preview/url_audit purge 同形态）' );
 			self::assertStringContainsString( '_wpnonce=', $out, 'wp_nonce_url 在场（nonce 挂链）' );
-			self::assertStringContainsString( '导出当日拦截流水', $out, '按钮文案（原型 tab6 段六口径）' );
-			self::assertStringContainsString( '不含账号、邮箱、评论正文与 IP', $out, 'PIPL 复核注记（最小化口径如实注）' );
+			self::assertStringContainsString( 'Export today\'s block ledger (CSV)', $out, '按钮文案（原型 tab6 段六口径）' );
+			self::assertStringContainsString( 'The export contains only today\'s blocked records: time / result / gate / reason / event number — no accounts, emails, comment bodies, or IPs (privacy-minimized, same policy as the login ledger).', $out, 'PIPL 复核注记（最小化口径如实注）' );
 			self::assertStringContainsString( 'id="wk-stats-records"', $out, 'DOM 锚保留（UiTab6StatsContractTest 同锚）' );
 
 			// 常态：无标志零黄条（有话才出现）。
 			unset( $_GET['wk-export-empty'] );
 			$out2 = self::renderPrivate( 'render_stats_records_card' );
-			self::assertStringNotContainsString( '今天还没有拦截记录', $out2, '无标志零黄条' );
+			self::assertStringNotContainsString( 'No block records today — no export file was generated; export today\'s ledger once there are records.', $out2, '无标志零黄条' );
 			self::assertStringNotContainsString( '接入后启用', $out2, '空接线悬空文案退役（N8 收口）' );
 		}
 
@@ -341,11 +341,11 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_n4_day_quota_ghost_shell_in_aliyun_fold(): void {
 			$fold = self::block_between( self::sp(), 'id="wk-aliyun-advanced"', 'wk-aliyun-test-credentials' );
-			self::assertStringContainsString( '每日验证额度', $fold, 'N4 规划行=每日验证额度' );
+			self::assertStringContainsString( 'Daily verification quota', $fold, 'N4 规划行=每日验证额度' );
 			self::assertStringContainsString( 'wk-card--ghost', $fold, '规划行=虚线壳（批 A CSS 件消费——design-system §04）' );
-			self::assertStringContainsString( '规划 · 待施工', $fold, '规划徽标（wk-plan-tag 同词）' );
-			self::assertStringContainsString( '额度用完当日停转、次日自愈', $fold, '口径注（原型文案照抄）' );
-			self::assertStringContainsString( '当前验证码服务未设每日上限', $fold, '如实注：当前零控件零行为（不冒充实装）' );
+			self::assertStringContainsString( 'Planned · not yet built', $fold, '规划徽标（wk-plan-tag 同词）' );
+			self::assertStringContainsString( 'Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented.', $fold, '口径注（原型文案照抄）' );
+			self::assertStringContainsString( 'Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented.', $fold, '如实注：当前零控件零行为（不冒充实装）' );
 
 			// 零控件：ghost 块内零表单控件（零 field_name/零 input name）。
 			$ghost_start = strpos( $fold, '每日验证额度' );

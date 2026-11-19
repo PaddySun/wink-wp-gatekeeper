@@ -104,10 +104,10 @@ final class UiM5Tab8ContractTest extends TestCase {
 		$aBlock = self::blockBetween( $src, 'wk-site-field-collect-row', 'wk-site-field-delink-row' );
 		$bBlock = self::blockBetween( $src, 'wk-site-field-delink-row', 'wk-avatar-card' );
 		self::assertStringNotContainsString( '纯文本', $aBlock, 'A 行不得提 B 语义词（纯文本）' );
-		self::assertStringNotContainsString( '链接', $aBlock, 'A 行不得提 B 语义词（链接）' );
-		self::assertStringNotContainsString( '网站', $bBlock, 'B 行不得提 A 语义词（网站）' );
-		self::assertStringNotContainsString( '网址', $bBlock, 'B 行不得提 A 语义词（网址）' );
-		self::assertStringNotContainsString( '收集', $bBlock, 'B 行不得提 A 语义词（收集）' );
+		self::assertStringNotContainsString( 'Nicknames/emails are masked here; see the archive link for the originals. Bot probes (fake-submit detection) leave no comment and never enter this table.', $aBlock, 'A 行不得提 B 语义词（链接）' );
+		self::assertStringNotContainsString( 'Website', $bBlock, 'B 行不得提 A 语义词（网站）' );
+		self::assertStringNotContainsString( 'Existing URL check in progress… advances automatically within the daily quota (violations go to Spam, unclear ones to pending — both recoverable by hand).', $bBlock, 'B 行不得提 A 语义词（网址）' );
+		self::assertStringNotContainsString( 'Website-field collection is off — new comments carry no URL to check, so this feature auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page.', $bBlock, 'B 行不得提 A 语义词（收集）' );
 	}
 
 	public function test_card1_a_notice_gated_on_url_audit_feature(): void {
@@ -116,7 +116,7 @@ final class UiM5Tab8ContractTest extends TestCase {
 		$src   = self::enhance_src();
 		$block = self::blockBetween( $src, 'wk-site-field-collect-row', 'wk-site-field-delink-row' );
 		self::assertStringContainsString( 'url_audit', $block, '提示行渲染须门控 url_audit 特性在场' );
-		self::assertStringContainsString( '网址', $block, '提示文案指向网址核查' );
+		self::assertStringContainsString( 'URL', $block, '提示文案指向网址核查' );
 		self::assertStringContainsString( 'wk-site-field-a-notice', $block, '提示行 DOM 锚' );
 	}
 

@@ -96,31 +96,31 @@ final class UiTab6StatsContractTest extends TestCase {
 	public function test_comment_section_skeleton(): void {
 		$body = self::body( 'render_stats_comment_section' );
 		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B① 两级标题制）' );
-		$this->assertStringContainsString( '评论防护', $body );
+		$this->assertStringContainsString( 'Comment protection', $body );
 		$this->assertStringContainsString( 'stats_config_hint', $body, '段级配置指引单入口（UI-FIX B②）' );
 		$this->assertStringContainsString( 'wk-sub-title', $body, '段内小标题走统一类（UI-FIX B①）' );
-		$this->assertStringContainsString( '今日概览', $body );
-		$this->assertStringContainsString( '转人工复核', $body, '待审→转人工复核（对照表 4）' );
-		$this->assertStringContainsString( '进了待审区，等你处理', $body, '首次出现处带括号注（A §4 对照表备注）' );
-		$this->assertStringContainsString( 'IP 信誉强制验证码', $body, 'IP 风控单列一行（统筹裁决 2，不入待审数字）' );
+		$this->assertStringContainsString( 'Today\\\'s overview', $body );
+		$this->assertStringContainsString( 'To manual review', $body, '待审→转人工复核（对照表 4）' );
+		$this->assertStringContainsString( '“To manual review” means it sits in the pending queue awaiting you. %s', $body, '首次出现处带括号注（A §4 对照表备注）' );
+		$this->assertStringContainsString( '%d IP-reputation-enforced captchas (counted separately — not included in the manual-review figures above).', $body, 'IP 风控单列一行（统筹裁决 2，不入待审数字）' );
 		// 谁拦的：本地规则卡 + 两道防线分组（按拦截链排序）。
-		$this->assertStringContainsString( '谁拦的', $body );
-		$this->assertStringContainsString( '中文检查，不花钱', $body, '本地规则卡描述（标签本体来自 local_rules_card 纯函数）' );
-		$this->assertStringContainsString( '人机验证防线', $body );
-		$this->assertStringContainsString( '云端审核防线', $body );
+		$this->assertStringContainsString( 'Who blocked it (in chain order)', $body );
+		$this->assertStringContainsString( '— length / keyword / Chinese checks, costs nothing', $body, '本地规则卡描述（标签本体来自 local_rules_card 纯函数）' );
+		$this->assertStringContainsString( 'Human verification line (third party, pay-per-use)', $body );
+		$this->assertStringContainsString( 'Cloud moderation line (third party, pay-per-use)', $body );
 		// 【v1.7·M3-IP】IP 信誉防线组（registry type='ip' 驱动卡——定稿 §9 驱动统一卡）。
-		$this->assertStringContainsString( 'IP 信誉防线', $body, 'IP 信誉防线分组（abuseipdb 卡入服务商统一卡）' );
+		$this->assertStringContainsString( 'IP reputation line (third party, pay-per-use)', $body, 'IP 信誉防线分组（abuseipdb 卡入服务商统一卡）' );
 		$this->assertStringContainsString( "'ip' === ( \$card['type'] ?? '' )", $body, 'IP 卡筛选（stats_driver_cards 三域收集 + 渲染分组过滤）' );
 		// 最近拦下的评论：明细表迁位本段（P3），列头人话化在表渲染函数内（P4）。
-		$this->assertStringContainsString( '最近拦下的评论', $body );
+		$this->assertStringContainsString( 'Recently blocked comments (last 10)', $body );
 		$this->assertStringContainsString( 'render_comment_recent_table', $body );
 		$this->assertStringNotContainsString( '去 Tab②/③ 配置后这里会出现它的数字', $body, '卡内/段尾跳转指引退役（UI-FIX B②——只在段标题出现一次）' );
-		$this->assertStringContainsString( '放行=推算值', $body, '推算口径注保留（指引句拆出）' );
+		$this->assertStringContainsString( 'Passed = derived figure (today\\\'s actions − blocked − manual review − errors).', $body, '推算口径注保留（指引句拆出）' );
 		$table = self::body( 'render_comment_recent_table' );
-		$this->assertStringContainsString( '哪道防线拦的', $table, '「阶段」列头人话化（对照表 8/12）' );
-		$this->assertStringContainsString( '说了什么', $table, '「正文摘要」列头人话化' );
-		$this->assertStringContainsString( '原因', $table, '「命中规则」列头人话化' );
-		$this->assertStringContainsString( '机器人试探', $table, 'stub 注人话（对照表 12）' );
+		$this->assertStringContainsString( 'Which line blocked it', $table, '「阶段」列头人话化（对照表 8/12）' );
+		$this->assertStringContainsString( 'What was said', $table, '「正文摘要」列头人话化' );
+		$this->assertStringContainsString( 'Reason', $table, '「命中规则」列头人话化' );
+		$this->assertStringContainsString( 'Nicknames/emails are masked here; see the archive link for the originals. Bot probes (fake-submit detection) leave no comment and never enter this table.', $table, 'stub 注人话（对照表 12）' );
 		$this->assertStringContainsString( 'Labels::stage_word', $table, '防线名走映射表' );
 		$this->assertStringContainsString( 'Labels::rule_hit_word', $table, '原因走映射表' );
 	}
@@ -144,15 +144,15 @@ final class UiTab6StatsContractTest extends TestCase {
 	public function test_login_section_skeleton(): void {
 		$body = self::body( 'render_stats_login_section' );
 		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
-		$this->assertStringContainsString( '登录防护', $body );
+		$this->assertStringContainsString( 'Login protection (three gates: login / registration / password recovery)', $body );
 		$this->assertStringContainsString( 'stats_config_hint', $body, '段级配置指引单入口（UI-FIX B②——「登录防护 · 去配置」形态）' );
-		$this->assertStringContainsString( '三张门', $body, '副标题保留三张门语境（D5）' );
+		$this->assertStringContainsString( 'Login protection (three gates: login / registration / password recovery)', $body, '副标题保留三张门语境（D5）' );
 		$this->assertStringContainsString( 'wk-sub-title', $body, '段内小标题统一类（UI-FIX B①）' );
-		$this->assertStringContainsString( '三张门分账', $body );
+		$this->assertStringContainsString( 'Breakdown by gate', $body );
 		$this->assertStringContainsString( 'account_gate_rows', $body, '三张门分账数据源（门名走 Labels::gate_word）' );
 		$this->assertStringContainsString( 'Labels::gate_word', $body, '门名映射资产消费（对照表 23）' );
-		$this->assertStringContainsString( '密码输错', $body, '登录失败尝试→密码输错（对照表 6）' );
-		$this->assertStringContainsString( '验证放行', $body, '通过→验证放行（对照表 2）' );
+		$this->assertStringContainsString( 'wrong passwords', $body, '登录失败尝试→密码输错（对照表 6）' );
+		$this->assertStringContainsString( '%1$d blocked today · %2$d passed via verification · %3$d wrong passwords (same account within %4$d minutes)', $body, '通过→验证放行（对照表 2）' );
 		$this->assertStringContainsString( 'window_minutes', $body, '窗口标注随配置动态（D3）' );
 		$this->assertStringContainsString( 'stats_driver_cards', $body, '登录段服务商口径卡' );
 		$this->assertStringContainsString( 'render_driver_card', $body, '登录段复用统一卡模板' );
@@ -167,16 +167,16 @@ final class UiTab6StatsContractTest extends TestCase {
 		$table = self::body( 'render_account_recent_table' );
 		$this->assertStringContainsString( 'recent_account_rejects', $table, 'N1 查询消费' );
 		$this->assertStringContainsString( 'account_reject_rows', $table, '行组装纯函数消费（门名/防线/原因/归因映射）' );
-		$this->assertStringContainsString( '哪张门', $table, '列头：门名' );
-		$this->assertStringContainsString( '为什么拦', $table, '列头：原因人话' );
-		$this->assertStringContainsString( '不显示账号与 IP', $table, 'PIPL 最小化注（无明文账号/IP 哈希省略）' );
-		$this->assertStringContainsString( '最近没拦过任何登录尝试', $table, '空态人话' );
+		$this->assertStringContainsString( 'Gate', $table, '列头：门名' );
+		$this->assertStringContainsString( 'Why blocked', $table, '列头：原因人话' );
+		$this->assertStringContainsString( 'Only characteristics and outcomes are shown, never accounts or IPs; outcome = stopped-by-captcha / stopped-without-captcha (passes never enter this table); why blocked = trigger attribution (too many consecutive failures for one account, etc.) or the captcha result.', $table, 'PIPL 最小化注（无明文账号/IP 哈希省略）' );
+		$this->assertStringContainsString( 'No login attempts blocked recently — that is a good state.', $table, '空态人话' );
 		$this->assertStringNotContainsString( 'ip_hash', $table, 'IP 哈希不进明细卡渲染' );
 	}
 
 	public function test_login_section_wording_cleanup(): void {
 		$body = self::body( 'render_stats_login_section' );
-		$this->assertStringNotContainsString( '调用', $body, '「调用」黑话退役（对照表 1）' );
+		$this->assertStringNotContainsString( 'Third-party calls (today)', $body, '「调用」黑话退役（对照表 1）' );
 		$this->assertStringNotContainsString( '登录失败尝试', $body );
 		$this->assertStringNotContainsString( '账户保护', $body, '更名登录防护（D5）' );
 	}
@@ -198,12 +198,12 @@ final class UiTab6StatsContractTest extends TestCase {
 	public function test_fault_section_skeleton(): void {
 		$body = self::body( 'render_stats_fault_section' );
 		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
-		$this->assertStringContainsString( '报错历史', $body );
+		$this->assertStringContainsString( 'Error history (things that went wrong with third-party providers)', $body );
 		$this->assertStringContainsString( 'wk-sub-title', $body, '段内小标题统一类（UI-FIX B①）' );
-		$this->assertStringContainsString( '今日出错', $body, '今日故障→今日出错（对照表 5）' );
+		$this->assertStringContainsString( 'Errors today', $body, '今日故障→今日出错（对照表 5）' );
 		$this->assertStringContainsString( 'Labels::rule_hit_word', $body, '分布键名人话映射（N5 消费）' );
-		$this->assertStringContainsString( '服务商原始回复', $body, 'meta.raw 展开行人话（对照表 18）' );
-		$this->assertStringContainsString( '哪个服务商', $body );
+		$this->assertStringContainsString( 'Expand to see the provider\\\'s raw reply (for troubleshooting, redacted)', $body, 'meta.raw 展开行人话（对照表 18）' );
+		$this->assertStringContainsString( 'Which provider', $body );
 		$this->assertStringNotContainsString( '今日故障', $body, '故障卡归属明确为报错历史（P8）' );
 		$this->assertStringNotContainsString( 'style="', $body, '内联样式退役（UI-FIX B①——样式一律走 CSS 类，原始回复展开块迁 .wk-fault-raw）' );
 	}
@@ -216,8 +216,8 @@ final class UiTab6StatsContractTest extends TestCase {
 		$this->assertStringContainsString( 'recent_faults', $body, 'N2 全闸故障时间线查询消费' );
 		$this->assertStringContainsString( 'recent_health_timeline', $body, 'N3 停转进入·解除时间线查询消费' );
 		$this->assertStringContainsString( 'fault_timeline_rows', $body, '行组装纯函数消费（id 倒序归并+处理列映射）' );
-		$this->assertStringContainsString( '当时怎么处理', $body, '「怎么处理」列全闸化（原「评论当时怎么处理」）' );
-		$this->assertStringContainsString( '哪个门', $body, '全闸时间线新增门名列' );
+		$this->assertStringContainsString( 'How it was handled', $body, '「怎么处理」列全闸化（原「评论当时怎么处理」）' );
+		$this->assertStringContainsString( 'Which gate', $body, '全闸时间线新增门名列' );
 		$this->assertStringNotContainsString( '当前显示评论门报错', $body, '批 1 注记随接线移除' );
 		$this->assertStringNotContainsString( 'recent_comment_faults', $body, '评论门单源查询退役（N2 超集取代）' );
 		$this->assertStringNotContainsString( '先收进待审区，等你复核</td>', $body, '处理列不再硬编码——走 handling_word 组合映射' );
@@ -228,7 +228,7 @@ final class UiTab6StatsContractTest extends TestCase {
 	public function test_records_card_copy(): void {
 		$body = self::body( 'render_stats_records_card' );
 		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
-		$this->assertStringContainsString( '拦截记录流水', $body );
+		$this->assertStringContainsString( 'Block record ledger (browse all records / export)', $body );
 		$this->assertStringContainsString( 'WK-', $body, '事件编号示例在文案中' );
 		$this->assertStringNotContainsString( '事件流列表 / 导出', $body, 'roadmap 文案退役（P6）' );
 		$this->assertStringNotContainsString( '统计面板 v2', $body );
@@ -237,15 +237,15 @@ final class UiTab6StatsContractTest extends TestCase {
 	public function test_settings_card_holds_switches_and_reset(): void {
 		$body = self::body( 'render_stats_settings_card' );
 		$this->assertStringContainsString( '<h2 class="wk-sec-title">', $body, '段标题走 CSS 类（UI-FIX B①）' );
-		$this->assertStringContainsString( '统计设置', $body );
+		$this->assertStringContainsString( 'Statistics settings · Reset', $body );
 		// 统计开关三项迁入本卡（P7——单一大 form 迁位零风险，agent C F18）。
 		$this->assertStringContainsString( "array( 'stats', 'enabled' )", $body );
 		$this->assertStringContainsString( "array( 'stats', 'raw_capture' )", $body );
 		$this->assertStringContainsString( "array( 'stats', 'raw_max_bytes' )", $body );
-		$this->assertStringContainsString( '服务商原始回复', $body, 'raw_capture 开关人话（对照表 18）' );
-		$this->assertStringContainsString( '保存长度上限', $body, '快照截断字节→保存长度上限（对照表 19）' );
-		$this->assertStringContainsString( '清空全部统计', $body );
-		$this->assertStringContainsString( '所有统计数字和拦截记录', $body, '重置文案去「对账口径」（P10/对照表 22）' );
+		$this->assertStringContainsString( 'Record providers\\\' raw replies (for troubleshooting', $body, 'raw_capture 开关人话（对照表 18）' );
+		$this->assertStringContainsString( 'Storage length cap (characters)', $body, '快照截断字节→保存长度上限（对照表 19）' );
+		$this->assertStringContainsString( 'Clear all statistics', $body );
+		$this->assertStringContainsString( 'Confirm the wipe? All statistics and block records will be cleared, unrecoverable.', $body, '重置文案去「对账口径」（P10/对照表 22）' );
 		$this->assertStringContainsString( 'id="wk-stats-reset"', $body, 'AJAX 锚保留（admin-brand.js 绑定点）' );
 		$this->assertStringNotContainsString( '对账口径', $body );
 		$this->assertStringNotContainsString( '快照截断字节', $body );
@@ -266,9 +266,9 @@ final class UiTab6StatsContractTest extends TestCase {
 	public function test_cumulative_window_note_present(): void {
 		$body = self::body( 'render_stats_overview_strip' );
 		$this->assertStringContainsString( 'Labels::cumulative_line', $body, '总览口径补全走映射表（P9/对照表 24）' );
-		$this->assertStringContainsString( '转人工复核', $body, '速览条含待审口径' );
+		$this->assertStringContainsString( '%1$d blocked today · %2$d to manual review · %3$d errors', $body, '速览条含待审口径' );
 		$this->assertStringContainsString( '留档', $body, 'spam 黄条保留原位（F14）' );
-		$this->assertStringContainsString( '计数已停用', $body, '统计停用黄字注保留（FIX-δ）' );
+		$this->assertStringContainsString( 'Counting disabled', $body, '统计停用黄字注保留（FIX-δ）' );
 	}
 
 	/* ---------- UI-FIX B（2026-11-12 用户实测反馈：两级标题制/去序号/指引收敛/样式克制） ---------- */
@@ -302,12 +302,12 @@ final class UiTab6StatsContractTest extends TestCase {
 	 */
 	public function test_two_level_heading_classes_uniform(): void {
 		foreach ( array(
-			'render_stats_overview_strip' => array( '今日速览' ),
-			'render_stats_comment_section' => array( '评论防护', '今日概览', '谁拦的（按拦截链顺序）', '最近拦下的评论（最近 10 条）' ),
-			'render_stats_login_section'  => array( '登录防护（登录 / 注册 / 找回密码 三张门）', '今日概览', '三张门分账', '谁拦的（按服务商口径）', '最近拦下的登录尝试（最近 10 条）' ),
-			'render_stats_fault_section'  => array( '报错历史（和第三方服务商打交道时出的岔子）', '今日出错', '最近报错（全闸，含服务商暂停与恢复）' ),
-			'render_stats_records_card'   => array( '拦截记录流水（查全部记录 / 导出）' ),
-			'render_stats_settings_card'  => array( '统计设置 · 清零' ),
+			'render_stats_overview_strip' => array( 'Today at a glance' ),
+			'render_stats_comment_section' => array( 'Comment protection', 'Today\\\'s overview', 'Who blocked it (in chain order)', 'Recently blocked comments (last 10)' ),
+			'render_stats_login_section'  => array( 'Login protection (three gates: login / registration / password recovery)', 'Today\\\'s overview', 'Breakdown by gate', 'Who blocked it (by provider)', 'Recently blocked login attempts (last 10)' ),
+			'render_stats_fault_section'  => array( 'Error history (things that went wrong with third-party providers)', 'Errors today', 'Recent errors (all gates, including provider pauses and recoveries)' ),
+			'render_stats_records_card'   => array( 'Block record ledger (browse all records / export)' ),
+			'render_stats_settings_card'  => array( 'Statistics settings · Reset' ),
 		) as $fn => $titles ) {
 			$body = self::body( $fn );
 			$this->assertStringContainsString( 'wk-sec-title', $body, "{$fn} 段标题带类" );
@@ -322,13 +322,13 @@ final class UiTab6StatsContractTest extends TestCase {
 		// 反钉形态=strong 内静态译文（假标题）——卡名变量加粗（本地规则卡）不在禁列。
 		$comment = self::body( 'render_stats_comment_section' );
 		$this->assertStringNotContainsString( '<strong><?php esc_html_e', $comment, 'p>strong 假标题退役（UI-FIX B① 元素统一——今日概览升格小标题）' );
-		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'今日概览\'', $comment, '今日概览=小标题级' );
+		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'Today\\\'s overview', $comment, '今日概览=小标题级' );
 		$login = self::body( 'render_stats_login_section' );
 		$this->assertStringNotContainsString( '<strong><?php esc_html_e', $login, 'p>strong 假标题退役（UI-FIX B① 元素统一）' );
-		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'今日概览\'', $login, '今日概览=小标题级' );
+		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'Today\\\'s overview', $login, '今日概览=小标题级' );
 		$fault = self::body( 'render_stats_fault_section' );
 		$this->assertStringNotContainsString( '<strong><?php esc_html_e', $fault, 'p>strong 假标题退役（UI-FIX B① 元素统一——今日出错升格小标题）' );
-		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'今日出错\'', $fault, '今日出错=小标题级' );
+		$this->assertStringContainsString( '<h3 class="wk-sub-title"><?php esc_html_e( \'Errors today', $fault, '今日出错=小标题级' );
 
 		$css = self::source( 'assets/css/admin-settings.css' );
 		$this->assertStringContainsString( '.wk-sec-title', $css, '段标题类入 CSS（字号>小标题——样式走类不走内联）' );
@@ -359,7 +359,7 @@ final class UiTab6StatsContractTest extends TestCase {
 		$hint = self::body( 'stats_config_hint' );
 		$this->assertStringContainsString( 'wk-config-link', $hint, '段级指引链接类' );
 		$this->assertStringContainsString( 'empty( $hint_card[\'enabled\'] )', $hint, '只对未启用卡给指引' );
-		$this->assertStringContainsString( '去配置', $hint, '指引文案' );
+		$this->assertStringContainsString( 'Configure', $hint, '指引文案' );
 
 		$card = self::body( 'render_driver_card' );
 		$this->assertStringNotContainsString( '<a ', $card, '驱动卡内部零链接（UI-FIX B②——卡不承担导航职责）' );

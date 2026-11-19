@@ -86,7 +86,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function esc_html__( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -99,7 +99,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -628,7 +628,7 @@ namespace WinkGatekeeper\Tests {
 			$html = self::renderUrlCard( self::urlCardSettings() );
 			self::assertStringContainsString( 'id="wk-url-audit-fetcher-unconfigured-notice"', $html, '抓取未配置态：黄条渲染' );
 			self::assertStringContainsString( 'wk-notice--warn', $html, 'U-1 式=插件级黄条（【W3·批B 翻转】范式对齐）' );
-			self::assertStringContainsString( '本站直抓因暴露源站 IP 默认不自动启用', $html, '人话文案（不自动自抓原因）' );
+			self::assertStringContainsString( 'Page fetching is unconfigured — direct fetching from this site is not auto-enabled because it exposes the origin IP; please ', $html, '人话文案（不自动自抓原因）' );
 			self::assertStringContainsString( '#wk-url-audit-advanced', $html, '深链高级区（手动选择入口）' );
 
 			// 显式 self：已手动选择 → 不渲染。
@@ -864,13 +864,13 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_h5_provider_label_renamed_and_inherit_copy_unified(): void {
 			$html = self::renderUrlCard( self::urlCardSettings() );
-			self::assertStringContainsString( 'LLM提供商', $html, '【H-5 翻转】行标签改名' );
+			self::assertStringContainsString( 'LLM provider', $html, '【H-5 翻转】行标签改名' );
 			self::assertStringNotContainsString( 'AI 判定凭证', $html, '旧术语全卡退役' );
-			self::assertStringContainsString( '跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置', $html, '两处 inherit 选项文案统一（跟随语义）' );
+			self::assertStringContainsString( 'Follow cloud moderation (default — when cloud moderation is DeepSeek, verdicts use the same configuration)', $html, '两处 inherit 选项文案统一（跟随语义）' );
 			self::assertStringNotContainsString( '回落云端审核 DeepSeek 凭证（默认——零新增配置）', $html, 'provider 旧选项文案退役' );
-			self::assertStringContainsString( '进行判定', $html, 'provider 选项末句保留自身动作说明' );
-			self::assertStringContainsString( '进行抓取', $html, 'fetcher 选项末句保留自身动作说明' );
-			self::assertStringContainsString( '抓取未配置', $html, 'fetcher inherit 末句说明新语义（其他驱动时抓取未配置）' );
+			self::assertStringContainsString( 'Follow cloud moderation (default — when cloud moderation is DeepSeek, verdicts use the same configuration)', $html, 'provider 选项末句保留自身动作说明' );
+			self::assertStringContainsString( 'Follow cloud moderation (default — when cloud moderation is DeepSeek, fetching uses the same configuration; with another driver, fetching is unconfigured and direct fetching from this site does not auto-enable)', $html, 'fetcher 选项末句保留自身动作说明' );
+			self::assertStringContainsString( 'Follow (default): when cloud moderation is DeepSeek, both verdicts and page fetching use DeepSeek (one set of credentials); with another driver, verdicts use its configuration and page fetching does not auto-enable (unconfigured — pick one manually under “Fetch provider” below). Separate: the URL check uses its own DeepSeek credentials (independent of comment cloud moderation; only needed for a different account/quota).', $html, 'fetcher inherit 末句说明新语义（其他驱动时抓取未配置）' );
 		}
 
 		/* ===============================================================
@@ -883,14 +883,14 @@ namespace WinkGatekeeper\Tests {
 			$settings['url_audit']['provider']['api_key'] = 'sk-live';
 
 			$html = self::renderUrlCard( $settings );
-			self::assertStringContainsString( '清除此凭据', $html, '已配置凭据 → 清除控件渲染' );
+			self::assertStringContainsString( 'Clear this credential', $html, '已配置凭据 → 清除控件渲染' );
 			self::assertStringContainsString( '[api_key_clear]', $html, '独立清空键名（<leaf>_clear）' );
 			self::assertMatchesRegularExpression( '/name="[^"]*\[api_key_clear\]"\s+value="0"/', $html, 'hidden 0 伴随域（未勾选显式提交 0）' );
 
 			// 未配置凭据 → 无可清除，控件不渲染。
 			$html = self::renderUrlCard( self::urlCardSettings() );
 			self::assertStringNotContainsString( '清除凭据-stub-marker', $html );
-			self::assertStringNotContainsString( '清除此凭据', $html, '未配置凭据 → 控件不渲染（无物可清）' );
+			self::assertStringNotContainsString( 'Clear this credential', $html, '未配置凭据 → 控件不渲染（无物可清）' );
 		}
 
 		public function test_h6_sanitize_clear_flag_empties_stored_credential(): void {
@@ -999,14 +999,14 @@ namespace WinkGatekeeper\Tests {
 		public function test_h7_running_bar_in_tools_url_audit_card(): void {
 			$tools = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
 			self::assertStringContainsString( 'wk-tools-url-audit-running-bar', $tools, 'Tab⑦ 卡内运行中黄条 DOM 锚' );
-			self::assertStringContainsString( '存量网址核查进行中', $tools, '人话文案' );
+			self::assertStringContainsString( 'In progress (%1$d / %2$d) · current provider: %3$s', $tools, '人话文案' );
 			self::assertStringContainsString( "'running' === \$url_view['state']", $tools, '条件=运行记录未完成或队列非空（backlog 报告三态 running）' );
 		}
 
 		public function test_h7_running_bar_in_overview_alerts(): void {
 			$alerts = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_overview_alerts' );
 			self::assertStringContainsString( 'wk-overview-url-backlog-bar', $alerts, 'Tab① 站务通栏增条 DOM 锚（对齐 A-U3 先例）' );
-			self::assertStringContainsString( '存量网址核查进行中', $alerts, '人话文案' );
+			self::assertStringContainsString( 'Existing URL check in progress… advances automatically within the daily quota (violations go to Spam, unclear ones to pending — both recoverable by hand).', $alerts, '人话文案' );
 		}
 
 		public function test_h7_backlog_running_state_semantics(): void {
@@ -1152,7 +1152,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_h9_summary_line_in_stats_comment_section(): void {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_stats_comment_section' );
 			self::assertStringContainsString( 'wk-stats-url-disposal-line', $body, 'Tab⑥ 拦截区头部汇总行 DOM 锚' );
-			self::assertStringContainsString( '网址核查今日处置', $body, '人话文案' );
+			self::assertStringContainsString( 'URL check handled %1$d today (Spam %2$d · pending %3$d)', $body, '人话文案' );
 			self::assertStringContainsString( '#wk-tools-url-audit-report', $body, '深链 Tab⑦ 报告' );
 			self::assertStringContainsString( 'today_disposal_line', $body, '数据源=meta 反查（零新事件零写放大）' );
 		}

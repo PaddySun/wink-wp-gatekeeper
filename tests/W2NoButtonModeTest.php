@@ -216,10 +216,10 @@ final class W2NoButtonModeTest extends TestCase {
 	public function test_settings_page_tab2_submit_flow_radio(): void {
 		$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_captcha' );
 
-		$this->assertStringContainsString( '提交触发形态', $body, 'Tab② radio 组标题（「前端形态（mode）」旁）' );
+		$this->assertStringContainsString( 'Submit-trigger flow', $body, 'Tab② radio 组标题（「前端形态（mode）」旁）' );
 		$this->assertStringContainsString( "'captcha', 'submit_flow'", $body, '字段名 captcha.submit_flow（schema 同位）' );
-		$this->assertStringContainsString( '无按钮模式', $body, 'on_submit 选项文案（默认形态）' );
-		$this->assertStringContainsString( '独立验证按钮', $body, 'button 选项文案（经典回退）' );
+		$this->assertStringContainsString( 'No-button mode', $body, 'on_submit 选项文案（默认形态）' );
+		$this->assertStringContainsString( 'No-button mode (default) — no separate verify button', $body, 'button 选项文案（经典回退）' );
 		$this->assertSame(
 			2,
 			substr_count( $body, "'captcha', 'submit_flow'" ),
@@ -230,7 +230,7 @@ final class W2NoButtonModeTest extends TestCase {
 		// 与 Tab② 同名同键（N5 红线；同一保存通道）。
 		$wiz = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_wizard' );
 		$this->assertStringContainsString( "'captcha', 'submit_flow'", $wiz, '向导步二提交触发形态 radio（Tab② 同名同键第二位）' );
-		$this->assertStringContainsString( '无按钮模式', $wiz, '向导 on_submit 选项文案（推荐 · 默认）' );
+		$this->assertStringContainsString( 'No-button mode', $wiz, '向导 on_submit 选项文案（推荐 · 默认）' );
 	}
 
 	/* ---------- ⑤ front-gate.css hidden 补丁 ---------- */
@@ -271,8 +271,8 @@ final class W2NoButtonModeTest extends TestCase {
 	public function test_bootstrap_l10n_submit_gate_keys(): void {
 		$src = self::source( 'includes/Bootstrap.php' );
 		$this->assertStringContainsString( "'submit_gate_verify'", $src, 'wkGateL10n 新键：拦截引导文案键' );
-		$this->assertStringContainsString( '请先完成人机验证再提交', $src, '拦截引导文案（⑤ Toast）' );
+		$this->assertStringContainsString( 'Please complete human verification before submitting', $src, '拦截引导文案（⑤ Toast）' );
 		$this->assertStringContainsString( "'submit_gate_retry'", $src, 'wkGateL10n 新键：失败重试文案键' );
-		$this->assertStringContainsString( '人机验证未完成，请再点一次提交重试', $src, '失败重试文案（⑦ Toast——无按钮语境的「重试」=再点一次提交）' );
+		$this->assertStringContainsString( 'Human verification incomplete — click submit once more to retry', $src, '失败重试文案（⑦ Toast——无按钮语境的「重试」=再点一次提交）' );
 	}
 }

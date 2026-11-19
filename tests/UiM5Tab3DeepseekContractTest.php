@@ -95,7 +95,7 @@ final class UiM5Tab3DeepseekContractTest extends TestCase {
 		// 【M6·批E 契约翻转】openai_custom 配置卡新增自身开关行说明一份（每卡段级一次
 		// 语义保持——deepseek 卡一份+openai_custom 卡一份=2；升级模型行零重复不变）。
 		$src = self::source( 'includes/settings/SettingsPage.php' );
-		self::assertSame( 2, substr_count( $src, '每条评论最多判两次' ), 'two_stage 说明每配置卡段级一次（M6·批E 后两卡各一）' );
+		self::assertSame( 2, substr_count( $src, 'at most two verdicts per comment' ), 'two_stage 说明每配置卡段级一次（M6·批E 后两卡各一）' );
 	}
 
 	/* ===================================================================

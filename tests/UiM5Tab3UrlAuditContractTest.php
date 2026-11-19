@@ -60,8 +60,8 @@ final class UiM5Tab3UrlAuditContractTest extends TestCase {
 	public function test_card_default_off_and_zero_change_note(): void {
 		$card = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_url_audit_card' );
 		self::assertStringContainsString( "array( 'url_audit', 'enabled' )", $card, '启用开关绑定' );
-		self::assertStringContainsString( '零行为变化', $card, '关闭=零行为变化说明（增强层非依赖层）' );
-		self::assertSame( 1, substr_count( $card, '零行为变化' ), '段级一次' );
+		self::assertStringContainsString( 'URL check (enhancement layer — with it off, comment protection is unchanged, zero behavior difference)', $card, '关闭=零行为变化说明（增强层非依赖层）' );
+		self::assertSame( 1, substr_count( $card, 'zero behavior difference' ), '段级一次' );
 	}
 
 	public function test_profile_three_tiers_no_knob_for_095(): void {
@@ -69,7 +69,7 @@ final class UiM5Tab3UrlAuditContractTest extends TestCase {
 		foreach ( array( 'conservative', 'balanced', 'aggressive' ) as $tier ) {
 			self::assertStringContainsString( $tier, $card, "三档 profile 含 {$tier}" );
 		}
-		self::assertStringContainsString( '系统掌握', $card, '0.95 门禁不露旋钮——一句系统掌握说明（D8）' );
+		self::assertStringContainsString( 'The “clear-cut evidence” bar is system-controlled with no UI knob — it only tightens.', $card, '0.95 门禁不露旋钮——一句系统掌握说明（D8）' );
 		self::assertDoesNotMatchRegularExpression( '/name="[^"]*0\.95[^"]*"/', $card, '0.95 不作为可提交控件值' );
 	}
 
@@ -87,7 +87,7 @@ final class UiM5Tab3UrlAuditContractTest extends TestCase {
 		// 文案不同语境不同（两页两语境各一次）。
 		$card = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_url_audit_card' );
 		self::assertStringContainsString( 'site_field', $card, '门控 site_field 键' );
-		self::assertStringContainsString( '网址', $card, '提示指向本功能' );
+		self::assertStringContainsString( 'URL', $card, '提示指向本功能' );
 	}
 
 	public function test_purge_action_double_gated(): void {
@@ -103,7 +103,7 @@ final class UiM5Tab3UrlAuditContractTest extends TestCase {
 	public function test_tab6_url_stats_line(): void {
 		$stats = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_stats_comment_section' );
 		self::assertStringContainsString( 'wk-stats-url-line', $stats, '网址核查统计行锚（UI 块 3.3）' );
-		self::assertStringContainsString( '撤销', $stats, '自动标垃圾可撤销（机器处置可逆信任基础）' );
+	self::assertStringContainsString( 'undoable', $stats, '自动标垃圾可撤销（机器处置可逆信任基础）' );
 	}
 
 	public function test_report_host_aggregate_section(): void {
@@ -113,7 +113,7 @@ final class UiM5Tab3UrlAuditContractTest extends TestCase {
 		// （details 折叠；「重新核查此站」站长举报误判入口保留，nw §4.3）。
 		$tools = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
 		self::assertStringContainsString( 'wk-tools-url-audit-hosts', $tools, '按网站归堆表锚（随报告迁 Tab⑦）' );
-		self::assertStringContainsString( '重新核查此站', $tools, 'host 级清缓存站长入口（nw §4.3）' );
+		self::assertStringContainsString( 'Re-check this site', $tools, 'host 级清缓存站长入口（nw §4.3）' );
 	}
 
 	/* ===================================================================

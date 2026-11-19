@@ -1,0 +1,2575 @@
+# Simplified Chinese translation for wink-wp-gatekeeper.
+# Generated from key catalog (wave-5 batch I-2) — msgstr values are the live
+# site copy verbatim (zero-drift redline: zh UX must stay byte-identical).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: wink-wp-gatekeeper\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-19 19:40+0000\n"
+"PO-Revision-Date: 2026-11-19 19:40+0000\n"
+"Last-Translator: \n"
+"Language-Team: Chinese (China)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: wk-po-tools/gen-po-from-catalog\n"
+msgid " times"
+msgstr " 次"
+
+msgid "%1$d blocked cumulatively · %2$d wrong passwords"
+msgstr "累计拦下 %1$d 次 · 密码输错 %2$d 次"
+
+msgid "%1$d blocked today · %2$d passed via verification · %3$d wrong passwords (same account within %4$d minutes)"
+msgstr "今日拦下 %1$d 次 · 验证放行 %2$d 人 · 密码输错 %3$d 次（%4$d 分钟内同账号）"
+
+msgid "%1$d blocked today · %2$d to manual review · %3$d errors"
+msgstr "今日拦下 %1$d 次 · 转人工复核 %2$d 条 · 出错 %3$d 次"
+
+msgid "%1$d blocked · %2$d to manual review · %3$d errors"
+msgstr "拦下 %1$d 条 · 转人工复核 %2$d 条 · 出错 %3$d 次"
+
+msgid "%1$d of %2$d comments audited"
+msgstr "已体检 %1$d / %2$d 条"
+
+msgid "%1$d sent to Spam today · %2$d to pending review"
+msgstr "今日判进垃圾箱 %1$d 条 · 转待审 %2$d 条"
+
+msgid "%1$d verdicts issued today · %2$s left in quota."
+msgstr "今日已判定 %1$d 次 · 额度剩 %2$s 次。"
+
+msgid "%1$s: %2$d →"
+msgstr "%1$s %2$d 条 →"
+
+msgid "%d IP-reputation-enforced captchas (counted separately — not included in the manual-review figures above)."
+msgstr "IP 信誉强制验证码 %d 次（单列口径——不计入上方转人工复核数字）。"
+
+msgid "%d wrong passwords, stopped by a captcha"
+msgstr "密码输错 %d 次，出码拦下"
+
+msgid "%s URLs queued for checking (advances automatically within the daily quota)."
+msgstr "已排队 %s 条待核查（按每日额度自动推进）。"
+
+msgid "%s block message"
+msgstr "%s 拦截文案"
+
+msgid "%s items"
+msgstr "%s 条"
+
+msgid "%s page title"
+msgstr "%s 页面标题"
+
+msgid "%s queued · checking starts (advances automatically within the daily quota; you can leave this page)."
+msgstr "已入队 %s 条·开始核查（按每日额度自动推进，可离开此页）。"
+
+msgid "(0-100, default 80)"
+msgstr "（0-100，默认 80）"
+
+msgid "(128–2048, default 512; body and error messages are truncated separately)"
+msgstr "（128–2048，默认 512；正文与错误消息各自截断）"
+
+msgid "(AbuseIPDB official categories 1–23; the same table is built into the dropdown)."
+msgstr "（AbuseIPDB 官方类目 1–23，下拉内已内置同表）。"
+
+msgid "(Once enabled, you can start the existing-URL check here.)"
+msgstr "（开启后这里可发起存量核查。）"
+
+msgid "(absent in this request)"
+msgstr "（本请求未出现）"
+
+msgid "(comment deleted)"
+msgstr "（评论已删除）"
+
+msgid "(last %d)"
+msgstr "（最近 %d 条）"
+
+msgid "(missing)"
+msgstr "（缺失）"
+
+msgid ", or "
+msgstr "，或在"
+
+msgid "8-second timeout (guardrail range); the AI verdict only tightens: even a pass never approves a comment."
+msgstr "超时 8 秒（防呆范围）；AI 判定只放大严：判 pass 也不会替评论放行。"
+
+msgid "= master switch for the four local rule gates plus the captcha and IP reputation stages; to disable only the captcha, set the provider to “Not configured”. When off, the comment form has zero DOM changes and submissions are not verified."
+msgstr "= 本地规则四闸 + 验证码 + IP 信誉三阶段总开关；只关验证码请把驱动选「未配置」。关闭后评论表单零 DOM 变化、提交不验证。"
+
+msgid "A WordPress native moderation switch is on"
+msgstr "WordPress 原生审核开关已开启"
+
+msgid "A blank note sends that trigger surface's default English phrase (already echoed in each input's placeholder). The [wink-wp-gatekeeper] prefix is added automatically on send (not removable), and over-length notes are truncated (255 characters)."
+msgstr "备注留空=发送该触发面的默认英文短语（已回显在各输入框 placeholder）。发送时自动加前缀 [wink-wp-gatekeeper]（不可去除），超长自动截断（255 字符）。"
+
+msgid "A permanent brand signature line “Wink WP Guard” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B)."
+msgstr "正文末常驻品牌署名行「Wink WP 保安」——点「查看效果」即可在实渲染预览中看到（W3 批 B 落位）。"
+
+msgid "A script forging captchas may be triggering reports in bulk, or someone may be abusing your site as a false-report weapon. Blocking still works, and reporting has cooldown and quota guardrails; if it persists, temporarily disable the trigger under IP reputation → Reporting."
+msgstr "可能有伪造验证码的脚本在批量触发上报，或有人试图把你的站点当枪使（诬报）。拦截照常有效、上报有冷却与限额兜底；若持续出现，可在 IP 信誉 → 上报分区临时关闭对应触发面。"
+
+msgid "A “Website” field appears on the comment form and new comments store the URL"
+msgstr "评论表单出现「网站」一栏，新评论保存网址"
+
+msgid "API Key (DeepSeek platform)"
+msgstr "API Key（DeepSeek 开放平台）"
+
+msgid "API Key / Secret Key (Baidu AI Cloud app)"
+msgstr "API Key / Secret Key（百度智能云应用）"
+
+msgid "API calls today"
+msgstr "今日调用量"
+
+msgid "AbuseIPDB (IP reputation lookup)"
+msgstr "AbuseIPDB（IP 信誉查询）"
+
+msgid "AbuseIPDB free tier: 1,000 lookups/day (agreed baseline). Register at abuseipdb.com. Server-side only; stored values are not echoed back. Defaults: soft cap 900 / daily quota 950 (a 5% buffer each)."
+msgstr "AbuseIPDB 免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取。仅服务端使用，不回显已存值。默认软顶 900 / 日配额 950（各留 5% 缓冲）。"
+
+msgid "AccessKeyId / AccessKeySecret (Aliyun RAM)"
+msgstr "AccessKeyId / AccessKeySecret（阿里 RAM）"
+
+msgid "Adaptive (default)"
+msgstr "自适应（默认）"
+
+msgid "Adaptive: the login captcha appears only after %1$d cumulative wrong passwords for one account across IPs (only accounts that actually exist are counted), %2$d aggregated for one IP, or a site-level account alert trips — zero bother otherwise; Always: verify before every login. Failure counting also applies to XML-RPC; with no captcha provider configured, going over the threshold still does not block."
+msgstr "自适应：同一账户跨 IP 累计 %1$d 次口令错误（仅统计真实存在的账户）、或同 IP 聚合 %2$d 次、或站点级账号警报点亮后，登录页才出现验证码，平时零打扰；常显：每次登录都先验证。失败计数对 XML-RPC 同样生效；验证码驱动未配置时超阈也不拦。"
+
+msgid "Add cloud moderation / IP reputation (Tab 3: Content moderation / Tab 4: IP reputation)"
+msgstr "配云审 / IP 信誉（Tab③ 内容审核 / Tab④ IP 信誉）"
+
+msgid "Adjust in Discussion Settings"
+msgstr "去讨论设置调整"
+
+msgid "Advanced (block messages / page titles / placeholder reference)"
+msgstr "高级设置（拦截文案 / 页面标题 / 占位符说明）"
+
+msgid "Advanced (block threshold / timeout / daily quota / failure handling)"
+msgstr "高级配置（直拒阈值 / 超时 / 日配额 / 故障处置）"
+
+msgid "Advanced (collapsed by default)"
+msgstr "高级（默认收起）"
+
+msgid "Advanced (fallback / today's verdict quota)"
+msgstr "高级配置（降级方式 / 今日判定额度）"
+
+msgid "Advanced (real-IP method / custom header / trusted ranges / allowlist)"
+msgstr "高级设置（真实 IP 获取方式 / 自定义头 / 受信网段 / 白名单）"
+
+msgid "Advanced (region / failure handling)"
+msgstr "高级配置（服务区域 / 故障处置）"
+
+msgid "Advanced (thresholds / soft cap / daily quota / cache / timeout)"
+msgstr "高级设置（阈值 / 软顶 / 日配额 / 缓存 / 超时）"
+
+msgid "Advanced (timeout / daily quota / failure handling)"
+msgstr "高级配置（超时 / 日配额 / 故障处置）"
+
+msgid "Advanced (trigger surfaces T1–T4 / notes / rate-limit parameters)"
+msgstr "高级设置（触发面 T1–T4 / 备注 / 限流参数）"
+
+msgid "Advanced notes (daily advance quota / re-check policy)"
+msgstr "高级说明（每日推进额度 / 重查口径）"
+
+msgid "Advanced notes (submission scope / handling)"
+msgstr "高级说明（送审范围 / 处置方式）"
+
+msgid "After switching avatar sources, cached old avatars may take a while to refresh — not a malfunction."
+msgstr "切换头像来源后，已缓存的旧头像可能过一段时间才更新，不是故障。"
+
+msgid "After the day's lookup quota is exhausted, the captcha is temporarily enforced for all visitors — it auto-resumes the next day; not a malfunction."
+msgstr "当日查询配额用尽后，验证码将临时对所有访客强制——次日自动恢复，非故障。"
+
+msgid "Aggregate threshold for username spraying from one IP: however the username changes, this many cumulative failures triggers it."
+msgstr "同 IP 换用户名喷洒的聚合阈值：无论用户名怎么换，累计达此次数即触发。"
+
+msgid "Aggressive — even not-so-sure cases are auto-spammed, unclear ones go to pending review; for emergencies during spam floods, switch back afterwards"
+msgstr "激进——拿不太准的也自动进垃圾箱，没看清的进待审；垃圾评论洪水期应急用，用完建议切回来"
+
+msgid "Akismet detected"
+msgstr "检测到 Akismet 在场"
+
+msgid "Aliyun Captcha 2.0"
+msgstr "阿里云验证码 2.0"
+
+msgid "Aliyun Captcha 2.0 · Configuration"
+msgstr "阿里云验证码 2.0 · 配置"
+
+msgid "Aliyun Captcha 2.0 · all four keys set (submit-trigger flow="
+msgstr "阿里云验证码 2.0 · 四键已配（提交触发形态="
+
+msgid "Aliyun Captcha 2.0 · four keys incomplete"
+msgstr "阿里云验证码 2.0 · 四键未配齐"
+
+msgid "Aliyun Content Security · Text Moderation PLUS · Configuration"
+msgstr "阿里云内容安全·文本审核增强版 PLUS · 配置"
+
+msgid "Aliyun text moderation PLUS"
+msgstr "阿里文本审核增强版 PLUS"
+
+msgid "All quiet for the last 7 days."
+msgstr "最近 7 天风平浪静。"
+
+msgid "Allowlist (reputation exemption)"
+msgstr "白名单（信誉豁免）"
+
+msgid "Allowlist-exempt"
+msgstr "白名单豁免"
+
+msgid "Already picked Aliyun Captcha in step 1? You can share the same RAM user (two product lines, one account). Dual-service submission: nickname and email+body each go through their own channel (OR, stricter wins). Grant the extra content-safety enhanced permission."
+msgstr "已在第一步选了阿里云验证码？可与它共用同一 RAM 用户（同账号双产品线）。双 Service 分送：昵称、邮箱+正文各走各的通道（OR 取严）。需补授内容安全增强版权限。"
+
+msgid "Also: %1$d comments deleted · %2$d errors."
+msgstr "另：评论已删除 %1$d 条 · 出错 %2$d 条。"
+
+msgid "Also: %d comments deleted."
+msgstr "另：评论已删除 %d 条。"
+
+msgid "Always"
+msgstr "常显"
+
+msgid "An API Key from the DeepSeek platform (may be a different account from Tab 3 cloud moderation)."
+msgstr "DeepSeek 开放平台的 API Key（与 Tab③ 云端审核可不同账号）。"
+
+msgid "An across-the-board 405 including pingback and every authenticated method — more thorough than disabling logins only, for sites that never use XML-RPC. Placeholder: zero controls and zero behavior today."
+msgstr "含 pingback 与全部认证方法的整体 405——比仅关登录更彻底，适合完全不用 XML-RPC 的站。规划位：当前零控件零行为。"
+
+msgid "Anti-reflection abuse"
+msgstr "防反射滥用"
+
+msgid "AppSecretKey (captcha console)"
+msgstr "AppSecretKey（验证码控制台）"
+
+msgid "Applies to the title and body of the branded full-page block page (shared by all scenarios). Blank = each scenario's default copy. Placeholders: {event_no} {rule} {time} {contact_email} — {rule} shows the rule key only."
+msgstr "作用于品牌整页拦截页的标题与正文（全部场景共用）。留空 = 使用各场景默认文案。占位符：{event_no} {rule} {time} {contact_email}——{rule} 只显示规则键名。"
+
+msgid "Approved-comments threshold N"
+msgstr "已批评论阈值 N"
+
+msgid "Archive"
+msgstr "留档"
+
+msgid "Avatar source"
+msgstr "头像来源"
+
+msgid "Baidu AI Cloud app API Key (for client_credentials auth). Server-side only, never exposed to the front end."
+msgstr "百度智能云应用 API Key（client_credentials 鉴权用）。仅服务端使用，绝不出前端。"
+
+msgid "Baidu Text Moderation"
+msgstr "百度文本审核"
+
+msgid "Baidu Text Moderation · Configuration"
+msgstr "百度文本审核 · 配置"
+
+msgid "Balance probe (zero cost): green = credentials valid and account usable (balance shown); yellow = account temporarily unusable (possibly in arrears); red = invalid key or unreachable; yellow = API Key blank. The last test status and time are recorded. Custom endpoints are probed via the model list (OpenAI-compatible, no standard balance API)."
+msgstr "余额探测（零费用）：绿 = 凭据有效且账户可用（显示余额）；黄 = 账户暂不可用（可能欠费）；红 = 密钥无效或连不上；黄 = API Key 未填。结果记录最近一次测试状态与时间。独立端点用模型列表探活（OpenAI 兼容、无标准余额 API）。"
+
+msgid "Balanced (recommended) — clear-cut violations are auto-spammed (one-click undo), the rest go to pending review"
+msgstr "均衡（推荐）——证据确凿的自动进垃圾箱（可一键撤销），其余进待审等你复核"
+
+msgid "Batch lane"
+msgstr "批量车道"
+
+msgid "BizType (policy ID)"
+msgstr "BizType（策略编号）"
+
+msgid "Blank = use the “LLM provider” key above (usually leave it empty). Fill it in only to give page fetching its own DeepSeek account."
+msgstr "留空=用上方「LLM提供商」的 Key（一般不用填）。想给网页抓取单独用一个 DeepSeek 账号时才填。"
+
+msgid "Block (safety first) — switch temporarily during attacks; failover tickets are never accepted"
+msgstr "拦截（安全优先）——攻击期临时切换，容灾票一律不认"
+
+msgid "Block comments without Chinese"
+msgstr "无中文评论拦截"
+
+msgid "Block messages and page titles"
+msgstr "拦截文案与页面标题"
+
+msgid "Block on failure (default) — when the captcha service misbehaves, prefer not to let things through (safety first)"
+msgstr "故障即拦（默认）——验证码服务出岔子时宁可不放行（安全优先）"
+
+msgid "Block page body"
+msgstr "拦截页正文"
+
+msgid "Block page customization"
+msgstr "拦截页自定义"
+
+msgid "Block page title"
+msgstr "拦截页标题"
+
+msgid "Block record ledger (browse all records / export)"
+msgstr "拦截记录流水（查全部记录 / 导出）"
+
+msgid "Blocked by malicious IP score"
+msgstr "IP 恶意分拦截"
+
+msgid "Blocked cumulatively"
+msgstr "累计拦下"
+
+msgid "Blocked today"
+msgstr "今日拦下"
+
+msgid "Blocked today: %s"
+msgstr "今日拦截 %s"
+
+msgid "Blocks comments whose body contains no Chinese characters at all (the third of the upstream four gates)"
+msgstr "评论正文不含任何中文字符时拦截（上游四闸之三）"
+
+msgid "Blocks scripts hammering the keyword-list / email-trust probes; real humans click the button single-digit times per hour, and 30 leaves room for edits and retries. Over the limit it always degrades to showing a captcha."
+msgstr "封脚本高频试探关键词表/邮箱信用；真人一小时点按钮不超过个位数，30 容纳改稿重试。超限一律降级为出验证码。"
+
+msgid "Bocha requires an API Key from the Bocha open platform (bocha.cn; per-call billing, metered separately); DeepSeek follows the LLM provider's credentials above (no extra key, billed per success)."
+msgstr "选博查需在博查开放平台（bocha.cn）申请 API Key（按次计费、独立计量）；选 DeepSeek 则跟随上方 LLM提供商的凭证（无需额外 Key，按成功次数计费）。"
+
+msgid "Bocha web search (default — needs the Bocha key above; per-call billing, metered separately)"
+msgstr "博查网页搜索（默认——需上方博查 Key，按次计费独立计量）"
+
+msgid "Body service name"
+msgstr "正文 Service 名"
+
+msgid "Boolean cache TTL for track-record checks (0 = query the database on every click); approving a new comment invalidates the cache immediately."
+msgstr "历史信用判定的布尔缓存 TTL（0 = 每次点击都查库）；站长批准新评论后缓存即时失效。"
+
+msgid "Bot-score threshold (min_score)"
+msgstr "机器分阈值（min_score）"
+
+msgid "Bots are not stopped by the challenge; comments are still screened by the built-in rules — pick a provider under “Provider” below."
+msgstr "机器人不会被出题拦住；评论仍受站内规矩把关，请在下方「驱动选择」中挑选。"
+
+msgid "Bots are not stopped by the challenge; comments are still screened by the built-in rules."
+msgstr "机器人不会被出题拦住；评论仍受站内规矩把关。"
+
+msgid "Breakdown by gate"
+msgstr "三张门分账"
+
+msgid "Built-in rules only — perfectly usable; add a provider later on the “3: Content moderation” tab."
+msgstr "只用站内规矩——完全够用，之后随时在「③ 内容审核」页补配。"
+
+msgid "Cannot reach this mirror (or the response is not an image)."
+msgstr "连不上该镜像（或返回的不是图片）。"
+
+msgid "Captcha console"
+msgstr "验证码控制台"
+
+msgid "Captcha console → Scene management (required — the server re-sends it so the front end cannot tamper with the scene; a mismatch returns F012)."
+msgstr "验证码控制台 → 场景管理（必填——服务端补传防前端被篡改场景，错配返回 F012）。"
+
+msgid "Captcha console → Verification management → Keys column (public level, used by the front-end widget)."
+msgstr "验证码控制台 → 验证管理 → 密钥列（公开级，前端组件加载用）。"
+
+msgid "Captcha failed to load — click to retry"
+msgstr "验证码加载失败，点击重试"
+
+msgid "Captcha is not configured. Please contact the site owner."
+msgstr "验证码配置缺失，请联系站长。"
+
+msgid "Captcha over threshold — no account locks, no collateral damage to real users: crossing the threshold within the window only adds a captcha challenge, never locking accounts or IPs (to avoid locking out office egress IPs / home NAT users; Wordfence-style hard lockouts are deliberately not done)."
+msgstr "超阈出码——不锁账号、不误伤真实用户：窗口内超阈只加验证码挑战，不锁账号不锁 IP（避免锁死办公室出口/家庭 NAT 的真人；Wordfence 式硬封锁刻意不做）。"
+
+msgid "Captcha provider"
+msgstr "验证码驱动"
+
+msgid "Captcha verification failed"
+msgstr "验证码核验失败"
+
+msgid "Captcha yields"
+msgstr "验证码让位"
+
+msgid "Check-record cache"
+msgstr "核查记录缓存"
+
+msgid "Checking…"
+msgstr "检查中…"
+
+msgid "Chinese gate: no Chinese present"
+msgstr "中文闸：缺中文"
+
+msgid "Classic button"
+msgstr "经典按钮"
+
+msgid "Clean (pass)"
+msgstr "没问题（pass）"
+
+msgid "Clean IP cache"
+msgstr "干净 IP 缓存"
+
+msgid "Clear all URL check records? The next encounter with the same URL will be checked again (uses quota)."
+msgstr "清空全部网址核查记录？下次遇到同一网址会重新核查（消耗额度）。"
+
+msgid "Clear all statistics"
+msgstr "清空全部统计"
+
+msgid "Clear the URL check record cache"
+msgstr "清空网址核查记录缓存"
+
+msgid "Clear this credential"
+msgstr "清除此凭据"
+
+msgid "Clear this site's URL check cache and re-check it?"
+msgstr "清空此站的网址核查缓存并重新核查？"
+
+msgid "Click “Complete human verification” in the form first, then submit — the behavior up to 0.8.3."
+msgstr "先点表单内「完成人机验证」按钮过码，再点提交——0.8.3 及以前形态。"
+
+msgid "Cloud API key (for TC3 signing). Server-side only, never exposed to the front end."
+msgstr "云 API 密钥（TC3 签名用）。仅服务端使用，绝不出前端。"
+
+msgid "Cloud API key (for TC3 signing, Access Management → API Key Management). Separate from the captcha console's AppSecretKey — two different credential systems."
+msgstr "云 API 密钥（TC3 签名用，访问管理 → API 密钥管理）。与验证码控制台的 AppSecretKey 分属两套凭据体系。"
+
+msgid "Cloud label mapping (read-only preview)"
+msgstr "云端标签映射（只读预览）"
+
+msgid "Cloud moderation"
+msgstr "云端审核"
+
+msgid "Cloud moderation driver"
+msgstr "云端审核驱动"
+
+msgid "Cloud moderation failure, sent to pending review"
+msgstr "云审核故障已入待审"
+
+msgid "Cloud moderation is neither configured nor enabled"
+msgstr "云端审核还没配置，也没开启"
+
+msgid "Cloud moderation is not configured yet — configure and enable a provider on Tab 3 first, then start the audit."
+msgstr "云端审核还没配置——先到 Tab③ 配置并启用服务商，再发起体检。"
+
+msgid "Cloud moderation line (third party, pay-per-use)"
+msgstr "云端审核防线（第三方，按次计费）"
+
+msgid "Cloud moderation · disabled (the built-in rules keep watch as usual)"
+msgstr "云端审核 · 未启用（站内规矩照常把关）"
+
+msgid "Cloud moderation · enabled (provider credentials count as good when “Test credentials” shows green)"
+msgstr "云端审核 · 已启用（所选服务商凭据以「测试凭据」绿态为准）"
+
+msgid "Coexistence with other security plugins"
+msgstr "与其他防护的共存（coexist）"
+
+msgid "Collect the website field on new comments"
+msgstr "收集新评论的网站字段"
+
+msgid "Comment gate"
+msgstr "评论闸"
+
+msgid "Comment gate · Enable comment protection"
+msgstr "评论闸 · 启用评论保护"
+
+msgid "Comment protection"
+msgstr "评论防护"
+
+msgid "Comment protection · trusted-visitor waiver (pre-check without a captcha)"
+msgstr "评论保护·信用免验（预检免验证码）"
+
+msgid "Commenter avatar source"
+msgstr "评论者头像来源"
+
+msgid "Commenter names in front-end comment areas display as clickable links"
+msgstr "前台评论区的评论者名字显示为可点开的链接"
+
+msgid "Commenters may fill in their own website. Whatever the switches below say, the admin comments screen always shows this URL so you can identify visitors; stored URLs are never deleted."
+msgstr "评论者可以填一个自己的网站。无论下面开关怎么设，后台评论区始终显示这个网址供你识别来访者；已存的网址不会删除。"
+
+msgid "Comments by %1$s: %2$d →"
+msgstr "%1$s的评论 %2$d 条 →"
+
+msgid "Comments currently rely on the built-in rules alone."
+msgstr "评论目前全靠站内规矩把关。"
+
+msgid "Comments currently run the local rule gates only (length / Chinese / banned words); to add cloud review, enable it on the “Cloud moderation” card below and pick a provider."
+msgstr "评论目前只走本地规则闸（字数/中文/禁词）；想加云端送审，请在下方「云端审核」卡开启并选择一家服务商。"
+
+msgid "Comments hit"
+msgstr "命中评论"
+
+msgid "Comments the AI is unsure about are automatically re-judged once by a stronger model, at most two verdicts per comment"
+msgstr "AI 拿不准的评论，自动换更强的模型再判一次，每条评论最多判两次"
+
+msgid "Comments the AI is unsure about are automatically re-judged once by the better “deep-think” model, at most two verdicts per comment"
+msgstr "AI 拿不准的评论，自动换更擅长的「深思」模型再判一次，每条评论最多判两次"
+
+msgid "Complete human verification"
+msgstr "完成人机验证"
+
+msgid "Completed"
+msgstr "已完成"
+
+msgid "Completed: %s"
+msgstr "完成：%s"
+
+msgid "Completely disable XML-RPC logins (recommended hardening)"
+msgstr "彻底关闭 XML-RPC 登录（推荐加固）"
+
+msgid "Configuration consistency: custom header “%s” is configured but absent in this request — please check your topology (same warning as Wordfence's “Configured but not valid”)."
+msgstr "配置一致性：已配置自定义头「%s」但本请求没有该头——请核对当前拓扑（Wordfence「Configured but not valid」同款警示）。"
+
+msgid "Configuration problem (key rejected — paused for today; re-saving the key and getting a green “Test credentials” clears it)"
+msgstr "配置问题（密钥被拒——当日停转；重存密钥并「测试凭据」绿态即解除）"
+
+msgid "Configure"
+msgstr "去配置"
+
+msgid "Configure →"
+msgstr "去配置 →"
+
+msgid "Configured"
+msgstr "已配置"
+
+msgid "Configured ✓ (save with it blank to keep it unchanged)"
+msgstr "已配置 ✓（留空保存则不修改）"
+
+msgid "Confirm the wipe? All statistics and block records will be cleared, unrecoverable."
+msgstr "确认清空？所有统计数字和拦截记录将被清掉，不可恢复。"
+
+msgid "Conservative (default) — violations are not auto-spammed, only reported and flagged; unclear URLs go to pending review for your call"
+msgstr "保守（默认）——违规不自动进垃圾箱，只出报告和标记；网址没看清的会先进待审等你判定"
+
+msgid "Content moderation"
+msgstr "内容审核"
+
+msgid "Content moderation is enabled, but no moderation provider is configured yet"
+msgstr "内容审核已启用，但还没配好任何一家审核服务商"
+
+msgid "Continue setup (wizard) →"
+msgstr "继续配置（向导）→"
+
+msgid "Counting disabled"
+msgstr "计数已停用"
+
+msgid "Counting window (minutes)"
+msgstr "计数窗口（分钟）"
+
+msgid "Cravatar (mainland mirror, officially compatible)"
+msgstr "Cravatar（国内镜像，官方兼容）"
+
+msgid "Create an API Key on the DeepSeek platform (platform.deepseek.com) and top up (pay-as-you-go; one verdict costs roughly a few hundred tokens)."
+msgstr "DeepSeek 开放平台（platform.deepseek.com）创建 API Key 并充值（按量计费，判定一次约几百 token）。"
+
+msgid "Create an app under “Application List” in the console to get the API Key and Secret Key (the AppID is just a console label and never appears in requests)."
+msgstr "控制台「应用列表」创建应用获取 API Key 与 Secret Key（AppID 仅控制台标识，不参与请求）。"
+
+msgid "Current cloud moderation driver"
+msgstr "当前云端审核驱动"
+
+msgid "Current controls moved over and extended from the Tab 2 login protection card"
+msgstr "现行控件自 Tab② 登录保护卡搬位扩展"
+
+msgid "Currently %s:"
+msgstr "当前 %s 条："
+
+msgid "Currently in effect"
+msgstr "当前生效"
+
+msgid "Custom OpenAI-compatible endpoint"
+msgstr "自定义 OpenAI 兼容端点"
+
+msgid "Custom OpenAI-compatible endpoint (AI verdict) · Configuration"
+msgstr "自定义 OpenAI 兼容端点（AI 判定） · 配置"
+
+msgid "Custom URL"
+msgstr "自定义地址"
+
+msgid "Custom allow/block rule rows by request headers (UA etc.) — division of labor with the Tab 4 IP reputation allowlist: these rules govern “what the request looks like”, that one governs “who the IP is”. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
+msgstr "按请求头（UA 等）放行/拦截的自定义规则行——与 Tab④ IP 信誉白名单的分工：这条管「请求长啥样」、那条管「IP 是谁」。规划位：当前零控件零行为，实装后转实线卡。"
+
+msgid "Custom banned keywords"
+msgstr "自定义禁止关键词"
+
+msgid "Custom header"
+msgstr "自定义头"
+
+msgid "Custom header name"
+msgstr "自定义头名"
+
+msgid "Custom range invalid lines (skipped): %s"
+msgstr "自定义网段非法行（已跳过）：%s"
+
+msgid "Custom report note"
+msgstr "自定义上报备注"
+
+msgid "Custom trusted ranges"
+msgstr "自定义受信网段"
+
+msgid "Daily allowance"
+msgstr "日额度"
+
+msgid "Daily maintenance task"
+msgstr "每日维护任务"
+
+msgid "Daily quota"
+msgstr "日配额"
+
+msgid "Daily verification quota"
+msgstr "每日验证额度"
+
+msgid "Dedicated verify button (classic)"
+msgstr "独立验证按钮（经典）"
+
+msgid "Dedicated verify button (classic) — click “Complete human verification” in the form first, then submit (the behavior up to 0.8.3)"
+msgstr "独立验证按钮（经典）——先点表单内「完成人机验证」按钮过码，再提交（0.8.3 及以前形态）"
+
+msgid "Deep-think (deepseek-reasoner)"
+msgstr "深思（deepseek-reasoner）"
+
+msgid "Deep-think (deepseek-reasoner, stronger but slower)"
+msgstr "深思（deepseek-reasoner，更强慢）"
+
+msgid "DeepSeek (AI verdict) · Configuration"
+msgstr "DeepSeek（AI 判定） · 配置"
+
+msgid "DeepSeek (LLM moderation)"
+msgstr "DeepSeek（LLM 审核）"
+
+msgid "DeepSeek API documentation"
+msgstr "DeepSeek API 文档"
+
+msgid "DeepSeek key for fetching"
+msgstr "抓取专用 DeepSeek Key"
+
+msgid "DeepSeek page fetching (pay-per-use ¥5/1,000)"
+msgstr "DeepSeek 网页抓取（按次计费 ¥5/1000 次）"
+
+msgid "DeepSeek page fetching has failed %d times in a row — URL check verdicts may not work properly; check credentials, balance, and endpoint status."
+msgstr "DeepSeek 网页抓取已连续 %d 次未成功——网址核查可能无法正常判定，请检查凭据、余额与端点状态。"
+
+msgid "DeepSeek web search (uses the LLM provider's credentials above — billed per success)"
+msgstr "DeepSeek 网页搜索（用上方 LLM提供商的凭证——按成功次计费）"
+
+msgid "Detect and yield · no fights"
+msgstr "检测即让位 · 不打架"
+
+msgid "Direct"
+msgstr "直连"
+
+msgid "Direct (default)"
+msgstr "直连 direct（默认）"
+
+msgid "Direct-block score threshold"
+msgstr "直拒分数阈值"
+
+msgid "Disable XML-RPC logins"
+msgstr "关闭 XML-RPC 登录"
+
+msgid "Disabled"
+msgstr "未开启"
+
+msgid "Do not enter sensitive site information or personal data — AbuseIPDB report details are publicly visible (visitor IPs are submitted to an overseas service; assess cross-border PIPL compliance yourself)."
+msgstr "请勿填写站点敏感信息与个人数据——AbuseIPDB 报告详情公开可见（访客 IP 提交至境外服务，数据出境请自行评估 PIPL 合规）。"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Drill mode (bypass human verification)"
+msgstr "演练模式（旁路人机验证）"
+
+msgid "Driver self-check and fallback drills"
+msgstr "驱动自检与降级演练"
+
+msgid "Dual-service submission"
+msgstr "双 Service 分送"
+
+msgid "Each “Next” step saves what you have filled in so far; "
+msgstr "每一步的「下一步」都会保存当前已填内容；"
+
+msgid "EdgeOne publishes no official static range list (api.edgeone.ai/ips is dynamic with 3–6 month rotation — shipping an empty preset would mean silent no-protection), so no preset is offered; sites behind EdgeOne should hand-enter the origin ranges published in the official docs below."
+msgstr "EdgeOne 无官方静态网段列表（api.edgeone.ai/ips 动态发布、3–6 月轮换——空预设入选=静默无保护），故不提供预设；托管在 EdgeOne 的站点请在下方手填官方文档公布的回源网段。"
+
+msgid "Email"
+msgstr "邮箱"
+
+msgid "Email + body submission channel (default comment_detection_pro)."
+msgstr "邮箱+正文送审通道（默认 comment_detection_pro）。"
+
+msgid "Embedded trigger bar — renders a “click to start verification” bar in the page; clicking it opens the puzzle / image-restore popup (the default up to 0.8.4)"
+msgstr "嵌入触发条——页内渲染「点击开始验证」触发条，点击后弹出拼图/图像复原交互弹层（0.8.4 及以前默认形态）"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Enable (always — the captcha shows as soon as the page loads)"
+msgstr "启用（常显——进页面即出验证码）"
+
+msgid "Enable IP reputation lookup (strengthens both the comment and login gates — the Tab 2 linked switch is on by default)"
+msgstr "启用 IP 信誉查询（同时提升评论闸与登录闸两处防护——Tab② 联动开关默认开）"
+
+msgid "Enable IP reputation lookups"
+msgstr "开启 IP 信誉查询"
+
+msgid "Enable cloud moderation"
+msgstr "启用云端审核"
+
+msgid "Enable drill mode"
+msgstr "启用演练模式"
+
+msgid "Enable malicious activity reporting (sent only when one of the trigger surfaces in Advanced fires)"
+msgstr "启用恶意行为上报（高级设置里任一触发面命中才发送）"
+
+msgid "Enable statistics counting (turned off, the numbers on this page stop growing while blocking continues)"
+msgstr "开启统计计数（关掉后本页数字停止增长，拦截照常工作）"
+
+msgid "Enable the URL check"
+msgstr "启用网址核查"
+
+msgid "Enable this trigger surface"
+msgstr "启用此触发面"
+
+msgid "Enable “Content Moderation · Text Moderation” in the Baidu AI Cloud console (current v2 endpoint, text moderation is pay-as-you-go)."
+msgstr "百度智能云控制台开通「内容审核 · 文本审核」（现行 v2 端点，文本审核按量计费）。"
+
+msgid "Enable “Content Security · Text Moderation Plus” in the Aliyun console (TextModerationPlus, Green 2022-03-02)."
+msgstr "阿里云控制台开通「内容安全 · 文本审核增强版」（TextModerationPlus，Green 2022-03-02）。"
+
+msgid "Enable “Content Security · Text Moderation” in the Tencent Cloud console and purchase/claim a package (TextModeration bills by policy)."
+msgstr "腾讯云控制台开通「内容安全 · 文本审核」并购买/领取套餐包（TextModeration 按策略计费）。"
+
+msgid "Enabled"
+msgstr "已开启"
+
+msgid "Enablement gate: real-IP self-check passed — reporting is ready to enable."
+msgstr "启用门禁：真实 IP 自检通过——上报具备启用条件。"
+
+msgid "Endpoint / API Key / model name (manual entry)"
+msgstr "接入地址 / API Key / 模型名（手填）"
+
+msgid "Endpoint URL"
+msgstr "接入地址"
+
+msgid "Enter a model name this endpoint supports"
+msgstr "填该端点支持的模型名"
+
+msgid "Enter a stronger model this endpoint supports; blank = no upgrade"
+msgstr "填端点支持的更强模型名；留空=不升级"
+
+msgid "Enter the model name manually (for OpenAI-compatible endpoints, one it supports)"
+msgstr "手填模型名（OpenAI 兼容端点填其支持的模型）"
+
+msgid "Enter the root URL of your OpenAI-compatible endpoint — the plugin appends /chat/completions to it. For the official OpenAI family stop at https://…/v1; for official DeepSeek use https://api.deepseek.com (without /v1)."
+msgstr "填你的 OpenAI 兼容端点根地址——插件在其后拼接 /chat/completions。OpenAI 官方族填到 https://…/v1 为止；DeepSeek 官方填 https://api.deepseek.com（不带 /v1）。"
+
+msgid "Error history (things that went wrong with third-party providers)"
+msgstr "报错历史（和第三方服务商打交道时出的岔子）"
+
+msgid "Errors today"
+msgstr "今日出错"
+
+msgid "Even the error-free get called each day, so you can tell at a glance"
+msgstr "没出错的也每天点名，一眼见分晓"
+
+msgid "Event No."
+msgstr "事件编号"
+
+msgid "Every block, manual review, and error has a number (e.g. WK-20261112-0042). When a visitor reports a problem, the number pinpoints it."
+msgstr "每一条拦下、转人工复核、报错都有编号（如 WK-20261112-0042）。访客报障时报编号即可精确定位。"
+
+msgid "Existing URL check"
+msgstr "存量网址核查"
+
+msgid "Existing URL check in progress… advances automatically within the daily quota (violations go to Spam, unclear ones to pending — both recoverable by hand)."
+msgstr "存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）。"
+
+msgid "Existing URL check in progress… advances automatically within the daily quota (violations to Spam, unclear ones to pending review, both recoverable by hand); the report appears below when done."
+msgstr "存量网址核查进行中…按每日额度自动推进（判违规进垃圾箱、没看清进待审，都可手动恢复）；完成后可看下方报告。"
+
+msgid "Existing URL check report"
+msgstr "存量网址核查报告"
+
+msgid "Existing comment audit"
+msgstr "历史评论体检"
+
+msgid "Existing comment audit in progress (%1$d of %2$d processed)"
+msgstr "历史评论体检进行中（已处理 %1$d / 共 %2$d）"
+
+msgid "Existing-comment audit report"
+msgstr "存量审核报告（历史评论体检）"
+
+msgid "Expand to see the provider's raw reply (for troubleshooting, redacted)"
+msgstr "展开看服务商原始回复（排障用，已脱敏）"
+
+msgid "Export today's block ledger (CSV)"
+msgstr "导出当日拦截流水（CSV）"
+
+msgid "Fail: malicious / suspected IP, or misconfiguration, timeout, error, over-threshold — always strict: the visitor must pass human verification first."
+msgstr "不通过（fail）：恶意/可疑 IP，或配置错、超时、报错、超阈值——一律从严：强制访客先过人机验证再放行。"
+
+msgid "Failed to open the export stream."
+msgstr "导出流打开失败。"
+
+msgid "Failover passes today"
+msgstr "今日容灾放行"
+
+msgid "Failover tickets (pass on bad networks)"
+msgstr "容灾票据（网络差放行）"
+
+msgid "Failure fallback"
+msgstr "故障降级"
+
+msgid "Fallback behavior"
+msgstr "降级方式"
+
+msgid "False-positive guard: add IPs that reputation databases misjudge, such as search-engine crawlers or office egress addresses — those visitors pass straight through without a forced captcha."
+msgstr "误伤防护：搜索引擎爬虫、办公出口等被信誉库误伤的 IP 加在这里——访客直接放行，不会被强制过码。"
+
+msgid "Fast mainland direct connection · generous free tier · smart verification that leaves humans alone."
+msgstr "境内直连快 · 免费额度充足 · 智能验证不打扰真人。"
+
+msgid "Feed request controls such as RSS/Atom feed rate limiting and excerpting feeds (full text → excerpt) — all off by default, effective only when enabled. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
+msgstr "对 RSS/Atom 订阅源限流、feed 摘要化（全文改摘要）等 feed 请求管控——默认全关、开了才生效。规划位：当前零控件零行为，实装后转实线卡。"
+
+msgid "Fetch provider"
+msgstr "网页抓取服务商"
+
+msgid "Fill in the API Key and model name → click “Test credentials” (model-list probe, zero tokens — generic endpoints have no standard balance API, so no balance is shown)."
+msgstr "填 API Key 与模型名 → 点「测试凭据」（模型列表探活，零 token 消耗——泛端点无标准余额 API，不显示余额）。"
+
+msgid "Fill in the endpoint URL (mind the path prefix: the plugin appends /chat/completions to what you enter — for the official OpenAI family, stop at …/v1)."
+msgstr "填接入地址（注意路径前缀：插件在所填地址后拼 /chat/completions——OpenAI 官方族需填到 …/v1 为止）。"
+
+msgid "Fills the “contact the site owner” spot in default copy such as captcha_failed / ip_malicious (the {contact_email} placeholder)."
+msgstr "出现在 captcha_failed / ip_malicious 等默认文案的「联系站长」处（{contact_email} 占位符）。"
+
+msgid "Finish setup →"
+msgstr "完成配置 →"
+
+msgid "Fixed window for failure counting: counts reset naturally once the window passes (a successful login resets immediately)."
+msgstr "失败计数的固定窗口：窗口过后计数自然清零（成功登录立即清零）。"
+
+msgid "Follow (default): when cloud moderation is DeepSeek, both verdicts and page fetching use DeepSeek (one set of credentials); with another driver, verdicts use its configuration and page fetching does not auto-enable (unconfigured — pick one manually under “Fetch provider” below). Separate: the URL check uses its own DeepSeek credentials (independent of comment cloud moderation; only needed for a different account/quota)."
+msgstr "跟随（默认）：云端审核为 DeepSeek 时，判定与网页抓取都用 DeepSeek（同一份凭证）；云端审核是其他驱动时，判定走其配置、网页抓取不会自动启用（抓取未配置——需要抓取请在下方「网页抓取服务商」手动选择）。独立：网址核查用单独的 DeepSeek 凭证（与评论云端审核互不影响，想用不同的账号/额度时才需要选独立）。"
+
+msgid "Follow cloud moderation (default — when cloud moderation is DeepSeek, fetching uses the same configuration; with another driver, fetching is unconfigured and direct fetching from this site does not auto-enable)"
+msgstr "跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行抓取；其他驱动时抓取未配置，本站直抓不自动启用）"
+
+msgid "Follow cloud moderation (default — when cloud moderation is DeepSeek, verdicts use the same configuration)"
+msgstr "跟随云端审核（默认——云端审核为 DeepSeek 时使用与云端审核相同的配置进行判定）"
+
+msgid "For relays / self-hosted gateways — endpoint and model name are entered manually."
+msgstr "中转 / 自建网关场景——端点与模型名手填。"
+
+msgid "Four built-in rule defenses · on duty (length / no-Chinese / keywords / regex — free, zero outbound calls, always on)"
+msgstr "站内规矩四道防线 · 已在岗（字数 / 无中文 / 关键词 / 正则——免费、零外呼、永远开着）"
+
+msgid "Free tier: 1,000 lookups/day (agreed baseline). Register at abuseipdb.com; lookups count against the quota, and the soft cap / daily quota limits are tuned under ⚙ Advanced on Tab 4."
+msgstr "免费档 1000 次/天（拍板统一口径）。在 abuseipdb.com 注册获取；查询按次计额度，软顶/日配额两道闸在 Tab④ ⚙ 高级配置里调。"
+
+msgid "Front-end style (mode)"
+msgstr "前端形态（mode）"
+
+msgid "Full records → Statistics"
+msgstr "完整记录 → 统计页"
+
+msgid "Full-page cache note: keep the cache cycle under 12 hours — a stale nonce silently degrades the waiver into always-show-a-captcha (fail-safe, submissions still work)."
+msgstr "整页缓存提示：启用整页缓存的站点建议缓存周期 <12 小时——nonce 陈旧会使免验静默退化为恒出码（fail-safe，不伤提交）。"
+
+msgid "Fully disable XML-RPC logins"
+msgstr "彻底关闭 XML-RPC 登录"
+
+msgid "Gate"
+msgstr "哪张门"
+
+msgid "Gate switches"
+msgstr "闸开关"
+
+msgid "Get an API Key"
+msgstr "获取 API Key"
+
+msgid "Get it from the console overview page — used by the front-end AliyunCaptchaConfig global config (a public front-end parameter, not a server-side API credential)."
+msgstr "控制台概览页获取——前端 AliyunCaptchaConfig 全局配置用（前端公开级参数，非服务端 API 凭据）。"
+
+msgid "Get the policy ID (BizType) from the Content Security console (e.g. TencentCloudDefault or a custom policy) — preferably one bound to your package."
+msgstr "内容安全控制台获取策略编号（BizType，如 TencentCloudDefault 或自定义策略）——建议填写绑定套餐包的策略。"
+
+msgid "Global: contact email"
+msgstr "全局：联系邮箱"
+
+msgid "Go check"
+msgstr "前往检查"
+
+msgid "Go to overview →"
+msgstr "进入总览 →"
+
+msgid "Good choice — the built-in rules stay on duty at zero cost and zero outbound calls. The overview page will not flag this one."
+msgstr "好选择——站内规矩始终在岗，零成本零外呼。总览页不会为这一项亮黄条。"
+
+msgid "Grouped by site (URL check violations)"
+msgstr "按网站归堆（网址核查判违规）"
+
+msgid "Handle the pending queue (%d) →"
+msgstr "去待审队列处理（%d 条）→"
+
+msgid "Handling level"
+msgstr "处置档位"
+
+msgid "Hands all existing comments to the provider for another pass: violations go to Spam, unclear ones to pending review — both recoverable by hand; clean ones are left alone. The report appears just below this card."
+msgstr "把站里已有的评论整体交服务商再查一遍：判违规的进垃圾箱、没看清的进待审，都能手动恢复；没问题的不动。报告就展示在本卡下方。"
+
+msgid "Hands every website URL in existing comments to the “URL check” for a full re-pass (open the page + AI verdict on whether the site is problematic). The everyday URL check only covers new comments — this button is for digging through history, with predictable cost."
+msgstr "把站里已有评论中的网站地址交「网址核查」全部重查一遍（打开网页+AI 判定该网站有没有问题）。平时开启网址核查只查新评论——这里点按钮才翻查历史，消耗可预期。"
+
+msgid "Health status"
+msgstr "健康状态"
+
+msgid "Honor the site's robots disallow rules (off by default — honoring them means more “could not tell” cases)"
+msgstr "遵守网站的 robots 禁爬声明（默认关——开了会多「没看清」）"
+
+msgid "How it was handled"
+msgstr "当时怎么处理"
+
+msgid "How visitors get challenged — two flows, compared in the animation below (illustrative, not a live recording)."
+msgstr "访客过码的方式怎么触发——两种形态，下方动图直观对比（效果示意非实录）。"
+
+msgid "Human verification"
+msgstr "人机验证"
+
+msgid "Human verification incomplete — click submit once more to retry"
+msgstr "人机验证未完成，请再点一次提交重试"
+
+msgid "Human verification line (third party, pay-per-use)"
+msgstr "人机验证防线（第三方，按次计费）"
+
+msgid "Human verification · "
+msgstr "人机验证 · "
+
+msgid "I confirm I want to bypass site-wide human verification (double confirmation)"
+msgstr "我确认要旁路全站人机验证（二次确认）"
+
+msgid "IP address to look up"
+msgstr "要查询的 IP 地址"
+
+msgid "IP detection diagnostics panel"
+msgstr "IP 检测诊断面板"
+
+msgid "IP reputation (AbuseIPDB) · enabled (credentials count as good when “Test credentials” shows green)"
+msgstr "IP 信誉（AbuseIPDB）· 已启用（凭据以「测试凭据」绿态为准）"
+
+msgid "IP reputation (AbuseIPDB) · optional enhancement — skipping it does not affect the protections above"
+msgstr "IP 信誉（AbuseIPDB）· 可选增强——不配不影响以上防护"
+
+msgid "IP reputation (AbuseIPDB) · optional — add it once your captcha is set up"
+msgstr "IP 信誉（AbuseIPDB）· 可选——配好验证码后顺手接上"
+
+msgid "IP reputation line (third party, pay-per-use)"
+msgstr "IP 信誉防线（第三方，按次计费）"
+
+msgid "IP reputation lookup"
+msgstr "IP 信誉查询"
+
+msgid "IP reputation providers currently available (more vendors in later milestones)."
+msgstr "当前可用的 IP 信誉服务商（更多厂商随后续里程碑接入）。"
+
+msgid "IP reputation tie-in"
+msgstr "IP 信誉联动"
+
+msgid "Import/export settings"
+msgstr "导入/导出设置"
+
+msgid "In a trusted range"
+msgstr "命中受信网段"
+
+msgid "In progress (%1$d / %2$d) · current provider: %3$s"
+msgstr "进行中（%1$d / %2$d）· 当前服务商：%3$s"
+
+msgid "Incidents from all four gates and every provider share one timeline; a provider's same-day pause and next-day recovery are logged here too."
+msgstr "四张门和服务商的岔子都在一张时间线上；服务商当日暂停与次日恢复也会留痕在此。"
+
+msgid "Independent of the “IP reputation lookup” switch above — reports only, no lookups; silent send failures never affect blocking."
+msgstr "独立于上方「IP 信誉查询」开关——只上报不查询；发送失败静默不影响拦截。"
+
+msgid "Insufficient permissions."
+msgstr "权限不足。"
+
+msgid "Insufficient permissions: manage_options required."
+msgstr "权限不足：需要 manage_options。"
+
+msgid "International (sgp) — endpoint captcha.ap-southeast-1.aliyuncs.com (not verified on a live site)"
+msgstr "海外（sgp）——端点 captcha.ap-southeast-1.aliyuncs.com（未实机验证）"
+
+msgid "Invalid"
+msgstr "非法"
+
+msgid "Invalid IP format."
+msgstr "IP 格式无效。"
+
+msgid "Invalid custom URL: it must start with https:// and end with /avatar/."
+msgstr "自定义地址不合法：须以 https:// 开头、以 /avatar/ 结尾。"
+
+msgid "Invalid regex lines are skipped automatically and logged as events (other lines are unaffected)."
+msgstr "非法正则行自动跳过并记入事件（不影响其它行）。"
+
+msgid "It only takes effect with a key filled in; when off or empty, the trust chain skips this item. When enabled, visitor IPs are sent to an overseas service for lookup — see Tab 4 for the data-transfer notice."
+msgstr "填了 Key 才真正生效；关闭或未填 Key 时信任链跳过该项。启用后访客 IP 会送境外服务查询——出境提示见 Tab④。"
+
+msgid "It winks at real visitors and keeps its eyes open for bots."
+msgstr "对真人眨眨眼，对机器人睁着眼。"
+
+msgid "JSON export (keys excluded by default) / import validation (schema version check). Implemented in M4 (F27)."
+msgstr "JSON 导出（默认不含密钥）/ 导入校验（schema 版本校验）。M4 实装（F27）。"
+
+msgid "Keep commenter names clickable on the front end"
+msgstr "前台评论者名字保留可点链接"
+
+msgid "Key trial calls, front-end JS reachability probes, real-IP self-check (CIDR validation + parsing preview), fallback drills. Implemented in M3/M4 (F28/F33)."
+msgstr "密钥试调用、前端 JS 可达性探测、真实 IP 自检（CIDR 校验 + 解析预览）、降级演练。M3/M4 实装（F28/F33）。"
+
+msgid "Keyword / regex match"
+msgstr "关键词/正则命中"
+
+msgid "Keyword gate deduplication"
+msgstr "关键词闸去重"
+
+msgid "LLM provider"
+msgstr "LLM提供商"
+
+msgid "Last completed on %1$s"
+msgstr "上次完成于 %1$s"
+
+msgid "Last step: click “Test credentials” — green means on duty."
+msgstr "最后一步：点「测试凭据」，绿了才算上岗。"
+
+msgid "Last test: %s"
+msgstr "上次测试：%s"
+
+msgid "Leave blank to use the official address (rarely needs changing)."
+msgstr "留空用官方地址（一般不用改）。"
+
+msgid "Length gate: comment too long"
+msgstr "字数闸：评论过长"
+
+msgid "Length gate: comment too short"
+msgstr "字数闸：评论过短"
+
+msgid "Limited pass — transport failures only, plus a 5-per-IP-per-hour pass limit"
+msgstr "受限放行——仅传输类故障 + 每 IP 每小时 5 次限流放行"
+
+msgid "Loading captcha…"
+msgstr "验证码加载中……"
+
+msgid "Local parsing"
+msgstr "本地解析区"
+
+msgid "Local rules (four gates, migrated from upstream)"
+msgstr "本地规则（四闸，上游迁移）"
+
+msgid "Local rules always stay first in the chain and cannot be disabled; a failing driver hands over to the next automatically, and when every cloud driver fails each one's “failure fallback” level applies (default: pending review)."
+msgstr "本地规则恒在链首且不可关闭；某驱动故障时自动接力下一驱动，云端全部故障时按各驱动「故障降级」档处理（默认入待审）。"
+
+msgid "Login captcha exclusivity notice"
+msgstr "登录出码互斥提示"
+
+msgid "Login failures from one IP reach the existing threshold (10/IP — reusing the login gate's own counter, no separate threshold). Off by default."
+msgstr "同一 IP 登录失败达到既有阈值（10 次/IP——沿登录闸现成计数，不单设阈值）。默认关。"
+
+msgid "Login gate"
+msgstr "登录闸"
+
+msgid "Login gate · Enable login verification"
+msgstr "登录闸 · 启用登录验证"
+
+msgid "Login protection"
+msgstr "登录保护"
+
+msgid "Login protection (three gates: login / registration / password recovery)"
+msgstr "登录防护（登录 / 注册 / 找回密码 三张门）"
+
+msgid "Login-type XML-RPC methods (wp.getUsersBlogs, credentials carried by system.multicall, etc.) get an across-the-board 405; publishers using blog-client tools should untick and save to re-enable. Same switch as the Tab 2 “Login protection” card (saving in either place takes effect)."
+msgstr "登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；使用博客客户端发布工具的站长取消勾选并保存以开启。与 Tab②「登录保护」卡为同一开关（任一处保存即生效）。"
+
+msgid "Lookup timeout"
+msgstr "查询超时"
+
+msgid "Looped demo: no-button mode ↔ classic button (classic = “Complete human verification” first, then submit — one extra step) · illustrative, not a live recording."
+msgstr "循环演示：无按钮模式 ↔ 经典按钮（经典=先点「完成人机验证」再提交，多第一步）· 效果示意非实录。"
+
+msgid "Low-confidence auto-upgrade"
+msgstr "低置信自动升级"
+
+msgid "Mainland China (cn · default) — endpoint captcha.cn-shanghai.aliyuncs.com"
+msgstr "中国大陆（cn · 默认）——端点 captcha.cn-shanghai.aliyuncs.com"
+
+msgid "Mainland · dual-channel submission (nickname and body sent separately) · shares an account with Aliyun Captcha."
+msgstr "境内 · 双通道分送（昵称/正文分开送）· 与阿里验证码同账号顺路。"
+
+msgid "Mainland · fits the Tencent Cloud ecosystem (pick it if you already have Tencent Cloud keys)."
+msgstr "境内 · 与腾讯云生态顺路（已有腾讯云密钥就选它）。"
+
+msgid "Mainland, per-call billing with a free tier; fits the Tencent Cloud ecosystem. When enabled, comment nicknames, emails, and bodies are sent to a third party (Tencent Cloud, in the mainland) — this notice is always shown."
+msgstr "境内、按次计费有免费额度；与腾讯云生态顺路。启用后评论的昵称、邮箱、正文会送审至第三方（腾讯云，境内）——此提示常驻。"
+
+msgid "Makes one real call with fake parameters (VerifyIntelligentCaptcha): green = credentials work; red = wrong AccessKey / signature / permissions (including RAM-not-authorized hints); yellow = required parameters missing. The last test status and time are recorded."
+msgstr "发一次假参实调（VerifyIntelligentCaptcha）：绿 = 凭据可用；红 = AccessKey/签名/权限错（含 RAM 未授权提示）；黄 = 必填参数缺。结果记录最近一次测试状态与时间。"
+
+msgid "Malicious activity reporting"
+msgstr "恶意行为上报"
+
+msgid "Malicious threshold"
+msgstr "恶意阈值"
+
+msgid "Manage"
+msgstr "管理"
+
+msgid "Manual aggregate query"
+msgstr "手动聚合查询区"
+
+msgid "Matching topologies: site directly exposed → direct; behind Cloudflare or another CDN → custom_header (set the header name to CF-Connecting-IP); multi-level self-hosted reverse proxy → traverse, with the proxy egress filled into trusted ranges."
+msgstr "适用拓扑：站点直连源站→direct；Cloudflare 等 CDN 托管→custom_header（头名填 CF-Connecting-IP）；自建反代多级→traverse，并在受信网段填反代出口。"
+
+msgid "Maximum length"
+msgstr "字数上限"
+
+msgid "Merge WordPress discussion keywords"
+msgstr "联动 WP 讨论设置关键词"
+
+msgid "Merges “Settings → Discussion → Disallowed comment keywords”"
+msgstr "合并「设置 → 讨论 → 被禁止的关键词」"
+
+msgid "Minimum length"
+msgstr "字数下限"
+
+msgid "Missing — event cleanup has stalled"
+msgstr "丢失——事件清理已停摆"
+
+msgid "Mode levels are in the dropdown on the right; thresholds / windows and other details are in the separate “Login protection” card below."
+msgstr "模式档位见右侧下拉；阈值/窗口等细节在本卡下方「登录保护」独立卡。"
+
+msgid "Model-list probe (zero tokens): green = credentials work (if a verdict model is filled in, it is also checked against the list); yellow = model not in the list or required fields missing; red = key rejected by the endpoint; gray = no /models or a transport error. Generic endpoints have no standard balance API, so no balance is shown. The last test status and time are recorded."
+msgstr "模型列表探活（零 token）：绿 = 凭据可用（填了判定模型则顺带校验在不在列表）；黄 = 模型不在列表或必填缺；红 = 密钥被端点拒绝；灰 = 端点不提供 /models 或传输异常。泛端点无标准余额 API，不显示余额。结果记录最近一次测试状态与时间。"
+
+msgid "Moved to Spam"
+msgstr "已进垃圾箱"
+
+msgid "Must start with https:// and end with /avatar/ — follow the mirror's instructions; an invalid address leaves the avatar source unchanged (official source used)."
+msgstr "须以 https:// 开头、以 /avatar/ 结尾——按镜像站说明填写；地址不合法时不改写头像来源（用官方源）。"
+
+msgid "N cumulative wrong passwords for one account across IPs triggers a captcha — distributed brute force still trips it; only accounts that actually exist are counted."
+msgstr "同一账户跨 IP 累计 N 次口令错误出码——分布式爆破也触发；仅统计真实存在的账户。"
+
+msgid "Narrowing controls such as disabling unauthenticated user enumeration (/wp/v2/users) and counting REST attempts in the login gate's failure counter — trade-off statement: narrowing, not shutting down. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
+msgstr "关闭未登录用户枚举（/wp/v2/users）、REST 计入登录闸失败计数等收窄面管控——取舍声明：收窄面而非关停面。规划位：当前零控件零行为，实装后转实线卡。"
+
+msgid "Never"
+msgstr "关闭"
+
+msgid "New-comment lane"
+msgstr "新评论车道"
+
+msgid "Next · Content moderation →"
+msgstr "下一步 · 内容审核 →"
+
+msgid "Nickname"
+msgstr "昵称"
+
+msgid "Nickname service name"
+msgstr "昵称 Service 名"
+
+msgid "Nickname submission channel (default nickname_detection_pro). The nickname-tuned model catches short ad strings more precisely; rarely needs changes."
+msgstr "昵称分送通道（默认 nickname_detection_pro）。昵称特化模型对短广告串命中更细；一般无需修改。"
+
+msgid "Nicknames/emails are masked here; see the archive link for the originals. Bot probes (fake-submit detection) leave no comment and never enter this table."
+msgstr "昵称/邮箱打码展示，原文在留档链接查看；机器人试探（假提交探测）不留评论，不进此表。"
+
+msgid "No API Key configured (Tab 4, section 2)"
+msgstr "未配置 API Key（Tab④ 分区二）"
+
+msgid "No abnormal registrations or recoveries"
+msgstr "没有异常注册或找回"
+
+msgid "No audit run yet"
+msgstr "还没体检过"
+
+msgid "No block records today — no export file was generated; export today's ledger once there are records."
+msgstr "今天还没有拦截记录——没有生成导出文件；有拦下记录后再来导出当日流水。"
+
+msgid "No captcha provider selected yet"
+msgstr "人机验证还没选服务商"
+
+msgid "No comments blocked recently — that is a good state."
+msgstr "最近没拦过任何评论——这是好状态。"
+
+msgid "No errors today — every line is healthy."
+msgstr "今日没出过错——各防线都正常。"
+
+msgid "No existing URL check has run yet — click “Start the existing URL check” above and the report will appear here."
+msgstr "还没运行过存量网址核查——点上方「开始存量网址核查」发起，报告会展示在这里。"
+
+msgid "No existing URLs waiting — the button below re-queues every approved comment that carries a URL."
+msgstr "没有待核查的存量网址——点下方按钮可把带网址的已批准评论全部重查一遍。"
+
+msgid "No existing-comment audit yet — click “Start audit” above and the report will appear here."
+msgstr "还没体检过历史评论——点上方「开始体检」发起，报告会展示在这里。"
+
+msgid "No login attempts blocked recently — that is a good state."
+msgstr "最近没拦过任何登录尝试——这是好状态。"
+
+msgid "No matches"
+msgstr "暂无命中"
+
+msgid "No newly found existing URLs to check — they may already be queued."
+msgstr "没有新发现需核查的存量网址——可能都已在队列中。"
+
+msgid "No outbound calls today."
+msgstr "今日无外呼。"
+
+msgid "No recent errors — all is well."
+msgstr "最近没出过错——一切正常。"
+
+msgid "No separate verify button — clicking the native “Post Comment / Log In” runs the check, and the form resubmits automatically afterwards."
+msgstr "不渲染独立验证按钮——点原生「发表评论 / 登录」即验证，过码后自动续提。"
+
+msgid "No suspicious comments"
+msgstr "没有可疑评论"
+
+msgid "No-button mode"
+msgstr "无按钮模式"
+
+msgid "No-button mode (default) — no separate verify button; visitors click “Post Comment / Log In” directly, human verification triggers, and the submission goes through once cleared"
+msgstr "无按钮模式（默认）——不渲染独立验证按钮，访客直接点「发表评论/登录」即触发人机验证，过码后自动放行提交"
+
+msgid "Nobody tried to pick the locks"
+msgstr "没人试图撬门"
+
+msgid "Normal"
+msgstr "正常"
+
+msgid "Not archived"
+msgstr "未留档"
+
+msgid "Not configured"
+msgstr "未配置"
+
+msgid "Not configured (WordPress official source)"
+msgstr "未配置（用 WordPress 官方源）"
+
+msgid "Not configured (no provider configured — submissions cannot be sent for review)"
+msgstr "未配置（服务商未配置——发起后无法送审）"
+
+msgid "Not configured = the cloud moderation stage is skipped (enabled + not configured matches Tab 2 semantics). Selecting a driver shows that vendor's settings below; each saves independently and switching does not clear fields."
+msgstr "未配置 = 云端审核阶段跳过（enabled 开 + 未配置 = 云端阶段跳过，与 Tab② 语义对齐）。选择驱动后下方显示对应厂商配置区；各厂商配置独立保存、切换不清空已填。"
+
+msgid "Not configured — the captcha stage is skipped entirely"
+msgstr "未配置——验证码阶段整体跳过"
+
+msgid "Not configured — the comment captcha stage is skipped"
+msgstr "未配置——评论验证码阶段跳过"
+
+msgid "Not in a trusted range"
+msgstr "不在受信网段"
+
+msgid "Not now"
+msgstr "暂不配置"
+
+msgid "Not now — go straight to settings (skip everything) →"
+msgstr "先不配置，直接去设置页（跳过全部）→"
+
+msgid "Note: LLM moderation sends the comment body abroad (DeepSeek platform); commenter IPs are not sent. Pay-as-you-go — past the daily quota, items go to pending review first, so the bill cannot explode."
+msgstr "注意：LLM 审核会把评论正文送出境（DeepSeek 开放平台）；评论 IP 不送审。按量计费——超日配额自动先进待审区，不会爆账单。"
+
+msgid "Notes"
+msgstr "说明"
+
+msgid "OK (%.1f s)"
+msgstr "正常（%.1f 秒）"
+
+msgid "Off"
+msgstr "停用"
+
+msgid "Off = compatibility fallback: one single call with “nickname\\nemail\\nbody” joined (same as the other cloud drivers)."
+msgstr "关闭 = 兼容回退：按「昵称\\n邮箱\\n正文」拼接串单调一次（与其他云驱动同口径）。"
+
+msgid "Off by default (since 0.4.5): publishers using XML-RPC tools (blog clients) should untick this and save to re-enable; upgraded sites that had it on are unaffected. When ticked, login-type XML-RPC methods (wp.getUsersBlogs, credentials carried by system.multicall, etc.) get an across-the-board 405; read-only methods such as system.listMethods are unaffected. While on, over-threshold counting also rejects XML-RPC authentication attempt by attempt (a captcha cannot be presented inside XML-RPC)."
+msgstr "默认关闭（0.4.5 起）：使用 XML-RPC 发布工具（博客客户端）的站长请取消勾选并保存以开启；升级站点已开启的不受影响。勾选后登录类 XML-RPC 方法（wp.getUsersBlogs、system.multicall 携带的认证等）整体 405 拒绝；system.listMethods 等只读方法不受影响。开启状态下超阈计数也会先行逐次拒绝 XML-RPC 认证（验证码无法在 XML-RPC 内呈现）。"
+
+msgid "Official address = balance probe (zero cost, shows the balance); other addresses = model-list probe (zero tokens). Green = credentials work; red = key rejected or unreachable. The last test status and time are recorded."
+msgstr "官方地址=余额探测（零费用，显示余额）；其他地址=模型列表探活（零 token）。绿 = 凭据可用；红 = 密钥被拒或连不上。结果记录最近一次测试状态与时间。"
+
+msgid "Official semantics: users on weak networks may receive failover tickets (trerror prefix); blocking them by default would hit real humans — rate limiting guards against abuse."
+msgstr "官方语义：弱网用户可能拿到容灾票（trerror 前缀），默认拦了就是误杀真人；限速防滥用。"
+
+msgid "Old friend, no verification needed"
+msgstr "老朋友，免验放行"
+
+msgid "On"
+msgstr "开启"
+
+msgid "On duty in three steps, five minutes"
+msgstr "三步上岗，五分钟搞定"
+
+msgid "On failure, comments go to pending review (recommended)"
+msgstr "出岔子时评论进待审区（推荐）"
+
+msgid "On failure, comments pass as usual (not recommended)"
+msgstr "出岔子时照常放行（不推荐）"
+
+msgid "On-duty checklist"
+msgstr "上岗确认单"
+
+msgid "On: even when the plugin approves a comment, it still stays hidden until you manually approve it in WP."
+msgstr "已开启：即使插件审核通过，评论仍需你在 WP 侧人工批准后才会显示。"
+
+msgid "On: even when the plugin approves a comment, returning authors without an approval record still need manual approval."
+msgstr "已开启：即使插件审核通过，没有批准记录的老作者评论仍需人工批准。"
+
+msgid "Once enabled it expires automatically after 24 hours; bypassed events are tagged drill (excluded from statistics) and never write the short verification cache; the content / cloud / IP stages still run the full chain."
+msgstr "启用中 24 小时后自动过期；旁路事件标注 drill（不进统计）、不写验证短缓存；内容闸/云审/IP 阶段照常全链兜底。"
+
+msgid "One CIDR per line (or a bare IP, v4/v6) — usually the egress ranges of your reverse proxy / load balancer."
+msgstr "每行一条 CIDR（或裸 IP，v4/v6）——通常是反代/负载均衡的出口网段。"
+
+msgid "One IP or CIDR per line (v4/v6) — matches are never reputation-checked and never reported (exempt on both the verdict and reporting channels, zero outbound calls)."
+msgstr "每行一个 IP 或 CIDR（v4/v6）——命中者永不查信誉、永不上报（判定与上报双通道同时豁免，零外呼）。"
+
+msgid "One call for the nickname plus one for email/body (default; better accuracy, and the doubled cost is negligible)"
+msgstr "昵称单独一调 + 邮箱/正文一调（默认，精度更好，成本 ×2 可忽略）"
+
+msgid "One live call with a normal short text: green = credentials work (and the day's pause is lifted); red = unauthorized / in arrears / not enabled (Code=408) or wrong key / signature; yellow = bad parameters or missing required fields. The last test status and time are recorded."
+msgstr "发一次正常短文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 未授权/欠费/未开通（Code=408）或密钥/签名错；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。"
+
+msgid "One live call with normal text: green = credentials work (and the day's pause is lifted); red = auth failed (wrong API Key / Secret Key or service not enabled); yellow = bad parameters or missing required fields. The last test status and time are recorded."
+msgstr "发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 鉴权失败（API Key/Secret Key 错或未开通服务）；黄 = 参数错或必填缺。结果记录最近一次测试状态与时间。"
+
+msgid "One live call with normal text: green = credentials work (and the day's pause is lifted); red = wrong keys or no package; yellow = bad parameters. The last test status and time are recorded."
+msgstr "发一次正常文本实测：绿 = 凭据可用（顺带解除当日停转）；红 = 密钥错或未开通套餐包；黄 = 参数错。结果记录最近一次测试状态与时间。"
+
+msgid "One minimal live lookup (reserved address 127.0.0.2, nearly zero quota): green = HTTP 200 with parseable JSON (credentials work — isPublic:false from the reserved address is still green; it is the credentials being tested, not the IP); red = 401/402 key rejected; yellow = API Key blank. The last test status and time are recorded."
+msgstr "发一次最小查询实测（查询保留地址 127.0.0.2，几乎不耗配额）：绿 = HTTP 200 且响应 JSON 可解析（凭据可用——保留地址返回 isPublic:false 亦绿，验证的是凭据不是 IP）；红 = 401/402 密钥被拒；黄 = API Key 未填。结果记录最近一次测试状态与时间。"
+
+msgid "One per line; /regex/flags entries match as regular expressions, e.g. /代.{0,3}开发票/i"
+msgstr "每行一个；/正则/flags 形态按正则匹配，如 /代.{0,3}开发票/i"
+
+msgid "One shared table for all cloud drivers: each driver's reason is already normalized to Label,Score form, so one table serves Tencent TMS / Aliyun Green / Baidu alike — no per-driver tables needed."
+msgstr "此表为全部云端驱动共用的一张映射表：各驱动返回的 reason 已统一为 Label,Score 形态，故一张表同时服务腾讯 TMS / 阿里 Green / 百度全部云端驱动，无需按驱动分表。"
+
+msgid "Only characteristics and outcomes are shown, never accounts or IPs; outcome = stopped-by-captcha / stopped-without-captcha (passes never enter this table); why blocked = trigger attribution (too many consecutive failures for one account, etc.) or the captcha result."
+msgstr "只显示特征与结果，不显示账号与 IP；结果=出码拦下/未过码拦下两态（放行不进本表）；为什么拦=触发归因（同一账号连错太多次等）或验证码结果。"
+
+msgid "Only tightens: a clean URL never approves a comment by itself."
+msgstr "只放大严：网址没问题也不会替评论放行。"
+
+msgid "Open directly from this site (free)"
+msgstr "本站直接打开（免费）"
+
+msgid "Open reporting settings"
+msgstr "去看上报设置"
+
+msgid "Open the Copy Workshop to give the block page your own voice"
+msgstr "去文案工坊，把拦截页的话改成你的味儿"
+
+msgid "Optional capability: report confirmed malicious activity to the AbuseIPDB community reputation database, helping sites worldwide recognize these IPs. All off by default."
+msgstr "可选能力：把确凿的恶意行为报告给 AbuseIPDB 社区信誉库，帮全世界的站点一起识别这些 IP。默认全关。"
+
+msgid "Overview details"
+msgstr "总览详情"
+
+msgid "PHP/WP version requirement check card (following upstream baby_wp_check_requirements behavior)."
+msgstr "PHP/WP 版本要求检查卡片（沿上游 baby_wp_check_requirements 交互）。"
+
+msgid "Page fetching (DeepSeek opens pages for you): %1$d today (billed per success — with “DeepSeek page fetching” selected, the third party opened and viewed the page)"
+msgstr "网页抓取（DeepSeek 代开网页）：今日 %1$d 次（按成功次数计费——选「DeepSeek 网页抓取」时第三方打开网页看过）"
+
+msgid "Page fetching is unconfigured — direct fetching from this site is not auto-enabled because it exposes the origin IP; please "
+msgstr "网页抓取未配置——本站直抓因暴露源站 IP 默认不自动启用，请在"
+
+msgid "Pass on bad networks (default) — front-end failover tickets count as passed, limited to 5 per IP per hour, events tagged trerror"
+msgstr "网络差时放行（默认）——前端容灾票按通过 + 每 IP 每小时限 5 次 + 事件标注 trerror"
+
+msgid "Pass — on failure, neither blocked nor pended (local rules only)"
+msgstr "放行——故障时不拦不待审（仅本地规则生效）"
+
+msgid "Pass: good reputation — through as usual, invisible to the visitor."
+msgstr "通过（pass）：信誉良好——照常放行，访客无感。"
+
+msgid "Passed = derived figure (today's actions − blocked − manual review − errors)."
+msgstr "放行=推算值（今日动作数−拦下−转人工−出错）。"
+
+msgid "Passing the pre-check issues a trust voucher (bound to IP + form + identity, not content — editing and resubmitting does not invalidate it); same width as the short verification cache window."
+msgstr "预检通过签发信任凭证（绑定 IP+表单+身份，不绑内容——改内容重提不失效）；与验证短缓存窗口同宽。"
+
+msgid "Paste below (the dual service names default to nickname/comment_detection_pro and rarely need changes) → click “Test credentials”."
+msgstr "粘贴至下方（双 Service 名默认 nickname/comment_detection_pro，一般无需修改）→ 点「测试凭据」。"
+
+msgid "Paste below → click “Test credentials” (a normal-text live call should return Compliant)."
+msgstr "粘贴至下方 → 点「测试凭据」（正常文本实测应返回合规）。"
+
+msgid "Paste below → click “Test credentials” (a normal-text live call should return Pass)."
+msgstr "粘贴至下方 → 点「测试凭据」（正常文本实测应返回 Pass）。"
+
+msgid "Paste the API Key below → click “Test credentials” (a zero-cost balance probe — you also get to see the balance)."
+msgstr "粘贴 API Key 至下方 → 点「测试凭据」（余额探测，零费用——顺带看到余额数字）。"
+
+msgid "Pause"
+msgstr "暂停"
+
+msgid "Paused"
+msgstr "已暂停"
+
+msgid "Paused (%1$d / %2$d)"
+msgstr "已暂停（%1$d / %2$d）"
+
+msgid "Paused — today's quota is used up (auto-resumes tomorrow)"
+msgstr "今日额度用完已暂停（次日自动恢复）"
+
+msgid "Pauses automatically when the daily quota runs out (continues the next day): violations to Spam, unclear ones to pending review, both recoverable by hand."
+msgstr "每日额度用完自动暂停（次日自动接着查）：判违规的进垃圾箱、没看清的进待审，都能手动恢复。"
+
+msgid "Pending review (could not tell, no verdict)"
+msgstr "待审核（没看清，不下结论）"
+
+msgid "Pending review (default) — on cloud failure or exhausted quota, comments go to the pending queue for you to handle later"
+msgstr "入待审（默认）——云端故障/配额尽时评论进待审队列，站长稍后处理"
+
+msgid "Per-IP cooldown %1$d minutes · global rate limit %2$d/hour · daily ceiling %3$d/day (a separate reporting pool that does not eat lookup quota)."
+msgstr "每 IP 冷却 %1$d 分钟 · 全局限速 %2$d 次/小时 · 日顶 %3$d 次/日（上报独立池，不占查询配额）。"
+
+msgid "Per-IP failure threshold"
+msgstr "同 IP 失败阈值"
+
+msgid "Per-username failure threshold"
+msgstr "同用户名失败阈值"
+
+msgid "Pick a captcha (Tab 2: Captcha)"
+msgstr "选验证码（Tab② 验证码）"
+
+msgid "Pick a captcha provider. For sites serving visitors in mainland China the default is recommended — it loads fastest there."
+msgstr "选一家验证码服务商。境内站推荐默认那家——访客在境内加载快。"
+
+msgid "Pingback off"
+msgstr "Pingback 关闭"
+
+msgid "Placeholders supported: {event_no} (block event number), {category} (the AbuseIPDB category code for this report), {gate} (trigger surface T1/T2/T3/T4). Usage example:"
+msgstr "支持占位符 {event_no}（拦截事件编号）、{category}（本次上报的 AbuseIPDB 类目码）、{gate}（触发面 T1/T2/T3/T4）。使用示例："
+
+msgid "Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented."
+msgstr "规划口径：额度用完当日停转、次日自愈。当前验证码服务未设每日上限（本行暂无任何设置项）——实装后转实线卡。"
+
+msgid "Planned · not yet built"
+msgstr "规划 · 待施工"
+
+msgid "Please check whether the current IP matches your actual egress address; if not, expand the configuration."
+msgstr "请核对当前 IP 是否与您的真实出口一致，不一致请展开配置。"
+
+msgid "Please complete human verification before submitting"
+msgstr "请先完成人机验证再提交"
+
+msgid "Please complete human verification first"
+msgstr "请先完成人机验证"
+
+msgid "Plus %d captcha challenges enforced by IP reputation (counted separately — not included in the figures above)"
+msgstr "另有 IP 信誉强制验证码 %d 次（单列口径——不计入上方数字）"
+
+msgid "Popup (default) — zero footprint: clicking “Post Comment / Log In” opens the interactive popup directly (the primary no-button flow)"
+msgstr "弹层（默认）——零占位：访客点「发表评论 / 登录」直接弹出交互弹层（无按钮模式主形态）"
+
+msgid "Post-publish review line (URL check)"
+msgstr "发布后复核防线（网址核查）"
+
+msgid "Pre-check rate limit (per hour per IP)"
+msgstr "预检限流（次/时/IP）"
+
+msgid "Pre-filled with the official address; rarely needs changing."
+msgstr "预填官方地址，一般不用改。"
+
+msgid "Prepare a CAM key pair (Access Management → API Key Management; same system as the captcha CAM keys, so you can reuse one pair)."
+msgstr "准备 CAM 密钥对（访问管理 → API 密钥管理，与验证码的 CAM 密钥同体系，可复用同对）。"
+
+msgid "Prepare a RAM AccessKey pair (shareable with the Captcha 2.0 RAM user) and grant it AliyunYundunGreenWebFullAccess."
+msgstr "准备 RAM AccessKey 对（可与验证码 2.0 共用同一 RAM 用户），并授予 AliyunYundunGreenWebFullAccess 权限。"
+
+msgid "Preset snapshot verified on: %s"
+msgstr "预设快照核对日期：%s"
+
+msgid "Preview"
+msgstr "查看效果"
+
+msgid "Private"
+msgstr "私网"
+
+msgid "Protection is on duty. To add captcha, cloud moderation, or IP reputation later, rerun the setup wizard at any time (or fine-tune things directly on each tab)."
+msgstr "防护已上岗。想补齐验证码 / 云端审核 / IP 信誉，随时重走一遍首启向导（也可在各 Tab 直接细配）。"
+
+msgid "Provider"
+msgstr "服务商"
+
+msgid "Provider roster (%d)"
+msgstr "服务商点名册（%d 名）"
+
+msgid "Provider selection"
+msgstr "驱动选择"
+
+msgid "Provider: %1$s · started: %2$s · %3$s"
+msgstr "服务商：%1$s · 发起：%2$s · %3$s"
+
+msgid "Proxy forwarding headers detected but the IP source is direct"
+msgstr "检测到代理转发头但 IP 来源=直连"
+
+msgid "Proxy forwarding headers detected but the IP source is direct — per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely; choose an IP source that matches your deployment topology in the network settings."
+msgstr "检测到代理转发头但 IP 来源=直连——per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源。"
+
+msgid "Public"
+msgstr "公网"
+
+msgid "Quota exhausted (paused for today — auto-resumes tomorrow)"
+msgstr "额度用完（当日停转——次日自动恢复）"
+
+msgid "RAM AccessKey (for ACS3 signing). Server-side only, never exposed to the front end."
+msgstr "RAM AccessKey（ACS3 签名用）。仅服务端使用，绝不出前端。"
+
+msgid "RAM AccessKey (primary-account AKs forbidden — for ACS3 V3 signing, Access Management → RAM). Server-side only, never exposed to the front end."
+msgstr "RAM AccessKey（禁主账号 AK——ACS3 V3 签名用，访问管理 → RAM）。仅服务端使用，绝不出前端。"
+
+msgid "REST API controls"
+msgstr "REST API 管控"
+
+msgid "RSS protection"
+msgstr "RSS 防护"
+
+msgid "Rate-limit parameters (read-only)"
+msgstr "限流参数（只读）"
+
+msgid "Re-check everything? Historical results are ignored (site content may have changed), approved comments with URLs are re-queued, and checks proceed one by one within the daily quota (consuming quota). Violations go to Spam, unclear ones to pending review (both recoverable by hand)."
+msgstr "全部重查一遍？将忽略历史结果（网站内容可能已变化），把带网址的已批准评论重新排队核查，按每日额度逐条进行（消耗额度）。判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。"
+
+msgid "Re-check this site"
+msgstr "重新核查此站"
+
+msgid "Re-run audit"
+msgstr "重新体检"
+
+msgid "Re-running the audit wipes the previous marks and starts over; processed results are voided — sure?"
+msgstr "重新体检=清掉上次标记重来，已处理结果作废——确定？"
+
+msgid "Reachability and compliance are on you: data goes to the jurisdiction of the endpoint you enter (private-network addresses are not supported — the transport-layer private-address refusal red line wins)."
+msgstr "可达性与合规由站长自负：数据送你填的端点所在辖区（不支持内网地址——传输脊私网拒绝红线优先）。"
+
+msgid "Reactivate"
+msgstr "重新激活"
+
+msgid "Real IP source"
+msgstr "真实 IP 来源"
+
+msgid "Real-IP retrieval method"
+msgstr "真实 IP 获取方式"
+
+msgid "Reason"
+msgstr "原因"
+
+msgid "Reason breakdown (%d kinds)"
+msgstr "原因明细（%d 类）"
+
+msgid "Recent errors (all gates, including provider pauses and recoveries)"
+msgstr "最近报错（全闸，含服务商暂停与恢复）"
+
+msgid "Recent incidents"
+msgstr "最近岔子"
+
+msgid "Recently blocked comments (last 10)"
+msgstr "最近拦下的评论（最近 10 条）"
+
+msgid "Recently blocked login attempts (last 10)"
+msgstr "最近拦下的登录尝试（最近 10 条）"
+
+msgid "Recommended hardening"
+msgstr "推荐加固"
+
+msgid "Recommended · Default"
+msgstr "推荐 · 默认"
+
+msgid "Recommended · mainland direct connection / pay-as-you-go — the lowest barrier to entry."
+msgstr "推荐 · 国内直连 / 按量计费——开通门槛最低的一家。"
+
+msgid "Record providers' raw replies (for troubleshooting; stores an extra chunk of the response on errors)"
+msgstr "记录服务商原始回复（排障用，出错时多存一段返回内容）"
+
+msgid "Red line: the audit submits “nickname + body” only — emails and URLs never enter the submission (email-exclusion discipline; the URL check is a separate line)."
+msgstr "红线注：体检只按「昵称+正文」送审，邮箱与网址不进入送审内容（邮箱剔除纪律；网址核查是另一条线）。"
+
+msgid "Region"
+msgstr "服务区域（region）"
+
+msgid "Registration & recovery gate"
+msgstr "注册·找回闸"
+
+msgid "Repeated triggers inside the cooldown window are not re-reported; more than 20 triggers within 10 minutes raises a notice on the overview page (someone may be flooding with forged tickets)."
+msgstr "冷却窗内重复触发免重报；10 分钟内触发超 20 次会在总览页提醒（可能有人在伪造票据灌水）。"
+
+msgid "Report category"
+msgstr "上报类目"
+
+msgid "Report details are publicly visible on AbuseIPDB (no comment content); assess cross-border data compliance (PIPL) yourself."
+msgstr "报告详情在 AbuseIPDB 公开可见（不含评论内容）；请自行评估数据出境合规（PIPL）。"
+
+msgid "Report note description (shared by T1–T4)"
+msgstr "上报备注说明（T1–T4 共用）"
+
+msgid "Reporting has been force-disabled: real-IP resolution is abnormal (NAT / reverse proxy both present)."
+msgstr "上报已强制失效：真实 IP 解析异常（NAT/反代共显）。"
+
+msgid "Reporting master switch"
+msgstr "上报总开关"
+
+msgid "Require Chinese"
+msgstr "要求包含中文"
+
+msgid "Rerun the wizard"
+msgstr "重新走一遍向导"
+
+msgid "Restore all copy to defaults? Unsaved changes will be lost."
+msgstr "确认恢复全部文案为默认？未保存的修改将丢失。"
+
+msgid "Restore default copy"
+msgstr "恢复默认文案"
+
+msgid "Result"
+msgstr "结果"
+
+msgid "Resume"
+msgstr "继续"
+
+msgid "Retired as default (the factory default switched to Aliyun Captcha 2.0 — H-3 breaking): selecting this card still lets you maintain existing credentials; all four keys keep working."
+msgstr "默认已退役（出厂默认已切阿里云验证码 2.0——H-3 breaking）：选中本卡仍可维护存量凭据，四键照常可用。"
+
+msgid "Retired as default: the account plan has been discontinued and it is no longer recommended — sites already configured can keep using it."
+msgstr "默认退役：账号套餐停止，不再默认推荐——存量已配置的站点仍可用。"
+
+msgid "Retired · usable if configured"
+msgstr "退役 · 存量可用"
+
+msgid "Review them"
+msgstr "去处理"
+
+msgid "STEP 1 Human verification — pick a captcha provider to keep bots out. Real visitors barely notice it."
+msgstr "STEP 1 人机验证——选一家验证码服务商，把机器人挡在门外。真实访客正常时零感知。"
+
+msgid "STEP 2 Content moderation — the built-in rules are free and already on duty; add a cloud moderation provider so machine-crafted wording cannot slip through either."
+msgstr "STEP 2 内容审核——站内规矩免费在场；再配一家云端审核，机器措辞也逃不掉。"
+
+msgid "STEP 3 Test your credentials — click “Test credentials” after configuring each provider; green means on duty."
+msgstr "STEP 3 测一测凭据——每配好一家点一次「测试凭据」，绿了才算上岗。"
+
+msgid "Save settings"
+msgstr "保存设置"
+
+msgid "SceneId (scene ID · required)"
+msgstr "SceneId（场景 ID · 必填）"
+
+msgid "Scheduled"
+msgstr "已排程"
+
+msgid "Score-based providers only: the bot score is normalized to (0,1] and anything below the threshold is blocked as a fail (the server clamps to 0.1–1.0 so 0 is not a free pass and 1.5 is not an always-reject). Event meta records score + threshold so you can inspect the gap."
+msgstr "评分制驱动专用：机器分折算 (0,1] 后低于该阈值即按不通过拦截（服务端钳 0.1–1.0，防 0 形同虚设/1.5 恒拒）。事件 meta 记 score+threshold 可查差值。"
+
+msgid "Scores ≥ this value count as malicious (default 85) — such visitors must pass human verification. AbuseIPDB scores aggregate multiple reporters; a single report does not blacklist an IP."
+msgstr "信誉分≥此值判恶意（默认 85）——强制访客过人机验证。AbuseIPDB 信誉分为多报告者聚合，单票不成黑 IP。"
+
+msgid "Scores ≥ this value count as suspected (default 60) — the same “fail” band as the malicious threshold, forcing a captcha; the two bands differ only in how events are recorded."
+msgstr "信誉分≥此值判可疑（默认 60）——与恶意阈值同为「不通过」档，强制验证码；两档差别仅在事件留档口径。"
+
+msgid "Search before checking"
+msgstr "核查前先搜一搜"
+
+msgid "Search source"
+msgstr "搜索源"
+
+msgid "Second choice — moderation that actually “reads” the text, with stronger verdicts; submissions leave the country."
+msgstr "次选——会「读懂人话」的审核，判定更强；送审出境。"
+
+msgid "SecretId / SecretKey (Tencent Cloud CAM)"
+msgstr "SecretId / SecretKey（腾讯云 CAM）"
+
+msgid "Selecting a driver shows its settings below (each vendor saves independently and switching does not clear fields); “Not configured” = the cloud moderation stage is skipped (enabled + not configured matches Tab 2 semantics). DeepSeek is implemented; Moli is a future milestone driver."
+msgstr "选择驱动后下方显示其配置区（各厂商配置独立保存、切换不清空已填）；「未配置」= 云端审核阶段跳过（enabled 开 + 未配置 = 与 Tab② 语义对齐）。DeepSeek 已实装；模力为后续里程碑驱动。"
+
+msgid "Selecting a vendor shows its settings below; switching vendors does not clear filled fields (each saves independently). “Not configured” = the captcha stage is skipped entirely."
+msgstr "选择厂商后下方显示配置区；切换厂商不清空已填字段（各自独立保存）。「未配置」= 验证码阶段整体跳过。"
+
+msgid "Sends one full-parameter fake-ticket verification: green = credentials work; red = wrong CAM keys (SecretId/SecretKey); yellow = required parameters missing. The last test status and time are recorded."
+msgstr "发一次全参假票核验：绿 = 凭据可用；红 = CAM 密钥（SecretId/SecretKey）错；黄 = 必填参数缺。结果记录最近一次测试状态与时间。"
+
+msgid "Separate credentials (for the URL check)"
+msgstr "独立凭证（网址核查专用）"
+
+msgid "Separate-credentials API Key"
+msgstr "独立凭证 API Key"
+
+msgid "Separate-credentials endpoint"
+msgstr "独立凭证接入地址"
+
+msgid "Separate-credentials verdict model"
+msgstr "独立凭证判定模型"
+
+msgid "Server-side only, never exposed to the front end."
+msgstr "仅服务端使用，绝不出前端。"
+
+msgid "Settings → Discussion"
+msgstr "设置 → 讨论"
+
+msgid "Setup guide (expand on first configuration)"
+msgstr "接入指引（首次配置请展开）"
+
+msgid "Shared by both providers (top-level captcha key); past the rate limit it tightens back to “block on failure”."
+msgstr "对两驱动共用（captcha 子树顶层键）；限流超额按「故障即拦」收口。"
+
+msgid "Shares the same key with DeepSeek: an upgrade model name used for DeepSeek lingers here — clear it if you do not want upgrades (blank = no second verdict)."
+msgstr "与 DeepSeek 共用同一键：在 DeepSeek 用过的升级模型名会残留在这里——不用升级就清空（留空=不发起第二次判定）。"
+
+msgid "Shut down XML-RPC entirely"
+msgstr "整体关闭 XML-RPC"
+
+msgid "Since 0.8.4 the default is no-button mode (across the board — upgraded sites switch front-end flow on update); with no JS or a broken widget it falls back to the classic button, and server-side verification always has your back. All four forms — comment / login / registration / recovery — behave the same."
+msgstr "0.8.4 起默认无按钮模式（一刀切——升级站点前台形态即切换）；无 JS 或验证组件故障时自动回退经典按钮形态，服务端核验永远兜底。评论/登录/注册/找回四表单同型。"
+
+msgid "Site outbound calls today"
+msgstr "站点今日总外呼"
+
+msgid "Site verified clean — comment status unchanged"
+msgstr "网站核过没问题——评论状态不动"
+
+msgid "Site-wide human verification is temporarily bypassed for pipeline drills only; it ends automatically after 24 hours (bypassed events are tagged drill and excluded from statistics)."
+msgstr "全站人机验证暂时被跳过，仅用于链路演练；24 小时后自动结束（旁路事件标注 drill，不进统计）。"
+
+msgid "Sitting in the pending queue for your review"
+msgstr "已进待审队列等你过目"
+
+msgid "Skip everything and go straight to settings →"
+msgstr "跳过全部，直接进设置页 →"
+
+msgid "Skip this step for now →"
+msgstr "先跳过这步 →"
+
+msgid "Skip: IP reputation is disabled, or the lookup happens to be unavailable right now (backoff / paused / private network) — no say in the verdict, verification proceeds as usual, and “old friend” waiver eligibility is unaffected."
+msgstr "跳过（skip）：IP 信誉未启用，或本次恰好查不了（退避/停转/私网）——不参与判定，验证照常走，也不影响「老朋友」免验资格。"
+
+msgid "Slider width follows the official 320px minimum; switching mode does not affect server-side verification (ticket checking uses the same API). The recommended level already shifted (embed → popup) — upgraded sites with credentials keep the embedded style as an explicit choice; without credentials the new popup default applies. Once you pick the embedded bar again and save, it never shifts back."
+msgstr "滑块宽度按官方最小 320px 传参；mode 切换不影响服务端核验链路（票据核验同一接口）。推荐档已平移（embed→popup）——升级站点凭据已配=保留嵌入形态显式选择；未配凭据=按新默认弹层。选回嵌入触发条并保存后不再平移。"
+
+msgid "Soft cap"
+msgstr "软顶"
+
+msgid "Soft-cap protection: once the day's lookup count reaches the soft cap, no more outbound calls and everything is treated strictly as “fail” — the last slice of quota is reserved as a buffer so the reputation layer never goes silent on attackers."
+msgstr "软顶保护：当日查询计数达到软顶后不再外呼、一律按「不通过」从严处理——把最后配额留给缓冲，防信誉层对攻击者静默。"
+
+msgid "Someone submitted a forged or replayed captcha ticket — “report only with a ticket”: submissions without completed verification (no ticket) never trigger it. On by default."
+msgstr "有人提交了伪造或重放的验证票据——「有票才报」：未完成验证的提交（无票）不触发。默认开。"
+
+msgid "Source untrusted · forwarding headers ignored"
+msgstr "来源不受信·转发头已忽略"
+
+msgid "Sources to query"
+msgstr "查询四源"
+
+msgid "Spam (verdict: violation)"
+msgstr "垃圾箱（判违规）"
+
+msgid "Standard (deepseek-flash)"
+msgstr "标准（deepseek-flash）"
+
+msgid "Standard (deepseek-flash, cheap and fast)"
+msgstr "标准（deepseek-flash，便宜快）"
+
+msgid "Start audit"
+msgstr "开始体检"
+
+msgid "Start from step 1 →"
+msgstr "从第一步开始 →"
+
+msgid "Start protection in three steps"
+msgstr "三步开始防护"
+
+msgid "Start step 1 →"
+msgstr "开始第一步 →"
+
+msgid "Start the existing URL check (re-check everything — historical results ignored, site content may have changed)"
+msgstr "开始存量网址核查（全部重查一遍——忽略历史结果，网站内容可能已变化）"
+
+msgid "Started: %1$s · completed: %2$s · %3$d checked in total (this round fully wrapped up)"
+msgstr "发起：%1$s · 完成：%2$s · 共核查 %3$d 条（本轮全部收口）"
+
+msgid "Started: %1$s · in progress — %2$d of %3$d checked · %4$d left in queue (advances automatically within the daily quota)"
+msgstr "发起：%1$s · 进行中——已核查 %2$d / %3$d 条 · 队列残留 %4$d 条（按每日额度自动推进）"
+
+msgid "Statistics are disabled, so nothing was counted today (events are still recorded)"
+msgstr "统计已停用，今日没有记账（事件记录照常）"
+
+msgid "Statistics counting %1$s · %2$s %3$s · event records %4$d / %5$d"
+msgstr "统计计数 %1$s · %2$s %3$s · 事件记录 %4$d / %5$d 条"
+
+msgid "Statistics counting is disabled"
+msgstr "统计计数已停用"
+
+msgid "Statistics reset."
+msgstr "统计已重置。"
+
+msgid "Statistics settings · Reset"
+msgstr "统计设置 · 清零"
+
+msgid "Statistics: disabled"
+msgstr "统计：已停用"
+
+msgid "Statistics: enabled"
+msgstr "统计：开启中"
+
+msgid "Step 1 · Human verification"
+msgstr "第一步 · 人机验证"
+
+msgid "Step 2 · Content moderation"
+msgstr "第二步 · 内容审核"
+
+msgid "Storage length cap (characters)"
+msgstr "保存长度上限（字）"
+
+msgid "Submissions go to the currently enabled provider and consume per-call quota — start now? Violations go to Spam, unclear ones to pending review (both recoverable by hand)."
+msgstr "按当前启用的服务商送审，消耗按次额度——确定开始？判违规的会进垃圾箱、没看清的进待审（都能手动恢复）。"
+
+msgid "Submit-trigger flow"
+msgstr "提交触发形态"
+
+msgid "Submitted without completing verification"
+msgstr "未完成验证就提交"
+
+msgid "Suggestion"
+msgstr "建议"
+
+msgid "Suspected threshold"
+msgstr "疑似阈值"
+
+msgid "Suspicious IP cache"
+msgstr "可疑 IP 缓存"
+
+msgid "Suspicious: a sudden spike in IP report requests today"
+msgstr "可疑：IP 上报请求今天突然增多"
+
+msgid "System health"
+msgstr "系统健康"
+
+msgid "System info"
+msgstr "系统信息"
+
+msgid "T1 · Captcha ticket verification failed"
+msgstr "T1 · 验证码有票核验失败"
+
+msgid "T2 · Cumulative cloud moderation rejections"
+msgstr "T2 · 云端审核拒绝累计"
+
+msgid "T3 · Login brute force (per-IP count saturation)"
+msgstr "T3 · 登录爆破（同 IP 计数饱和）"
+
+msgid "T4 · Cumulative local rule blocks"
+msgstr "T4 · 本地规则拦截累计"
+
+msgid "Take a look"
+msgstr "去看看"
+
+msgid "Take a look (time for a cleanup)"
+msgstr "去看看（该清一清了）"
+
+msgid "Takes effect when the real-IP method = custom header (a single-value IP header — Cloudflare's CF-Connecting-IP is the authoritative override header with the smallest forgery surface)."
+msgstr "真实 IP 获取方式=自定义头时生效（单值 IP 头——Cloudflare 官方头 CF-Connecting-IP 是权威覆写头，伪造面最小）。"
+
+msgid "Tencent Cloud TMS text moderation · Configuration"
+msgstr "腾讯云 TMS 文本审核 · 配置"
+
+msgid "Tencent TMS text moderation"
+msgstr "腾讯 TMS 文本审核"
+
+msgid "Tencent Tianyu 2.0"
+msgstr "腾讯天御 2.0"
+
+msgid "Tencent Tianyu 2.0 · credentials incomplete"
+msgstr "腾讯天御 2.0 · 凭据未配齐"
+
+msgid "Tencent Tianyu 2.0 · credentials set (existing setups still work)"
+msgstr "腾讯天御 2.0 · 凭据已配（存量可用）"
+
+msgid "Tencent Tianyu Captcha 2.0 · Configuration"
+msgstr "腾讯天御验证码 2.0 · 配置"
+
+msgid "Tencent must judge Block with a score ≥ this value for a direct block; below the threshold it drops to pending review (manual). Real malicious-ad samples scored 99 in testing, so the default 80 leaves a gray-zone buffer."
+msgstr "腾讯判定 Block 且分数 ≥ 此值才直接拦截；低于阈值降为入待审（人工复核）。实测恶意广告样本 99 分，默认 80 留出灰区缓冲。"
+
+msgid "Test credentials"
+msgstr "测试凭据"
+
+msgid "Test failed."
+msgstr "测试失败。"
+
+msgid "Test separate credentials"
+msgstr "测试独立凭证"
+
+msgid "Test the current avatar source"
+msgstr "测试当前头像来源"
+
+msgid "Text Moderation v2 API documentation"
+msgstr "文本审核 v2 API 文档"
+
+msgid "TextModeration API documentation"
+msgstr "TextModeration API 文档"
+
+msgid "TextModerationPlus API documentation"
+msgstr "TextModerationPlus API 文档"
+
+msgid "The API Key issued by that endpoint (relays / gateways each issue their own). Server-side only, never exposed to the front end."
+msgstr "该端点签发的 API Key（中转站/网关各自发放）。仅服务端使用，绝不出前端。"
+
+msgid "The CAM key paired with the SecretId."
+msgstr "与 SecretId 配对的 CAM 密钥。"
+
+msgid "The CAM key paired with the SecretId; used only for server-side TC3 signing and never exposed to the front end."
+msgstr "与 SecretId 配对的 CAM 密钥，仅服务端 TC3 签名使用，绝不出前端。"
+
+msgid "The RAM key paired with the AccessKeyId (the raw HMAC signing key). Server-side only. The RAM user needs the AliyunYundunAFSFullAccess policy."
+msgstr "与 AccessKeyId 配对的 RAM 密钥（HMAC 签名密钥原文）。仅服务端使用。RAM 用户需授权 AliyunYundunAFSFullAccess。"
+
+msgid "The Secret Key paired with the API Key (the access_token is valid 30 days and cached/reused by the plugin)."
+msgstr "与 API Key 配对的 Secret Key（access_token 有效期 30 天，由插件缓存复用）。"
+
+msgid "The URL check is enabled but the AI verdict (DeepSeek) is not configured yet — checks cannot reach a verdict."
+msgstr "网址核查已启用，但 AI 判定（DeepSeek）还没有配置——核查无法完成判定。"
+
+msgid "The URL check is off — enable “URL check” on the “Cloud moderation” tab first, then come back to start the existing-URL check."
+msgstr "网址核查未开启——先到「云端审核」页开启「网址核查」，再回来发起存量核查。"
+
+msgid "The allowlist has %1$d invalid lines (ignored on save, no effect): %2$s"
+msgstr "白名单存在 %1$d 条非法行（保存时会被忽略，不生效）：%2$s"
+
+msgid "The block page's “matched rule” evidence line maps raw Label,Score from cloud drivers into human-readable form (provider name prefix + translated label + confidence). Unmapped labels display as-is."
+msgstr "拦截页「命中规则」证据行对云端驱动的原始 Label,Score 做人类可读映射（驱动人类名前缀 + 标签中文 + 置信）。未收录标签原样显示。"
+
+msgid "The built-in rules (length / no-Chinese / keywords) are free and already on duty. For more strength, add a cloud moderation provider — it polices wording and ad variants. Choosing “Not now” does not affect existing protection at all."
+msgstr "站内规矩（字数 / 无中文 / 关键词）已经免费在场。想再强一点，配一家云端审核——由它把关措辞与变体广告。选「暂不配置」完全不影响已有防护。"
+
+msgid "The built-in rules alone are enough — cloud moderation is an enhancement layer that leaves basic protection untouched; when enabled, comments the built-in rules do not block get one more round of cloud review."
+msgstr "只配站内规矩也能用——云端审核是增强层，不配不影响基本防护；配了会把站内规矩拦不住的评论再送审一遍。"
+
+msgid "The comment did not pass verification."
+msgstr "评论未通过验证。"
+
+msgid "The comment gate keeps its four built-in rule defenses; you can configure a captcha later on the “2: Captcha” tab."
+msgstr "评论闸仍保留站内规矩四道防线；之后随时可在「② 验证码」页配置。"
+
+msgid "The comment “Website” field"
+msgstr "评论「网站」字段"
+
+msgid "The current request comes from a private network / cannot be determined — reporting a shared egress IP would pollute the database; it auto-recovers once a trusted reverse proxy is configured in Section 1 and saved (this gate has no switch; better to under-report)."
+msgstr "当前请求来源为私网/无法判定——向信誉库上报共享出口 IP 会污染库；在分区① 配好受信反代并保存后自动恢复（此门禁无开关，宁可少报）。"
+
+msgid "The endpoint must provide chat/completions (OpenAI-compatible) — relays / self-hosted gateways (LiteLLM-style) / any compatible vendor all work."
+msgstr "端点需提供 chat/completions（OpenAI 兼容）——中转站/自建网关（LiteLLM 类）/任意兼容厂商皆可。"
+
+msgid "The event number of this block — use it to look up details in the Tab 6 event stream."
+msgstr "本次拦截的事件编号——可拿它去 Tab⑥ 事件流对号查详情。"
+
+msgid "The export contains only today's blocked records: time / result / gate / reason / event number — no accounts, emails, comment bodies, or IPs (privacy-minimized, same policy as the login ledger)."
+msgstr "导出只含当天的拦下记录：时间 / 结果 / 哪张门 / 原因 / 事件编号——不含账号、邮箱、评论正文与 IP（隐私最小化，与登录流水同一口径）。"
+
+msgid "The human-readable name of the matched rule key (translated by the Labels map; unmapped keys display as-is; the actual keyword hit is visible to admins only in the event stream). Mapping examples:"
+msgstr "命中规则键的人话名（由 Labels 映射表翻译，未收录键原样显示键名；命中的具体关键词仅站长在事件流可见）。映射示例："
+
+msgid "The jurisdiction of the endpoint is unknown — the generic data-transfer notice is always shown; assess compliance yourself. Path prefix trap: for the official OpenAI family, fill up to …/v1 (this plugin appends /chat/completions)."
+msgstr "端点所在司法辖区未知——通用出境提示常驻，请自行评估合规。路径前缀陷阱：OpenAI 官方族填到 …/v1（本插件在其后拼 /chat/completions）。"
+
+msgid "The key on the same captcha console page as the CaptchaAppId — a required body parameter of the verification request (enforced by server-side online checks, confirmed by live testing on 2026-11-09). Server-side only."
+msgstr "验证码控制台与 CaptchaAppId 同页的密钥——核验请求 body 必填参数（服务端在线校验强制，2026-11-09 实测定论）。仅服务端使用。"
+
+msgid "The key paired with the AccessKeyId."
+msgstr "与 AccessKeyId 配对的密钥。"
+
+msgid "The local length gate's actual verdict values (the current “Minimum length / Maximum length” settings on Tab 3)."
+msgstr "本地字数闸的实际判定值（Tab③「字数下限 / 字数上限」当前配置）。"
+
+msgid "The model name must match the endpoint (“Test credentials” can check the /models list)"
+msgstr "模型名须与端点一致（测试凭据可校验 /models 列表）"
+
+msgid "The model name must match the endpoint — “Test credentials” can check it against the available list (it may still work if absent; some endpoints have incomplete lists)."
+msgstr "模型名须与端点一致——点「测试凭据」可校验是否在可用列表（列表不含也可能仍可用，部分端点列表不全）。"
+
+msgid "The model name must match the endpoint; blank = Standard (deepseek-flash fallback — DeepSeek endpoints can stay blank)."
+msgstr "模型名须与端点一致；留空=标准档（deepseek-flash 回落——DeepSeek 端点可直接留空）。"
+
+msgid "The official full category table for the dropdown is at "
+msgstr "类目下拉的官方全表见"
+
+msgid "The official source may load slowly or fail for mainland visitors; a mainland mirror speeds it up."
+msgstr "国内访客加载官方源可能很慢或失败；选用国内镜像可提速。"
+
+msgid "The pre-check is a UX rehearsal — at submission time the four gates / cloud moderation still run the full chain; only the captcha challenge itself is waived."
+msgstr "预检是 UX 预演——提交期四闸/云审照常全链兜底，免验的只有验证码挑战这一件事。"
+
+msgid "The recognition policy ID from the Content Security console. Officially optional (blank uses the default policy); preferably fill in one bound to your package, otherwise you may get “not authorized for this API”."
+msgstr "内容安全控制台的识别策略编号。官方参数可选（留空走默认策略）；建议填写绑定套餐包的策略，未开通对应策略时会收到「未获接口授权」。"
+
+msgid "The report below keeps no counts; event records still land as usual (Tab 6 is authoritative)."
+msgstr "下方战报不记账；事件记录照常落库（以 Tab⑥ 为准）。"
+
+msgid "The same IP blocked by the four local rule gates (length / no-Chinese / banned words) N times within 24 hours (both pre-check and submission count). Off by default."
+msgstr "同一 IP 被本地四规则闸（字数/无中文/禁词）拦 24 小时内累计达 N 次（预检与提交两处都计数）。默认关。"
+
+msgid "The same IP judged “rejected” by cloud moderation N times within 24 hours (content-spammer pattern). Off by default."
+msgstr "同一 IP 被云端审核判「拒绝」24 小时内累计达 N 次（内容垃圾发布者形态）。默认关。"
+
+msgid "The trusted-range snapshot is over 180 days old (last verified %1$s, %2$d days ago) — ranges may be stale; recalibrate (dev tool tools/api-smoke/refresh-presets.php pulls the latest official ranges for a manual diff-and-edit)."
+msgstr "受信网段快照已超过 180 天（最后核对 %1$s，距今 %2$d 天）——网段可能过期，请校准（开发期工具 tools/api-smoke/refresh-presets.php 拉官方最新段 diff 后人工手改）。"
+
+msgid "The verification widget failed to initialize — refresh to retry"
+msgstr "验证组件初始化失败，请刷新重试"
+
+msgid "The verification widget failed to load. Please refresh the page and try again."
+msgstr "验证组件加载异常，请刷新页面重试。"
+
+msgid "The website a commenter fills in is first opened for a look, then the AI judges whether the site is problematic (gambling / scams / phishing, etc.)"
+msgstr "评论者填的网站地址，先试着打开看一眼，再交给 AI 判定该网站是否有问题（赌博/诈骗/钓鱼等）"
+
+msgid "The “Test credentials” buttons for cloud moderation and IP reputation live on their cards / on the “3: Content moderation” and “4: IP reputation” tabs; each button's status badge and “last test” time are persisted (N1)."
+msgstr "云审与 IP 信誉的「测试凭据」在对应折叠卡/「③ 内容审核」「④ IP 信誉」页；各按钮的状态徽标与「上次测试」时间已持久化（N1）。"
+
+msgid "The “clear-cut evidence” bar is system-controlled with no UI knob — it only tightens."
+msgstr "「证据确凿」的门槛由系统掌握，界面不提供旋钮——只放大严。"
+
+msgid "The “contact email” value from above (if blank, the whole sentence with this placeholder is omitted)."
+msgstr "上方「联系邮箱」的值（未填写则该占位符整句省略）。"
+
+msgid "Third-party calls (today)"
+msgstr "第三方调用量（今日）"
+
+msgid "This decides “where a visitor's real IP is read from” — captcha verification, login counting, IP reputation, and reporting all follow it. Confirm the diagnostics panel below parses correctly before configuring further."
+msgstr "这里决定「访客的真实 IP 从哪读」——验证码核验、登录计数、IP 信誉与上报全部链路都以它为准。先确认下方诊断面板解析对了，再往下配。"
+
+msgid "This notice disappears once any provider is configured."
+msgstr "配好任意一家后本提示自动消失。"
+
+msgid "This panel shows the parsing of the current page request as it happened; the manual query below sends the entered IP to four providers (AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb) — results are shown for this request only, never stored, cached, or counted."
+msgstr "本面板展示「当前这次页面请求」的解析实况；下方手动查询会把所输 IP 发往四个服务商（AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb）——结果仅本次展示、不落库不缓存、不计调用次数。"
+
+msgid "This plugin shows them read-only and never changes their behavior; to adjust, go to "
+msgstr "本插件只读展示、不改这两个开关的行为；如需调整请到"
+
+msgid "This plugin's block archive holds %1$s entries (threshold %2$s) — WP's native spam cleanup (30 days by default) handles it automatically, or clear it manually under the Spam category; archiving can also be disabled in settings."
+msgstr "本插件拦截留档已 %1$s 条（阈值 %2$s）——WP 原生垃圾清理（默认 30 天）会自动处理，或到垃圾评论分类手动清空；也可在设置中关闭留档。"
+
+msgid "Threat group: AbuseIPDB (score / usage / ISP / Tor) · StopForumSpam (blacklist hits / frequency) · ip.nc.gy (proxy / VPN / Tor / hosting / CDN / anonymity — six flags); geo group: ip.sb (location / ISP / ASN). 3-second timeout per source; a failing source fails only its own card while the rest still report."
+msgstr "威胁组：AbuseIPDB（评分/用途/ISP/Tor）· StopForumSpam（黑名单出现/频次）· ip.nc.gy（代理/VPN/Tor/机房/CDN/匿名六旗）；地理组：ip.sb（归属地/ISP/ASN）。查询超时 3 秒/源；任一源失败仅该卡片失败，其余照常出数。"
+
+msgid "Three IP reputation states:"
+msgstr "IP 信誉三态："
+
+msgid "Three possible verdicts (plain words)"
+msgstr "判定的三种结果（人话版）"
+
+msgid "Three tone rules: tease the behavior only / leave a way out / point to the next step."
+msgstr "语气三原则：只调侃行为 / 留台阶 / 带下一步。"
+
+msgid "Threshold N (24h window cumulative)"
+msgstr "阈值 N（24h 窗累计）"
+
+msgid "Tianyu is retired as default (existing setups still work) — its settings live on the “2: Captcha” tab; it stays here only as a choice."
+msgstr "天御已默认退役（存量可用）——配置面在「② 验证码」页，此处只作选择保留。"
+
+msgid "Ticket verification API documentation"
+msgstr "票据核验 API 文档"
+
+msgid "Tie-in with the trusted-visitor waiver: when IP reputation says “fail”, even an “old friend” (waiver channel) is asked for one captcha — a fresh verdict outranks the trust voucher, and passage resumes as usual afterwards."
+msgstr "与信用免验的联动：IP 信誉判「不通过」时，就算是「老朋友」（信用免验通道）也会被要求先过一次码——新鲜判定压过信任凭证，过码后照常放行。"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Timeout"
+msgstr "超时"
+
+msgid "Timeout defaults to 8 seconds; the AI verdict only tightens: even a pass never approves a comment."
+msgstr "超时默认 8 秒；AI 判定只放大严：判 pass 也不会替评论放行。"
+
+msgid "Today at a glance"
+msgstr "今日速览"
+
+msgid "Today's lookup quota is exhausted — human verification is temporarily enforced for all visitors today and auto-resumes tomorrow."
+msgstr "当日查询配额已用尽——今日人机验证将临时对所有访客强制，次日自动恢复。"
+
+msgid "Today's overview"
+msgstr "今日概览"
+
+msgid "Today's report (%s)"
+msgstr "今日战报（%s）"
+
+msgid "Today's verdict quota"
+msgstr "今日判定额度"
+
+msgid "Today: blocked"
+msgstr "今日：拦截"
+
+msgid "Too many failed logins. XML-RPC logins are temporarily disabled (captchas cannot be presented within the XML-RPC protocol). Please try again later, or complete human verification in a web browser."
+msgstr "登录失败次数过多，XML-RPC 登录已暂时停用（验证码无法在 XML-RPC 协议内呈现）——请稍后再试，或在网页端完成人机验证。"
+
+msgid "Total site outbound calls: %d"
+msgstr "站点总外呼 %d 次"
+
+msgid "Treat suspicious visitors strictly based on their IP record (force human verification before letting them through) — shared by the comment and login gates; skipping it does not affect any protection above, and you can fine-tune later on the “4: IP reputation” tab (threshold / soft cap / daily quota all live under ⚙ Advanced there)."
+msgstr "按 IP 前科对可疑访客从严（强制先过人机验证再放行）——评论与登录两闸共用；不接也不影响上面任何防护，之后随时可在「④ IP 信誉」页细配（阈值/软顶/日配额都在该页 ⚙ 高级配置）。"
+
+msgid "Trust cache (minutes)"
+msgstr "信用缓存（分钟）"
+
+msgid "Trust voucher validity (minutes)"
+msgstr "信任凭证有效期（分钟）"
+
+msgid "Trusted"
+msgstr "受信"
+
+msgid "Trusted ranges"
+msgstr "受信网段"
+
+msgid "Trusted ranges:"
+msgstr "受信网段："
+
+msgid "Trusted ranges: (no preset or custom ranges enabled — forwarded headers take no part in parsing)"
+msgstr "受信网段：（未启用任何预设或自定义网段——转发头一概不参与解析）"
+
+msgid "Trusted-visitor waiver"
+msgstr "信用免验"
+
+msgid "Turn it off now"
+msgstr "现在去关闭"
+
+msgid "Turn on"
+msgstr "去开启"
+
+msgid "Turn pingback off to prevent reflection-attack abuse. Placeholder: zero controls and zero behavior today."
+msgstr "关闭 pingback 防反射攻击滥用。规划位：当前零控件零行为。"
+
+msgid "Two native WP switches (read-only display)"
+msgstr "WP 原生两开关（只读展示）"
+
+msgid "UA / HTTP header rules"
+msgstr "UA / HTTP 头规则"
+
+msgid "URL check (enhancement layer — with it off, comment protection is unchanged, zero behavior difference)"
+msgstr "网址核查（增强层——关闭时评论防护照常，零行为变化）"
+
+msgid "URL check (review handling)"
+msgstr "网址核查（复核处置）"
+
+msgid "URL check handled %1$d today (Spam %2$d · pending %3$d)"
+msgstr "网址核查今日处置 %1$d 条（垃圾箱 %2$d · 待审 %3$d）"
+
+msgid "URL check search (DeepSeek): %1$d today (billed per success; search clues for pages that will not open)"
+msgstr "网址核查搜索（DeepSeek）：今日 %1$d 次（按成功次数计费，打不开网页时的搜索线索）"
+
+msgid "URL check: %1$d checked today · %2$d auto-spammed · %3$d awaiting your review (checked = the URL was opened and looked at; auto-spam is undoable)"
+msgstr "网址核查：今日核查 %1$d 条 · 自动标垃圾 %2$d 条 · 待你复核 %3$d 条（核查=网址被打开看过；自动标垃圾可撤销）"
+
+msgid "URL would not open; judged from search clues"
+msgstr "网址打不开，依据搜索线索判定"
+
+msgid "Unconfigured providers: %s"
+msgstr "未配置的服务商：%s"
+
+msgid "Unresolved (fallback)"
+msgstr "未解析（回退）"
+
+msgid "Unticked (default): only the name itself is shown. Names are always clickable for you in the admin."
+msgstr "不勾选（默认）时只显示名字本身。你自己在后台看评论时始终是可点链接。"
+
+msgid "Unticked (default): the field never appears and any submitted URL is discarded — keeping spam-submit bots from probing it. Published comments are unaffected."
+msgstr "不勾选（默认）时，评论表单不出现该栏、提交的网址一律丢弃——防止垃圾提交程序试探采集。已发表评论不受影响。"
+
+msgid "Upgrade model"
+msgstr "升级用模型"
+
+msgid "Use the default (%1$d %2$s)"
+msgstr "用默认（%1$d %2$s）"
+
+msgid "Use the official Cloudflare ranges (%1$s verified, %2$d entries for v4 + v6)"
+msgstr "使用 Cloudflare 官方段（%1$s 核对，v4+v6 共 %2$d 条）"
+
+msgid "Use “Test credentials” on each provider card to verify connectivity."
+msgstr "在各配置卡点「测试凭据」实测连通。"
+
+msgid "Validate allowlist format"
+msgstr "校验白名单格式"
+
+msgid "Validate range format"
+msgstr "校验网段格式"
+
+msgid "Validation is a front-end pre-check; invalid lines are skipped by the parsing layer on save and flagged under “Custom range invalid lines” in the diagnostics panel above (calibration tool: tools/api-smoke/refresh-presets.php)."
+msgstr "校验为前端格式预检；非法行保存时由解析层跳过，并在上方诊断面板「自定义网段非法行」标出（校准工具：tools/api-smoke/refresh-presets.php）。"
+
+msgid "Verdict mapping (not admin-adjustable): RiskLevel none/low → pass, medium → pending review, high → direct block; the band boundaries live in the Aliyun console's rule config. For a medium/low middle band and decimal confidence scores, enable fine-grained detection in the Content Security console rules."
+msgstr "判定映射（站长不可调）：RiskLevel none/low→放行、medium→入待审、high→直接拦截；分档界线在阿里控制台规则配置。如需 medium/low 中间态与小数置信分，请在内容安全控制台规则配置中开启细粒度检测。"
+
+msgid "Verdict mapping (not admin-adjustable): conclusionType 1 compliant → pass, 2 non-compliant → direct block, 3 suspected → pending review; the access_token is cached and reused by the plugin (30-day validity, no manual management)."
+msgstr "判定映射（站长不可调）：conclusionType 1 合规→放行、2 不合规→直接拦截、3 疑似→入待审；access_token 由插件缓存复用（30 天有效期，无需手动管理）。"
+
+msgid "Verdict mapping (not admin-adjustable): confidence ≥0.8 is taken as high confidence, <0.8 always goes to pending review; an AI pass never approves a comment by itself (it only tightens, never loosens)."
+msgstr "判定映射（站长不可调）：置信 ≥0.8 高置信直取、<0.8 一律入待审；AI 判 pass 不替评论放行（只放大严）。"
+
+msgid "Verdict model"
+msgstr "判定模型"
+
+msgid "Verification expired — please verify again"
+msgstr "验证已过期，请重新验证"
+
+msgid "Verification incomplete — click to retry"
+msgstr "验证未完成，点击重试"
+
+msgid "Verification passed"
+msgstr "已通过验证"
+
+msgid "Verified clean — comment status unchanged"
+msgstr "已核无问题——评论状态不动"
+
+msgid "VerifyIntelligentCaptcha API documentation"
+msgstr "VerifyIntelligentCaptcha API 文档"
+
+msgid "Verifying…"
+msgstr "验证中……"
+
+msgid "Versus “trusted ranges”: trusted ranges govern the parsing trust chain (whose forwarded headers to believe), while the allowlist governs reputation exemption (who is never checked) — neither substitutes for the other."
+msgstr "与「受信网段」的区别：受信网段管解析信任链（决定信谁报来的转发头），白名单管信誉豁免（决定谁永不查信誉）——两者互不替代。"
+
+msgid "View Spam (%d) →"
+msgstr "去垃圾箱查看（%d 条）→"
+
+msgid "View archive"
+msgstr "查看留档"
+
+msgid "View call details"
+msgstr "查调用明细"
+
+msgid "View details"
+msgstr "查看详情"
+
+msgid "View report →"
+msgstr "看报告 →"
+
+msgid "View the Spam category"
+msgstr "查看垃圾评论分类"
+
+msgid "Violation"
+msgstr "判违规"
+
+msgid "Violations go to Spam, unclear ones to pending review — both recoverable by hand."
+msgstr "判违规进垃圾箱、没看清进待审，都能手动恢复。"
+
+msgid "Visitors (same nickname + email) or logged-in users with N approved comments are waived; the comparable WP core precedent is 1, and because a captcha waiver is stronger, the default is tightened to 3."
+msgstr "游客（同昵称+邮箱）或登录用户已有 N 条通过审核的评论即免验；WP 核心同类先例为 1，验证码豁免更强故默认收紧至 3。"
+
+msgid "WeAvatar (mainland mirror, multi-level matching)"
+msgstr "WeAvatar（国内镜像，多级匹配）"
+
+msgid "Weak network — please retry later or contact the site owner"
+msgstr "网络不佳，请稍后重试或联系站长"
+
+msgid "Website"
+msgstr "网站"
+
+msgid "Website-field collection is off — new comments carry no URL to check, so this feature auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page."
+msgstr "网站字段收集已关闭——新评论没有网址可核查，本功能对新评论自动失效；存量网址仍可在工具页「存量网址核查」中处理。"
+
+msgid "Website-field collection is off — the URL check auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page."
+msgstr "网站字段收集已关闭——网址核查对新评论自动失效，存量网址仍可在工具页的「存量网址核查」中处理。"
+
+msgid "Welcome"
+msgstr "欢迎"
+
+msgid "What to do on failure"
+msgstr "故障时怎么办"
+
+msgid "What was said"
+msgstr "说了什么"
+
+msgid "What went wrong"
+msgstr "出了什么岔子"
+
+msgid "Whatever you finished counts — below is your current protection checklist; missing items can be added later on the settings page."
+msgstr "配好几步算几步——下面是你当前的防护清单，缺的项随时可在设置页补。"
+
+msgid "When Akismet has already tossed the same spam into its queue, this plugin's built-in rules skip re-challenging (the decision is still fully logged to this plugin's event table). Planned row — audit notes in docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md, to be implemented after sign-off; detect and yield, never touching the other plugin's config."
+msgstr "Akismet 已把同名垃圾扔进其队列时，本插件站内规矩不再重复出码拦截（判定留痕仍全量落本插件事件表）。规划行——审计底稿 docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md，施工拍板后实装；检测即让位、不代改对方配置。"
+
+msgid "When IP reputation is disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail and a captcha is shown outright) — configuring IP reputation is recommended for stronger protection."
+msgstr "未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。"
+
+msgid "When REMOTE_ADDR is outside the trusted ranges, forwarding headers are ignored outright (anti-forgery invariant)."
+msgstr "REMOTE_ADDR 不在受信网段时，转发头一律忽略（防伪造不变式）。"
+
+msgid "When a page will not open, search results can still serve as clues, reducing “could not tell” cases (off by default)"
+msgstr "打不开网页时，搜索结果也能当判定线索，减少「没看清」的次数（默认关）"
+
+msgid "When disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail — a captcha is shown)."
+msgstr "未启用时信任链跳过该项，不影响信用免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，出码验证）。"
+
+msgid "When enabled, before comment and login verdicts the visitor's IP reputation score is looked up at AbuseIPDB — malicious IPs must pass human verification before going through."
+msgstr "启用后，评论与登录判定前会向 AbuseIPDB 查询访客 IP 的信誉分——恶意 IP 强制访客先过人机验证再放行。"
+
+msgid "When enabled, site-wide human verification is bypassed — for pipeline drills only."
+msgstr "启用后全站人机验证旁路，仅用于链路演练。"
+
+msgid "When enabled, the three IP reputation states take part in deciding when to show the login captcha"
+msgstr "启用后按 IP 信誉三态参与登录出码判定"
+
+msgid "When enabled, visitor IPs are submitted to the overseas service AbuseIPDB."
+msgstr "启用后访客 IP 将提交至境外服务 AbuseIPDB。"
+
+msgid "When login verification appears"
+msgstr "登录验证出现时机"
+
+msgid "When on, submissions run through “local rules → selected cloud driver” in series (failover chain)"
+msgstr "开启后按「本地规则 → 已选云端驱动」串联送审（failover 链）"
+
+msgid "When on, submissions run through “local rules → selected cloud driver” in series; local rules always stay first in the chain and cannot be turned off."
+msgstr "开启后按「本地规则 → 已选云端驱动」串联送审；本地规则恒在链首不可关闭。"
+
+msgid "When the block happened (site timezone)."
+msgstr "拦截发生时间（站点时区）。"
+
+msgid "When the official hCaptcha plugin takes over comment captchas, this plugin's captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default."
+msgstr "官方 hCaptcha 插件接管评论验证码时，本插件验证码让位（黄条提示；登录/注册/找回仍由本插件把守）。默认开。"
+
+msgid "When the official hCaptcha plugin takes over the login captcha, this plugin's login captcha yields. On by default — independent of the comment-yield switch."
+msgstr "官方 hCaptcha 插件接管登录验证码时，本插件登录验证码让位。默认开——与评论让位开关各自独立。"
+
+msgid "When the quota runs out: the batch lane stops first, new comments stay protected, and everything auto-resumes the next day."
+msgstr "额度用完：批量车道先停、新评论照常防护，次日自动恢复。"
+
+msgid "When “Complete human verification” is clicked, a pre-check runs first (four local gates + IP reputation + track record); passing everything skips the real captcha"
+msgstr "点击「完成人机验证」时先预检（本地四闸 + IP 信誉 + 历史信用），全过免真实验证码"
+
+msgid "Where to get them: Aliyun console → Captcha 2.0 → Scene management. Create a scene and copy the SceneId and prefix over together; the RAM key needs the AliyunYundunAFSFullAccess policy. After pasting, click “Test credentials” below: green = credentials work, yellow = required fields missing, red = key rejected."
+msgstr "去哪拿：阿里云控制台 → 验证码 2.0 → 场景管理，创建场景后把 SceneId 与 prefix 一起复制过来；RAM 密钥需授权 AliyunYundunAFSFullAccess。粘贴后点下方「测试凭据」，绿 = 凭据通，黄 = 有字段漏填，红 = 密钥被拒。"
+
+msgid "Which gate"
+msgstr "哪个门"
+
+msgid "Which line blocked it"
+msgstr "哪道防线拦的"
+
+msgid "Which provider"
+msgstr "哪个服务商"
+
+msgid "Who blocked it (by provider)"
+msgstr "谁拦的（按服务商口径）"
+
+msgid "Who blocked it (in chain order)"
+msgstr "谁拦的（按拦截链顺序）"
+
+msgid "Why blocked"
+msgstr "为什么拦"
+
+msgid "Why it is the default recommendation = lowest barrier to entry: Baidu AI Cloud is free to enable, pay-as-you-go, and connects directly within the mainland — with both keys in hand you are ready to go. After pasting, click “Test credentials” (a real call with a benign sample): green = credentials work, yellow = required fields missing (listed per field), red = key rejected."
+msgstr "选它当默认推荐的理由＝开通门槛最低：百度智能云免费开通、按量计费、境内直连不出境，两把钥匙拿到就能用。粘贴后点「测试凭据」（良性样本真调用）：绿 = 凭据通，黄 = 必填缺（逐字段列出），红 = 密钥被拒。"
+
+msgid "Wink WP Guard"
+msgstr "Wink WP 保安"
+
+msgid "Wink WP Guard settings sections"
+msgstr "Wink WP 保安设置分区"
+
+msgid "Wink WP Guard stands at your blog's door: it blocks spam comments, stops credential-stuffing logins, and routes suspicious content to manual review. This wizard walks you through the two most important keys — you can skip any step and come back later; skipped parts keep fallback protection, so you are never left exposed."
+msgstr "Wink WP 保安是站在你的博客门口的保安：拦垃圾评论、防撞库登录、可疑内容转人工。接下来带你配好两把最关键的钥匙——配到哪一步都可以随时跳过，跳过的部分会有兜底防护，不会裸奔。"
+
+msgid "Wink WP Guard · Today's status"
+msgstr "Wink WP 保安 · 今日态势"
+
+msgid "Wink captcha drill mode is active — site-wide human verification bypassed (auto-expires in 24h)"
+msgstr "wink 验证码演练模式启用中——全站人机验证旁路（24h 自动过期）"
+
+msgid "With DeepSeek fetching, your server no longer opens commenters' URLs itself — DeepSeek fetches the content instead (a much better success rate on blocked / anti-scraping sites, e.g. certain adult or heavily protected sites), billed per success. Direct opening is free but exposes your origin IP and often “cannot tell” on anti-scraping sites — it is never auto-enabled; select it here manually."
+msgstr "选 DeepSeek 抓取时，本站服务器不再直接打开评论者的网址——由 DeepSeek 代为抓取正文（对打不开/反爬的站点成功率高很多，如某些成人站、强反爬站），按成功次数计费。本站直接打开不花钱但会暴露源站 IP，且遇到反爬站容易「没看清」——默认不自动启用，需在此手动选择。"
+
+msgid "With both plugins verifying logins, visitors may face two captchas in a row — the detection row notes “who guards the login captcha” with a recommendation (keep one, or let one yield). Planned row — informational only, never touching the other plugin's config."
+msgstr "两家都开登录验证时访客可能连过两道码——检测行提示「登录出码由谁把守」并给出建议（留一家，或一家让位）。规划行——提示性，不代改对方配置。"
+
+msgid "With no captcha provider configured, nothing renders and nothing blocks; if “Settings → General” disallows registration, the signup form is unreachable (an idle switch is harmless); multisite signups go through wp-signup.php, which this gate does not cover."
+msgstr "未配置验证码驱动时自动不渲染不拦截；「设置 → 常规」关闭任何人可注册后注册表单不可达（开关空转无害）；多站点注册走 wp-signup.php，本闸不覆盖。"
+
+msgid "Without IP reputation the trust chain skips it and login counts are unaffected; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (a captcha is shown outright)."
+msgstr "未启用 IP 信誉时信任链跳过该项，不影响登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（直接展示验证码）。"
+
+msgid "Wordfence detected"
+msgstr "检测到 Wordfence 在场"
+
+msgid "Works but slow (%.1f s)"
+msgstr "能用但慢（%.1f 秒）"
+
+msgid "XFF chain"
+msgstr "XFF 链"
+
+msgid "XFF trust chain (rightmost only)"
+msgstr "XFF 信任链（仅取最右）"
+
+msgid "XML-RPC controls"
+msgstr "XML-RPC 管控"
+
+msgid "calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback”"
+msgstr "次/天（0 = 不限）——达到后当日停用并按「故障降级」处理"
+
+msgid "calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback” (billing guard, project brief §6.4)"
+msgstr "次/天（0 = 不限）——达到后当日停用并按「故障降级」处理（计费防呆，立项书 §6.4）"
+
+msgid "calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback”; dual submission counts as two calls"
+msgstr "次/天（0 = 不限）——达到后当日停用并按「故障降级」处理；双送按两次调用计量"
+
+msgid "calls/day (default 900; 0 = unlimited) — once reached, no more outbound calls and everything is treated strictly as “fail” (better strict than silently waved through). The free tier's 1,000/day (agreed baseline) keeps a 5% buffer."
+msgstr "次/天（默认 900；0=不限）——当日达到后不再外呼、一律按「不通过」从严处理（宁可从严不可静默放行）。免费档 1000/天（拍板统一口径）留 5% 缓冲。"
+
+msgid "calls/day (default 950) — a 5% buffer under the free tier's 1,000/day (agreed baseline); once reached, paused for the day (triggered by 429, self-heals the next day)."
+msgstr "次/天（默认 950）——免费档 1000/天（拍板统一口径）留 5% 缓冲；达到后当日停转（429 触发，次日自愈）。"
+
+msgid "characters (0 = no limit)"
+msgstr "字（0 = 不限）"
+
+msgid "characters (default 1800)"
+msgstr "字（默认 1800）"
+
+msgid "custom_header"
+msgstr "自定义头 custom_header"
+
+msgid "direct"
+msgstr "直连 direct"
+
+msgid "enter an API Key in the DeepSeek section above"
+msgstr "到上方 DeepSeek 配置区填写 API Key"
+
+msgid "hCaptcha detected handling comments"
+msgstr "检测到 hCaptcha 接管评论"
+
+msgid "hCaptcha detected handling logins"
+msgstr "检测到 hCaptcha 接管登录"
+
+msgid "ip_src=%1$s · mode=%2$s"
+msgstr "ip_src=%1$s · 模式=%2$s"
+
+msgid "minutes (default 1440 = 24h) — how long IPs judged “pass” stay cached, saving quota."
+msgstr "分钟（默认 1440=24h）——查询判「通过」的 IP 结果缓存时长，省配额。"
+
+msgid "minutes (default 60 = 1h) — short cache for “suspected/malicious” verdicts, so a malicious IP can be re-checked and downgraded."
+msgstr "分钟（默认 60=1h）——判「可疑/恶意」的短缓存，恶意 IP 可复查降级。"
+
+msgid "per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely; choose an IP source that matches your deployment topology in the network settings (CDN sites = custom_header, self-hosted reverse proxies = xff/traverse), and verify the parsed result in the diagnostics panel below."
+msgstr "per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源（CDN 站点=custom_header、自建反代=xff/traverse），并在下方诊断面板核对解析结果。"
+
+msgid "pick one manually under “Fetch provider” in the advanced section"
+msgstr "高级区的「网页抓取服务商」手动选择"
+
+msgid "prefix (front-end identity tag · required)"
+msgstr "prefix（前端身份标 · 必填）"
+
+msgid "prefix (identity tag)"
+msgstr "prefix（身份标）"
+
+msgid "region must match the server side — the front-end SDK and the server endpoint are linked, and a mismatch errors out; after switching, run “Test credentials” once. The sgp endpoint is a static inference (not verified on a live site; the level will be disabled if live re-verification fails)."
+msgstr "region 须与服务端一致——前端 SDK 与服务端 endpoint 双端联动，错配即报错；切换后建议点测试凭据实测一次。sgp 档端点为静态推断（未实机验证；若真机复验不过则该档停用）。"
+
+msgid "robots disallow rules"
+msgstr "robots 禁爬声明"
+
+msgid "seconds (1–5, default 1) — a timeout is treated strictly as “fail” (captcha shown); this one key is shared by login / comment pre-check / submission."
+msgstr "秒（1–5，默认 1）——超时按「不通过」从严处理（出码验证）；登录/评论预检/提交期三处共用此键。"
+
+msgid "seconds (default 8)"
+msgstr "秒（默认 8）"
+
+msgid "sep.cc (mainland mirror)"
+msgstr "sep.cc（国内镜像）"
+
+msgid "set up separate credentials for the URL check under “Advanced” below"
+msgstr "下方「高级」里为网址核查单独配置"
+
+msgid "times"
+msgstr "次"
+
+msgid "traverse = REMOTE_ADDR must hit a trusted range, then walk the XFF right-to-left skipping trusted proxies and take the first untrusted IP — not the default: on deployments that can reach the origin directly, walking backwards would trust a forged chain."
+msgstr "traverse=REMOTE_ADDR 必须命中受信网段，再沿 XFF 从右往左跳过受信代理取第一个非受信 IP——不作默认：可直连源站的部署下回溯会把伪造链当真。"
+
+msgid "traverse chain walk"
+msgstr "traverse 链式回溯"
+
+msgid "traverse chain walk (multi-level self-hosted proxies)"
+msgstr "traverse 链式回溯（自建反代多级）"
+
+msgid "verdicts (0 = unlimited)"
+msgstr "次（0=不限量）"
+
+msgid "| driver errors"
+msgstr "｜ 驱动错误"
+
+msgid "| pending"
+msgstr "｜ 待审"
+
+msgid "— URLs are re-checked after the comment is published; both violations and unclear ones are held for your review"
+msgstr "——评论发布后复核网址；判违规与没看清都拦下等你复核"
+
+msgid "— a barometer of captcha service instability"
+msgstr "——验证码服务不稳的晴雨表"
+
+msgid "— blocks during statistics-off periods are not counted, while the event table still records them (this page is authoritative for block details)."
+msgstr "——统计开关关闭期间的拦截不计入读数，事件表照常落库（拦截明细以本页为准）。"
+
+msgid "— comments still require manual approval after passing the captcha (this is not a malfunction)."
+msgstr "——评论过码后仍需人工批准（这不是故障）。"
+
+msgid "— length / keyword / Chinese checks, costs nothing"
+msgstr "——字数 / 关键词 / 中文检查，不花钱"
+
+msgid "— quota reached, paused for today"
+msgstr "——已达限，当日暂停"
+
+msgid "— today's quota is used up; it auto-resumes tomorrow."
+msgstr "——今日额度已用完，次日自动恢复。"
+
+msgid "“Clear all statistics” will wipe %s — unrecoverable."
+msgstr "「清空全部统计」会清掉%s，不可恢复。"
+
+msgid "“Comment author must have a previously approved comment”:"
+msgstr "「作者须有先前已批准的评论」："
+
+msgid "“Comment must be manually approved” (Settings → Discussion):"
+msgstr "「评论必须手动批准」（设置 → 讨论）："
+
+msgid "“Comment must be manually approved”: %1$s; “Comment author must have a previously approved comment”: %2$s."
+msgstr "「评论必须手动批准」：%1$s；「作者须有先前已批准的评论」：%2$s。"
+
+msgid "“Low-confidence auto-upgrade” is on by default — see the switch row below (once per passage)."
+msgstr "「低置信自动升级」默认开——说明见下方开关行（段级一次）。"
+
+msgid "“Not now” selected — the comment gate relies on the built-in rules alone and the captcha stage is skipped entirely. The overview page keeps a yellow banner reminding you to come back."
+msgstr "已选择「暂不配置」——评论闸只靠站内规矩把关，验证码阶段整体跳过。总览页会持续亮黄条提醒你回来补配。"
+
+msgid "“To manual review” means it sits in the pending queue awaiting you. %s"
+msgstr "转人工复核=进了待审区，等你处理。%s"
+
+msgid "← Back"
+msgstr "← 上一步"
+
+msgid "→ Configure IP reputation (Tab 4)"
+msgstr "→ 去配置 IP 信誉（Tab④）"
+
+msgid "→ View details"
+msgstr "→ 查看详情"
+
+msgid "① Submit — the visitor clicks “Post Comment” (no-button mode: the submission is intercepted and the verification popup opens automatically)"
+msgstr "① 点提交——访客点「发表评论」（无按钮模式：提交被截住，验证弹层自动弹出）"
+
+msgid "② Verify — the slider / smart check completes inside the popup"
+msgstr "② 过码——滑块/智能验证在弹层内完成"
+
+msgid "③ Auto-resubmit — no second click needed; toast “Running checks”"
+msgstr "③ 自动续提——过码后无需再点一次，Toast「正在接收检查」"
+
+msgid "④ Landing — the comment enters the built-in rules → cloud moderation → IP reputation chain"
+msgstr "④ 落地——评论进入站内规矩 → 云审 → IP 信誉链路"
+
+msgctxt "audit-running"
+msgid "In progress"
+msgstr "进行中"
+
+msgctxt "call-count"
+msgid "%d calls"
+msgstr "%d 次"
+
+msgctxt "drill-active"
+msgid "Active"
+msgstr "进行中"
+
+msgctxt "error-count"
+msgid "%d errors"
+msgstr "%d 次"
+

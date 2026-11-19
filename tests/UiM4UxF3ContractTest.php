@@ -280,7 +280,7 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$details = self::htmlBlock( $body, 'id="wk-iprep-advanced"', 'self::test_credential_btn(' );
 
 		$this->assertStringContainsString( 'self::advanced_fold(', $body, '折叠迁 helper（details.adv 形态承载）' );
-		$this->assertStringContainsString( '高级设置', $details, '折叠区标题' );
+		$this->assertStringContainsString( 'Advanced (thresholds / soft cap / daily quota / cache / timeout)', $details, '折叠区标题' );
 		foreach ( array( 'malicious_score', 'suspect_score', 'soft_quota', 'daily_quota', 'cache_minutes', 'negative_cache_minutes', "'timeout'" ) as $key ) {
 			$this->assertStringContainsString( $key, $details, "阈值/软顶/日配额/缓存双键/timeout 收进折叠（{$key}）" );
 		}
@@ -290,11 +290,11 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$body   = self::functionBody( self::settings_src(), 'render_iprep_zone_check' );
 		$before = substr( $body, 0, (int) strpos( $body, 'id="wk-iprep-advanced"' ) );
 
-		foreach ( array( "'iprep', 'enabled'", 'wk-iprep-driver', 'abuseipdb', 'api_key', '测试凭据' ) as $key ) {
+		foreach ( array( "'iprep', 'enabled'", 'wk-iprep-driver', 'abuseipdb', 'api_key', 'Test credentials' ) as $key ) {
 			$this->assertStringContainsString( $key, $before, "默认展开仅 启用开关/服务商/凭据（{$key} 在折叠区之前）" );
 		}
 		$this->assertStringNotContainsString( 'malicious_score', $before, '阈值默认收进折叠' );
-		$this->assertStringContainsString( '软顶保护', $body, '软顶黄条不折叠（警示常显——本批红线）' );
+		$this->assertStringContainsString( 'Soft-cap protection: once the day\\\'s lookup count reaches the soft cap, no more outbound calls and everything is treated strictly as “fail” — the last slice of quota is reserved as a buffer so the reputation layer never goes silent on attackers.', $body, '软顶黄条不折叠（警示常显——本批红线）' );
 	}
 
 	public function test_tab4_report_zone_triggers_collapsed(): void {
@@ -303,7 +303,7 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$details = self::htmlBlock( $body, 'id="wk-iprep-report-advanced"', '</section>' );
 
 		/* T1–T4 四面逐行（foreach 迭代 $faces——四面定义在折叠区之前）+ 限流参数收进折叠。 */
-		foreach ( array( 'foreach ( $faces', 'wk-iprep-threshold-', 'wk-iprep-category-', 'wk-iprep-comment-', '限流参数' ) as $key ) {
+		foreach ( array( 'foreach ( $faces', 'wk-iprep-threshold-', 'wk-iprep-category-', 'wk-iprep-comment-', 'rate-limit parameters' ) as $key ) {
 			$this->assertStringContainsString( $key, $details, "T1–T4 勾选组+限流参数默认整组折叠（{$key}）" );
 		}
 		foreach ( array( 'captcha_failed', 'review_reject', 'login_attempts', 'local_rules_fail' ) as $face ) {
@@ -319,7 +319,7 @@ final class UiM4UxF3ContractTest extends TestCase {
 		$before  = substr( $body, 0, (int) strpos( $body, 'id="wk-iprep-report-advanced"' ) );
 
 		$this->assertMatchesRegularExpression( "/notice_yellow_bar\(\s*'warn'/", $before, '出境 PIPL 黄条不折叠常显（【W3·批B 翻转】插件级 warn 级）' );
-		$this->assertStringContainsString( '启用门禁', $before, '门禁状态行不折叠常显' );
+		$this->assertStringContainsString( 'Enablement gate: real-IP self-check passed — reporting is ready to enable.', $before, '门禁状态行不折叠常显' );
 		$this->assertStringContainsString( "'iprep', 'report', 'enabled'", $before, '总开关不折叠常显' );
 		$this->assertStringNotContainsString( 'notice_yellow_bar(', $details, '警示黄条不得落进折叠区' );
 	}

@@ -46,7 +46,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain   文本域（忽略）。
 		 * @return string
 		 */
-		function esc_html__( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -59,7 +59,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -372,7 +372,7 @@ namespace WinkGatekeeper\Tests {
 			$html = self::renderCard( self::baseSettings( '' ) );
 			self::assertStringContainsString( 'id="wk-url-audit-unconfigured-notice"', $html, '无钥态：notice 渲染' );
 			self::assertStringContainsString( 'wk-notice--warn', $html, '插件级黄条形态（【W3·批B 翻转】原 WP 原生 notice-warning inline 字面——批 B 黄条 helper 化+四级映射翻插件级类）' );
-			self::assertStringContainsString( '还没有配置', $html, '人话指引文案' );
+			self::assertStringContainsString( 'The URL check is enabled but the AI verdict (DeepSeek) is not configured yet — checks cannot reach a verdict.', $html, '人话指引文案' );
 			self::assertStringContainsString( '#wk-review-deepseek-card', $html, '深链：上方 DeepSeek 配置区' );
 			self::assertStringContainsString( '#wk-url-audit-advanced', $html, '深链：下方高级独立配置' );
 		}
@@ -600,7 +600,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertSame( 0, $event['meta']['http_code'], '传输失败 http_code=0' );
 			$serialized = (string) json_encode( $event, JSON_UNESCAPED_UNICODE );
 			self::assertStringNotContainsString( 'https://', $serialized, '零 URL' );
-			self::assertStringNotContainsString( '作者', $serialized, '零评论正文' );
+			self::assertStringNotContainsString( '“Comment must be manually approved”: %1$s; “Comment author must have a previously approved comment”: %2$s.', $serialized, '零评论正文' );
 			self::assertStringNotContainsString( '117.', $serialized, '零 IP' );
 			self::assertSame( array( 'remote_transport' ), $event['hits'], 'rule_hit=remote_<category>（故障谓词+人话映射复用）' );
 		}

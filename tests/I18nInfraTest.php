@@ -56,9 +56,12 @@ final class I18nInfraTest extends TestCase {
 		$src   = self::src( 'languages/wink-wp-gatekeeper.pot' );
 		$count = preg_match_all( '/^msgid /m', $src );
 		self::assertIsInt( $count );
-		// 【批 I-1】中文 key 形态过渡产物首跑实测条数（含头部空 msgid）。
-		// 【批 I-2 key 化后翻转为新条数】——本钉届时随英文 key 重生成翻转，非本批事。
-		self::assertSame( 864, $count, 'pot ^msgid 行数 === 864（批 I-1 中文 key 过渡形态首跑基准；批 I-2 key 化后翻转）' );
+		// 【批 I-1】中文 key 形态过渡产物首跑实测条数（含头部空 msgid）：864。
+		// 【批 I-2b key 化后英文 key pot】869 = 864 目录唯一键 + 4 插件头元数据
+		// （Text Domain 翻新为 wink-wp-gatekeeper 后 make-pot 纳入 Name/Description/
+		// PluginURI/Author）+ 1 头部空 msgid；msgctxt 4 条（call-count/error-count/
+		// drill-active/audit-running）各计一行 msgid。
+		self::assertSame( 869, $count, 'pot ^msgid 行数 === 869（批 I-2b key 化后英文 key pot——含插件头元数据）' );
 	}
 
 	public function test_pot_first_entry_is_empty_translation_template(): void {
@@ -111,6 +114,87 @@ final class I18nInfraTest extends TestCase {
 		);
 		// 注意：刻意不 pin domain 字面值——批 I-2 domain 翻转（wink-gatekeeper →
 		// wink-wp-gatekeeper）与 key 化同 pass 时另立 pin，本批不动运行时代码。
+	}
+
+	/* ---------- ⑥ 批 I-2b key 化+domain 翻转+zh_CN 产线钉 ---------- */
+
+	/**
+	 * 批 I-2b：load_plugin_textdomain 首参=插件 slug 新 domain（domain 翻转钉）。
+	 */
+	public function test_bootstrap_loads_new_textdomain_slug(): void {
+		$src = self::src( 'includes/Bootstrap.php' );
+		self::assertMatchesRegularExpression(
+			"/load_plugin_textdomain\(\s*'wink-wp-gatekeeper'/",
+			$src,
+			'批 I-2b domain 翻转：load_plugin_textdomain 首参必须已是 wink-wp-gatekeeper'
+		);
+	}
+
+	/**
+	 * 批 I-2b：zh_CN po/mo 产物在场 + po 条目数口径钉。
+	 *
+	 * 852 = 851 翻译条（873 目录 - 22 既有英文键）+ 头部空 msgid；4 插件头元数据
+	 * 与 13 既有英文键不入 po（批 I-2b 口径——po 只承翻译面）。
+	 */
+	public function test_zh_cn_po_mo_present_with_expected_entry_count(): void {
+		$base = dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper-zh_CN';
+		self::assertFileExists( $base . '.po', '批 I-2b 产线：zh_CN po 必须入库' );
+		self::assertFileExists( $base . '.mo', '批 I-2b 产线：zh_CN mo 必须入库' );
+		self::assertGreaterThan( 0, (int) filesize( $base . '.mo' ), 'mo 非空（wk-mo --strict 编译产物）' );
+		$po_src  = (string) file_get_contents( $base . '.po' );
+		$count   = preg_match_all( '/^msgid /m', $po_src );
+		self::assertIsInt( $count );
+		self::assertSame( 852, $count, 'zh_CN po ^msgid === 852（851 翻译条 + 头部空 msgid；对账 work 目录 873 条 - 22 既有英文键）' );
+	}
+
+	/**
+	 * 批 I-2b：po 头部 locale 钉（zh_CN 单复数 + Language 标记）。
+	 */
+	public function test_zh_cn_po_header_locale_pins(): void {
+		$po_src = (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper-zh_CN.po' );
+		self::assertStringContainsString( 'Plural-Forms: nplurals=1; plural=0;', $po_src, 'zh_CN 单复数形态头' );
+		self::assertStringContainsString( 'Language: zh_CN', $po_src, 'Language: zh_CN 头标记' );
+	}
+
+	/**
+	 * 批 I-2b：旧 text domain 串全库（生产+tests，排除 languages/）零残留钉。
+	 *
+	 * 豁免：\WP_CLI::add_command 行——wp-cli 命令名与旧 domain 同形，非 text domain。
+	 */
+	public function test_old_text_domain_zero_residuals(): void {
+		$root     = dirname( __DIR__ );
+		$files    = array_merge(
+			glob( $root . '/*.php' ) ?: array(),
+			self::php_files_under( $root . '/includes' ),
+			self::php_files_under( $root . '/tests' )
+		);
+		$offenders = array();
+		foreach ( $files as $file ) {
+			$src = (string) file_get_contents( $file );
+			foreach ( preg_split( '/\r\n|\r|\n/', $src ) as $lineno => $line ) {
+				if ( str_contains( $line, "'wink-gatekeeper'" ) && ! str_contains( $line, 'add_command' ) ) {
+					$offenders[] = basename( $file ) . ':' . ( $lineno + 1 );
+				}
+			}
+		}
+		self::assertSame( array(), $offenders, '旧 text domain 串零残留（wp-cli add_command 命令名同形豁免）。违例：' . implode( ', ', $offenders ) );
+	}
+
+	/**
+	 * 递归收集目录下全部 .php 文件（旧 domain 扫描钉辅助）。
+	 *
+	 * @param string $dir 目录。
+	 * @return array<int, string>
+	 */
+	private static function php_files_under( string $dir ): array {
+		$out = array();
+		$it  = new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( $dir, \FilesystemIterator::SKIP_DOTS ) );
+		foreach ( $it as $file_info ) {
+			if ( $file_info instanceof \SplFileInfo && 'php' === $file_info->getExtension() ) {
+				$out[] = $file_info->getPathname();
+			}
+		}
+		return $out;
 	}
 
 	/* ---------- ⑤ .gitignore 三产物全入库策略 pin ---------- */

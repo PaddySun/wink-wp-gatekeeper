@@ -225,9 +225,9 @@ final class LoginGateXmlrpcOnceTest extends TestCase {
 		self::assertIsString( $src, 'LoginGate.php 必须可读' );
 
 		$this->assertStringContainsString(
-			"new \\WP_Error( self::ERROR_CODE_XMLRPC, __( self::MSG_XMLRPC, 'wink-gatekeeper' ) )",
+		"new \\WP_Error( self::ERROR_CODE_XMLRPC, __( 'Too many failed logins. XML-RPC logins are temporarily disabled (captchas cannot be presented within the XML-RPC protocol). Please try again later, or complete human verification in a web browser.', 'wink-wp-gatekeeper' ) )",
 			$src,
-			'XML-RPC fault 文案须走 __() 包装（i18n 纪律一致性）'
+			'XML-RPC fault 文案须走 __() 包装（i18n 纪律一致性——批 I-2b 拍平为英文 key 字面量）'
 		);
 	}
 

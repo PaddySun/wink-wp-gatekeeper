@@ -284,10 +284,10 @@ final class IpWhitelistTest extends TestCase {
 
 	public function test_zone_source_whitelist_copy_three_lines(): void {
 		$src = (string) file_get_contents( __DIR__ . '/../includes/settings/SettingsPage.php' );
-		$this->assertStringContainsString( '永不查信誉、永不上报', $src, '文案①双通道豁免语义' );
-		$this->assertStringContainsString( '受信网段管解析信任链', $src, '文案②与受信网段的区别' );
-		$this->assertStringContainsString( '白名单管信誉豁免', $src, '文案②续' );
-		$this->assertStringContainsString( '误伤', $src, '文案③误伤防护语义' );
+		$this->assertStringContainsString( 'One IP or CIDR per line (v4/v6) — matches are never reputation-checked and never reported (exempt on both the verdict and reporting channels, zero outbound calls).', $src, '文案①双通道豁免语义' );
+		$this->assertStringContainsString( 'Versus “trusted ranges”: trusted ranges govern the parsing trust chain (whose forwarded headers to believe), while the allowlist governs reputation exemption (who is never checked) — neither substitutes for the other.', $src, '文案②与受信网段的区别' );
+		$this->assertStringContainsString( 'Versus “trusted ranges”: trusted ranges govern the parsing trust chain (whose forwarded headers to believe), while the allowlist governs reputation exemption (who is never checked) — neither substitutes for the other.', $src, '文案②续' );
+		$this->assertStringContainsString( 'Captcha over threshold — no account locks, no collateral damage to real users: crossing the threshold within the window only adds a captcha challenge, never locking accounts or IPs (to avoid locking out office egress IPs / home NAT users; Wordfence-style hard lockouts are deliberately not done).', $src, '文案③误伤防护语义' );
 	}
 
 	public function test_admin_brand_js_binds_whitelist_check(): void {

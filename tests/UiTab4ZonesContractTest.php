@@ -99,7 +99,7 @@ final class UiTab4ZonesContractTest extends TestCase {
 			. self::body( 'render_iprep_zone_notes' );
 		// 【W3·批C·N6 翻转注记】「950 漂移文案」禁令退役——950 现为 N6 拍板新默认
 		// （免费档 1000/天留 5%）；占位漂移禁令只保留 fail_mode/M3 实装/旧上报文案面。
-		$this->assertStringContainsString( '免费档 1000', $bodies, '免费档统一口径文案在场（N6 拍板——退役「贡献者 5000 次/天」个人账户口径）' );
+	$this->assertStringContainsString( 'AbuseIPDB free tier: 1,000 lookups/day', $bodies, '免费档统一口径文案在场（N6 拍板——退役「贡献者 5000 次/天」个人账户口径）' );
 		$this->assertStringNotContainsString( '贡献者 5000', $bodies, '「贡献者 5000 次/天」旧口径退役（N6 拍板统一免费档口径）' );
 		$this->assertStringNotContainsString( 'fail_mode', $bodies, 'fail_mode 降级开关文案退役（键已废弃）' );
 		$this->assertStringNotContainsString( 'M3 实装', $bodies, '「M3 实装」占位句退役' );
@@ -122,10 +122,10 @@ final class UiTab4ZonesContractTest extends TestCase {
 			$this->assertStringContainsString( "IpResolver::{$mode_const}", $body, "模式下拉含 {$mode_const} 档" );
 		}
 		// 拓扑注记三行（定稿 §5.2）。
-		$this->assertStringContainsString( '直连', $body );
+		$this->assertStringContainsString( 'Direct', $body );
 		$this->assertStringContainsString( 'CF', $body, 'CF 托管→custom_header 注记' );
-		$this->assertStringContainsString( '自建反代', $body, '自建反代多级→traverse 注记' );
-		$this->assertStringContainsString( '不作默认', $body, 'traverse 不作默认警示保留' );
+		$this->assertStringContainsString( 'self-hosted proxies', $body, '自建反代多级→traverse 注记' );
+		$this->assertStringContainsString( 'traverse = REMOTE_ADDR must hit a trusted range, then walk the XFF right-to-left skipping trusted proxies and take the first untrusted IP — not the default: on deployments that can reach the origin directly, walking backwards would trust a forged chain.', $body, 'traverse 不作默认警示保留' );
 
 		// 自定义头名输入。
 		$this->assertStringContainsString( "array( 'network', 'custom_header' )", $body, '自定义头名输入' );
@@ -193,7 +193,7 @@ final class UiTab4ZonesContractTest extends TestCase {
 
 		$this->assertStringContainsString( 'daily_total_for', $body, '软顶命中判定消费 Usage 当日计数' );
 		$this->assertStringContainsString(
-			'当日查询配额已用尽——今日人机验证将临时对所有访客强制，次日自动恢复',
+			'Today\\\'s lookup quota is exhausted — human verification is temporarily enforced for all visitors today and auto-resumes tomorrow.',
 			$body,
 			'软顶命中黄条文案【O5 回写·P2-4】'
 		);
@@ -206,8 +206,8 @@ final class UiTab4ZonesContractTest extends TestCase {
 		$body = self::body( 'render_iprep_zone_report' );
 
 		$this->assertStringContainsString( 'id="wk-iprep-report"', $body, '分区③ DOM 锚' );
-		$this->assertStringContainsString( "array( 'iprep', 'report', 'enabled' )", $body, '上报总开关' );
-		$this->assertStringContainsString( '启用后访客 IP 将提交至境外服务 AbuseIPDB', $body, '出境黄条（PIPL 提示）' );
+		$this->assertStringContainsString( "array( 'iprep', 'report', 'enabled' )", $body, 'Reporting master switch' );
+		$this->assertStringContainsString( 'When enabled, visitor IPs are submitted to the overseas service AbuseIPDB.', $body, '出境黄条（PIPL 提示）' );
 		$this->assertMatchesRegularExpression( "/self::notice_yellow_bar[(]\s*'warn'/", $body, '出境提示为黄条形态 warn 级（【W3·批B 翻转】插件级类承载）' );
 	}
 
@@ -232,22 +232,22 @@ final class UiTab4ZonesContractTest extends TestCase {
 		$this->assertStringNotContainsString( '可留空用默认', $body, '旧逐面占位提示文案退役（UI-2-1 收敛）' );
 		$this->assertStringContainsString( 'default_comment', $body, 'placeholder 回显默认短语（UI-2-2）' );
 		$this->assertStringContainsString( '{event_no}', $body, '占位符白名单提示（共享说明承接）' );
-		$this->assertStringContainsString( 'AbuseIPDB 报告详情公开可见', $body, '公开可见警示' );
+		$this->assertStringContainsString( 'Do not enter sensitive site information or personal data — AbuseIPDB report details are publicly visible (visitor IPs are submitted to an overseas service; assess cross-border PIPL compliance yourself).', $body, '公开可见警示' );
 	}
 
 	public function test_zone_report_readonly_gates_and_selfcheck_line(): void {
 		$body = self::body( 'render_iprep_zone_report' );
 
 		// 冷却/限速/日顶只读展示（无输入控件——assert 这三键不以 field_name 形态出现）。
-		$this->assertStringContainsString( '每 IP 冷却', $body );
-		$this->assertStringContainsString( '全局限速', $body );
-		$this->assertStringContainsString( '日顶', $body );
+		$this->assertStringContainsString( 'Per-IP cooldown %1$d minutes · global rate limit %2$d/hour · daily ceiling %3$d/day (a separate reporting pool that does not eat lookup quota).', $body );
+		$this->assertStringContainsString( 'Per-IP cooldown %1$d minutes · global rate limit %2$d/hour · daily ceiling %3$d/day (a separate reporting pool that does not eat lookup quota).', $body );
+		$this->assertStringContainsString( 'Per-IP cooldown %1$d minutes · global rate limit %2$d/hour · daily ceiling %3$d/day (a separate reporting pool that does not eat lookup quota).', $body );
 		$this->assertStringNotContainsString( "array( 'iprep', 'report', 'cooldown_minutes' )", $body, '冷却只读展示（无输入控件）' );
 		$this->assertStringNotContainsString( "array( 'iprep', 'report', 'hourly_limit' )", $body, '限速只读展示' );
 		$this->assertStringNotContainsString( "array( 'iprep', 'report', 'daily_cap' )", $body, '日顶只读展示' );
 		// 启用门禁状态行（real_ip_self_check 消费；未过=红字强制失效文案）。
 		$this->assertStringContainsString( 'AbuseIpdbService::real_ip_self_check', $body, '启用门禁自检消费' );
-		$this->assertStringContainsString( '上报已强制失效：真实 IP 解析异常（NAT/反代共显）', $body, '未过门禁红字文案' );
+		$this->assertStringContainsString( 'Reporting has been force-disabled: real-IP resolution is abnormal (NAT / reverse proxy both present).', $body, '未过门禁红字文案' );
 	}
 
 	/* ---------- 分区④ 说明卡 ---------- */
@@ -256,12 +256,12 @@ final class UiTab4ZonesContractTest extends TestCase {
 		$body = self::body( 'render_iprep_zone_notes' );
 
 		$this->assertStringContainsString( 'id="wk-iprep-notes"', $body, '分区④ DOM 锚' );
-		$this->assertStringContainsString( '跳过（skip）', $body, 'skip 人话行' );
-		$this->assertStringContainsString( '通过（pass）', $body, 'pass 人话行' );
-		$this->assertStringContainsString( '不通过（fail）', $body, 'fail 人话行' );
-		$this->assertStringContainsString( '老朋友', $body, '信用免验联动说明（iprep fail 老朋友通道也过码）' );
+		$this->assertStringContainsString( 'Skip: IP reputation is disabled, or the lookup happens to be unavailable right now (backoff / paused / private network) — no say in the verdict, verification proceeds as usual, and “old friend” waiver eligibility is unaffected.', $body, 'skip 人话行' );
+		$this->assertStringContainsString( 'Pass: good reputation — through as usual, invisible to the visitor.', $body, 'pass 人话行' );
+		$this->assertStringContainsString( 'Fail: malicious / suspected IP, or misconfiguration, timeout, error, over-threshold — always strict: the visitor must pass human verification first.', $body, 'fail 人话行' );
+		$this->assertStringContainsString( 'old friend', $body, '信用免验联动说明（iprep fail 老朋友通道也过码）' );
 		$this->assertStringContainsString(
-			'当日查询配额用尽后，验证码将临时对所有访客强制——次日自动恢复，非故障',
+			'After the day\\\'s lookup quota is exhausted, the captcha is temporarily enforced for all visitors — it auto-resumes the next day; not a malfunction.',
 			$body,
 			'软顶人话句【O5 回写·P2-4】'
 		);

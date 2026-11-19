@@ -136,7 +136,7 @@ namespace WinkGatekeeper {
 		 * @param string $domain 文本域（桩忽略）。
 		 * @return string
 		 */
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			unset( $domain );
 			return $text;
 		}
@@ -833,15 +833,15 @@ namespace WinkGatekeeper\Tests {
 			$src = self::src( 'includes/settings/SettingsPage.php' );
 			$this->assertMatchesRegularExpression( '/IpResolver::proxy_header_conflict[\s\S]{0,900}notice_yellow_bar/', $src, 'Tab④ 判定与黄条渲染位相邻（helper 复用——无空接线）' );
 			$this->assertStringContainsString( 'wk-iprep-proxy-header-alert', $src, 'Tab④ 黄条 DOM 锚在场' );
-			$this->assertStringContainsString( 'per-IP 防线', $src, '任务口径文案片段（限流/登录阈/信誉归因失效面）' );
-			$this->assertStringContainsString( '与部署拓扑匹配', $src, '任务口径文案片段（处置指引）' );
+			$this->assertStringContainsString( 'per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely', $src, '任务口径文案片段（限流/登录阈/信誉归因失效面）' );
+			$this->assertStringContainsString( 'choose an IP source that matches your deployment topology', $src, '任务口径文案片段（处置指引）' );
 		}
 
 		public function test_p9_dashboard_widget_renders_conflict_alert_source_scan(): void {
 			$src = self::src( 'includes/Bootstrap.php' );
 			$this->assertStringContainsString( 'IpResolver::proxy_header_conflict', $src, '仪表盘 Widget 消费同一判定函数（判定单一来源）' );
 			$this->assertStringContainsString( 'wk-widget-proxy-header-alert', $src, '仪表盘站务提醒位 DOM 锚在场' );
-			$this->assertStringContainsString( 'per-IP 防线', $src, '仪表盘侧文案同口径' );
+			$this->assertStringContainsString( 'Proxy forwarding headers detected but the IP source is direct — per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely; choose an IP source that matches your deployment topology in the network settings.', $src, '仪表盘侧文案同口径' );
 		}
 
 		public function test_p9_conflict_only_when_direct_mode_constant_guard(): void {

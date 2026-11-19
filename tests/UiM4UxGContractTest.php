@@ -131,7 +131,7 @@ final class UiM4UxGContractTest extends TestCase {
 		$details = self::htmlBlock( $body, 'id="wk-iprep-source-advanced"', '</section>' );
 
 		$this->assertStringContainsString( 'self::advanced_fold(', $body, '折叠迁 helper（details.adv 形态承载）' );
-		$this->assertStringContainsString( '高级设置', $details, '折叠区标题' );
+		$this->assertStringContainsString( 'Advanced (real-IP method / custom header / trusted ranges / allowlist)', $details, '折叠区标题' );
 		foreach ( array( "'network', 'ip_source'", "'network', 'custom_header'", "'network', 'trusted_proxies', 'cloudflare'", "'network', 'trusted_proxies', 'custom'", "'iprep', 'whitelist'", 'wk-iprep-cidr-check' ) as $key ) {
 			$this->assertStringContainsString( $key, $details, "模式选择/自定义头/预设选择器/受信网段/白名单/CIDR 校验收进折叠（{$key}）" );
 		}
@@ -142,13 +142,13 @@ final class UiM4UxGContractTest extends TestCase {
 		$before = substr( $body, 0, (int) strpos( $body, 'id="wk-iprep-source-advanced"' ) );
 
 		$this->assertStringContainsString( 'render_ip_diagnostic_panel(', $before, '诊断面板调用在折叠区之前（「当前生效」行+「手动聚合查询工具」卡默认展开）' );
-		$this->assertStringContainsString( '请核对当前 IP 是否与您的真实出口一致', $before, '常显提示在折叠区之前' );
+		$this->assertStringContainsString( 'Please check whether the current IP matches your actual egress address; if not, expand the configuration.', $before, '常显提示在折叠区之前' );
 
 		$panel = self::functionBody( self::settings_src(), 'render_ip_diagnostic_panel' );
-		$this->assertStringContainsString( '当前生效', $panel, '「当前生效」行在诊断面板（默认展开）' );
-		$this->assertStringContainsString( '手动聚合查询区', $panel, '「手动聚合查询工具」卡在诊断面板（默认展开）' );
+		$this->assertStringContainsString( 'Currently in effect', $panel, '「当前生效」行在诊断面板（默认展开）' );
+		$this->assertStringContainsString( 'Manual aggregate query', $panel, '「手动聚合查询工具」卡在诊断面板（默认展开）' );
 		$this->assertStringContainsString( 'wk-ip-diag-query', $panel, '手动聚合查询按钮默认展开' );
-		$this->assertStringNotContainsString( '真实 IP 获取方式', $before, '模式选择默认收进折叠' );
+		$this->assertStringNotContainsString( 'Real-IP retrieval method', $before, '模式选择默认收进折叠' );
 		$this->assertStringNotContainsString( 'wk-iprep-custom-cidr', $before, '受信网段 textarea 默认收进折叠' );
 	}
 
@@ -156,7 +156,7 @@ final class UiM4UxGContractTest extends TestCase {
 		$body   = self::functionBody( self::settings_src(), 'render_iprep_zone_source' );
 		$before = substr( $body, 0, (int) strpos( $body, 'id="wk-iprep-source-advanced"' ) );
 
-		$this->assertStringContainsString( '请核对当前 IP 是否与您的真实出口一致，不一致请展开配置', $before, '折叠区旁常显提示一行（用户原话整理）' );
+		$this->assertStringContainsString( 'Please check whether the current IP matches your actual egress address; if not, expand the configuration.', $before, '折叠区旁常显提示一行（用户原话整理）' );
 	}
 
 	/* ===================================================================
@@ -173,7 +173,7 @@ final class UiM4UxGContractTest extends TestCase {
 			$this->assertStringContainsString( $key, $details, "拦截文案组+占位符说明区+恢复默认按钮随组折叠（{$key}）" );
 		}
 		$before = substr( $body, 0, (int) strpos( $body, 'id="wk-copy-advanced"' ) );
-		$this->assertStringContainsString( '语气三原则', $before, '语气三原则小抄不折叠常显' );
+		$this->assertStringContainsString( 'Three tone rules: tease the behavior only / leave a way out / point to the next step.', $before, '语气三原则小抄不折叠常显' );
 		$this->assertStringNotContainsString( 'wk-placeholder-list', $before, '占位符说明区不常显（随组折叠）' );
 	}
 
@@ -233,7 +233,7 @@ final class UiM4UxGContractTest extends TestCase {
 		$this->assertStringContainsString( "admin_url( 'admin-post.php?action='", $body, 'admin-post.php action 链接形态' );
 		$this->assertStringContainsString( 'target="_blank"', $body, '新标签页打开预览' );
 		$this->assertStringContainsString( 'rel="noopener"', $body, 'noopener 防反向标签劫持' );
-		$this->assertStringContainsString( '查看效果', $body, '按钮文案「查看效果」（定稿）' );
+		$this->assertStringContainsString( 'Preview', $body, '按钮文案「查看效果」（定稿）' );
 	}
 
 	public function test_g3_die_preview_action_registered_in_bootstrap(): void {

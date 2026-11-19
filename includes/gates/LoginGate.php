@@ -96,7 +96,7 @@ final class LoginGate extends AccountFormGate {
 	/**
 	 * XML-RPC 拒绝文案（IXR faultString 同文；【P0-8·F1】消费位走 __() 包装——i18n-ready）。
 	 */
-	private const MSG_XMLRPC = '登录失败次数过多，XML-RPC 登录已暂时停用（验证码无法在 XML-RPC 协议内呈现）——请稍后再试，或在网页端完成人机验证。';
+	private const MSG_XMLRPC = 'Too many failed logins. XML-RPC logins are temporarily disabled (captchas cannot be presented within the XML-RPC protocol). Please try again later, or complete human verification in a web browser.';
 
 	/**
 	 * XML-RPC 每请求 auth 尝试上限（P0-B，M3-IP 定稿 §8.2——system.multicall 单 HTTP 请求
@@ -711,7 +711,7 @@ final class LoginGate extends AccountFormGate {
 		}
 		// 【P0-8·F1】访客侧文案走 __() 包装（全库唯一绕过 __()/Copywork 双通道的访客串
 		// ——R-UI §E P0-5；不引 languages/ 目录：__() 空转直出=行为零变化，i18n-ready 铺路）。
-		return new \WP_Error( self::ERROR_CODE_XMLRPC, __( self::MSG_XMLRPC, 'wink-gatekeeper' ) );
+		return new \WP_Error( self::ERROR_CODE_XMLRPC, __( 'Too many failed logins. XML-RPC logins are temporarily disabled (captchas cannot be presented within the XML-RPC protocol). Please try again later, or complete human verification in a web browser.', 'wink-wp-gatekeeper' ) );
 	}
 
 	/**

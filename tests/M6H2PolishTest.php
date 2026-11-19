@@ -71,7 +71,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function esc_html__( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -84,7 +84,7 @@ namespace WinkGatekeeper\Settings {
 		 * @param string $domain 文本域（忽略）。
 		 * @return string
 		 */
-		function __( string $text, string $domain = 'wink-gatekeeper' ): string {
+		function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
 			return $text;
 		}
 	}
@@ -717,8 +717,8 @@ namespace WinkGatekeeper\Tests {
 			);
 			$html = self::renderUrlCard( $settings );
 			self::assertStringContainsString( 'id="wk-url-audit-fetch-streak-notice"', $html, '【H2-2】达阈+新鲜：黄条渲染' );
-			self::assertStringContainsString( '连续 7 次未成功', $html, '动态 N 注入（H-2 printf 先例）' );
-			self::assertStringContainsString( '请检查凭据、余额与端点状态', $html, '人话指引文案' );
+			self::assertStringContainsString( 'failed 7 times in a row', $html, '动态 N 注入（H-2 printf 先例）' );
+			self::assertStringContainsString( 'has failed 7 times in a row', $html, '人话指引文案' );
 
 			// 未达阈（n=4）→ 不渲染。
 			$GLOBALS['wk_ua_option_store']['wink_gatekeeper_url_audit_fetch_streak'] = array(

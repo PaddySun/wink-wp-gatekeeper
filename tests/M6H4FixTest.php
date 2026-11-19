@@ -58,8 +58,8 @@ namespace WinkGatekeeper\Tests {
 		/* H4-2 体检黄条卡顶（位置=黄条锚先于说明文锚） */
 		public function test_h42_audit_bar_at_card_top(): void {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
-			$h2   = strpos( $body, '历史评论体检' );
-			$desc = strpos( $body, '把站里已有的评论整体交服务商再查一遍' );
+			$h2   = strpos( $body, 'Existing comment audit' );
+			$desc = strpos( $body, 'Hands all existing comments to the provider' );
 			$bar  = strpos( $body, 'wk-tools-audit-running-bar' );
 			self::assertNotFalse( $h2 );
 			self::assertNotFalse( $desc );
@@ -72,7 +72,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_h43_url_audit_off_notice(): void {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_tab_tools' );
 			self::assertStringContainsString( 'wk-tools-url-audit-off-notice', $body, '【H4-3】未开启独立黄条锚' );
-			self::assertStringContainsString( '网址核查未开启', $body, '文案保持' );
+			self::assertStringContainsString( 'The URL check is off — enable “URL check” on the “Cloud moderation” tab first, then come back to start the existing-URL check.', $body, '文案保持' );
 			self::assertMatchesRegularExpression( "/self::notice_yellow_bar\(\s*'warn'/", $body, '插件级黄条 warn 级（【W3·批B 翻转】U-1 式黄条迁 notice_yellow_bar）' );
 		}
 
@@ -80,7 +80,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_h44_intercept_block_grouped(): void {
 			$body = self::functionBody( self::source( 'includes/settings/SettingsPage.php' ), 'render_stats_comment_section' );
 			self::assertStringContainsString( 'wk-defense-group', $body, '防线组类在场' );
-			$group = strpos( $body, '发布后复核防线' );
+			$group = strpos( $body, 'Post-publish review line (URL check)' );
 			$block = strpos( $body, 'wk-stats-url-intercept-block' );
 			self::assertNotFalse( $group, '【H4-4】复核块组标题' );
 			self::assertGreaterThan( $group, $block, '组标题先于块（h4+卡节奏对齐）' );
