@@ -252,15 +252,15 @@ namespace WinkGatekeeper\Tests {
 			}
 
 			// 结果三态映射（Q3 同源——出码·拦下｜未过码·拦下；放行不在拒绝数据面不虚构）。
-			self::assertSame( '出码 · 拦下', $rows[0][1], 'captcha 阶段=出码 · 拦下' );
-			self::assertSame( '未过码 · 拦下', $rows[1][1], 'stub 预检阶段=未过码 · 拦下' );
-			self::assertSame( '拦下', $rows[2][1], 'review 码后阶段=如实「拦下」（免验/已过码两实态不可分——码语汇不冒充）' );
+			self::assertSame( 'Captcha shown · blocked', $rows[0][1], 'captcha 阶段=出码 · 拦下' );
+			self::assertSame( 'Captcha not passed · blocked', $rows[1][1], 'stub 预检阶段=未过码 · 拦下' );
+			self::assertSame( 'Blocked', $rows[2][1], 'review 码后阶段=如实「拦下」（免验/已过码两实态不可分——码语汇不冒充）' );
 
 			// 门名/原因（trigger 归因优先，缺省回落 rule_hit 人话）。
-			self::assertSame( '评论门', $rows[0][2], '门名走 Labels::gate_word' );
-			self::assertSame( '登录门', $rows[1][2], '登录门名' );
-			self::assertSame( '票据签名不对', $rows[0][3], '无 trigger 回落 rule_hit 人话' );
-			self::assertSame( '同一账号连错太多次', $rows[1][3], 'trigger_source 归因优先（account_reject_rows 同口径）' );
+			self::assertSame( 'Comments', $rows[0][2], '门名走 Labels::gate_word' );
+			self::assertSame( 'Login', $rows[1][2], '登录门名' );
+			self::assertSame( 'Bad ticket signature', $rows[0][3], '无 trigger 回落 rule_hit 人话' );
+			self::assertSame( 'Too many consecutive failures for this account', $rows[1][3], 'trigger_source 归因优先（account_reject_rows 同口径）' );
 
 			// 事件编号原样（WK- 前缀保真——访客报障对账面）。
 			self::assertSame( 'WK-20261118-0007', $rows[0][4], '事件编号列保真' );
@@ -280,15 +280,15 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		public function test_export_result_word_matrix(): void {
-			self::assertSame( '出码 · 拦下', Labels::export_result_word( 'captcha' ), '出码阶段（两域同词——Labels::account_result_word 同源）' );
-			self::assertSame( '未过码 · 拦下', Labels::export_result_word( 'stub' ), '登录预检=未过码 · 拦下' );
-			self::assertSame( '未过码 · 拦下', Labels::export_result_word( 'ip' ), '评论 IP 信誉阶段=码前拦（未过码 · 拦下如实）' );
-			self::assertSame( '拦下', Labels::export_result_word( 'review' ), '码后复核阶段不冒充码语汇' );
+			self::assertSame( 'Captcha shown · blocked', Labels::export_result_word( 'captcha' ), '出码阶段（两域同词——Labels::account_result_word 同源）' );
+			self::assertSame( 'Captcha not passed · blocked', Labels::export_result_word( 'stub' ), '登录预检=未过码 · 拦下' );
+			self::assertSame( 'Captcha not passed · blocked', Labels::export_result_word( 'ip' ), '评论 IP 信誉阶段=码前拦（未过码 · 拦下如实）' );
+			self::assertSame( 'Blocked', Labels::export_result_word( 'review' ), '码后复核阶段不冒充码语汇' );
 		}
 
 		public function test_export_csv_columns_header_const(): void {
 			self::assertSame(
-				array( '时间', '结果', '哪张门', '原因', '事件编号' ),
+				array( 'Time', 'Result', 'Gate', 'Reason', 'Event No.' ),
 				InterceptDigest::EXPORT_CSV_COLUMNS,
 				'列头闭集（任务口径五列——与登录流水表列面同词汇族）'
 			);
@@ -348,7 +348,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( 'Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented.', $fold, '如实注：当前零控件零行为（不冒充实装）' );
 
 			// 零控件：ghost 块内零表单控件（零 field_name/零 input name）。
-			$ghost_start = strpos( $fold, '每日验证额度' );
+			$ghost_start = strpos( $fold, 'Daily verification quota' );
 			self::assertNotFalse( $ghost_start );
 			$ghost = substr( (string) $fold, (int) $ghost_start );
 			self::assertStringNotContainsString( 'field_name', $ghost, '零新键（无表单字段）' );
@@ -421,7 +421,7 @@ namespace WinkGatekeeper\Tests {
 			$entry085 = self::block_between( $readme, '= 0.8.5 =', '= 0.8.4 =' );
 			self::assertStringContainsString( '后台', $entry085, '批 A/B 后台重设计要点' );
 			self::assertStringContainsString( '配色', $entry085, '批 A token 双组跟随 WP 配色要点' );
-			self::assertStringContainsString( 'Wink WP 保安', $entry085, '批 B 改名要点' );
+			self::assertStringContainsString( 'Wink WP 保安', $entry085, '批 B 改名要点（i18n I-3：readme 历史条目 zh 锚保留）' );
 			self::assertStringContainsString( '向导', $entry085, '批 C 首启向导要点' );
 			self::assertStringContainsString( '导出', $entry085, '批 D CSV 导出要点' );
 			self::assertStringContainsString( '测试 2139→', $entry085, '四批测试数轨迹（2139 起点如实）' );

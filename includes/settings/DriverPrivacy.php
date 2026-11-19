@@ -38,26 +38,26 @@ final class DriverPrivacy {
 			'tencent_tms' => array(
 				'cross_border' => false,
 				'privacy_url'  => self::TENCENT_PRIVACY_URL,
-				'data_fields'  => '昵称、邮箱、评论正文（拼接串；关闭「昵称/邮箱拼接送审」时仅正文）',
-				'region_note'  => '境内节点 ap-guangzhou，数据不出境',
+				'data_fields'  => __( 'Nickname, email, comment body (concatenated string; body only when “nickname/email concatenation” is off)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Domestic node ap-guangzhou; data stays in China', 'wink-wp-gatekeeper' ),
 			),
 			'deepseek'    => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M3 抓取 platform.deepseek.com 隐私政策后补 URL（05 §4 置信列）。
-				'data_fields'  => '昵称、邮箱、评论正文（拼接串；关闭拼接时仅正文）',
-				'region_note'  => '境内服务商',
+				'data_fields'  => __( 'Nickname, email, comment body (concatenated string; body only when concatenation is off)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Domestic provider', 'wink-wp-gatekeeper' ),
 			),
 			'openai_custom' => array(
 				'cross_border' => null, // 端点所在司法辖区未知。
 				'privacy_url'  => '',   // 站长自负。
-				'data_fields'  => '昵称、邮箱、评论正文（拼接串；关闭拼接时仅正文）',
-				'region_note'  => '端点所在司法辖区未知，请自行评估数据出境合规（v1.2 通用出境提示原文迁入）',
+				'data_fields'  => __( 'Nickname, email, comment body (concatenated string; body only when concatenation is off)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'The jurisdiction of the endpoint is unknown; assess cross-border compliance yourself (v1.2 generic notice migrated verbatim)', 'wink-wp-gatekeeper' ),
 			),
 			'moli'        => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M4 逐家抓取。
-				'data_fields'  => '昵称、邮箱、评论正文（拼接串；关闭拼接时仅正文）',
-				'region_note'  => '境内服务商',
+				'data_fields'  => __( 'Nickname, email, comment body (concatenated string; body only when concatenation is off)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Domestic provider', 'wink-wp-gatekeeper' ),
 			),
 			'baidu'       => array(
 				'cross_border' => false,
@@ -65,45 +65,45 @@ final class DriverPrivacy {
 				// 【v1.5·B6】分字段送审（昵称+正文两行）——**邮箱不送审**（真机实锤：任何邮箱
 				// 地址本身判 36-广告 360104 误杀，IMPL-B6 偏差 1——阿里 pt_to_contact 同类；
 				// 邮箱防线在 LocalRules 拼接串）。设计原「拼接串含邮箱」口径作废。
-				'data_fields'  => '昵称、评论正文（分字段送审；邮箱不送审）',
-				'region_note'  => '境内节点 aip.baidubce.com，数据不出境',
+				'data_fields'  => __( 'Nickname, comment body (per-field submission; email is not submitted)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Domestic node aip.baidubce.com; data stays in China', 'wink-wp-gatekeeper' ),
 			),
 			'aliyun_green' => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M4 逐家抓取。
 				// 【v1.5·B5】05 §2.5 registry 建议行口径：双 Service 分送（昵称/正文两调）。
-				'data_fields'  => '昵称、邮箱、评论正文（分通道送审）',
-				'region_note'  => '境内节点 green-cip.cn-shanghai，数据不出境',
+				'data_fields'  => __( 'Nickname, email, comment body (per-channel submission)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Domestic node green-cip.cn-shanghai; data stays in China', 'wink-wp-gatekeeper' ),
 			),
 			'tencent'     => array(
 				'cross_border' => false,
 				'privacy_url'  => self::TENCENT_PRIVACY_URL,
-				'data_fields'  => '访客 IP、票据 Ticket/Randstr（DescribeCaptchaResult UserIp 参数）',
-				'region_note'  => '境内，数据不出境',
+				'data_fields'  => __( 'Visitor IP, ticket Ticket/Randstr (DescribeCaptchaResult UserIp parameter)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Domestic; data stays in China', 'wink-wp-gatekeeper' ),
 			),
 			'aliyun'      => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M4 逐家抓取。
-				'data_fields'  => '访客 IP（行为采集，经阿里客户端 SDK）、CaptchaVerifyParam', // 【v1.5·B3】05 §1.2 registry 行口径。
-				'region_note'  => '境内，数据不出境',
+				'data_fields'  => __( 'Visitor IP (behavior collection via the Aliyun client SDK), CaptchaVerifyParam', 'wink-wp-gatekeeper' ), // 【v1.5·B3】05 §1.2 registry 行口径。
+				'region_note'  => __( 'Domestic; data stays in China', 'wink-wp-gatekeeper' ),
 			),
 			'geetest'     => array(
 				'cross_border' => false,
 				'privacy_url'  => '', // M4 逐家抓取。
-				'data_fields'  => '访客 IP、验证六参数',
-				'region_note'  => '境内，数据不出境',
+				'data_fields'  => __( 'Visitor IP, six verification parameters', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Domestic; data stays in China', 'wink-wp-gatekeeper' ),
 			),
 			'hcaptcha'    => array(
 				'cross_border' => true,
 				'privacy_url'  => 'https://www.hcaptcha.com/privacy-policy',
-				'data_fields'  => '访客 IP、验证 token',
-				'region_note'  => '境外服务——数据出境',
+				'data_fields'  => __( 'Visitor IP, verification token', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Overseas service — data leaves the country', 'wink-wp-gatekeeper' ),
 			),
 			'turnstile'   => array(
 				'cross_border' => true,
 				'privacy_url'  => 'https://www.cloudflare.com/privacypolicy/',
-				'data_fields'  => '访客 IP、验证 token',
-				'region_note'  => '境外服务——数据出境',
+				'data_fields'  => __( 'Visitor IP, verification token', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Overseas service — data leaves the country', 'wink-wp-gatekeeper' ),
 			),
 			'abuseipdb'   => array(
 				'cross_border' => true,
@@ -114,8 +114,8 @@ final class DriverPrivacy {
 				'privacy_url'  => 'https://www.abuseipdb.com/privacy',
 				// 05 §4 v1.7 备注口径：硬前缀 [wink-wp-gatekeeper] + 每触发面英文攻击形态
 				// 短句——不含站点域名/事件编号/规则词表/PII（原「站点域名+事件编号」口径作废）。
-				'data_fields'  => '访客 IP（check 查询与 report 上报两方向）；上报备注=工具前缀+英文攻击形态短句（不含站点域名/事件编号/规则词表/PII）',
-				'region_note'  => '境外信誉库——数据出境',
+				'data_fields'  => __( 'Visitor IP (both directions: check lookups and report submissions); report notes = tool prefix + short English attack-form phrases (no site domain, event numbers, rule word lists, or PII)', 'wink-wp-gatekeeper' ),
+				'region_note'  => __( 'Overseas reputation database — data leaves the country', 'wink-wp-gatekeeper' ),
 			),
 		);
 	}

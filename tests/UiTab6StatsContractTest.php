@@ -267,7 +267,7 @@ final class UiTab6StatsContractTest extends TestCase {
 		$body = self::body( 'render_stats_overview_strip' );
 		$this->assertStringContainsString( 'Labels::cumulative_line', $body, '总览口径补全走映射表（P9/对照表 24）' );
 		$this->assertStringContainsString( '%1$d blocked today · %2$d to manual review · %3$d errors', $body, '速览条含待审口径' );
-		$this->assertStringContainsString( '留档', $body, 'spam 黄条保留原位（F14）' );
+		$this->assertStringContainsString( 'archive', $body, 'spam 黄条保留原位（F14）' );
 		$this->assertStringContainsString( 'Counting disabled', $body, '统计停用黄字注保留（FIX-δ）' );
 	}
 

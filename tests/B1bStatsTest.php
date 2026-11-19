@@ -119,19 +119,19 @@ final class B1bStatsTest extends TestCase {
 			'reject'         => 4, // 全阶段拦下（captcha 2 + stub 2 的形态）。
 			'attempts'       => 7,
 		) );
-		$this->assertMatchesRegularExpression( '/人机验证 6/u', $note, '人机验证 N = captcha_pass+captcha_reject+captcha 阶段 error（04 §4 口径）' );
-		$this->assertMatchesRegularExpression( '/验证放行 3/u', $note );
-		$this->assertMatchesRegularExpression( '/拦下 4/u', $note, '拦下 K = 既有 reject 维（全阶段）' );
-		$this->assertMatchesRegularExpression( '/密码输错 7/u', $note );
+		$this->assertMatchesRegularExpression( '/Human verification 6 times/u', $note, '人机验证 N = captcha_pass+captcha_reject+captcha 阶段 error（04 §4 口径）' );
+		$this->assertMatchesRegularExpression( '/Verification pass 3 people/u', $note );
+		$this->assertMatchesRegularExpression( '/Blocked 4 times/u', $note, '拦下 K = 既有 reject 维（全阶段）' );
+		$this->assertMatchesRegularExpression( '/Wrong passwords 7 times/u', $note );
 	}
 
 	public function test_account_usage_note_zero_state_is_explicit(): void {
 		// 恒 0 也可读（Tab⑥「恒 0 不可区分」教训——零值显式展示）。
 		$note = InterceptDigest::account_usage_note( array() );
-		$this->assertMatchesRegularExpression( '/人机验证 0/u', $note );
-		$this->assertMatchesRegularExpression( '/验证放行 0/u', $note );
-		$this->assertMatchesRegularExpression( '/拦下 0/u', $note );
-		$this->assertMatchesRegularExpression( '/密码输错 0/u', $note );
+		$this->assertMatchesRegularExpression( '/Human verification 0 times/u', $note );
+		$this->assertMatchesRegularExpression( '/Verification pass 0 people/u', $note );
+		$this->assertMatchesRegularExpression( '/Blocked 0 times/u', $note );
+		$this->assertMatchesRegularExpression( '/Wrong passwords 0 times/u', $note );
 	}
 
 	public function test_account_gate_rows_carry_today_and_total_rejects(): void {
@@ -150,12 +150,12 @@ final class B1bStatsTest extends TestCase {
 		}
 		$this->assertNotNull( $login_row, '三张门分账须有登录门行' );
 		$this->assertSame( 1, $login_row['today_reject'], '今日拦下（recorder 直记值）' );
-		$this->assertSame( 9, $login_row['total_reject'], '累计拦下' );
-		$this->assertMatchesRegularExpression( '/密码输错 5/u', (string) $login_row['note'], '说明列带今日 attempts' );
+		$this->assertSame( 9, $login_row['total_reject'], 'Blocked cumulatively' );
+		$this->assertMatchesRegularExpression( '/Wrong passwords 5/u', (string) $login_row['note'], '说明列带今日 attempts' );
 
 		$note_total = InterceptDigest::account_usage_note( $login_row['total'] );
-		$this->assertMatchesRegularExpression( '/密码输错 20/u', $note_total, '累计行 attempts 可读' );
-		$this->assertMatchesRegularExpression( '/验证放行 10/u', $note_total );
+		$this->assertMatchesRegularExpression( '/Wrong passwords 20/u', $note_total, '累计行 attempts 可读' );
+		$this->assertMatchesRegularExpression( '/Verification pass 10 people/u', $note_total );
 	}
 
 	public function test_account_gate_rows_register_lostpassword_show_zero_attempts(): void {
@@ -171,8 +171,8 @@ final class B1bStatsTest extends TestCase {
 		}
 		$this->assertArrayHasKey( 'register', $found );
 		$this->assertArrayHasKey( 'lostpassword', $found );
-		$this->assertSame( '注册时一律要过人机验证', $found['register']['note'], 'register 无 attempts 维——静态说明列（03 Tab⑥）' );
-		$this->assertSame( '找回密码时一律要过人机验证', $found['lostpassword']['note'] );
+		$this->assertSame( 'Human verification is always required at registration', $found['register']['note'], 'register 无 attempts 维——静态说明列（03 Tab⑥）' );
+		$this->assertSame( 'Human verification is always required for password recovery', $found['lostpassword']['note'] );
 		$this->assertSame( 2, $found['lostpassword']['today_reject'] );
 	}
 

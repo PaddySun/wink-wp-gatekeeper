@@ -117,7 +117,7 @@ final class CommentGateConcatTest extends TestCase {
 			self::server()
 		);
 		$this->assertSame( 'reject', $result['decision'] );
-		$this->assertSame( 'banned_word', $result['evidence']['命中规则'] );
+		$this->assertSame( 'banned_word', $result['evidence']['Matched rule'] );
 	}
 
 	/** 邮箱藏禁词、正文干净 → 拦。 */
@@ -129,7 +129,7 @@ final class CommentGateConcatTest extends TestCase {
 			self::server()
 		);
 		$this->assertSame( 'reject', $result['decision'] );
-		$this->assertSame( 'banned_word', $result['evidence']['命中规则'] );
+		$this->assertSame( 'banned_word', $result['evidence']['Matched rule'] );
 	}
 
 	/** include_author_fields=false：退回仅正文判定——昵称藏词放行。 */
@@ -196,6 +196,6 @@ final class CommentGateConcatTest extends TestCase {
 			self::server()
 		);
 		$this->assertSame( 'reject', $result['decision'] );
-		$this->assertSame( 'too_short', $result['evidence']['命中规则'], '正文 1 字 < 10——长昵称不得稀释字数闸' );
+		$this->assertSame( 'too_short', $result['evidence']['Matched rule'], '正文 1 字 < 10——长昵称不得稀释字数闸' );
 	}
 }

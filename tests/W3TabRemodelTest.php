@@ -89,7 +89,7 @@ final class W3TabRemodelTest extends TestCase {
 	 */
 	public function test_rename_eight_display_spots(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
-		self::assertStringContainsString( 'Plugin Name:       Wink WP 保安', $plugin, '改名①：插件头 Plugin Name' );
+		self::assertStringContainsString( 'Plugin Name:       Wink WP Guard', $plugin, '改名①：插件头 Plugin Name（i18n 批 I-3 头英文化，zh 走 po msgstr）' );
 
 		$bootstrap = self::src( 'includes/Bootstrap.php' );
 		self::assertStringContainsString( "__( 'Wink WP Guard', 'wink-wp-gatekeeper' )", $bootstrap, '改名②③：菜单 page_title/menu_title 双题' );
@@ -98,13 +98,13 @@ final class W3TabRemodelTest extends TestCase {
 
 		$sp = self::sp();
 		self::assertStringContainsString( "esc_attr_e( 'Wink WP Guard', 'wink-wp-gatekeeper' )", $sp, '改名⑤：页头 logo alt' );
-		self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> 保安</span>', $sp, '改名⑥：wordmark 字面（Q1=WP 金高亮 <em> 形态）' );
+self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( \'Guard\', \'wink-wp-gatekeeper\' ); ?></span>', $sp, '改名⑥：wordmark（Q1=WP 金高亮 <em> 形态；i18n 批 I-3 尾词键化，zh msgstr=保安）' );
 		self::assertStringContainsString( "esc_attr_e( 'Wink WP Guard settings sections', 'wink-wp-gatekeeper' )", $sp, '改名⑦：nav aria-label' );
 
 		$die = self::src( 'includes/intercept/DiePage.php' );
-		self::assertStringContainsString( 'alt="Wink WP 保安"', $die, '改名⑧a：拦截页 logo alt 改名（原 alt="wink"）' );
+		self::assertStringContainsString( "alt=\"' . esc_attr__( 'Wink WP Guard', 'wink-wp-gatekeeper' ) . '\"", $die, '改名⑧a：拦截页 logo alt 改名（i18n 批 I-3 esc_attr__ 键化）' );
 		self::assertStringContainsString( 'wk-sign', $die, '改名⑧b：正文末常驻品牌署名行（R3·Q6——前台页补署名）' );
-		self::assertStringContainsString( 'Wink WP 保安', $die, '署名行文案=新名' );
+		self::assertStringContainsString( 'Wink WP Guard', $die, '署名行文案=新名（i18n 批 I-3 键化渲染）' );
 	}
 
 	/**
@@ -141,7 +141,7 @@ final class W3TabRemodelTest extends TestCase {
 		self::assertStringNotContainsString( 'Wink 门口保安', $readme, 'readme 品牌名「Wink 门口保安」零残留（6 处全改）' );
 		self::assertStringNotContainsString( 'wink 门口保安', $readme, 'readme 品牌名「wink 门口保安」零残留' );
 		self::assertSame( 2, substr_count( $readme, '门口保安' ), 'readme 门口保安 残留恰两处=品类泛称白名单+breaking 注④改名条目历史性提及（批 D 翻转）' );
-		self::assertStringContainsString( 'Wink WP 保安', $readme, 'readme 新名在场' );
+		self::assertStringContainsString( 'Wink WP 保安', $readme, 'readme 新名在场（i18n I-3：readme 显示层不改，zh 锚保留）' );
 
 		// 白名单恰六处：五个 CSS/JS/主文件文件头注释 + Bootstrap docblock（注释层）。
 		sort( $hits );

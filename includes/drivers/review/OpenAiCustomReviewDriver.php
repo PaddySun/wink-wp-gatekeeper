@@ -71,7 +71,7 @@ final class OpenAiCustomReviewDriver extends OpenAiCompatibleReviewDriver {
 			'id'           => self::DRIVER_ID,
 			'type'         => 'review',
 			'class'        => self::class,
-			'label'        => '自定义 OpenAI 兼容端点', // future 表既有字面迁移（单一来源，不新造名）。
+			'label'        => __( 'Custom OpenAI-compatible endpoint', 'wink-wp-gatekeeper' ), // future 表既有字面迁移（单一来源，不新造名）。
 			'reachability' => 'self-managed', // 自由字段：站长自负（DriverRegistry 不校验值域）.
 			'billing'      => 'usage',        // 按量计费通用义（实际口径取决于端点）.
 			'frontend'     => array(),        // review 类无前端形态.
@@ -79,21 +79,21 @@ final class OpenAiCustomReviewDriver extends OpenAiCompatibleReviewDriver {
 			'api_version'  => 'chat-completions',
 			'settings'     => array(
 				'api_key'        => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'API Key', 'required' => true ),
-				'base_url'       => array( 'type' => 'url', 'sanitize' => 'url', 'label' => '接入地址', 'required' => true ),
-				'model'          => array( 'type' => 'text', 'sanitize' => 'text', 'label' => '判定模型', 'required' => true ),
-				'timeout'        => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '超时（秒）' ),
-				'daily_quota'    => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '日配额' ),
-				'fail_mode'      => array( 'type' => 'text', 'sanitize' => 'text', 'label' => '故障降级' ),
-				'system_prompt'  => array( 'type' => 'textarea', 'sanitize' => 'textarea', 'label' => '系统提示词' ),
-				'min_confidence' => array( 'type' => 'number', 'sanitize' => 'float', 'label' => '置信阈值' ),
+				'base_url'       => array( 'type' => 'url', 'sanitize' => 'url', 'label' => __( 'Endpoint URL', 'wink-wp-gatekeeper' ), 'required' => true ),
+				'model'          => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'Verdict model', 'wink-wp-gatekeeper' ), 'required' => true ),
+				'timeout'        => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Timeout (seconds)', 'wink-wp-gatekeeper' ) ),
+				'daily_quota'    => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Daily quota', 'wink-wp-gatekeeper' ) ),
+				'fail_mode'      => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'Failure fallback', 'wink-wp-gatekeeper' ) ),
+				'system_prompt'  => array( 'type' => 'textarea', 'sanitize' => 'textarea', 'label' => __( 'System prompt', 'wink-wp-gatekeeper' ) ),
+				'min_confidence' => array( 'type' => 'number', 'sanitize' => 'float', 'label' => __( 'Confidence threshold', 'wink-wp-gatekeeper' ) ),
 			),
 			'privacy'      => DriverPrivacy::entry( self::DRIVER_ID ), // 已备：cross_border=null→通用出境黄条.
 			'guide'        => array(
 				'steps' => array(
-					'1. 端点需提供 chat/completions（OpenAI 兼容）——中转站/自建网关（LiteLLM 类）/任意兼容厂商皆可。',
-					'2. 填接入地址（注意路径前缀：插件在所填地址后拼 /chat/completions——OpenAI 官方族需填到 …/v1 为止）。',
-					'3. 填 API Key 与模型名 → 点「测试凭据」（模型列表探活，零 token 消耗——泛端点无标准余额 API，不显示余额）。',
-					'4. 可达性与合规由站长自负：数据送你填的端点所在辖区（不支持内网地址——传输脊私网拒绝红线优先）。',
+					__( '1. The endpoint must provide chat/completions (OpenAI-compatible) — relay sites, self-built gateways (LiteLLM and the like), or any compatible vendor all work.', 'wink-wp-gatekeeper' ),
+					__( '2. Fill in the endpoint URL (mind the path prefix: the plugin appends /chat/completions to whatever you enter — for the official OpenAI family, fill in up to …/v1).', 'wink-wp-gatekeeper' ),
+					__( '3. Fill in the API Key and model name → click “Test credentials” (model-list probe, zero token cost — generic endpoints have no standard balance API, so no balance is shown).', 'wink-wp-gatekeeper' ),
+					__( '4. Reachability and compliance are on you: data goes to the jurisdiction of the endpoint you enter (intranet addresses are not supported — the transport spine rejects private networks first).', 'wink-wp-gatekeeper' ),
 				),
 			),
 			'milestone'    => 'M6E',

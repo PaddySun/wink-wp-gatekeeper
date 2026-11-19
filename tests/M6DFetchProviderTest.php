@@ -329,7 +329,7 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		public function test_adapter_default_base_official_when_empty(): void {
-			$env = self::makeClient( array( self::fetchResponse( 'T', '正文' ) ) );
+			$env = self::makeClient( array( self::fetchResponse( 'T', 'body' ) ) );
 			$ad  = new DeepSeekFetchAdapter( 'sk-test', '', $env['client'] );
 			$ad->fetch( 'https://example.com/' );
 			self::assertSame( 'https://api.deepseek.com/v1/tools/fetch', $env['requests'][0]['url'], 'base 空=官方地址缺省（§4 C-3）' );
@@ -424,7 +424,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_adapter_budget_wall_timeout_without_outbound(): void {
 			// 15s job 级预算墙：预算耗尽 → timeout 类零外呼（nw §1.1 同纪律）。
-			$env = self::makeClient( array( self::fetchResponse( 'T', '正文' ) ) );
+			$env = self::makeClient( array( self::fetchResponse( 'T', 'body' ) ) );
 			// 先取 started（clock=1000），再让 remaining 计算（clock=1020）超墙。
 			$clock = function () {
 				static $calls = 0;
@@ -439,7 +439,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_adapter_timeout_respects_remaining_budget(): void {
 			// 预算剩 4s → timeout=min(4,12)=4（不超剩余预算）。
-			$env = self::makeClient( array( self::fetchResponse( 'T', '正文' ) ) );
+			$env = self::makeClient( array( self::fetchResponse( 'T', 'body' ) ) );
 			$clock = function () {
 				static $calls = 0;
 				++$calls;
@@ -521,7 +521,7 @@ namespace WinkGatekeeper\Tests {
 			$GLOBALS['wk_ua_option_store'][ UrlAuditWorker::OPTION_BATCH_QUEUE ] = array( 501 );
 			$worker = new UrlAuditWorker( $this->makeSettings(), array(
 				'incr_take'       => static fn( int $limit ): array => array(),
-				'comment_reader'  => static fn( int $id ): array => array( 'author' => '甲', 'body' => '正文', 'url' => 'https://prov.example.com/', 'post_status' => 'publish' ),
+				'comment_reader'  => static fn( int $id ): array => array( 'author' => '甲', 'body' => 'body', 'url' => 'https://prov.example.com/', 'post_status' => 'publish' ),
 				'meta_reader'     => static fn( int $id ): ?array => null,
 				'meta_writer'     => static function ( int $id, ?array $meta ) use ( &$metas ): void {
 					$metas[ $id ] = $meta;
@@ -560,7 +560,7 @@ namespace WinkGatekeeper\Tests {
 			$GLOBALS['wk_ua_option_store'][ UrlAuditWorker::OPTION_BATCH_QUEUE ] = array( 502 );
 			$worker = new UrlAuditWorker( $this->makeSettings(), array(
 				'incr_take'       => static fn( int $limit ): array => array(),
-				'comment_reader'  => static fn( int $id ): array => array( 'author' => '乙', 'body' => '正文', 'url' => 'https://selfp.example.com/', 'post_status' => 'publish' ),
+				'comment_reader'  => static fn( int $id ): array => array( 'author' => '乙', 'body' => 'body', 'url' => 'https://selfp.example.com/', 'post_status' => 'publish' ),
 				'meta_reader'     => static fn( int $id ): ?array => null,
 				'meta_writer'     => static function ( int $id, ?array $meta ) use ( &$metas ): void {
 					$metas[ $id ] = $meta;
@@ -601,7 +601,7 @@ namespace WinkGatekeeper\Tests {
 			$GLOBALS['wk_ua_option_store'][ UrlAuditWorker::OPTION_BATCH_QUEUE ] = array( 503, 504 );
 			$worker = new UrlAuditWorker( $this->makeSettings(), array(
 				'incr_take'       => static fn( int $limit ): array => array(),
-				'comment_reader'  => static fn( int $id ): array => array( 'author' => '丙', 'body' => '正文', 'url' => 'https://pause.example.com/', 'post_status' => 'publish' ),
+				'comment_reader'  => static fn( int $id ): array => array( 'author' => '丙', 'body' => 'body', 'url' => 'https://pause.example.com/', 'post_status' => 'publish' ),
 				'meta_reader'     => static fn( int $id ): ?array => null,
 				'meta_writer'     => static function ( int $id, ?array $meta ) use ( &$metas ): void {
 					$metas[ $id ] = $meta;
@@ -651,7 +651,7 @@ namespace WinkGatekeeper\Tests {
 			$GLOBALS['wk_ua_option_store'][ UrlAuditWorker::OPTION_BATCH_QUEUE ] = array( 505 );
 			$worker = new UrlAuditWorker( $this->makeSettings(), array(
 				'incr_take'       => static fn( int $limit ): array => array(),
-				'comment_reader'  => static fn( int $id ): array => array( 'author' => '丁', 'body' => '正文', 'url' => 'https://unauth.example.com/', 'post_status' => 'publish' ),
+				'comment_reader'  => static fn( int $id ): array => array( 'author' => '丁', 'body' => 'body', 'url' => 'https://unauth.example.com/', 'post_status' => 'publish' ),
 				'meta_reader'     => static fn( int $id ): ?array => null,
 				'meta_writer'     => static function ( int $id, ?array $meta ): void {},
 				'disposal_executor' => static function ( int $id, string $action ): bool {
@@ -703,7 +703,7 @@ namespace WinkGatekeeper\Tests {
 			$GLOBALS['wk_ua_option_store'][ UrlAuditWorker::OPTION_BATCH_QUEUE ] = array( 601, 602 );
 			$worker = new UrlAuditWorker( $this->makeSettings( array( 'fetch_daily_cap' => 1 ) ), array(
 				'incr_take'       => static fn( int $limit ): array => array(),
-				'comment_reader'  => static fn( int $id ): array => array( 'author' => '戊', 'body' => '正文', 'url' => 'https://cap.example.com/', 'post_status' => 'publish' ),
+				'comment_reader'  => static fn( int $id ): array => array( 'author' => '戊', 'body' => 'body', 'url' => 'https://cap.example.com/', 'post_status' => 'publish' ),
 				'meta_reader'     => static fn( int $id ): ?array => null,
 				'meta_writer'     => static function ( int $id, ?array $meta ): void {},
 				'fetcher_factory' => static function () use ( &$fetches ): object {
@@ -730,7 +730,7 @@ namespace WinkGatekeeper\Tests {
 			$GLOBALS['wk_ua_option_store'][ UrlAuditWorker::OPTION_BATCH_QUEUE ] = array( 603 );
 			$worker = new UrlAuditWorker( $this->makeSettings( array( 'fetch_daily_cap' => 0, 'batch_quota' => 0, 'incr_quota' => 0 ) ), array(
 				'incr_take'       => static fn( int $limit ): array => array(),
-				'comment_reader'  => static fn( int $id ): array => array( 'author' => '己', 'body' => '正文', 'url' => 'https://nocap.example.com/', 'post_status' => 'publish' ),
+				'comment_reader'  => static fn( int $id ): array => array( 'author' => '己', 'body' => 'body', 'url' => 'https://nocap.example.com/', 'post_status' => 'publish' ),
 				'meta_reader'     => static fn( int $id ): ?array => null,
 				'meta_writer'     => static function ( int $id, ?array $meta ): void {},
 				'disposal_executor' => static function ( int $id, string $action ): bool {

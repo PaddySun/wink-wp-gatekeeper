@@ -54,7 +54,7 @@ final class M5U3WorkerTest extends TestCase {
 		if ( null === $driver ) {
 			$driver = new class() implements \WinkGatekeeper\Drivers\ReviewDriverInterface {
 				public function check( string $content, array $meta ): Verdict {
-					return Verdict::reject( 'fake', '广告', array( '广告' ) );
+					return Verdict::reject( 'fake', 'Advertising', array( 'Advertising' ) );
 				}
 			};
 		}

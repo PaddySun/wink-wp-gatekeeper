@@ -26,6 +26,20 @@
 ( function () {
 	'use strict';
 
+	/* 【i18n 批 I-3】admin 侧 L10N 通道（Bootstrap admin_l10n 注入 wkAdminL10n；
+	 * 兜底=en 键文本——与注入值一致，zh 渲染走 po msgstr=原中文）。 */
+	var L10N = window.wkAdminL10n || {};
+	function l10n( key, fallback ) {
+		return L10N[ key ] || fallback;
+	}
+
+	/* 【i18n 批 I-3】admin 侧 L10N 通道（Bootstrap admin_l10n 注入 wkAdminL10n；
+	 * 兜底=en 键文本——与注入值一致，zh 渲染走 po msgstr=原中文）。 */
+	var L10N = window.wkAdminL10n || {};
+	function l10n( key, fallback ) {
+		return L10N[ key ] || fallback;
+	}
+
 	/* -----------------------------------------------------------------
 	 * W3·N7 · scheme 前端兜底/校验（design-system §02·P4 双路径之前端侧）
 	 *   PHP 主路径（SettingsPage::admin_color_scheme_class → .wk-wrap 根 class，
@@ -94,14 +108,14 @@
 				if ( result ) {
 					result.textContent = payload && payload.data && payload.data.message
 						? payload.data.message
-						: ( payload && payload.success ? '已重置。' : '重置失败。' );
+						: ( payload && payload.success ? l10n( 'resetDone', 'Reset done.' ) : l10n( 'resetFail', 'Reset failed.' ) );
 				}
 				if ( payload && payload.success ) {
 					window.location.reload(); // 计数卡归零展示。
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '重置失败（网络错误）。';
+					result.textContent = l10n( 'resetFailNet', 'Reset failed (network error).' );
 				}
 			} ).finally( function () {
 				resetButton.disabled = false;
@@ -193,7 +207,7 @@
 						item.field.classList.add( 'wk-field-missing' );
 					} );
 					var names = missing.map( function ( item ) { return item.label; } ).join( '、' );
-					window.alert( '驱动「' + select.options[ select.selectedIndex ].text.replace( /\s*—.*$/, '' ) + '」缺少：' + names + '——请补齐后再保存（本次已拦截，再次点击保存可强制提交，服务端将按「驱动视为未配置」处理）。' );
+					window.alert( l10n( 'drvMissingA', 'Driver “' ) + select.options[ select.selectedIndex ].text.replace( /\s*—.*$/, '' ) + l10n( 'drvMissingB', '” is missing: ' ) + names + l10n( 'drvMissingC', ' — fill it in before saving (blocked this time; clicking save again force-submits and the server treats the driver as not configured).' ) );
 				}
 			} );
 		}
@@ -271,10 +285,10 @@
 	 * ----------------------------------------------------------------- */
 
 	var WK_PROBE_BADGE_STATES = {
-		green:  { badge: 'b-ok',   word: '贯通 · 凭据可用', short: '贯通' },
-		yellow: { badge: 'b-warn', word: '缺字 · 必填缺失', short: '缺字' },
-		red:    { badge: 'b-err',  word: '被拒 · 密钥错', short: '被拒' },
-		gray:   { badge: 'b-dim',  word: '契约不符 · 状态未知', short: '契约不符' }
+		green:  { badge: 'b-ok',   word: l10n( 'badgeGreen', 'Connected · credentials work' ), short: l10n( 'shortGreen', 'Connected' ) },
+		yellow: { badge: 'b-warn', word: l10n( 'badgeYellow', 'Incomplete · required fields missing' ), short: l10n( 'shortYellow', 'Incomplete' ) },
+		red:    { badge: 'b-err', word: l10n( 'badgeRed', 'Rejected · key error' ), short: l10n( 'shortRed', 'Rejected' ) },
+		gray:   { badge: 'b-dim', word: l10n( 'badgeGray', 'Contract mismatch · status unknown' ), short: l10n( 'shortGray', 'Contract mismatch' ) }
 	};
 
 	// 本地时刻 m月d日 H:i（服务端 date_i18n 'm月d日 H:i' 同形——上次测试小字当场值）。
@@ -283,7 +297,7 @@
 		function p2( n ) {
 			return ( n < 10 ? '0' : '' ) + n;
 		}
-		return p2( d.getMonth() + 1 ) + '月' + p2( d.getDate() ) + '日 ' + p2( d.getHours() ) + ':' + p2( d.getMinutes() );
+		return p2( d.getMonth() + 1 ) + l10n( 'stampMonth', '-' ) + p2( d.getDate() ) + l10n( 'stampDay', ' ' ) + p2( d.getHours() ) + ':' + p2( d.getMinutes() );
 	}
 
 	function wkProbeWriteBadges( driverKey, state ) {
@@ -299,7 +313,7 @@
 				badge.textContent = conf.word;
 			}
 			if ( last ) {
-				last.textContent = '上次测试：' + wkProbeStamp() + ' · ' + conf.short;
+				last.textContent = l10n( 'lastTest', 'Last test: ' ) + wkProbeStamp() + ' · ' + conf.short;
 			}
 		} );
 	}
@@ -311,7 +325,7 @@
 			var result = document.getElementById( 'wk-deepseek-test-result' );
 			deepseekProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 			function dsFieldOrEmpty( id ) {
@@ -343,12 +357,12 @@
 					result.className = 'wk-probe ' + ( dsStateClass[ data.state ] || 'wk-probe--gray' );
 					wkProbeWriteBadges( 'deepseek', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -366,7 +380,7 @@
 			var result = document.getElementById( 'wk-openai-custom-test-result' );
 			openaiCustomProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 			function ocFieldOrEmpty( id ) {
@@ -398,12 +412,12 @@
 					result.className = 'wk-probe ' + ( ocStateClass[ data.state ] || 'wk-probe--gray' );
 					wkProbeWriteBadges( 'openai_custom', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -420,7 +434,7 @@
 			var result = document.getElementById( 'wk-url-audit-provider-test-result' );
 			urlAuditProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 			function uaFieldOrEmpty( id ) {
@@ -451,12 +465,12 @@
 					result.className = 'wk-probe ' + ( uaStateClass[ data.state ] || 'wk-probe--gray' );
 					wkProbeWriteBadges( 'url_audit_provider', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -520,7 +534,7 @@
 			var result = document.getElementById( 'wk-avatar-test-result' );
 			avatarProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 			var sourceSelect = document.getElementById( 'wk-avatar-source-select' );
@@ -548,12 +562,12 @@
 					var stateClass = { ok: 'wk-probe--green', slow: 'wk-probe--yellow', fail: 'wk-probe--red', yellow: 'wk-probe--yellow' };
 					result.className = 'wk-probe ' + ( stateClass[ data.state ] || 'wk-probe--gray' );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -581,7 +595,7 @@
 			var result = document.getElementById( 'wk-tencent-test-result' );
 			probeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 
@@ -615,12 +629,12 @@
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
 					wkProbeWriteBadges( 'tencent', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -641,7 +655,7 @@
 			var result = document.getElementById( 'wk-aliyun-test-result' );
 			aliyunProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 
@@ -675,12 +689,12 @@
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
 					wkProbeWriteBadges( 'aliyun', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -700,7 +714,7 @@
 			var result = document.getElementById( 'wk-tms-test-result' );
 			tmsProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 
@@ -733,12 +747,12 @@
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
 					wkProbeWriteBadges( 'tencent_tms', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -758,7 +772,7 @@
 			var result = document.getElementById( 'wk-green-test-result' );
 			greenProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 
@@ -792,12 +806,12 @@
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
 					wkProbeWriteBadges( 'aliyun_green', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -817,7 +831,7 @@
 			var result = document.getElementById( 'wk-baidu-test-result' );
 			baiduProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 
@@ -849,12 +863,12 @@
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
 					wkProbeWriteBadges( 'baidu', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -872,10 +886,10 @@
 	var ipDiagButton = document.getElementById( 'wk-ip-diag-query' );
 	if ( ipDiagButton ) {
 		var ipDiagSourceLabels = {
-			abuseipdb: 'AbuseIPDB（威胁组）',
-			stopforumspam: 'StopForumSpam（威胁组）',
-			ipncgy: 'ip.nc.gy（威胁组）',
-			ipsb: 'ip.sb（地理组）'
+			abuseipdb: l10n( 'srcAbuseipdb', 'AbuseIPDB (threat group)' ),
+			stopforumspam: l10n( 'srcStopforumspam', 'StopForumSpam (threat group)' ),
+			ipncgy: l10n( 'srcIpncgy', 'ip.nc.gy (threat group)' ),
+			ipsb: l10n( 'srcIpsb', 'ip.sb (geo group)' )
 		};
 		var ipDiagOrder = [ 'abuseipdb', 'stopforumspam', 'ipncgy', 'ipsb' ];
 
@@ -907,7 +921,7 @@
 			} else {
 				var errorLine = document.createElement( 'p' );
 				errorLine.className = 'wk-ip-diag-error';
-				errorLine.textContent = ( card && card.error ) || '查询失败。';
+				errorLine.textContent = ( card && card.error ) || l10n( 'lookupFail', 'The lookup failed.' );
 				el.appendChild( errorLine );
 			}
 			return el;
@@ -920,14 +934,14 @@
 			var ip = input ? input.value.trim() : '';
 			if ( ! ip ) {
 				if ( status ) {
-					status.textContent = '请先输入要查询的 IP。';
+					status.textContent = l10n( 'enterIp', 'Enter an IP to look up first.' );
 				}
 				return;
 			}
 
 			ipDiagButton.disabled = true;
 			if ( status ) {
-				status.textContent = '查询中……（3 秒超时/源，最长约 12 秒）';
+				status.textContent = l10n( 'querying', 'Looking up… (3s timeout per source, up to ~12s total)' );
 			}
 			if ( out ) {
 				out.textContent = '';
@@ -951,12 +965,12 @@
 				}
 				if ( ! payload || ! payload.success ) {
 					if ( status ) {
-						status.textContent = ( payload && payload.data && payload.data.message ) ? payload.data.message : '查询失败。';
+						status.textContent = ( payload && payload.data && payload.data.message ) ? payload.data.message : l10n( 'lookupFail', 'The lookup failed.' );
 					}
 					return;
 				}
 				if ( status ) {
-					status.textContent = '已完成：' + ( payload.data.ip || ip );
+					status.textContent = l10n( 'donePrefix', 'Done: ' ) + ( payload.data.ip || ip );
 				}
 				var cards = ( payload.data && payload.data.cards ) || {};
 				if ( out ) {
@@ -966,7 +980,7 @@
 				}
 			} ).catch( function () {
 				if ( status ) {
-					status.textContent = '查询失败（网络错误）。';
+					status.textContent = l10n( 'lookupFailNet', 'The lookup failed (network error).' );
 				}
 			} ).finally( function () {
 				ipDiagButton.disabled = false;
@@ -987,7 +1001,7 @@
 			var result = document.getElementById( 'wk-iprep-test-result' );
 			iprepProbeButton.disabled = true;
 			if ( result ) {
-				result.textContent = '测试中……';
+				result.textContent = l10n( 'testing', 'Testing…' );
 				result.className = '';
 			}
 
@@ -1018,12 +1032,12 @@
 					result.className = 'wk-probe wk-probe--' + ( data.state || 'gray' );
 					wkProbeWriteBadges( 'abuseipdb', data.state );
 				} else {
-					result.textContent = ( data && data.message ) ? data.message : '测试失败。';
+					result.textContent = ( data && data.message ) ? data.message : l10n( 'testFail', 'Test failed.' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).catch( function () {
 				if ( result ) {
-					result.textContent = '测试失败（网络错误）。';
+					result.textContent = l10n( 'testFailNet', 'Test failed (network error).' );
 					result.className = 'wk-probe wk-probe--gray';
 				}
 			} ).finally( function () {
@@ -1097,10 +1111,10 @@
 			return;
 		}
 		if ( checked.bad.length === 0 ) {
-			out.textContent = '全部 ' + checked.good + ' 行格式合法。';
+			out.textContent = l10n( 'cidrAll1', 'All ' ) + checked.good + l10n( 'cidrAll2', ' lines are valid.' );
 			out.className = 'wk-muted';
 		} else {
-			out.textContent = '有 ' + checked.bad.length + ' 行不是合法 CIDR/IP：' + checked.bad.slice( 0, 3 ).join( '、' ) + ( checked.bad.length > 3 ? ' 等' : '' ) + '。';
+			out.textContent = l10n( 'cidrBad1', 'Found ' ) + checked.bad.length + l10n( 'cidrBad2', ' lines are not valid CIDR/IP: ' ) + checked.bad.slice( 0, 3 ).join( '、' ) + ( checked.bad.length > 3 ? l10n( 'etcSuffix', ' etc.' ) : '' ) + '。';
 			out.className = 'wk-probe wk-probe--yellow';
 		}
 	}

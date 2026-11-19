@@ -319,16 +319,16 @@ abstract class AccountFormGate extends AbstractGate {
 
 		$evidence = array();
 		if ( '' !== $event_no ) {
-			$evidence['事件编号'] = $event_no;
+			$evidence[__( 'Event No.', 'wink-wp-gatekeeper' )] = $event_no;
 		}
 		if ( '' !== $verdict->reason() ) {
-			$evidence['命中规则'] = $verdict->reason();
+			$evidence[__( 'Matched rule', 'wink-wp-gatekeeper' )] = $verdict->reason();
 		}
-		$evidence['时间'] = $this->format_evidence_time( $now ); // P2-3 半：wp_date 站点时区（B1a 同款守卫）。
+		$evidence[__( 'Time', 'wink-wp-gatekeeper' )] = $this->format_evidence_time( $now ); // P2-3 半：wp_date 站点时区（B1a 同款守卫）。
 
 		$message = Copywork::format( $message, array_merge( $vars, array(
 			'event_no' => $event_no,
-			'time'     => $evidence['时间'],
+			'time'     => $evidence[__( 'Time', 'wink-wp-gatekeeper' )],
 			'rule'     => $verdict->reason(),
 		) ) );
 

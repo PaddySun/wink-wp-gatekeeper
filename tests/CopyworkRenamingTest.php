@@ -20,7 +20,7 @@ final class CopyworkRenamingTest extends TestCase {
 
 	public function test_captcha_missing_copy_renamed(): void {
 		$defaults = Copywork::defaults();
-		$this->assertSame( '还差一个眨眼——完成人机验证再点提交。', $defaults['messages']['captcha_missing'] );
+		$this->assertSame( 'One wink missing — complete human verification, then hit submit.', $defaults['messages']['captcha_missing'] );
 		$this->assertStringNotContainsString( 'Plus %d captcha challenges enforced by IP reputation (counted separately — not included in the figures above)', $defaults['messages']['captcha_missing'], '嵌入式后验证码不一定在「上方」（反馈 5）' );
 		// 键名不变：sanitize 白名单/Tab⑤ 渲染零改动。
 		$this->assertContains( 'captcha_missing', Copywork::keys() );
@@ -34,7 +34,7 @@ final class CopyworkRenamingTest extends TestCase {
 
 	public function test_js_fallback_hint_renamed(): void {
 		$js = (string) file_get_contents( dirname( __DIR__ ) . '/assets/js/gatekeeper.js' );
-		$this->assertStringContainsString( "'请先完成人机验证'", $js, 'gatekeeper.js 无 L10n 回退文案改词' );
+		$this->assertStringContainsString( "'Please complete human verification first'", $js, 'gatekeeper.js 无 L10n 回退文案改词' );
 		$this->assertStringNotContainsString( '请先完成上方的人机验证', $js );
 	}
 

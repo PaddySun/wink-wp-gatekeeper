@@ -259,12 +259,12 @@ final class IpDiagnosticTest extends TestCase {
 			),
 		) );
 		$this->assertTrue( $card['ok'] );
-		$this->assertSame( '0', $card['rows']['评分'] );
-		$this->assertSame( 'US', $card['rows']['国家'] );
-		$this->assertSame( 'Content Delivery Network', $card['rows']['用途'] );
+		$this->assertSame( '0', $card['rows']['Score'] );
+		$this->assertSame( 'US', $card['rows']['Country'] );
+		$this->assertSame( 'Content Delivery Network', $card['rows']['Usage'] );
 		$this->assertSame( 'Google LLC', $card['rows']['ISP'] );
-		$this->assertSame( '否', $card['rows']['Tor'] );
-		$this->assertSame( '189', $card['rows']['报告数'] );
+		$this->assertSame( 'No', $card['rows']['Tor'] );
+		$this->assertSame( '189', $card['rows']['Reports'] );
 	}
 
 	public function test_parse_source_abuseipdb_contract_missing(): void {
@@ -278,8 +278,8 @@ final class IpDiagnosticTest extends TestCase {
 			'ip'      => array( 'value' => '8.8.8.8', 'frequency' => 0, 'appears' => 0, 'asn' => 15169 ),
 		) );
 		$this->assertTrue( $card['ok'] );
-		$this->assertSame( '0', $card['rows']['黑名单出现'] );
-		$this->assertSame( '0', $card['rows']['报告频次'] );
+		$this->assertSame( '0', $card['rows']['Blacklist appearance'] );
+		$this->assertSame( '0', $card['rows']['Report frequency'] );
 	}
 
 	public function test_parse_source_stopforumspam_failure(): void {
@@ -304,14 +304,14 @@ final class IpDiagnosticTest extends TestCase {
 			),
 		) );
 		$this->assertTrue( $card['ok'] );
-		$this->assertSame( '否', $card['rows']['代理'] );
-		$this->assertSame( '否', $card['rows']['VPN'] );
-		$this->assertSame( '否', $card['rows']['Tor'] );
-		$this->assertSame( '是', $card['rows']['主机托管'] );
-		$this->assertSame( '否', $card['rows']['CDN'] );
-		$this->assertSame( '否', $card['rows']['匿名网络'] );
+		$this->assertSame( 'No', $card['rows']['Proxy'] );
+		$this->assertSame( 'No', $card['rows']['VPN'] );
+		$this->assertSame( 'No', $card['rows']['Tor'] );
+		$this->assertSame( 'Yes', $card['rows']['Hosting'] );
+		$this->assertSame( 'No', $card['rows']['CDN'] );
+		$this->assertSame( 'No', $card['rows']['Anonymous network'] );
 		$this->assertSame( '15169 Google LLC', $card['rows']['ASN'] );
-		$this->assertSame( 'US', $card['rows']['国家'] );
+		$this->assertSame( 'US', $card['rows']['Country'] );
 	}
 
 	public function test_parse_source_ipncgy_missing_proxy_is_contract_fail(): void {
@@ -332,7 +332,7 @@ final class IpDiagnosticTest extends TestCase {
 			'country_code' => 'US',
 		) );
 		$this->assertTrue( $card['ok'] );
-		$this->assertSame( 'United States California Mountain View', $card['rows']['归属地'] );
+		$this->assertSame( 'United States California Mountain View', $card['rows']['Geolocation'] );
 		$this->assertSame( 'Google', $card['rows']['ISP'] );
 		$this->assertSame( '15169 Google', $card['rows']['ASN'] );
 	}
@@ -345,11 +345,11 @@ final class IpDiagnosticTest extends TestCase {
 	/* ---------- 失败卡人话（任一源失败仅该卡片失败） ---------- */
 
 	public function test_card_error_messages_by_category(): void {
-		$this->assertSame( '网络错误/超时', IpDiagnostic::card_error( 'transport', 0 ) );
+		$this->assertSame( 'Network error/timeout', IpDiagnostic::card_error( 'transport', 0 ) );
 		$this->assertStringContainsString( '503', IpDiagnostic::card_error( 'transport', 503 ) );
-		$this->assertStringContainsString( '鉴权', IpDiagnostic::card_error( 'semantic', 401 ) );
+		$this->assertStringContainsString( 'Authentication', IpDiagnostic::card_error( 'semantic', 401 ) );
 		$this->assertStringContainsString( '403', IpDiagnostic::card_error( 'semantic', 403 ) );
-		$this->assertStringContainsString( '结构', IpDiagnostic::card_error( 'contract', 200 ) );
+		$this->assertStringContainsString( 'shape', IpDiagnostic::card_error( 'contract', 200 ) );
 		$this->assertStringContainsString( 'JSON', IpDiagnostic::card_error( 'parse', 200 ) );
 	}
 
@@ -368,7 +368,7 @@ final class IpDiagnosticTest extends TestCase {
 
 		$this->assertTrue( $card['ok'] );
 		$this->assertSame( '&lt;img src=x onerror=alert(1)&gt;', $card['rows']['ISP'], 'ISP 远端串 HTML 转义（渲染为文本）' );
-		$this->assertSame( '&lt;script&gt;alert(1)&lt;/script&gt;', $card['rows']['用途'], '用途远端串 HTML 转义（渲染为文本）' );
+		$this->assertSame( '&lt;script&gt;alert(1)&lt;/script&gt;', $card['rows']['Usage'], '用途远端串 HTML 转义（渲染为文本）' );
 	}
 
 	public function test_parse_source_escapes_all_ipsb_remote_rows(): void {

@@ -79,7 +79,7 @@ final class LoginErrorMaskTest extends TestCase {
 		);
 
 		$this->assertSame( $native, LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'not_a_masked_code', $native ) );
-		$gate_msg = '还差一个眨眼——完成人机验证再点提交。';
+		$gate_msg = 'One wink missing — complete human verification, then hit submit.';
 		$this->assertSame( $gate_msg, LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'wk_captcha_missing', $gate_msg ) );
 		$this->assertSame( '', LoginErrorMask::mask_message( LoginErrorMask::SCENE_LOGIN, 'not_a_masked_code', '' ), '非码表码空消息原样透传' );
 	}

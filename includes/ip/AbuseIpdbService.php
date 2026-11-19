@@ -420,19 +420,19 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 			'id'              => self::DRIVER_ID,
 			'type'            => DriverRegistry::TYPE_IP,
 			'class'           => self::class,
-			'label'           => 'AbuseIPDB（IP 信誉查询）',
+			'label'           => __( 'AbuseIPDB (IP reputation lookup)', 'wink-wp-gatekeeper' ),
 			'billing'         => 'free_quota', // 免费配额档（贡献者 5000/天——BILLINGS 枚举扩展值）。
 			'frontend'        => array(), // IP 驱动无前端资产（LocalRules 先例）。
 			'error_map'       => array(), // 四类失败由传输脊 HTTP 分类承载（见方法注释）。
 			'api_version'     => 'abuseipdb-v2',
 			'settings'        => array(
 				'api_key'          => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'API Key', 'required' => true ),
-				'suspect_score'    => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '疑似阈值（review）' ),
-				'malicious_score'  => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '恶意阈值（reject）' ),
-				'cache_minutes'    => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => 'pass 缓存（分钟）' ),
-				'soft_quota'       => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '软顶（次/日）' ),
-				'daily_quota'      => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '日配额硬顶' ),
-				'timeout'          => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '超时（秒）' ),
+				'suspect_score'    => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Suspect threshold (review)', 'wink-wp-gatekeeper' ) ),
+				'malicious_score'  => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Malicious threshold (reject)', 'wink-wp-gatekeeper' ) ),
+				'cache_minutes'    => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'pass cache (minutes)', 'wink-wp-gatekeeper' ) ),
+				'soft_quota'       => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Soft cap (per day)', 'wink-wp-gatekeeper' ) ),
+				'daily_quota'      => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Daily quota hard cap', 'wink-wp-gatekeeper' ) ),
+				'timeout'          => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Timeout (seconds)', 'wink-wp-gatekeeper' ) ),
 			),
 			'supports_report' => true, // I3 report 路径能力声明（Tab④ 上报分区显隐依据）。
 			'privacy'         => array(

@@ -171,7 +171,7 @@ namespace WinkGatekeeper\Tests {
 				'headers'  => array(),
 				'body'     => (string) json_encode( array(
 					'choices' => array( array(
-						'message'       => array( 'role' => 'assistant', 'content' => (string) json_encode( array( 'verdict' => 'pass', 'confidence' => 0.95, 'reason' => '正常', 'hits' => array() ) ) ),
+						'message'       => array( 'role' => 'assistant', 'content' => (string) json_encode( array( 'verdict' => 'pass', 'confidence' => 0.95, 'reason' => 'Normal', 'hits' => array() ) ) ),
 						'finish_reason' => 'stop',
 					) ),
 					'usage'   => array( 'prompt_tokens' => 100, 'completion_tokens' => 20 ),

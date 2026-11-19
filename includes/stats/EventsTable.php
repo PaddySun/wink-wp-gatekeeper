@@ -556,7 +556,7 @@ DDL;
 	 * （归类口径=EventsTable::is_fault——verdict=error ∪ rule_hit 前缀族 remote_ 与
 	 * contract_mismatch、driver_halted 前缀，含 captcha 阶段以 reject 落库的远端故障）。
 	 *
-	 * @return array<string, int> rule_hit => 计数（空 rule_hit 归 '(无类别)' 键）。
+	 * @return array<string, int> rule_hit => 计数（空 rule_hit 归 __( '(no category)', 'wink-wp-gatekeeper' ) 键）。
 	 */
 	public static function today_fault_distribution(): array {
 		global $wpdb;
@@ -574,7 +574,7 @@ DDL;
 
 		$dist = array();
 		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
-			$key          = is_string( $row['rule_hit'] ) && '' !== $row['rule_hit'] ? $row['rule_hit'] : '(无类别)';
+			$key          = is_string( $row['rule_hit'] ) && '' !== $row['rule_hit'] ? $row['rule_hit'] : __( '(no category)', 'wink-wp-gatekeeper' );
 			$dist[ $key ] = (int) $row['n'];
 		}
 		return $dist;
@@ -831,7 +831,7 @@ DDL;
 	}
 
 	/**
-	 * N4 边界查询：今日按规则拦下分布（rule_hit => 计数；空 rule_hit 归 '(无类别)' 键——
+	 * N4 边界查询：今日按规则拦下分布（rule_hit => 计数；空 rule_hit 归 __( '(no category)', 'wink-wp-gatekeeper' ) 键——
 	 * 行侧口径 InterceptDigest::distribution_from_rows 纯函数）。
 	 *
 	 * @param string $gate 闸 id（默认评论门——战报副行口径）。
@@ -914,7 +914,7 @@ DDL;
 	}
 
 	/**
-	 * 分布行（rule_hit/n）→ 计数 map（空/缺 rule_hit 归 '(无类别)'）——行侧口径归
+	 * 分布行（rule_hit/n）→ 计数 map（空/缺 rule_hit 归 __( '(no category)', 'wink-wp-gatekeeper' )）——行侧口径归
 	 * InterceptDigest 纯逻辑层（公共纯函数，单测直钉；本类只做查询）。
 	 */
 

@@ -126,7 +126,7 @@ final class TencentTmsDriver implements ReviewDriverInterface {
 			'id'          => self::DRIVER_ID,
 			'type'        => 'review',
 			'class'       => self::class,
-			'label'       => '腾讯云 TMS 文本审核',
+			'label'       => __( 'Tencent Cloud TMS Text Moderation', 'wink-wp-gatekeeper' ),
 			'reachability' => 'cn-excellent',
 			'billing'     => 'usage', // 套餐包按量（05 §5 矩阵「套餐包」归 usage 档）。
 			'frontend'    => array(), // review 类无前端形态.
@@ -135,19 +135,19 @@ final class TencentTmsDriver implements ReviewDriverInterface {
 			'settings'    => array(
 				'secret_id'    => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'SecretId（CAM）', 'required' => true ),
 				'secret_key'   => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'SecretKey（CAM）', 'required' => true ),
-				'biz_type'     => array( 'type' => 'text', 'sanitize' => 'text', 'label' => 'BizType（策略编号）' ),
-				'timeout'      => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '超时（秒）' ),
-				'daily_quota'  => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '日配额' ),
-				'fail_mode'    => array( 'type' => 'text', 'sanitize' => 'text', 'label' => '故障降级' ),
-				'reject_score' => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '直拒分数阈值' ),
+				'biz_type'     => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'BizType (policy ID)', 'wink-wp-gatekeeper' ) ),
+				'timeout'      => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Timeout (seconds)', 'wink-wp-gatekeeper' ) ),
+				'daily_quota'  => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Daily quota', 'wink-wp-gatekeeper' ) ),
+				'fail_mode'    => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'Failure fallback', 'wink-wp-gatekeeper' ) ),
+				'reject_score' => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Direct-block score threshold', 'wink-wp-gatekeeper' ) ),
 			),
 			'privacy'     => DriverPrivacy::entry( self::DRIVER_ID ), // 第七维（内容表单一来源引用，禁双源漂移）.
 			'guide'       => array( // 【v1.4·R4 §A.5】接入指引下放 registry（原 SettingsPage 五步指引迁入）。
 				'steps' => array(
-					'1. 腾讯云控制台开通「内容安全 · 文本审核」并购买/领取套餐包（TextModeration 按策略计费）。',
-					'2. 内容安全控制台获取策略编号（BizType，如 TencentCloudDefault 或自定义策略）——建议填写绑定套餐包的策略。',
-					'3. 准备 CAM 密钥对（访问管理 → API 密钥管理，与验证码的 CAM 密钥同体系，可复用同对）。',
-					'4. 粘贴至下方 → 点「测试凭据」（正常文本实测应返回 Pass）。',
+					__( '1. Enable “Content Security · Text Moderation” in the Tencent Cloud console and purchase/claim a package (TextModeration is billed per policy).', 'wink-wp-gatekeeper' ),
+					__( '2. Get the policy ID (BizType) from the Content Security console (e.g. TencentCloudDefault or a custom policy) — a package-bound policy is recommended.', 'wink-wp-gatekeeper' ),
+					__( '3. Prepare a CAM key pair (Access Management → API Key Management; same system as the captcha CAM keys, the pair can be reused).', 'wink-wp-gatekeeper' ),
+					__( '4. Paste below → click “Test credentials” (a normal text test should return Pass).', 'wink-wp-gatekeeper' ),
 				),
 				'doc_url' => 'https://cloud.tencent.com/document/api/1124/51860',
 			),

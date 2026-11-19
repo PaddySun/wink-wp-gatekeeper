@@ -420,19 +420,19 @@ final class W3BatchCTest extends TestCase {
 		$log = WpOptionStub::$options[ SettingsPage::OPTION_PROBE_LOG ];
 		$log['abuseipdb']['tested_at'] = strtotime( '2026-11-18 14:30:00' );
 		WpOptionStub::set( SettingsPage::OPTION_PROBE_LOG, $log );
-		$html = (string) self::invoke( 'test_credential_btn', 'id="wk-x-test-credentials"', 'id="wk-x-test-result"', 'nonce123', '测试凭据', 'abuseipdb' );
+		$html = (string) self::invoke( 'test_credential_btn', 'id="wk-x-test-credentials"', 'id="wk-x-test-result"', 'nonce123', 'Test credentials', 'abuseipdb' );
 		$this->assertStringContainsString( 'badge b-ok', $html, '有记录=绿态徽标' );
-		$this->assertStringContainsString( '贯通 · 凭据可用', $html, '状态词' );
-		$this->assertStringContainsString( 'Last test: 11月18日 14:30', $html, '「上次测试：m月d日 H:i · 状态词」（date_i18n）' );
+		$this->assertStringContainsString( 'Connected · credentials work', $html, '状态词' );
+		$this->assertStringContainsString( 'Last test: Nov 18, 14:30', $html, '「上次测试：m月d日 H:i · 状态词」（date_i18n）' );
 		$this->assertStringNotContainsString( '上次测试：--', $html, '无占位残留' );
 
 		// 红态矩阵。
 		self::invoke( 'probe_log_record', 'tencent', 'red' );
-		$html2 = (string) self::invoke( 'test_credential_btn', 'id="wk-y-test-credentials"', 'id="wk-y-test-result"', 'nonce123', '测试凭据', 'tencent' );
+		$html2 = (string) self::invoke( 'test_credential_btn', 'id="wk-y-test-credentials"', 'id="wk-y-test-result"', 'nonce123', 'Test credentials', 'tencent' );
 		$this->assertStringContainsString( 'badge b-err', $html2, '红=被拒徽标' );
 
 		// 无记录 → 未测试中性灰初始态保持。
-		$html3 = (string) self::invoke( 'test_credential_btn', 'id="wk-z-test-credentials"', 'id="wk-z-test-result"', 'nonce123', '测试凭据', 'deepseek' );
+		$html3 = (string) self::invoke( 'test_credential_btn', 'id="wk-z-test-credentials"', 'id="wk-z-test-result"', 'nonce123', 'Test credentials', 'deepseek' );
 		$this->assertStringContainsString( 'badge b-dim', $html3, '无记录=未测试' );
 		$this->assertStringContainsString( 'Last test: --', $html3, '无记录时间位占位' );
 	}
@@ -572,7 +572,7 @@ final class W3BatchCTest extends TestCase {
 		foreach ( array( 'wk-wizard', 'wk-stepper', 'wk-step-panel', 'wk-checklist' ) as $cls ) {
 			$this->assertStringContainsString( $cls, $wiz, "向导骨架类族消费（批 A 已建——{$cls}）" );
 		}
-		foreach ( array( '欢迎', '人机验证', '内容审核', '完成' ) as $word ) {
+		foreach ( array( 'Welcome', 'Human verification', 'Content moderation', 'Done' ) as $word ) {
 			$this->assertStringContainsString( $word, $wiz, "步名照原型 proto-wizard（{$word}）" );
 		}
 		$this->assertSame( 4, substr_count( $wiz, 'data-wk-step' ), '四步面板（1–4）' );
@@ -658,7 +658,7 @@ final class W3BatchCTest extends TestCase {
 		$this->assertStringContainsString( 'comment_moderation', $bar, '读 WP 原生真值（评论必须手动批准）' );
 		$this->assertStringContainsString( 'comment_whitelist', $bar, '读 WP 原生真值（作者须有先前已批准评论）' );
 		$this->assertStringNotContainsString( 'field_name(', $bar, '只读黄条零本插件表单字段名（SettingsPage :2131 红线照守——演示不落库）' );
-		$this->assertStringContainsString( '— comments still require manual approval after passing the captcha (this is not a malfunction).', $bar, '黄条人话（过码后仍需人工批准——这不是故障）' );
+		$this->assertStringContainsString( '— Comments still require manual approval after passing the captcha (this is not a malfunction). “Comment must be manually approved”', $bar, '黄条人话（过码后仍需人工批准——这不是故障；i18n 批 I-3 ⑥-A 整句化键）' );
 		$this->assertStringContainsString( 'options-discussion.php', $bar, '管理入口深链' );
 	}
 

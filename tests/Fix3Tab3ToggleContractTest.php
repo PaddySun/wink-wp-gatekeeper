@@ -167,7 +167,7 @@ final class Fix3Tab3ToggleContractTest extends TestCase {
 		// closest form 拦截同款（弹窗推广 Tab③）。
 		$this->assertStringContainsString( "closest( 'form' )", $body );
 		$this->assertStringContainsString( 'wk-field-missing', $body, '缺失字段标红（Tab② 现形态）' );
-		$this->assertStringContainsString( '缺少：', $body, '必填缺失弹窗文案（Tab②③ 同款）' );
+		$this->assertStringContainsString( 'missing: ', $body, '必填缺失弹窗文案（Tab②③ 同款）' );
 	}
 
 	public function test_admin_js_area_scope_is_panel_scoped(): void {

@@ -31,10 +31,10 @@ final class Labels {
 	 */
 	public static function action_word( string $driver_type ): string {
 		return match ( $driver_type ) {
-			'captcha' => '人机验证',
-			'review'  => '送审',
-			'ip'      => '信誉查询',
-			default   => '动作',
+			'captcha' => __( 'Human verification', 'wink-wp-gatekeeper' ),
+			'review'  => __( 'Sent for review', 'wink-wp-gatekeeper' ),
+			'ip'      => __( 'Reputation lookup', 'wink-wp-gatekeeper' ),
+			default   => __( 'Action', 'wink-wp-gatekeeper' ),
 		};
 	}
 
@@ -42,14 +42,14 @@ final class Labels {
 	 * 通过 → 验证放行（对照表 2——「是真访客，过了码就进」）。
 	 */
 	public static function pass_word(): string {
-		return '验证放行';
+		return __( 'Verification pass', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 拦截 → 拦下（对照表 3——口语词）。
 	 */
 	public static function reject_word(): string {
-		return '拦下';
+		return __( 'Blocked', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -58,49 +58,49 @@ final class Labels {
 	 * @param string $gate 闸 id。
 	 */
 	public static function count_unit( string $gate ): string {
-		return 'comment' === $gate ? '条' : '次';
+		return 'comment' === $gate ? __( 'comments', 'wink-wp-gatekeeper' ) : __( 'times', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 待审 → 转人工复核（对照表 4——首次出现处由渲染层加括号注「进了待审区，等你处理」）。
 	 */
 	public static function review_word(): string {
-		return '转人工复核';
+		return __( 'Manual review', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 故障/error → 出错（对照表 5）。
 	 */
 	public static function error_word(): string {
-		return '出错';
+		return __( 'Errors', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 登录失败尝试 → 密码输错（对照表 6）。
 	 */
 	public static function attempts_word(): string {
-		return '密码输错';
+		return __( 'Wrong passwords', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 驱动 → 服务商（对照表 7——统筹裁决 1：系统层统一叫「服务商」）。
 	 */
 	public static function driver_word(): string {
-		return '服务商';
+		return __( 'Provider', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 维度（表头）→ 防线（对照表 8——「谁拦的」）。
 	 */
 	public static function defense_word(): string {
-		return '防线';
+		return __( 'Defense line', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 判定（表头）→ 结果（对照表 9）。
 	 */
 	public static function verdict_word(): string {
-		return '结果';
+		return __( 'Result', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -114,8 +114,8 @@ final class Labels {
 			return '';
 		}
 		return match ( $state ) {
-			'quota_exhausted' => '额度用完',
-			'config_error'    => '配置有问题',
+			'quota_exhausted' => __( 'Quota used up', 'wink-wp-gatekeeper' ),
+			'config_error'    => __( 'Configuration problem', 'wink-wp-gatekeeper' ),
 			default           => $state,
 		};
 	}
@@ -124,7 +124,7 @@ final class Labels {
 	 * 0 调用 → 今日没用到（对照表 11）。
 	 */
 	public static function zero_call_word(): string {
-		return '今日没用到';
+		return __( 'Not used today', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -135,11 +135,11 @@ final class Labels {
 	 */
 	public static function stage_word( string $stage ): string {
 		return match ( $stage ) {
-			'stub'    => '机器人试探',
-			'ip'      => 'IP 信誉',
-			'captcha' => '人机验证',
-			'review'  => '内容审核',
-			'url_audit' => '网址核查', // 【M6·批B·B-5】运行性错误事件 stage 人话.
+			'stub'    => __( 'Bot probing', 'wink-wp-gatekeeper' ),
+			'ip'      => __( 'IP reputation', 'wink-wp-gatekeeper' ),
+			'captcha' => __( 'Human verification', 'wink-wp-gatekeeper' ),
+			'review'  => __( 'Content moderation', 'wink-wp-gatekeeper' ),
+			'url_audit' => __( 'URL check', 'wink-wp-gatekeeper' ), // 【M6·批B·B-5】运行性错误事件 stage 人话.
 			default   => $stage,
 		};
 	}
@@ -160,43 +160,43 @@ final class Labels {
 		}
 
 		$exact = array(
-			'remote_transport'  => '网络连不上',
-			'remote_semantic'   => '服务商拒绝了（查配置或欠费）',
-			'remote_contract'   => '服务商返回了看不懂的结果',
-			'contract_mismatch' => '服务商返回了看不懂的结果',
-			'driver_resumed'    => '服务商恢复正常',
-			'too_short'         => '字数太少',
-			'too_long'          => '超出字数上限',
-			'no_chinese'        => '没有中文内容',
-			'banned_word'       => '命中关键词黑名单',
-			'hold_moderation'   => '收进待审区等站长复核',
-			'captcha_missing'   => '没带验证码票据',
-			'bad-signature'     => '票据签名不对',
-			'duplicate_comment' => '与已有评论重复',
-			'comment_flood'     => '发得太快（洪泛保护）',
-			'trust_pass'        => '信用免验通过',
-			'verify_cache_hit'  => '窗口内免重复验票',
+			'remote_transport'  => __( 'Network unreachable', 'wink-wp-gatekeeper' ),
+			'remote_semantic'   => __( 'Provider refused the request (check configuration or billing)', 'wink-wp-gatekeeper' ),
+			'remote_contract'   => __( 'Provider returned an unreadable result', 'wink-wp-gatekeeper' ),
+			'contract_mismatch' => __( 'Provider returned an unreadable result', 'wink-wp-gatekeeper' ),
+			'driver_resumed'    => __( 'Provider recovered', 'wink-wp-gatekeeper' ),
+			'too_short'         => __( 'Too short', 'wink-wp-gatekeeper' ),
+			'too_long'          => __( 'Over the length limit', 'wink-wp-gatekeeper' ),
+			'no_chinese'        => __( 'No Chinese content', 'wink-wp-gatekeeper' ),
+			'banned_word'       => __( 'Keyword blacklist hit', 'wink-wp-gatekeeper' ),
+			'hold_moderation'   => __( 'Pended for the site owner to review', 'wink-wp-gatekeeper' ),
+			'captcha_missing'   => __( 'No captcha ticket', 'wink-wp-gatekeeper' ),
+			'bad-signature'     => __( 'Bad ticket signature', 'wink-wp-gatekeeper' ),
+			'duplicate_comment' => __( 'Duplicate of an existing comment', 'wink-wp-gatekeeper' ),
+			'comment_flood'     => __( 'Posted too fast (flood protection)', 'wink-wp-gatekeeper' ),
+			'trust_pass'        => __( 'Trusted-visitor waiver passed', 'wink-wp-gatekeeper' ),
+			'verify_cache_hit'  => __( 'Ticket reuse within window', 'wink-wp-gatekeeper' ),
 			// 【M6·批B·B-5】网址核查配额暂停边沿事件人话（报错历史时间线）。
-			'quota_paused'      => '今日额度用完（网址核查暂停）',
+			'quota_paused'      => __( 'Daily quota used up (URL checks paused)', 'wink-wp-gatekeeper' ),
 		);
 		if ( isset( $exact[ $rule_hit ] ) ) {
 			return $exact[ $rule_hit ];
 		}
 
 		if ( 'driver_halted:quota_exhausted' === $rule_hit ) {
-			return '当日额度用完';
+			return __( 'Daily quota used up', 'wink-wp-gatekeeper' );
 		}
 		if ( 'driver_halted:config_error' === $rule_hit ) {
-			return '配置有问题（服务商拒绝了请求）';
+			return __( 'Configuration problem (the provider refused the request)', 'wink-wp-gatekeeper' );
 		}
 		if ( 0 === strpos( $rule_hit, 'driver_halted:' ) ) {
-			return '服务商暂停（' . substr( $rule_hit, strlen( 'driver_halted:' ) ) . '）';
+			return __( 'Provider paused (', 'wink-wp-gatekeeper' ) . substr( $rule_hit, strlen( 'driver_halted:' ) ) . '）';
 		}
 		if ( 0 === strpos( $rule_hit, 'CaptchaCode=' ) ) {
-			return '人机验证没通过（返回码 ' . substr( $rule_hit, strlen( 'CaptchaCode=' ) ) . '）';
+			return __( 'Human verification failed (return code ', 'wink-wp-gatekeeper' ) . substr( $rule_hit, strlen( 'CaptchaCode=' ) ) . '）';
 		}
 		if ( 0 === strpos( $rule_hit, 'remote_' ) ) {
-			return '服务商出了通讯故障';
+			return __( 'Provider had a communication failure', 'wink-wp-gatekeeper' );
 		}
 		return $rule_hit; // 未收录键原样（不撒谎）。
 	}
@@ -248,9 +248,9 @@ final class Labels {
 	 */
 	public static function account_result_word( string $stage ): string {
 		if ( 'captcha' === $stage ) {
-			return '出码 · 拦下';
+			return __( 'Captcha shown · blocked', 'wink-wp-gatekeeper' );
 		}
-		return '未过码 · 拦下';
+		return __( 'Captcha not passed · blocked', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -267,7 +267,7 @@ final class Labels {
 		return match ( $stage ) {
 			'captcha'    => self::account_result_word( 'captcha' ),
 			'stub', 'ip' => self::account_result_word( 'stub' ),
-			default      => '拦下',
+			default      => __( 'Blocked', 'wink-wp-gatekeeper' ),
 		};
 	}
 
@@ -275,28 +275,28 @@ final class Labels {
 	 * meta.raw/脱敏快照 → 服务商原始回复（对照表 18——设置项与展开行共用）。
 	 */
 	public static function snapshot_word(): string {
-		return '服务商原始回复';
+		return __( 'Raw provider response', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 快照截断字节 → 保存长度上限（字）（对照表 19）。
 	 */
 	public static function snapshot_limit_word(): string {
-		return '保存长度上限（字）';
+		return __( 'Storage length cap (characters)', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 事件流 → 拦截记录流水（对照表 21）。
 	 */
 	public static function event_stream_word(): string {
-		return '拦截记录流水';
+		return __( 'Intercept log', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 计数缓存/事件表/对账口径 → 所有统计数字和拦截记录（对照表 22——重置卡人话）。
 	 */
 	public static function reset_scope_word(): string {
-		return '所有统计数字和拦截记录';
+		return __( 'All statistics and intercept records', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -306,8 +306,8 @@ final class Labels {
 	 */
 	public static function section_word( string $gate ): string {
 		return match ( $gate ) {
-			'comment' => '评论防护',
-			'login'   => '登录防护',
+			'comment' => __( 'Comment protection', 'wink-wp-gatekeeper' ),
+			'login'   => __( 'Sign-in protection', 'wink-wp-gatekeeper' ),
 			default   => $gate,
 		};
 	}
@@ -320,11 +320,11 @@ final class Labels {
 	 */
 	public static function gate_word( string $gate ): string {
 		return match ( $gate ) {
-			'login'        => '登录门',
-			'register'     => '注册门',
-			'lostpassword' => '找回密码门',
-			'comment'      => '评论门',
-			'system'       => '服务商健康',
+			'login'        => __( 'Login', 'wink-wp-gatekeeper' ),
+			'register'     => __( 'Registration', 'wink-wp-gatekeeper' ),
+			'lostpassword' => __( 'Password recovery', 'wink-wp-gatekeeper' ),
+			'comment'      => __( 'Comments', 'wink-wp-gatekeeper' ),
+			'system'       => __( 'Provider health', 'wink-wp-gatekeeper' ),
 			default        => $gate,
 		};
 	}
@@ -333,7 +333,7 @@ final class Labels {
 	 * 累计拦截 → 累计拦下（对照表 24 词头）。
 	 */
 	public static function cumulative_word(): string {
-		return '累计拦下';
+		return __( 'Blocked cumulatively', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -349,7 +349,7 @@ final class Labels {
 	public static function cumulative_line( string $formatted_total, string $unit, string $since_date ): string {
 		$line = self::cumulative_word() . ' ' . $formatted_total . ' ' . $unit;
 		if ( '' !== $since_date ) {
-			$line .= '（自 ' . $since_date . ' 上次清零起）';
+			$line .= __( '(since ', 'wink-wp-gatekeeper' ) . $since_date . __( ', last reset)', 'wink-wp-gatekeeper' );
 		}
 		return $line;
 	}
@@ -362,13 +362,13 @@ final class Labels {
 	 */
 	public static function trigger_word( string $source ): string {
 		return match ( $source ) {
-			'user_threshold' => '同一账号连错太多次',
-			'ip_threshold'   => '同一 IP 试了太多次',
-			'iprep'          => 'IP 声名狼藉',
-			'alarm'          => '站点警报期（近期失败太多）',
-			'stale_form'     => '表单停留太久才提交',
-			'always'         => '配置为一律要过人机验证',
-			'xmlrpc'         => '经 XML-RPC 接口尝试',
+			'user_threshold' => __( 'Too many consecutive failures for this account', 'wink-wp-gatekeeper' ),
+			'ip_threshold'   => __( 'This IP tried too many times', 'wink-wp-gatekeeper' ),
+			'iprep'          => __( 'IP has a bad reputation', 'wink-wp-gatekeeper' ),
+			'alarm'          => __( 'Site alarm period (many recent failures)', 'wink-wp-gatekeeper' ),
+			'stale_form'     => __( 'Form submitted after sitting too long', 'wink-wp-gatekeeper' ),
+			'always'         => __( 'Configured to always require human verification', 'wink-wp-gatekeeper' ),
+			'xmlrpc'         => __( 'Attempt via XML-RPC', 'wink-wp-gatekeeper' ),
 			default          => $source,
 		};
 	}
@@ -388,9 +388,9 @@ final class Labels {
 	 */
 	public static function duty_word( string $duty ): string {
 		return match ( $duty ) {
-			'active'       => '当班',
-			'standby'      => '待命',
-			'unconfigured' => '未配置',
+			'active'       => __( 'On duty', 'wink-wp-gatekeeper' ),
+			'standby'      => __( 'Standby', 'wink-wp-gatekeeper' ),
+			'unconfigured' => __( 'Not configured', 'wink-wp-gatekeeper' ),
 			default        => $duty,
 		};
 	}
@@ -403,11 +403,11 @@ final class Labels {
 	 */
 	public static function health_word( ?string $state ): string {
 		if ( null === $state || '' === $state ) {
-			return '正常';
+			return __( 'Normal', 'wink-wp-gatekeeper' );
 		}
 		return match ( $state ) {
-			'config_error'    => '故障',
-			'quota_exhausted' => '额度用完',
+			'config_error'    => __( 'Fault', 'wink-wp-gatekeeper' ),
+			'quota_exhausted' => __( 'Quota used up', 'wink-wp-gatekeeper' ),
 			default           => $state,
 		};
 	}
@@ -423,8 +423,8 @@ final class Labels {
 			return '';
 		}
 		return match ( $state ) {
-			'config_error'    => '（密钥被拒或服务没开通，当日暂停；修正凭据后点「测试凭据」解除）',
-			'quota_exhausted' => '（今日额度用完，次日自动恢复）',
+			'config_error'    => __( '(key rejected or service not enabled, paused for the day; fix the credentials and click “Test credentials” to clear)', 'wink-wp-gatekeeper' ),
+			'quota_exhausted' => __( '(today\'s quota is used up; resumes automatically tomorrow)', 'wink-wp-gatekeeper' ),
 			default           => '（' . $state . '）',
 		};
 	}
@@ -434,35 +434,35 @@ final class Labels {
 	 * review_word「转人工复核」，两词各安其位）。
 	 */
 	public static function pending_word(): string {
-		return '待你过目';
+		return __( 'Awaiting your review', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * fail_mode/降级档/故障降级 → 备胎方案（对照表 B-11）。
 	 */
 	public static function failover_word(): string {
-		return '备胎方案';
+		return __( 'Fallback plan', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * daily_quota → 每日额度（对照表 B-13）。
 	 */
 	public static function quota_word(): string {
-		return '每日额度';
+		return __( 'Daily limit', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * test_mode → 演练模式（对照表 B-14——总览通栏标题词；说明句在渲染层）。
 	 */
 	public static function test_mode_word(): string {
-		return '演练模式';
+		return __( 'Drill mode', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * spam 留档 → 垃圾箱存档（对照表 B-16——拦下的垃圾评论自动存档备查）。
 	 */
 	public static function spam_word(): string {
-		return '垃圾箱存档';
+		return __( 'Spam archive', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -470,21 +470,21 @@ final class Labels {
 	 * 显式说清「通过」是怎么算出来的，不撒谎）。
 	 */
 	public static function pass_uncounted_note(): string {
-		return '「全部通过」为推算——正常放行不记数（只记被拦和待审的）';
+		return __( '“All passed” is an estimate — normal approvals are not counted (only blocked and pended ones are)', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * 本地规则脚注（对照表 B-7——「本地规则无外部故障面，恒正常」人话）。
 	 */
 	public static function local_rules_footnote(): string {
-		return '站内规矩（本地规则）始终在岗，不依赖任何外部服务，无需密钥';
+		return __( 'The built-in rules (local rules) are always on duty, depend on no external service, and need no keys', 'wink-wp-gatekeeper' );
 	}
 
 	/**
 	 * chain/审核链 → 当前审核服务（对照表 B-8——首发单驱动语境不出现「链」）。
 	 */
 	public static function review_service_word(): string {
-		return '当前审核服务';
+		return __( 'Current moderation service', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -495,10 +495,10 @@ final class Labels {
 	 */
 	public static function action_verb( string $driver_type ): string {
 		return match ( $driver_type ) {
-			'captcha' => '验',
-			'review'  => '审',
-			'ip'      => '查',
-			default   => '动作',
+			'captcha' => __( 'Verify', 'wink-wp-gatekeeper' ),
+			'review'  => __( 'Review', 'wink-wp-gatekeeper' ),
+			'ip'      => __( 'Check', 'wink-wp-gatekeeper' ),
+			default   => __( 'Action', 'wink-wp-gatekeeper' ),
 		};
 	}
 
@@ -518,23 +518,23 @@ final class Labels {
 			return '';
 		}
 		$exact = array(
-			'banned_word'       => '关键词黑名单',
-			'no_chinese'        => '纯外文',
-			'too_short'         => '字数太少',
-			'too_long'          => '超字数上限',
-			'hold_moderation'   => '转人工',
-			'captcha_missing'   => '没带票据',
-			'bad-signature'     => '票据签名不对',
-			'contract_mismatch' => '服务商故障',
+			'banned_word'       => __( 'Keyword blacklist', 'wink-wp-gatekeeper' ),
+			'no_chinese'        => __( 'Non-Chinese only', 'wink-wp-gatekeeper' ),
+			'too_short'         => __( 'Too short', 'wink-wp-gatekeeper' ),
+			'too_long'          => __( 'Over length limit', 'wink-wp-gatekeeper' ),
+			'hold_moderation'   => __( 'Manual', 'wink-wp-gatekeeper' ),
+			'captcha_missing'   => __( 'No ticket', 'wink-wp-gatekeeper' ),
+			'bad-signature'     => __( 'Bad ticket signature', 'wink-wp-gatekeeper' ),
+			'contract_mismatch' => __( 'Provider failure', 'wink-wp-gatekeeper' ),
 		);
 		if ( isset( $exact[ $rule_hit ] ) ) {
 			return $exact[ $rule_hit ];
 		}
 		if ( 0 === strpos( $rule_hit, 'CaptchaCode=' ) ) {
-			return '人机验证没通过';
+			return __( 'Human verification failed', 'wink-wp-gatekeeper' );
 		}
 		if ( 0 === strpos( $rule_hit, 'remote_' ) ) {
-			return '服务商通讯故障';
+			return __( 'Provider communication failure', 'wink-wp-gatekeeper' );
 		}
 		return self::rule_hit_word( $rule_hit );
 	}
@@ -559,11 +559,11 @@ final class Labels {
 	 */
 	public static function usage_row_word( string $key ): string {
 		return match ( $key ) {
-			Usage::KEY_URL_AUDIT_FETCH  => '网页抓取（DeepSeek）',          // 抓取成功次（DeepSeekFetchAdapter 响应侧）。
-			Usage::KEY_URL_AUDIT_INCR   => '网址判定·增量车道（DeepSeek）', // 新评论车道判定次。
-			Usage::KEY_URL_AUDIT_BATCH  => '网址判定·批量车道（DeepSeek）', // 存量网址核查车道判定次。
-			Usage::KEY_DEEPSEEK_SEARCH  => '网页搜索（DeepSeek）',
-			'bocha_search'              => '网页搜索（博查）',              // M5 U5 K3 键（Usage 无常量位——字面同源单点）。
+			Usage::KEY_URL_AUDIT_FETCH  => __( 'Page fetching (DeepSeek)', 'wink-wp-gatekeeper' ),          // 抓取成功次（DeepSeekFetchAdapter 响应侧）。
+			Usage::KEY_URL_AUDIT_INCR   => __( 'URL verdict · new-comment lane (DeepSeek)', 'wink-wp-gatekeeper' ), // 新评论车道判定次。
+			Usage::KEY_URL_AUDIT_BATCH  => __( 'URL verdict · batch lane (DeepSeek)', 'wink-wp-gatekeeper' ), // 存量网址核查车道判定次。
+			Usage::KEY_DEEPSEEK_SEARCH  => __( 'Web search (DeepSeek)', 'wink-wp-gatekeeper' ),
+			'bocha_search'              => __( 'Web search (Bocha)', 'wink-wp-gatekeeper' ),              // M5 U5 K3 键（Usage 无常量位——字面同源单点）。
 			default                     => '',
 		};
 	}

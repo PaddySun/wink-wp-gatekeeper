@@ -348,7 +348,7 @@ final class UiM4UxF3ContractTest extends TestCase {
 
 		$this->assertStringContainsString( 'wk-example-line', $body, 'Tab⑤ {rule} 映射示例=独立样式行' );
 		$this->assertStringContainsString( 'remote_semantic', $body, '映射示例键名保持（F2 UI-3-1 既有契约）' );
-		$this->assertStringContainsString( '服务商拒绝了', $body, '映射示例人话名保持' );
+		$this->assertStringContainsString( 'Provider refused the request', $body, '映射示例人话名保持' );
 	}
 
 	/* ===================================================================

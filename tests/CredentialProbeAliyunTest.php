@@ -46,7 +46,7 @@ final class CredentialProbeAliyunTest extends TestCase {
 		) );
 		$this->assertSame( 'green', $state['state'] );
 		$this->assertSame( 'VerifyCode=F003', $state['code'] );
-		$this->assertStringContainsString( '凭据可用', $state['message'] );
+		$this->assertStringContainsString( 'Credentials work', $state['message'] );
 	}
 
 	public function test_green_http_200_with_f002(): void {
@@ -111,7 +111,7 @@ final class CredentialProbeAliyunTest extends TestCase {
 			'{"Code":"Forbidden.AccountAccessDenied","Message":"not activated or in arrears"}'
 		) );
 		$this->assertSame( 'red', $state['state'] );
-		$this->assertStringContainsString( '开通', $state['message'] );
+		$this->assertStringContainsString( 'enable the service', $state['message'] );
 	}
 
 	public function test_red_prefix_class_match(): void {
@@ -134,7 +134,7 @@ final class CredentialProbeAliyunTest extends TestCase {
 	public function test_gray_transport_terminal(): void {
 		$state = CredentialProbe::classify_aliyun( RemoteResult::error( RemoteResult::TRANSPORT, 'transport_failed: connection/timeout' ) );
 		$this->assertSame( 'gray', $state['state'] );
-		$this->assertStringContainsString( '网络', $state['message'] );
+		$this->assertStringContainsString( 'Network', $state['message'] );
 	}
 
 	public function test_gray_500(): void {
@@ -151,7 +151,7 @@ final class CredentialProbeAliyunTest extends TestCase {
 		$this->assertNotNull( $result );
 		$this->assertSame( 'yellow', $result['state'] );
 		$this->assertSame( array( 'AccessKeySecret', 'SceneId' ), $result['missing'] );
-		$this->assertStringContainsString( '必填字段缺少', $result['message'] );
+		$this->assertStringContainsString( 'Required fields missing', $result['message'] );
 	}
 
 	public function test_local_precheck_aliyun_complete_returns_null(): void {

@@ -94,7 +94,7 @@ final class DriverConfigSpec {
 	public static function driver_options( array $registered, array $configs, array $future = array(), array $halted = array() ): array {
 		$options = array( array(
 			'value' => '',
-			'label' => '未配置（跳过云端审核）',
+			'label' => __( 'Not configured (cloud moderation skipped)', 'wink-wp-gatekeeper' ),
 		) );
 
 		foreach ( $registered as $id => $meta ) {
@@ -128,9 +128,9 @@ final class DriverConfigSpec {
 	 */
 	public static function dot_labels(): array {
 		return array(
-			'configured'   => '已配置',
-			'unconfigured' => '未配置',
-			'error'        => '配置错误',
+			'configured'   => __( 'Configured', 'wink-wp-gatekeeper' ),
+			'unconfigured' => __( 'Not configured', 'wink-wp-gatekeeper' ),
+			'error'        => __( 'Configuration error', 'wink-wp-gatekeeper' ),
 		);
 	}
 
@@ -171,8 +171,8 @@ final class DriverConfigSpec {
 			return null;
 		}
 		$label = isset( $meta['label'] ) && is_string( $meta['label'] ) ? $meta['label'] : $selected;
-		return '已选择' . $domain_label . '驱动「' . $label . '」，但必填字段缺少：' . implode( '、', $missing )
-			. '。设置已保存，但该驱动在补齐前视为未配置（相关检查阶段按「未配置」语义跳过）。';
+		return __( 'Selected ', 'wink-wp-gatekeeper' ) . $domain_label . __( ' driver “', 'wink-wp-gatekeeper' ) . $label . __( '”, but required fields are missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing )
+			. __( '. Settings were saved, but the driver counts as not configured until they are filled in (the relevant check stages are skipped as “not configured”).', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -187,7 +187,7 @@ final class DriverConfigSpec {
 	 * @return string|null
 	 */
 	public static function chain_summary( array $chain, array $registered, array $configs ): ?string {
-		$parts = array( '本地规则' );
+		$parts = array( __( 'Local rules', 'wink-wp-gatekeeper' ) );
 		$count = 0;
 		foreach ( $chain as $id ) {
 			$id = (string) $id;
@@ -209,7 +209,7 @@ final class DriverConfigSpec {
 		if ( 0 === $count ) {
 			return null;
 		}
-		return '当前链路：' . implode( ' → ', $parts ) . '——逐驱动合规见各配置栏';
+		return __( 'Current chain: ', 'wink-wp-gatekeeper' ) . implode( ' → ', $parts ) . __( ' — per-driver compliance is shown in each configuration panel', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -234,12 +234,13 @@ final class DriverConfigSpec {
 		$url      = isset( $p['privacy_url'] ) && is_string( $p['privacy_url'] ) ? $p['privacy_url'] : '';
 		$vendor   = isset( $meta['vendor'] ) && is_string( $meta['vendor'] ) ? $meta['vendor'] : $label;
 
-		$text = "启用 {$label} 即向第三方（{$vendor}，{$note}）提供访客信息：{$fields}。";
+		/* i18n 批 I-3：插值整句改碎片拼接（zh 逐字节等价：启用 X 即向第三方（Y，Z）提供访客信息：W。） */
+		$text = __( 'Enabling ', 'wink-wp-gatekeeper' ) . $label . __( ' sends visitor data to a third party (', 'wink-wp-gatekeeper' ) . $vendor . __( ', ', 'wink-wp-gatekeeper' ) . $note . __( '): visitor data: ', 'wink-wp-gatekeeper' ) . $fields . __( '.', 'wink-wp-gatekeeper' );
 		if ( '' !== $url ) {
-			$text .= "隐私条款：{$url}";
+			$text .= __( 'Privacy policy: ', 'wink-wp-gatekeeper' ) . $url;
 		}
 		if ( null === $border ) {
-			$text .= '该服务所在司法辖区未知，请自行评估数据出境合规。';
+			$text .= __( 'The jurisdiction of this service is unknown; assess cross-border data compliance yourself.', 'wink-wp-gatekeeper' );
 		}
 
 		return array(

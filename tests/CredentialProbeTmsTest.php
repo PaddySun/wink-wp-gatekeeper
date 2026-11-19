@@ -30,7 +30,7 @@ final class CredentialProbeTmsTest extends TestCase {
 		$result = self::make_result( 200, (string) json_encode( array( 'Response' => array( 'Suggestion' => 'Pass', 'Label' => 'Normal', 'Score' => 0, 'RequestId' => 'r1' ) ) ) );
 		$state  = CredentialProbe::classify_tms( $result );
 		$this->assertSame( 'green', $state['state'] );
-		$this->assertStringContainsString( '凭据可用', $state['message'] );
+		$this->assertStringContainsString( 'Credentials work', $state['message'] );
 	}
 
 	public function test_red_on_auth_failure_body_code(): void {
@@ -45,7 +45,7 @@ final class CredentialProbeTmsTest extends TestCase {
 		$result = self::make_result( 200, (string) json_encode( array( 'Response' => array( 'Error' => array( 'Code' => 'UnauthorizedOperation.Unauthorized', 'Message' => 'no package' ) ) ) ) );
 		$state  = CredentialProbe::classify_tms( $result );
 		$this->assertSame( 'red', $state['state'] );
-		$this->assertStringContainsString( '套餐', $state['message'] );
+		$this->assertStringContainsString( 'package', $state['message'] );
 	}
 
 	public function test_yellow_on_missing_parameter(): void {

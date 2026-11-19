@@ -105,12 +105,12 @@ final class IpReputationServiceTest extends TestCase {
 	/* ---------- 健康面（Tab④ 分区二健康行消费——【v1.7·M3-IP】第三态落地） ---------- */
 
 	public function test_state_label_disabled_is_not_enabled(): void {
-		$this->assertSame( '未启用', IpReputationService::state_label( self::settings( array( 'enabled' => false ) ) ) );
+		$this->assertSame( 'Not enabled', IpReputationService::state_label( self::settings( array( 'enabled' => false ) ) ) );
 	}
 
 	public function test_state_label_enabled_is_enabled_abuseipdb(): void {
 		// enabled 即装配（M2.5 的「未装配（M3）」占位态随 I2 退役——防呆态由健康灯呈现）。
-		$this->assertSame( '已启用（AbuseIPDB）', IpReputationService::state_label( self::settings( array( 'enabled' => true ) ) ) );
+		$this->assertSame( 'Enabled (AbuseIPDB)', IpReputationService::state_label( self::settings( array( 'enabled' => true ) ) ) );
 	}
 
 	/**

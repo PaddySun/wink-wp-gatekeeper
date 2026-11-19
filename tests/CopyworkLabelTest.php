@@ -39,13 +39,13 @@ final class CopyworkLabelTest extends TestCase {
 	 */
 	public function test_tms_labels_are_mapped(): void {
 		$labels = Copywork::cloud_labels();
-		$this->assertSame( '辱骂违规', $labels['wk-label-Abuse'] );
-		$this->assertSame( '广告', $labels['wk-label-Ad'] );
-		$this->assertSame( '色情低俗', $labels['wk-label-Porn'] );
-		$this->assertSame( '涉政', $labels['wk-label-Politics'] );
-		$this->assertSame( '暴恐', $labels['wk-label-Terrorism'] );
-		$this->assertSame( '违禁', $labels['wk-label-Contraband'] );
-		$this->assertSame( '性感的', $labels['wk-label-Sexy'] );
+		$this->assertSame( 'Abusive', $labels['wk-label-Abuse'] );
+		$this->assertSame( 'Advertising', $labels['wk-label-Ad'] );
+		$this->assertSame( 'Pornographic / vulgar', $labels['wk-label-Porn'] );
+		$this->assertSame( 'Politics', $labels['wk-label-Politics'] );
+		$this->assertSame( 'Terrorism', $labels['wk-label-Terrorism'] );
+		$this->assertSame( 'Contraband', $labels['wk-label-Contraband'] );
+		$this->assertSame( 'Sexual content', $labels['wk-label-Sexy'] );
 	}
 
 	/**
@@ -53,28 +53,28 @@ final class CopyworkLabelTest extends TestCase {
 	 */
 	public function test_aliyun_labels_excerpt_is_mapped(): void {
 		$labels = Copywork::cloud_labels();
-		$this->assertSame( '疑似站外引流', $labels['wk-label-pt_to_sites'] );
-		$this->assertSame( '疑似引流广告号', $labels['wk-label-pt_to_contact'] );
-		$this->assertSame( '疑似网赚兼职广告', $labels['wk-label-pt_by_recruitment'] );
-		$this->assertSame( '违反广告法内容', $labels['wk-label-ad_compliance'] );
-		$this->assertSame( '疑似攻击辱骂', $labels['wk-label-inappropriate_profanity'] );
-		$this->assertSame( '疑似色情', $labels['wk-label-pornographic_adult'] );
-		$this->assertSame( '命中自定义词库', $labels['wk-label-customized'] );
-		$this->assertSame( '文本疑似 AI 生成', $labels['wk-label-aigc'] );
+		$this->assertSame( 'Suspected off-site traffic diversion', $labels['wk-label-pt_to_sites'] );
+		$this->assertSame( 'Suspected ad-spam account', $labels['wk-label-pt_to_contact'] );
+		$this->assertSame( 'Suspected money-making job ad', $labels['wk-label-pt_by_recruitment'] );
+		$this->assertSame( 'Ad-law violating content', $labels['wk-label-ad_compliance'] );
+		$this->assertSame( 'Suspected abusive attack', $labels['wk-label-inappropriate_profanity'] );
+		$this->assertSame( 'Suspected pornography', $labels['wk-label-pornographic_adult'] );
+		$this->assertSame( 'Custom word list hit', $labels['wk-label-customized'] );
+		$this->assertSame( 'Text suspected AI-generated', $labels['wk-label-aigc'] );
 	}
 
 	/* ---------- 驱动人类名前缀（registry type+label 派生） ---------- */
 
 	public function test_driver_prefix_review_type(): void {
 		$this->assertSame(
-			'云端文本审核（腾讯云 TMS 文本审核）',
-			Copywork::driver_prefix( 'review', '腾讯云 TMS 文本审核' )
+			'Cloud text moderation (Tencent Cloud TMS Text Moderation)',
+			Copywork::driver_prefix( 'review', 'Tencent Cloud TMS Text Moderation' )
 		);
 	}
 
 	public function test_driver_prefix_captcha_and_ip_types(): void {
-		$this->assertSame( '人机验证（腾讯天御验证码 2.0）', Copywork::driver_prefix( 'captcha', '腾讯天御验证码 2.0' ) );
-		$this->assertSame( 'IP 信誉（AbuseIPDB）', Copywork::driver_prefix( 'ip', 'AbuseIPDB' ) );
+		$this->assertSame( 'Human verification (Tencent Tianyu Captcha 2.0)', Copywork::driver_prefix( 'captcha', 'Tencent Tianyu Captcha 2.0' ) );
+		$this->assertSame( 'IP reputation (AbuseIPDB)', Copywork::driver_prefix( 'ip', 'AbuseIPDB' ) );
 	}
 
 	public function test_driver_prefix_unknown_type_falls_back_to_label(): void {
@@ -87,18 +87,18 @@ final class CopyworkLabelTest extends TestCase {
 	 * 主形态：驱动人类名前缀 + 标签中文 + 置信（03 §3 v1.5 示例句式）。
 	 */
 	public function test_humanize_rule_maps_known_label_with_score(): void {
-		$prefix = Copywork::driver_prefix( 'review', '腾讯云 TMS 文本审核' );
+		$prefix = Copywork::driver_prefix( 'review', 'Tencent Cloud TMS Text Moderation' );
 		$this->assertSame(
-			'云端文本审核（腾讯云 TMS 文本审核）：辱骂违规 · 置信 100',
+			'Cloud text moderation (Tencent Cloud TMS Text Moderation):Abusive · confidence 100',
 			Copywork::humanize_rule( $prefix, 'Abuse,100' )
 		);
 		$this->assertSame(
-			'云端文本审核（腾讯云 TMS 文本审核）：广告 · 置信 99',
+			'Cloud text moderation (Tencent Cloud TMS Text Moderation):Advertising · confidence 99',
 			Copywork::humanize_rule( $prefix, 'Ad,99' )
 		);
 		$this->assertSame(
-			'云端文本审核（阿里文本审核增强版 PLUS）：疑似站外引流 · 置信 100',
-			Copywork::humanize_rule( Copywork::driver_prefix( 'review', '阿里文本审核增强版 PLUS' ), 'pt_to_sites,100' )
+			'Cloud text moderation (Aliyun text moderation PLUS):Suspected off-site traffic diversion · confidence 100',
+			Copywork::humanize_rule( Copywork::driver_prefix( 'review', 'Aliyun text moderation PLUS' ), 'pt_to_sites,100' )
 		);
 	}
 
@@ -106,9 +106,9 @@ final class CopyworkLabelTest extends TestCase {
 	 * 兜底：未收录标签原样显示（esc_html 在 DiePage 边界承担——此处只保证不造错误中文）。
 	 */
 	public function test_humanize_rule_unknown_label_shows_label_verbatim(): void {
-		$prefix = Copywork::driver_prefix( 'review', '腾讯云 TMS 文本审核' );
+		$prefix = Copywork::driver_prefix( 'review', 'Tencent Cloud TMS Text Moderation' );
 		$this->assertSame(
-			'云端文本审核（腾讯云 TMS 文本审核）：FooBar · 置信 88',
+			'Cloud text moderation (Tencent Cloud TMS Text Moderation):FooBar · confidence 88',
 			Copywork::humanize_rule( $prefix, 'FooBar,88' )
 		);
 	}
@@ -117,7 +117,7 @@ final class CopyworkLabelTest extends TestCase {
 	 * nonLabel 伪标签不映射（05 §2.5：未检测出风险，不出现在拒绝理由，防御性直通）。
 	 */
 	public function test_humanize_rule_nonlabel_is_not_mapped(): void {
-		$prefix = Copywork::driver_prefix( 'review', '腾讯云 TMS 文本审核' );
+		$prefix = Copywork::driver_prefix( 'review', 'Tencent Cloud TMS Text Moderation' );
 		$this->assertSame( 'nonLabel,100', Copywork::humanize_rule( $prefix, 'nonLabel,100' ) );
 	}
 
@@ -138,14 +138,14 @@ final class CopyworkLabelTest extends TestCase {
 	 * filter 覆盖：label_overrides 同键（wk-label-<Label>）覆盖中文文案，键名集不扩不缩。
 	 */
 	public function test_humanize_rule_accepts_label_overrides(): void {
-		$prefix = Copywork::driver_prefix( 'review', '腾讯云 TMS 文本审核' );
+		$prefix = Copywork::driver_prefix( 'review', 'Tencent Cloud TMS Text Moderation' );
 		$this->assertSame(
-			'云端文本审核（腾讯云 TMS 文本审核）：站长定制的广告文案 · 置信 99',
+			'Cloud text moderation (Tencent Cloud TMS Text Moderation):站长定制的广告文案 · confidence 99',
 			Copywork::humanize_rule( $prefix, 'Ad,99', array( 'wk-label-Ad' => '站长定制的广告文案' ) )
 		);
 		// override 不含该键时仍走内建映射（合并语义）。
 		$this->assertSame(
-			'云端文本审核（腾讯云 TMS 文本审核）：辱骂违规 · 置信 99',
+			'Cloud text moderation (Tencent Cloud TMS Text Moderation):Abusive · confidence 99',
 			Copywork::humanize_rule( $prefix, 'Abuse,99', array( 'wk-label-Ad' => '站长定制的广告文案' ) )
 		);
 	}

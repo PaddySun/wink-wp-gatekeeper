@@ -120,11 +120,11 @@ final class EventsTableWriteMatrixTest extends TestCase {
 	/* ---------- rule_hit 拼接（v1.2：逗号连接 + 120 字符截断 + 截断保序去重） ---------- */
 
 	public function test_hits_to_rule_hit_joins_with_comma(): void {
-		$this->assertSame( '广告,灌水', EventsTable::hits_to_rule_hit( array( '广告', '灌水' ) ) );
+		$this->assertSame( 'Advertising,灌水', EventsTable::hits_to_rule_hit( array( 'Advertising', '灌水' ) ) );
 	}
 
 	public function test_hits_to_rule_hit_preserve_order_dedupe(): void {
-		$this->assertSame( '广告,灌水', EventsTable::hits_to_rule_hit( array( '广告', '灌水', '广告' ) ) );
+		$this->assertSame( 'Advertising,灌水', EventsTable::hits_to_rule_hit( array( 'Advertising', '灌水', 'Advertising' ) ) );
 	}
 
 	public function test_hits_to_rule_hit_truncates_to_120_bytes(): void {
@@ -143,7 +143,7 @@ final class EventsTableWriteMatrixTest extends TestCase {
 	}
 
 	public function test_hits_to_rule_hit_drops_non_string_entries(): void {
-		$this->assertSame( '广告', EventsTable::hits_to_rule_hit( array( '广告', 42, null ) ) );
+		$this->assertSame( 'Advertising', EventsTable::hits_to_rule_hit( array( 'Advertising', 42, null ) ) );
 	}
 
 	/* ---------- 容量决策 ---------- */

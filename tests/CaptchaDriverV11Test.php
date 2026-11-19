@@ -82,7 +82,7 @@ final class CaptchaDriverV11Test extends TestCase {
 	public function test_tencent_id_and_label(): void {
 		$driver = self::driver();
 		$this->assertSame( 'tencent', $driver->id() );
-		$this->assertSame( '腾讯天御验证码 2.0', $driver->label() );
+		$this->assertSame( 'Tencent Tianyu Captcha 2.0', $driver->label() );
 	}
 
 	public function test_credential_fields_derive_registry_token_fields(): void {
@@ -275,7 +275,7 @@ final class CaptchaDriverV11Test extends TestCase {
 				return '';
 			}
 			public function verify( array $context ): ?string {
-				return '眨眼没对上';
+				return 'The wink did not land';
 			}
 			public function is_configured(): bool {
 				return true;

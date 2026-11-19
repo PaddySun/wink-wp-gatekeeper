@@ -186,14 +186,14 @@ final class DashboardDigest {
 		$captcha_driver = isset( $args['captcha_driver'] ) && is_string( $args['captcha_driver'] ) && '' !== $args['captcha_driver']
 			? $args['captcha_driver'] : 'aliyun'; // 【M6·批H·H-3】防御回落随新出厂默认。
 		if ( array() !== $counters && $has( $captcha_driver ) ) {
-			$domains[] = array( 'id' => 'captcha', 'label' => '人机验证', 'rows' => array( $row( $captcha_driver ) ) );
+			$domains[] = array( 'id' => 'captcha', 'label' => __( 'Human verification', 'wink-wp-gatekeeper' ), 'rows' => array( $row( $captcha_driver ) ) );
 		}
 
 		// ② 评论审核（云审）——链上驱动一行（UI 单选下拉即 chain[0] 可视面）。
 		$chain  = is_array( $settings['review']['cloud']['chain'] ?? null ) ? $settings['review']['cloud']['chain'] : array();
 		$active = (string) ( $chain[0] ?? '' );
 		if ( array() !== $counters && '' !== $active && $has( $active ) ) {
-			$domains[] = array( 'id' => 'review', 'label' => '评论审核（云审）', 'rows' => array( $row( $active ) ) );
+			$domains[] = array( 'id' => 'review', 'label' => __( 'Comment moderation (cloud)', 'wink-wp-gatekeeper' ), 'rows' => array( $row( $active ) ) );
 		}
 
 		// ③ 内容审核（本地四闸）——零外呼零计量，恒空域不渲染（D8 不虚设行）。
@@ -211,7 +211,7 @@ final class DashboardDigest {
 				// 【M6·批H·H-4③】本站直抓不计费不计次（批 D 语义）→ 声明行无次数。
 				$fetch_rows[] = array(
 					'driver_id'     => 'self_fetch',
-					'label'         => '本站直接打开——不计费',
+					'label'         => __( 'Opened directly on this site — no billing', 'wink-wp-gatekeeper' ),
 					'used'          => 0,
 					'quota'         => 0,
 					'quota_reached' => false,
@@ -219,7 +219,7 @@ final class DashboardDigest {
 				);
 			}
 			if ( array() !== $fetch_rows ) {
-				$domains[] = array( 'id' => 'fetch', 'label' => '网页抓取', 'rows' => $fetch_rows );
+				$domains[] = array( 'id' => 'fetch', 'label' => __( 'Page fetching', 'wink-wp-gatekeeper' ), 'rows' => $fetch_rows );
 			}
 		}
 
@@ -231,7 +231,7 @@ final class DashboardDigest {
 			}
 		}
 		if ( array() !== $search_rows ) {
-			$domains[] = array( 'id' => 'search', 'label' => '网页搜索', 'rows' => $search_rows );
+			$domains[] = array( 'id' => 'search', 'label' => __( 'Web search', 'wink-wp-gatekeeper' ), 'rows' => $search_rows );
 		}
 
 		// ⑥ IP 信誉（殿后）——abuseipdb 查询/上报两键（五域定稿未列，数据不丢如实显示）。
@@ -242,7 +242,7 @@ final class DashboardDigest {
 			}
 		}
 		if ( array() !== $iprep_rows ) {
-			$domains[] = array( 'id' => 'iprep', 'label' => 'IP 信誉', 'rows' => $iprep_rows );
+			$domains[] = array( 'id' => 'iprep', 'label' => __( 'IP reputation', 'wink-wp-gatekeeper' ), 'rows' => $iprep_rows );
 		}
 
 		if ( array() !== $counters ) {

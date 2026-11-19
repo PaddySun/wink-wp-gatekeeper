@@ -274,11 +274,11 @@ final class BaiduTextModerationDriverTest extends TestCase {
 		$this->assertSame( Verdict::REJECT, $mapped['verdict'] );
 		// hits = data[].type/subType 人类可读格式（L0 实测三条标签逐项）。
 		$this->assertSame( array(
-			'12-文本反作弊(subType=1)',
-			'12-文本反作弊(subType=4)',
-			'31-暴恐(subType=310000)',
+			'12-Text anti-spam(subType=1)',
+			'12-Text anti-spam(subType=4)',
+			'31-Terrorism(subType=310000)',
 		), $mapped['hits'] );
-		$this->assertStringContainsString( '不合规:12-文本反作弊(subType=1)', $mapped['reason'], 'reason = conclusion+首条命中' );
+		$this->assertStringContainsString( '不合规:12-Text anti-spam(subType=1)', $mapped['reason'], 'reason = conclusion+首条命中' );
 	}
 
 	public function test_map_conclusion_suspect_to_review(): void {
@@ -491,7 +491,7 @@ final class BaiduTextModerationDriverTest extends TestCase {
 
 		$verdict = $driver->check( '加微信xxx低价代刷粉丝', array() );
 		$this->assertSame( Verdict::REJECT, $verdict->verdict() );
-		$this->assertSame( array( '12-文本反作弊(subType=1)', '12-文本反作弊(subType=4)', '31-暴恐(subType=310000)' ), $verdict->hits() );
+		$this->assertSame( array( '12-Text anti-spam(subType=1)', '12-Text anti-spam(subType=4)', '31-Terrorism(subType=310000)' ), $verdict->hits() );
 		$this->assertCount( 1, $log, '缓存命中 → 仅审核一调' );
 	}
 

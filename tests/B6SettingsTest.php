@@ -64,9 +64,9 @@ final class B6SettingsTest extends TestCase {
 		$entry = DriverPrivacy::entry( 'baidu' );
 		$this->assertNotNull( $entry );
 		$this->assertFalse( $entry['cross_border'], '百度境内不出境' );
-		$this->assertStringContainsString( '昵称', $entry['data_fields'] );
-		$this->assertStringContainsString( '邮箱不送审', $entry['data_fields'], '真机实锤：邮箱地址本身判 36-广告 360104 误杀（IMPL-B6 偏差 1）——邮箱不送审' );
-		$this->assertStringContainsString( '境内', $entry['region_note'] );
+		$this->assertStringContainsString( 'Nickname', $entry['data_fields'] );
+		$this->assertStringContainsString( 'email is not submitted', $entry['data_fields'], '真机实锤：邮箱地址本身判 36-广告 360104 误杀（IMPL-B6 偏差 1）——邮箱不送审' );
+		$this->assertStringContainsString( 'Domestic', $entry['region_note'] );
 		$this->assertStringContainsString( 'aip.baidubce.com', $entry['region_note'], 'B6 起注记境内端点' );
 	}
 
@@ -81,7 +81,7 @@ final class B6SettingsTest extends TestCase {
 		$options    = DriverConfigSpec::driver_options( $registered, array( 'baidu' => self::baidu_config() ) );
 		$this->assertSame( 'baidu', $options[1]['value'], '已实装驱动出现在下拉已实装段' );
 		$this->assertSame( 'configured', $options[1]['dot'] );
-		$this->assertSame( '百度文本审核', $options[1]['label'] );
+		$this->assertSame( 'Baidu Text Moderation', $options[1]['label'] );
 	}
 
 	public function test_driver_options_baidu_unconfigured_dot(): void {
@@ -91,7 +91,7 @@ final class B6SettingsTest extends TestCase {
 	}
 
 	public function test_server_notice_lists_missing_fields_for_baidu(): void {
-		$notice = DriverConfigSpec::server_notice( 'baidu', BaiduTextModerationDriver::registry_entry(), self::baidu_config( 'AK', '' ), '云端审核' );
+		$notice = DriverConfigSpec::server_notice( 'baidu', BaiduTextModerationDriver::registry_entry(), self::baidu_config( 'AK', '' ), 'Cloud moderation' );
 		$this->assertNotNull( $notice );
 		$this->assertStringContainsString( 'Secret Key', $notice, '双层校验第二层黄条列出缺失字段' );
 	}
@@ -100,15 +100,15 @@ final class B6SettingsTest extends TestCase {
 		$registered = array( 'baidu' => BaiduTextModerationDriver::registry_entry() );
 		$summary    = DriverConfigSpec::chain_summary( array( 'baidu' ), $registered, array( 'baidu' => self::baidu_config() ) );
 		$this->assertNotNull( $summary );
-		$this->assertStringContainsString( '百度文本审核', $summary );
-		$this->assertStringContainsString( '数据不出境', $summary );
+		$this->assertStringContainsString( 'Baidu Text Moderation', $summary );
+		$this->assertStringContainsString( 'data stays in China', $summary );
 	}
 
 	public function test_privacy_notice_normal_level_for_domestic_baidu(): void {
-		$notice = DriverConfigSpec::privacy_notice( BaiduTextModerationDriver::registry_entry(), '百度文本审核' );
+		$notice = DriverConfigSpec::privacy_notice( BaiduTextModerationDriver::registry_entry(), 'Baidu Text Moderation' );
 		$this->assertNotNull( $notice );
 		$this->assertSame( 'normal', $notice['level'], '境内驱动合规行为常规档（非黄条）' );
-		$this->assertStringContainsString( '百度', $notice['text'] );
+		$this->assertStringContainsString( 'Baidu', $notice['text'] );
 	}
 
 	/* ---------- SettingsPage AJAX 端点存在性 ---------- */

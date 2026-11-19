@@ -61,7 +61,7 @@ final class CredentialProbeBaiduTest extends TestCase {
 		) ) ) );
 		$this->assertSame( 'green', $out['state'] );
 		$this->assertStringContainsString( 'conclusionType=1', $out['code'] );
-		$this->assertStringContainsString( '凭据可用', $out['message'] );
+		$this->assertStringContainsString( 'Credentials work', $out['message'] );
 	}
 
 	public function test_red_on_token_auth_failure(): void {
@@ -77,7 +77,7 @@ final class CredentialProbeBaiduTest extends TestCase {
 		// HTTP 401 形态（token 端点鉴权失败透传——invalid_client）同归红（semantic 终态=凭据被拒直接证据）。
 		$out2 = CredentialProbe::classify_baidu( self::ok_result( self::body( array( 'error' => 'invalid_client' ) ), 401 ) );
 		$this->assertSame( 'red', $out2['state'], 'token 端点 semantic 终态 = 红（凭据被拒直接证据）' );
-		$this->assertStringContainsString( '鉴权失败', $out2['message'] );
+		$this->assertStringContainsString( 'Authentication failed', $out2['message'] );
 	}
 
 	public function test_red_on_permission_denied(): void {
@@ -86,7 +86,7 @@ final class CredentialProbeBaiduTest extends TestCase {
 			'error_msg'  => 'no permission to call this api',
 		) ) ) );
 		$this->assertSame( 'red', $out['state'], '无权限（未开通文本审核）= 红' );
-		$this->assertStringContainsString( '文本审核', $out['message'], '指明开通入口' );
+		$this->assertStringContainsString( 'Text Moderation', $out['message'], '指明开通入口' );
 	}
 
 	public function test_yellow_on_invalid_parameter(): void {
@@ -95,7 +95,7 @@ final class CredentialProbeBaiduTest extends TestCase {
 			'error_msg'  => 'invalid parameter',
 		) ) ) );
 		$this->assertSame( 'yellow', $out['state'] );
-		$this->assertStringContainsString( '参数', $out['message'] );
+		$this->assertStringContainsString( 'Parameter', $out['message'] );
 	}
 
 	public function test_gray_on_quota_exceeded(): void {
@@ -110,7 +110,7 @@ final class CredentialProbeBaiduTest extends TestCase {
 	public function test_gray_on_transport_failure(): void {
 		$out = CredentialProbe::classify_baidu( RemoteResult::error( RemoteResult::TRANSPORT, 'transport_failed: timeout' ) );
 		$this->assertSame( 'gray', $out['state'] );
-		$this->assertStringContainsString( '网络不可达', $out['message'] );
+		$this->assertStringContainsString( 'Network unreachable', $out['message'] );
 	}
 
 	public function test_gray_on_unexpected_conclusion_type(): void {

@@ -25,7 +25,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_h5a_front_hint_on_real_submit(): void {
 			$js = self::source( 'assets/js/gatekeeper.js' );
-			self::assertStringContainsString( '您的评论正在接收检查', $js, '【H5-a】提交等待期提示文案在场' );
+			self::assertStringContainsString( 'Your comment is being checked, please wait', $js, '【H5-a】提交等待期提示文案在场' );
 			self::assertStringContainsString( "addEventListener( 'submit'", $js, 'submit 监听（真实提交触发）' );
 			self::assertStringContainsString( 'data-wk-submitting', $js, 'form 级防重复标志（双容器幂等）' );
 			// 【0.8.3 形态翻转】Toast 气泡（用户反馈弃评论区下方内联条）——showToast 单例

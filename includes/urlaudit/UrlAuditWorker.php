@@ -1091,7 +1091,7 @@ final class UrlAuditWorker {
 			// evidence=search 行渲染时补人话标记「网址打不开，依据搜索线索判定」。
 			$reason = trim( (string) ( $meta['reason'] ?? '' ) );
 			if ( '' === $reason ) {
-				$reason = '（无原因说明）';
+				$reason = __( '(no reason given)', "wink-wp-gatekeeper" );
 			}
 			// 【M6·批H·H-8】归堆截断补「…」（单点件 InterceptDigest::truncate_reason——
 			// 归堆先于渲染截断，聚合侧同规约全消费面生效）。

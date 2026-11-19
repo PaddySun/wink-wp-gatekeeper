@@ -90,13 +90,13 @@ final class B3SettingsTest extends TestCase {
 		$missing = CaptchaTabSpec::aliyun_missing_fields( array(
 			'access_key_id' => '', 'access_key_secret' => ' ', 'scene_id' => 'x', 'prefix' => '',
 		) );
-		$this->assertSame( array( 'AccessKeyId', 'AccessKeySecret', 'prefix（身份标）' ), $missing, '逐字段列出（黄态不发起调用）' );
+		$this->assertSame( array( 'AccessKeyId', 'AccessKeySecret', 'prefix (identity tag)' ), $missing, '逐字段列出（黄态不发起调用）' );
 	}
 
 	public function test_driver_options_aliyun_dot_status(): void {
 		$drivers = array(
-			'aliyun'  => array( 'label' => '阿里云验证码 2.0' ),
-			'tencent' => array( 'label' => '腾讯天御验证码 2.0' ),
+			'aliyun'  => array( 'label' => 'Aliyun Captcha 2.0' ),
+			'tencent' => array( 'label' => 'Tencent Tianyu Captcha 2.0' ),
 		);
 		$options = CaptchaTabSpec::driver_options( $drivers, array(
 			'app_id' => 1, 'secret_id' => 'a', 'secret_key' => 'b', 'app_secret_key' => 'c',
@@ -126,7 +126,7 @@ final class B3SettingsTest extends TestCase {
 			'access_key_id' => 'a', 'access_key_secret' => '', 'scene_id' => '', 'prefix' => 'p',
 		) );
 		$this->assertIsString( $notice );
-		$this->assertStringContainsString( '阿里云验证码 2.0', $notice );
+		$this->assertStringContainsString( 'Aliyun Captcha 2.0', $notice );
 		$this->assertStringContainsString( 'AccessKeySecret', $notice );
 		$this->assertStringContainsString( 'SceneId', $notice );
 	}
@@ -137,7 +137,7 @@ final class B3SettingsTest extends TestCase {
 		$this->assertStringContainsString( 'SceneId', implode( '', $guide['steps'] ) );
 		$this->assertStringContainsString( 'prefix', implode( '', $guide['steps'] ) );
 		$this->assertStringContainsString( 'captcha2.console.aliyun.com', $guide['console_url'] );
-		$this->assertStringContainsString( '动态引入', implode( '', $guide['steps'] ) . $guide['ticket_note'], 'JS 动态引入红线进指引' );
+		$this->assertStringContainsString( 'loaded dynamically', implode( '', $guide['steps'] ) . $guide['ticket_note'], 'JS 动态引入红线进指引' );
 	}
 
 	/* ---------- DriverPrivacy（05 §1.2 registry 行 privacy 维） ---------- */
@@ -145,8 +145,8 @@ final class B3SettingsTest extends TestCase {
 	public function test_driver_privacy_aliyun_row_matches_spec(): void {
 		$row = DriverPrivacy::entry( 'aliyun' );
 		$this->assertNotNull( $row );
-		$this->assertFalse( $row['cross_border'], '境内，数据不出境' );
-		$this->assertSame( '访客 IP（行为采集，经阿里客户端 SDK）、CaptchaVerifyParam', $row['data_fields'] );
-		$this->assertSame( '境内，数据不出境', $row['region_note'] );
+		$this->assertFalse( $row['cross_border'], 'Domestic; data stays in China' );
+		$this->assertSame( 'Visitor IP (behavior collection via the Aliyun client SDK), CaptchaVerifyParam', $row['data_fields'] );
+		$this->assertSame( 'Domestic; data stays in China', $row['region_note'] );
 	}
 }

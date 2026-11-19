@@ -89,22 +89,27 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 	 *
 	 * @var array<int, string>
 	 */
-	private const TYPE_NAMES = array(
-		11 => '百度官方违禁词库',
-		12 => '文本反作弊',
-		13 => '自定义黑名单',
-		14 => '自定义白名单',
-		30 => '涉政',
-		31 => '暴恐',
-		32 => '违禁',
-		33 => '涉黄',
-		34 => '辱骂',
-		35 => '涉价值观',
-		36 => '广告',
-		37 => '广告法',
-		38 => '隐私信息',
-		39 => '低质灌水',
-	);
+	/* 【i18n 批 I-3】原 private const TYPE_NAMES 数组键名常量不能内联 __()（PHP 常量表达式
+	 * 禁函数调用）——等价重构为私有静态方法（消费点 :506 单点自联调用，行为零变化）。
+	 * 值走 i18n 通道（zh msgstr=原中文）。 */
+	private static function type_names(): array {
+		return array(
+			11 => __( 'Baidu official banned-word library', 'wink-wp-gatekeeper' ),
+			12 => __( 'Text anti-spam', 'wink-wp-gatekeeper' ),
+			13 => __( 'Custom blocklist', 'wink-wp-gatekeeper' ),
+			14 => __( 'Custom allowlist', 'wink-wp-gatekeeper' ),
+			30 => __( 'Politics', 'wink-wp-gatekeeper' ),
+			31 => __( 'Terrorism', 'wink-wp-gatekeeper' ),
+			32 => __( 'Contraband', 'wink-wp-gatekeeper' ),
+			33 => __( 'Pornography', 'wink-wp-gatekeeper' ),
+			34 => __( 'Abuse', 'wink-wp-gatekeeper' ),
+			35 => __( 'Values-related', 'wink-wp-gatekeeper' ),
+			36 => __( 'Advertising', 'wink-wp-gatekeeper' ),
+			37 => __( 'Advertising law', 'wink-wp-gatekeeper' ),
+			38 => __( 'Private information', 'wink-wp-gatekeeper' ),
+			39 => __( 'Low-quality flooding', 'wink-wp-gatekeeper' ),
+		);
+	}
 
 	/**
 	 * @var array{api_key: string, secret_key: string, timeout: int}
@@ -190,7 +195,7 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 			'id'           => self::DRIVER_ID,
 			'type'         => 'review',
 			'class'        => self::class,
-			'label'        => '百度文本审核',
+			'label'        => __( 'Baidu Text Moderation', 'wink-wp-gatekeeper' ),
 			'reachability' => 'cn-excellent', // 境内 aip.baidubce.com（05 §2.4 可达性行）.
 			'billing'      => 'usage',        // 按量计费（05 §5 矩阵「按量」档）.
 			'frontend'     => array(),        // review 类无前端形态.
@@ -199,17 +204,17 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 			'settings'     => array(
 				'api_key'     => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'API Key', 'required' => true ),
 				'secret_key'  => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'Secret Key', 'required' => true ),
-				'timeout'     => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '超时（秒）' ),
-				'daily_quota' => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '日配额' ),
-				'fail_mode'   => array( 'type' => 'text', 'sanitize' => 'text', 'label' => '故障降级' ),
+				'timeout'     => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Timeout (seconds)', 'wink-wp-gatekeeper' ) ),
+				'daily_quota' => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Daily quota', 'wink-wp-gatekeeper' ) ),
+				'fail_mode'   => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'Failure fallback', 'wink-wp-gatekeeper' ) ),
 			),
 			'privacy'      => DriverPrivacy::entry( self::DRIVER_ID ), // 第七维（内容表单一来源引用，禁双源漂移）.
 			'guide'        => array( // 【v1.4·R4 §A.5】接入指引下放 registry（guide 维渲染）。
 				'steps' => array(
-					'1. 百度智能云控制台开通「内容审核 · 文本审核」（现行 v2 端点，文本审核按量计费）。',
-					'2. 控制台「应用列表」创建应用获取 API Key 与 Secret Key（AppID 仅控制台标识，不参与请求）。',
-					'3. 粘贴至下方 → 点「测试凭据」（正常文本实测应返回合规）。',
-					'4. 判定映射（站长不可调）：conclusionType 1 合规→放行、2 不合规→直接拦截、3 疑似→入待审；access_token 由插件缓存复用（30 天有效期，无需手动管理）。',
+					__( '1. Enable “Content Moderation · Text Moderation” (current v2 endpoint, text moderation is pay-as-you-go) in the Baidu AI Cloud console.', 'wink-wp-gatekeeper' ),
+					__( '2. Create an app under “App List” in the console to get the API Key and Secret Key (AppID is a console label only and takes no part in requests).', 'wink-wp-gatekeeper' ),
+					__( '3. Paste below → click “Test credentials” (a normal text test should return compliant).', 'wink-wp-gatekeeper' ),
+					__( '4. Verdict mapping (not admin-adjustable): conclusionType 1 compliant → pass, 2 non-compliant → direct block, 3 suspected → pending review; the access_token is cached and reused by the plugin (30-day validity, no manual management).', 'wink-wp-gatekeeper' ),
 				),
 				'doc_url' => 'https://cloud.baidu.com/doc/ANTIPORN/s/Rk3h6xb3i',
 			),
@@ -503,7 +508,7 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 	 * @return string
 	 */
 	public static function format_hit( int $type, int $sub_type ): string {
-		$name = self::TYPE_NAMES[ $type ] ?? ( 'type' . $type );
+		$name = self::type_names()[ $type ] ?? ( 'type' . $type );
 		return $type . '-' . $name . '(subType=' . $sub_type . ')';
 	}
 

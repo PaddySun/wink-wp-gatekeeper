@@ -109,7 +109,7 @@ final class B2CaptchaTriContractTest extends TestCase {
 
 		$this->assertSame( 'reject', $tri['state'] );
 		$this->assertNull( $tri['score'], 'reject 态不携带分数' );
-		$this->assertStringContainsString( '刷新', $tri['message'] );
+		$this->assertStringContainsString( 'refresh', $tri['message'] );
 		$this->assertSame( 'CaptchaCode=8', $tri['meta']['rule'] );
 	}
 
@@ -129,7 +129,7 @@ final class B2CaptchaTriContractTest extends TestCase {
 
 		$this->assertSame( 'error', $tri['state'] );
 		$this->assertSame( 'remote_transport', $tri['meta']['rule'] );
-		$this->assertStringContainsString( '稍后再试', $tri['message'], 'MSG_TRANSPORT 降级文案' );
+		$this->assertStringContainsString( 'try again later', $tri['message'], 'MSG_TRANSPORT 降级文案' );
 		$this->assertArrayHasKey( 'raw', $tri['meta'], 'meta.raw 必带（F44 原样）' );
 		$this->assertArrayHasKey( 'category', $tri['meta'] );
 	}
@@ -140,7 +140,7 @@ final class B2CaptchaTriContractTest extends TestCase {
 
 		$this->assertSame( 'error', $tri['state'] );
 		$this->assertSame( 'remote_semantic', $tri['meta']['rule'] );
-		$this->assertStringContainsString( '配置', $tri['message'], 'MSG_CONFIG 文案' );
+		$this->assertStringContainsString( 'misconfigured', $tri['message'], 'MSG_CONFIG 文案' );
 	}
 
 	public function test_verify_tri_contract_mismatch_is_error_state(): void {

@@ -124,7 +124,7 @@ final class M5U4LlmDriverTest extends TestCase {
 
 	public function test_ip_never_sent_to_llm(): void {
 		list( $driver, $cap ) = self::makeDriver( array( self::chatResponse( self::okJson() ) ) );
-		$driver->check( '正文', array( 'author' => '', 'email' => '', 'content' => '正文', 'ip_hash' => 'abcdef0123456789' ) );
+		$driver->check( 'body', array( 'author' => '', 'email' => '', 'content' => 'body', 'ip_hash' => 'abcdef0123456789' ) );
 		$body = json_decode( $cap['requests'][0]['args']['body'], true );
 		self::assertStringNotContainsString( 'abcdef0123456789', json_encode( $body ), 'IP 不送（PIPL 最小化，05 §2.2）' );
 	}
@@ -134,7 +134,7 @@ final class M5U4LlmDriverTest extends TestCase {
 	 * =================================================================== */
 
 	public function test_parse_tolerant_strips_code_fences(): void {
-		$fenced = "```json\n" . self::okJson( 'reject', 0.99, '广告', array( '广告' ) ) . "\n```";
+		$fenced = "```json\n" . self::okJson( 'reject', 0.99, 'Advertising', array( 'Advertising' ) ) . "\n```";
 		list( $driver, $cap ) = self::makeDriver( array( self::chatResponse( $fenced ) ) );
 		$v = $driver->check( 'x', array() );
 		self::assertSame( 'reject', $v->verdict(), '围栏剥除后正常判定' );
@@ -211,10 +211,10 @@ final class M5U4LlmDriverTest extends TestCase {
 	}
 
 	public function test_high_confidence_reject_passes_through(): void {
-		list( $driver, $cap ) = self::makeDriver( array( self::chatResponse( self::okJson( 'reject', 0.99, '广告', array( '广告' ) ) ) ) );
+		list( $driver, $cap ) = self::makeDriver( array( self::chatResponse( self::okJson( 'reject', 0.99, 'Advertising', array( 'Advertising' ) ) ) ) );
 		$v = $driver->check( 'x', array() );
 		self::assertSame( 'reject', $v->verdict() );
-		self::assertSame( array( '广告' ), $v->hits() );
+		self::assertSame( array( 'Advertising' ), $v->hits() );
 	}
 
 	/* ===================================================================
@@ -224,7 +224,7 @@ final class M5U4LlmDriverTest extends TestCase {
 	public function test_two_stage_upgrades_low_confidence_once(): void {
 		list( $driver, $cap ) = self::makeDriver( array(
 			self::chatResponse( self::okJson( 'reject', 0.6, '疑似' ), 'stop', array( 'prompt_tokens' => 100, 'completion_tokens' => 20 ) ),
-			self::chatResponse( self::okJson( 'reject', 0.97, '确认广告', array( '广告' ) ) ),
+			self::chatResponse( self::okJson( 'reject', 0.97, '确认广告', array( 'Advertising' ) ) ),
 		), array( 'two_stage' => true ) );
 		$v = $driver->check( 'x', array() );
 		self::assertSame( 'reject', $v->verdict(), '升级后高置信直拒' );

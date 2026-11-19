@@ -55,7 +55,7 @@ final class M6IUsageCardLabelsTest extends TestCase {
 			'today_dash'           => self::YMD_DASH,
 			'captcha_configured'   => true,
 			'captcha_driver'       => 'aliyun',
-			'captcha_driver_label' => '阿里云验证码 2.0',
+			'captcha_driver_label' => 'Aliyun Captcha 2.0',
 			'driver_labels'        => array(),
 			'cron_alive'           => true,
 			'debug'                => false,
@@ -79,7 +79,7 @@ final class M6IUsageCardLabelsTest extends TestCase {
 			'baidu'            => (string) \WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver::registry_entry()['label'],
 			'deepseek'         => (string) DeepSeekReviewDriver::registry_entry()['label'],
 			'abuseipdb'        => 'AbuseIPDB',
-			'abuseipdb_report' => 'AbuseIPDB（上报）',
+			'abuseipdb_report' => 'AbuseIPDB (reporting)',
 		);
 	}
 
@@ -102,11 +102,11 @@ final class M6IUsageCardLabelsTest extends TestCase {
 	/* ================= I-1 本体：计量键 → 人话名映射 ================= */
 
 	public function test_i1_labels_usage_row_word_closed_set(): void {
-		$this->assertSame( '网页抓取（DeepSeek）', Labels::usage_row_word( 'url_audit_fetch' ), '抓取成功次=网页抓取（DeepSeek）' );
-		$this->assertSame( '网址判定·增量车道（DeepSeek）', Labels::usage_row_word( 'url_audit_incr' ), '增量车道判定次' );
-		$this->assertSame( '网址判定·批量车道（DeepSeek）', Labels::usage_row_word( 'url_audit_batch' ), '批量车道判定次' );
-		$this->assertSame( '网页搜索（博查）', Labels::usage_row_word( 'bocha_search' ), '博查搜索次' );
-		$this->assertSame( '网页搜索（DeepSeek）', Labels::usage_row_word( 'deepseek_search' ), 'DeepSeek 搜索次' );
+		$this->assertSame( 'Page fetching (DeepSeek)', Labels::usage_row_word( 'url_audit_fetch' ), '抓取成功次=网页抓取（DeepSeek）' );
+		$this->assertSame( 'URL verdict · new-comment lane (DeepSeek)', Labels::usage_row_word( 'url_audit_incr' ), '增量车道判定次' );
+		$this->assertSame( 'URL verdict · batch lane (DeepSeek)', Labels::usage_row_word( 'url_audit_batch' ), '批量车道判定次' );
+		$this->assertSame( 'Web search (Bocha)', Labels::usage_row_word( 'bocha_search' ), '博查搜索次' );
+		$this->assertSame( 'Web search (DeepSeek)', Labels::usage_row_word( 'deepseek_search' ), 'DeepSeek 搜索次' );
 		$this->assertSame( '', Labels::usage_row_word( 'deepseek' ), '驱动 id 不进本表（单一来源=registry 注入面）' );
 		$this->assertSame( '', Labels::usage_row_word( 'abuseipdb' ), 'abuseipdb 不进本表（Bootstrap 注入面既有）' );
 		$this->assertSame( '', Labels::usage_row_word( 'unknown_future_key' ), '未收录键=空串（回落原键不吞）' );
@@ -127,10 +127,10 @@ final class M6IUsageCardLabelsTest extends TestCase {
 		$fetch   = $this->domainById( $out['usage'], 'fetch' );
 
 		$this->assertNotNull( $fetch, '抓取域渲染' );
-		$this->assertSame( '网页抓取（DeepSeek）', $fetch['rows'][0]['label'], '抓取服务商行人话（原 url_audit_fetch 裸键退役）' );
+		$this->assertSame( 'Page fetching (DeepSeek)', $fetch['rows'][0]['label'], '抓取服务商行人话（原 url_audit_fetch 裸键退役）' );
 		$this->assertSame( 2, $fetch['rows'][0]['used'], '抓取行计次不变' );
-		$this->assertSame( '网址判定·增量车道（DeepSeek）', $fetch['rows'][1]['label'], '增量车道判定行人话' );
-		$this->assertSame( '网址判定·批量车道（DeepSeek）', $fetch['rows'][2]['label'], '批量车道判定行人话' );
+		$this->assertSame( 'URL verdict · new-comment lane (DeepSeek)', $fetch['rows'][1]['label'], '增量车道判定行人话' );
+		$this->assertSame( 'URL verdict · batch lane (DeepSeek)', $fetch['rows'][2]['label'], '批量车道判定行人话' );
 		$this->assertSame( 'url_audit_fetch', $fetch['rows'][0]['driver_id'], 'driver_id 原键保留（机器可读面不变）' );
 	}
 
@@ -143,8 +143,8 @@ final class M6IUsageCardLabelsTest extends TestCase {
 		$search = $this->domainById( $out['usage'], 'search' );
 
 		$this->assertNotNull( $search, '搜索域渲染' );
-		$this->assertSame( '网页搜索（博查）', $search['rows'][0]['label'], '博查行人话（原 bocha_search 裸键退役）' );
-		$this->assertSame( '网页搜索（DeepSeek）', $search['rows'][1]['label'], 'DeepSeek 搜索行人话' );
+		$this->assertSame( 'Web search (Bocha)', $search['rows'][0]['label'], '博查行人话（原 bocha_search 裸键退役）' );
+		$this->assertSame( 'Web search (DeepSeek)', $search['rows'][1]['label'], 'DeepSeek 搜索行人话' );
 		$this->assertSame( 'bocha_search', $search['rows'][0]['driver_id'], 'driver_id 原键保留' );
 	}
 
@@ -183,7 +183,7 @@ final class M6IUsageCardLabelsTest extends TestCase {
 
 		$review = $this->domainById( $out['usage'], 'review' );
 		$this->assertNotNull( $review );
-		$this->assertSame( '腾讯云 TMS 文本审核', $review['rows'][0]['label'], 'tencent_tms registry 显示名照旧' );
+		$this->assertSame( 'Tencent Cloud TMS Text Moderation', $review['rows'][0]['label'], 'tencent_tms registry 显示名照旧' );
 	}
 
 	/* ================= 混合搭配全场景：顺序 + 全行 人话 + 零裸键泄漏 ================= */
@@ -228,10 +228,10 @@ final class M6IUsageCardLabelsTest extends TestCase {
 		}
 
 		// 关键行抽验（混合搭配各域各行如实显示）。
-		$this->assertSame( '阿里云验证码 2.0', $this->domainById( $out['usage'], 'captcha' )['rows'][0]['label'] );
+		$this->assertSame( 'Aliyun Captcha 2.0', $this->domainById( $out['usage'], 'captcha' )['rows'][0]['label'] );
 		$this->assertSame( 'DeepSeek', $this->domainById( $out['usage'], 'review' )['rows'][0]['label'] );
-		$this->assertSame( '网页抓取（DeepSeek）', $this->domainById( $out['usage'], 'fetch' )['rows'][0]['label'] );
-		$this->assertSame( '网页搜索（博查）', $this->domainById( $out['usage'], 'search' )['rows'][0]['label'] );
+		$this->assertSame( 'Page fetching (DeepSeek)', $this->domainById( $out['usage'], 'fetch' )['rows'][0]['label'] );
+		$this->assertSame( 'Web search (Bocha)', $this->domainById( $out['usage'], 'search' )['rows'][0]['label'] );
 		$this->assertSame( 'AbuseIPDB', $this->domainById( $out['usage'], 'iprep' )['rows'][0]['label'] );
 	}
 
@@ -248,7 +248,7 @@ final class M6IUsageCardLabelsTest extends TestCase {
 		$this->assertNotNull( $fetch, '本站直抓=抓取域渲染（声明行）' );
 		$this->assertCount( 1, $fetch['rows'], '无计次行（批 D/H 语义）' );
 		$this->assertTrue( (bool) $fetch['rows'][0]['bill_free'], 'bill_free 标记' );
-		$this->assertSame( '本站直接打开——不计费', $fetch['rows'][0]['label'], '声明行文案批 H 语义不变' );
+		$this->assertSame( 'Opened directly on this site — no billing', $fetch['rows'][0]['label'], '声明行文案批 H 语义不变' );
 	}
 
 	/* ================= Bootstrap 注入面：registry label 单一来源补录 ================= */

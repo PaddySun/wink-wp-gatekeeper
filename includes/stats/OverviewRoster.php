@@ -183,7 +183,7 @@ final class OverviewRoster {
 			return '';
 		}
 		if ( self::DUTY_STANDBY === $duty ) {
-			return sprintf( '今日 %d 次（未排班）', $used );
+			return sprintf( /* translators: %d: 调用次数 */ _n( 'Today %d call (unscheduled)', 'Today %d calls (unscheduled)', $used, 'wink-wp-gatekeeper' ), $used );
 		}
 
 		// 当班：主行=今日{验/审} N 次；副段=结果人话（拦下/转人工/出错/全部通过）。
@@ -196,22 +196,22 @@ final class OverviewRoster {
 		$error  = (int) ( $counts['error'] ?? 0 );
 
 		if ( 0 === $used && 0 === $reject && 0 === $review && 0 === $error ) {
-			return Labels::zero_call_word() . '（0 次）';
+			return Labels::zero_call_word() . __( '(0 calls)', 'wink-wp-gatekeeper' );
 		}
 
-		$parts = array( '今日' . Labels::action_verb( $type ) . ' ' . $used . ' 次' );
+		$parts = array( sprintf( /* translators: 1: 动作词 2: 调用次数 */ _n( 'Today %1$s %2$d time', 'Today %1$s %2$d times', $used, 'wink-wp-gatekeeper' ), Labels::action_verb( $type ), $used ) );
 		if ( $reject > 0 ) {
-			$parts[] = '拦下 ' . $reject . ' 次';
+						$parts[] = sprintf( /* translators: %d: 拦截数 */ _n( 'Blocked %d time', 'Blocked %d times', $reject, 'wink-wp-gatekeeper' ), $reject );
 		}
 		if ( $review > 0 ) {
-			$parts[] = '转人工 ' . $review . ' 次';
+						$parts[] = sprintf( /* translators: %d: 转人工数 */ _n( 'Manual review %d time', 'Manual review %d times', $review, 'wink-wp-gatekeeper' ), $review );
 		}
 		if ( $error > 0 ) {
-			$parts[] = '出错 ' . $error . ' 次';
+						$parts[] = sprintf( /* translators: %d: 出错数 */ _n( 'Error %d time', 'Error %d times', $error, 'wink-wp-gatekeeper' ), $error );
 		}
 		if ( 0 === $reject && 0 === $review && 0 === $error ) {
 			// 有调用零拦下：验证码=全部通过（推算口径，脚注另交代）；审核=没有可疑内容。
-			$parts[] = 'captcha' === $type ? '全部通过' : '没有可疑内容';
+						$parts[] = 'captcha' === $type ? __( 'All passed', 'wink-wp-gatekeeper' ) : __( 'Nothing suspicious', 'wink-wp-gatekeeper' );
 		}
 		return implode( ' · ', $parts );
 	}
@@ -229,7 +229,7 @@ final class OverviewRoster {
 	 */
 	public static function ticket_main( int $reject, string $gate ): string {
 		if ( $reject <= 0 ) {
-			return '平静的一天';
+			return __( 'A quiet day', 'wink-wp-gatekeeper' );
 		}
 		return Labels::reject_word() . ' ' . $reject . ' ' . Labels::count_unit( $gate );
 	}
@@ -274,12 +274,12 @@ final class OverviewRoster {
 		$date = $m[1] . '-' . $m[2] . '-' . $m[3];
 		$hm   = $m[4];
 		if ( $date === $today ) {
-			return '今天 ' . $hm;
+			return __( 'Today ', 'wink-wp-gatekeeper' ) . $hm;
 		}
 		if ( $date === $yesterday ) {
-			return '昨天 ' . $hm;
+			return __( 'Yesterday ', 'wink-wp-gatekeeper' ) . $hm;
 		}
-		return (int) $m[2] . '月' . (int) $m[3] . '日 ' . $hm;
+		return (int) $m[2] . __( '-', 'wink-wp-gatekeeper' ) . (int) $m[3] . __( ' ', 'wink-wp-gatekeeper' ) . $hm; // phpcs:ignore WordPress.WP.I18n -- 日期词序碎片键（zh msgstr=「日 」；空格键=数字与时刻分隔位，跨节点形态不整句化）。
 	}
 
 	/**

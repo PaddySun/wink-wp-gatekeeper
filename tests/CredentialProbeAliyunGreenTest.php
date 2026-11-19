@@ -32,7 +32,7 @@ final class CredentialProbeAliyunGreenTest extends TestCase {
 		) );
 		$this->assertNotNull( $out );
 		$this->assertSame( 'yellow', $out['state'] );
-		$this->assertSame( array( 'AccessKeyId', 'AccessKeySecret', '昵称 Service 名', '正文 Service 名' ), $out['missing'] );
+		$this->assertSame( array( 'AccessKeyId', 'AccessKeySecret', 'Nickname service name', 'Body service name' ), $out['missing'] );
 	}
 
 	public function test_local_precheck_service_name_empty_is_missing(): void {
@@ -44,7 +44,7 @@ final class CredentialProbeAliyunGreenTest extends TestCase {
 			'service_comment'   => 'comment_detection_pro',
 		) );
 		$this->assertNotNull( $out );
-		$this->assertSame( array( '昵称 Service 名' ), $out['missing'] );
+		$this->assertSame( array( 'Nickname service name' ), $out['missing'] );
 	}
 
 	public function test_local_precheck_passes_when_complete(): void {
@@ -86,7 +86,7 @@ final class CredentialProbeAliyunGreenTest extends TestCase {
 		$this->assertSame( 'red', $out['state'] );
 		$this->assertSame( '408', $out['code'] );
 		$this->assertStringContainsString( 'AliyunYundunGreenWebFullAccess', $out['message'], '文案指明需补授的 RAM 权限' );
-		$this->assertStringContainsString( '内容安全', $out['message'], '文案指明开通内容安全增强版' );
+		$this->assertStringContainsString( 'Content Security', $out['message'], '文案指明开通内容安全增强版' );
 	}
 
 	public function test_red_when_signature_mismatch_http_400(): void {
@@ -118,7 +118,7 @@ final class CredentialProbeAliyunGreenTest extends TestCase {
 		$result = RemoteResult::error( RemoteResult::TRANSPORT, 'transport_failed: connection/timeout' );
 		$out    = CredentialProbe::classify_aliyun_green( $result );
 		$this->assertSame( 'gray', $out['state'] );
-		$this->assertStringContainsString( '网络不可达', $out['message'] );
+		$this->assertStringContainsString( 'Network unreachable', $out['message'] );
 	}
 
 	public function test_gray_when_unexpected_risk_level(): void {

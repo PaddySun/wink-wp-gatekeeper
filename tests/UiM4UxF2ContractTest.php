@@ -232,7 +232,7 @@ final class UiM4UxF2ContractTest extends TestCase {
 			$this->assertStringContainsString( $ph, $body, "占位符逐个说明须含 {$ph}" );
 		}
 		$this->assertStringContainsString( 'remote_semantic', $body, '{rule} 须附 Labels 映射示例（键名）' );
-		$this->assertStringContainsString( '服务商拒绝了', $body, '{rule} 须附 Labels 映射示例（人话名）' );
+		$this->assertStringContainsString( 'Provider refused the request', $body, '{rule} 须附 Labels 映射示例（人话名）' );
 		$this->assertStringContainsString( '<dl', $body, '定义列表形态（dl/dt/dd）' );
 	}
 
@@ -248,8 +248,8 @@ final class UiM4UxF2ContractTest extends TestCase {
 	/* ---------- UI-3-3 Labels 补两键人话名（行为断言） ---------- */
 
 	public function test_ui_3_3_labels_duplicate_comment_and_flood(): void {
-		$this->assertSame( '与已有评论重复', Labels::rule_hit_word( 'duplicate_comment' ) );
-		$this->assertSame( '发得太快（洪泛保护）', Labels::rule_hit_word( 'comment_flood' ) );
+		$this->assertSame( 'Duplicate of an existing comment', Labels::rule_hit_word( 'duplicate_comment' ) );
+		$this->assertSame( 'Posted too fast (flood protection)', Labels::rule_hit_word( 'comment_flood' ) );
 	}
 
 	/* ---------- UI-4 front-gate.css 验证按钮继承主题字号 ---------- */

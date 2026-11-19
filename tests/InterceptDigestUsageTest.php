@@ -27,10 +27,10 @@ final class InterceptDigestUsageTest extends TestCase {
 			'reject'         => 4, // 全阶段拦下（captcha 2 + stub 2 的形态）。
 			'attempts'       => 7,
 		) );
-		$this->assertMatchesRegularExpression( '/人机验证 6 次/u', $note, '人机验证 N = captcha_pass+captcha_reject+captcha 阶段 error（04 §4 口径）' );
-		$this->assertMatchesRegularExpression( '/验证放行 3 人/u', $note );
-		$this->assertMatchesRegularExpression( '/拦下 4 次/u', $note, '拦下 K = 既有 reject 维（全阶段）' );
-		$this->assertMatchesRegularExpression( '/密码输错 7 次/u', $note );
+		$this->assertMatchesRegularExpression( '/Human verification 6 times/u', $note, '人机验证 N = captcha_pass+captcha_reject+captcha 阶段 error（04 §4 口径）' );
+		$this->assertMatchesRegularExpression( '/Verification pass 3 people/u', $note );
+		$this->assertMatchesRegularExpression( '/Blocked 4 times/u', $note, '拦下 K = 既有 reject 维（全阶段）' );
+		$this->assertMatchesRegularExpression( '/Wrong passwords 7 times/u', $note );
 		$this->assertStringNotContainsString( '调用', $note, '「调用」黑话退役（对照表 1）' );
 		$this->assertStringNotContainsString( '登录失败尝试', $note, '「登录失败尝试」黑话退役（对照表 6）' );
 	}
@@ -38,10 +38,10 @@ final class InterceptDigestUsageTest extends TestCase {
 	public function test_account_usage_note_zero_state_is_explicit(): void {
 		// 恒 0 也可读（Tab⑥「恒 0 不可区分」教训——零值显式展示）。
 		$note = InterceptDigest::account_usage_note( array() );
-		$this->assertMatchesRegularExpression( '/人机验证 0 次/u', $note );
-		$this->assertMatchesRegularExpression( '/验证放行 0 人/u', $note );
-		$this->assertMatchesRegularExpression( '/拦下 0 次/u', $note );
-		$this->assertMatchesRegularExpression( '/密码输错 0 次/u', $note );
+		$this->assertMatchesRegularExpression( '/Human verification 0 times/u', $note );
+		$this->assertMatchesRegularExpression( '/Verification pass 0 people/u', $note );
+		$this->assertMatchesRegularExpression( '/Blocked 0 times/u', $note );
+		$this->assertMatchesRegularExpression( '/Wrong passwords 0 times/u', $note );
 	}
 
 	/* ---------- Labels 词表与四维小字的一致性（单一来源钉） ---------- */

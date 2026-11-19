@@ -50,7 +50,7 @@ final class AliyunCaptchaDriverTest extends TestCase {
 			// 【W2·无按钮模式】captcha.submit_flow 显式 on_submit（0.8.4 出厂默认——render
 			// 断言按形态条件化翻转：本文件 render 用例断言默认新形态 hidden+data-submit-gate）。
 			'captcha' => array( 'aliyun' => $aliyun, 'submit_flow' => 'on_submit' ),
-			'copy'    => array( 'messages' => array( 'captcha_missing' => '还差一个眨眼——完成上方的验证再点提交。', 'captcha_failed' => '人机验证没有通过。' ) ),
+			'copy'    => array( 'messages' => array( 'captcha_missing' => 'One wink missing — complete human verification, then hit submit.', 'captcha_failed' => 'Human verification did not pass.' ) ),
 			'brand'   => array( 'contact_email' => 'admin@example.com' ),
 		);
 		return new AliyunCaptchaDriver(
@@ -83,7 +83,7 @@ final class AliyunCaptchaDriverTest extends TestCase {
 		$driver = self::driver();
 		$this->assertInstanceOf( CaptchaDriverInterface::class, $driver );
 		$this->assertSame( 'aliyun', $driver->id() );
-		$this->assertSame( '阿里云验证码 2.0', $driver->label() );
+		$this->assertSame( 'Aliyun Captcha 2.0', $driver->label() );
 		$this->assertSame( array( 'wk_captcha_verify_param' ), $driver->credentialFields() );
 		$this->assertSame( 'none', $driver->disasterPolicy(), '阿里无容灾票概念' );
 		$this->assertSame( 'block', $driver->errorPolicy(), '拍板：默认 block（pass_limited 留 SLA 评估）' );
@@ -170,7 +170,7 @@ final class AliyunCaptchaDriverTest extends TestCase {
 			) ) )->verify_tri( array( 'captcha_verify_param' => 'b64', 'user_ip' => '1.2.3.4' ) );
 			$this->assertSame( 'reject', $tri['state'], "code {$code}" );
 			$this->assertNull( $tri['score'] );
-			$this->assertStringContainsString( '刷新', $tri['message'], "code {$code} user_retry 档引导刷新" );
+			$this->assertStringContainsString( 'Refresh', $tri['message'], "code {$code} user_retry 档引导刷新" );
 			$this->assertSame( 'VerifyCode=' . $code, $tri['meta']['rule'] );
 		}
 	}
@@ -182,7 +182,7 @@ final class AliyunCaptchaDriverTest extends TestCase {
 				'body'     => self::ok_body( array( 'VerifyResult' => false, 'VerifyCode' => $code, 'CertifyId' => 'c' ) ),
 			) ) )->verify_tri( array( 'captcha_verify_param' => 'b64', 'user_ip' => '1.2.3.4' ) );
 			$this->assertSame( 'reject', $tri['state'], "code {$code}" );
-			$this->assertStringContainsString( '配置', $tri['message'], "code {$code} config_error 档文案" );
+			$this->assertStringContainsString( 'misconfigured', $tri['message'], "code {$code} config_error 档文案" );
 		}
 	}
 
@@ -193,7 +193,7 @@ final class AliyunCaptchaDriverTest extends TestCase {
 				'body'     => self::ok_body( array( 'VerifyResult' => false, 'VerifyCode' => $code, 'CertifyId' => 'c' ) ),
 			) ) )->verify_tri( array( 'captcha_verify_param' => 'b64', 'user_ip' => '1.2.3.4' ) );
 			$this->assertSame( 'reject', $tri['state'], "code {$code}" );
-			$this->assertStringContainsString( '拦截', $tri['message'], "code {$code} blocked 档文案" );
+			$this->assertStringContainsString( 'blocked', $tri['message'], "code {$code} blocked 档文案" );
 		}
 	}
 
@@ -219,7 +219,7 @@ final class AliyunCaptchaDriverTest extends TestCase {
 		$this->assertSame( 'remote_transport', $tri['meta']['rule'] );
 		$this->assertSame( 'transport', $tri['meta']['category'] );
 		$this->assertArrayHasKey( 'raw', $tri['meta'], 'raw 快照必带（F44）' );
-		$this->assertStringContainsString( '稍后再试', $tri['message'] );
+		$this->assertStringContainsString( 'try again later', $tri['message'] );
 	}
 
 	public function test_verify_tri_semantic_error_returns_error_state(): void {
@@ -237,7 +237,7 @@ final class AliyunCaptchaDriverTest extends TestCase {
 
 		$this->assertSame( 'error', $tri['state'] );
 		$this->assertSame( 'remote_semantic', $tri['meta']['rule'] );
-		$this->assertStringContainsString( '配置', $tri['message'] );
+		$this->assertStringContainsString( 'misconfigured', $tri['message'] );
 		$this->assertArrayHasKey( 'raw', $tri['meta'] );
 	}
 

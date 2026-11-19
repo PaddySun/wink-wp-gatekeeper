@@ -138,7 +138,7 @@
 			if ( sdkReady() ) {
 				settle( true );
 			} else {
-				settle( false, 'mismatch', '验证组件加载异常，请刷新页面重试。' );
+				settle( false, 'mismatch', 'The verification widget failed to load. Please refresh the page and try again.' );
 			}
 		}
 
@@ -147,7 +147,7 @@
 			if ( staleEvent() ) {
 				return;
 			}
-			settle( false, 'loadFail', '验证码加载失败——请刷新页面重试。' );
+			settle( false, 'loadFail', 'Captcha failed to load — click to retry' );
 		};
 		scriptEl.onreadystatechange = function () {
 			if ( 'loaded' === scriptEl.readyState || 'complete' === scriptEl.readyState ) {
@@ -156,7 +156,7 @@
 		};
 
 		watchdog = setTimeout( function () {
-			settle( false, 'loadTimeout', '网络不佳，请稍后重试或联系站长' );
+			settle( false, 'loadTimeout', 'Weak network — please retry later or contact the site owner' );
 		}, LOAD_TIMEOUT_MS );
 
 		document.head.appendChild( scriptEl );
@@ -194,17 +194,17 @@
 		/* ---- 三态单按钮（tencent.js 同形态）：文案 + data-wk-state + disabled 全在按钮上 ----
 		 * spec = [data-wk-state 属性值, L10N 键, 兜底文案]。 */
 		var STATE_TEXT = {
-			unverified: [ 'unverified', 'idle', '完成人机验证' ],
-			loading:    [ 'loading', 'loading', '验证码加载中……' ],
-			pending:    [ 'pending', 'pending', '验证中……' ],
-			verified:   [ 'verified', 'done', '已通过验证' ],
-			retry:      [ 'retry', 'retry', '验证未完成，点击重试' ],
-			mismatch:   [ 'retry', 'mismatch', '验证组件加载异常，请刷新页面重试。' ],
-			loadFail:   [ 'retry', 'loadFail', '验证码加载失败，点击重试' ],
-			loadTimeout:[ 'retry', 'loadTimeout', '网络不佳，点击重试' ],
-			configError:[ 'retry', 'configError', '验证码配置缺失，请联系站长。' ],
-			error:      [ 'retry', 'error', '验证组件初始化失败，请刷新重试' ],
-			expired:    [ 'unverified', 'expired', '验证已过期，请重新验证' ]
+			unverified: [ 'unverified', 'idle', 'Complete human verification' ],
+			loading:    [ 'loading', 'loading', 'Loading captcha…' ],
+			pending:    [ 'pending', 'pending', 'Verifying…' ],
+			verified:   [ 'verified', 'done', 'Verification passed' ],
+			retry:      [ 'retry', 'retry', 'Verification incomplete — click to retry' ],
+			mismatch:   [ 'retry', 'mismatch', 'The verification widget failed to load. Please refresh the page and try again.' ],
+			loadFail:   [ 'retry', 'loadFail', 'Captcha failed to load — click to retry' ],
+			loadTimeout:[ 'retry', 'loadTimeout', 'Weak network — please retry later or contact the site owner' ],
+			configError:[ 'retry', 'configError', 'Captcha is not configured. Please contact the site owner.' ],
+			error:      [ 'retry', 'error', 'The verification widget failed to initialize — refresh to retry' ],
+			expired:    [ 'unverified', 'expired', 'Verification expired — please verify again' ]
 		};
 
 		/* 【W2·⑦失败面播报】失败态键集——派发 wk-gate-verify-failed 供调度器 submit-gate

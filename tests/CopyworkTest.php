@@ -95,9 +95,9 @@ final class CopyworkTest extends TestCase {
 	 */
 	public function test_core_rejection_defaults_carry_steps_copy(): void {
 		$messages = Copywork::defaults()['messages'];
-		$this->assertStringContainsString( '刚刚已经发过一遍', $messages['duplicate_comment'] );
-		$this->assertStringContainsString( '返回', $messages['duplicate_comment'] );
-		$this->assertStringContainsString( '稍等几秒', $messages['comment_flood'] );
+		$this->assertStringContainsString( 'was just submitted', $messages['duplicate_comment'] );
+		$this->assertStringContainsString( 'Go back', $messages['duplicate_comment'] );
+		$this->assertStringContainsString( 'wait a few seconds', $messages['comment_flood'] );
 
 		$titles = Copywork::defaults()['titles'];
 		$this->assertNotSame( '', $titles['duplicate_comment'] );

@@ -57,7 +57,7 @@ final class DriverConfigSpecTest extends TestCase {
 		$options = DriverConfigSpec::driver_options( $registered, array( 'tencent_tms' => array( 'secret_id' => 'x', 'secret_key' => 'y' ) ), $future, array() );
 
 		$this->assertSame( '', $options[0]['value'], '首项恒为「未配置」' );
-		$this->assertSame( '未配置（跳过云端审核）', $options[0]['label'] );
+		$this->assertSame( 'Not configured (cloud moderation skipped)', $options[0]['label'] );
 
 		$tms = $options[1];
 		$this->assertSame( 'tencent_tms', $tms['value'] );
@@ -108,16 +108,16 @@ final class DriverConfigSpecTest extends TestCase {
 			'tencent_tms',
 			self::tms_meta(),
 			array( 'secret_id' => '', 'secret_key' => '' ),
-			'云端审核'
+			'Cloud moderation'
 		);
-		$this->assertStringContainsString( '腾讯云 TMS 文本审核', $notice );
+		$this->assertStringContainsString( 'Tencent Cloud TMS Text Moderation', $notice );
 		$this->assertStringContainsString( 'SecretId（CAM）', $notice );
 		$this->assertStringContainsString( 'SecretKey（CAM）', $notice );
 	}
 
 	public function test_server_notice_null_when_nothing_missing_or_unselected(): void {
-		$this->assertNull( DriverConfigSpec::server_notice( '', self::tms_meta(), array(), '云端审核' ) );
-		$this->assertNull( DriverConfigSpec::server_notice( 'tencent_tms', self::tms_meta(), array( 'secret_id' => 'x', 'secret_key' => 'y' ), '云端审核' ) );
+		$this->assertNull( DriverConfigSpec::server_notice( '', self::tms_meta(), array(), 'Cloud moderation' ) );
+		$this->assertNull( DriverConfigSpec::server_notice( 'tencent_tms', self::tms_meta(), array( 'secret_id' => 'x', 'secret_key' => 'y' ), 'Cloud moderation' ) );
 	}
 
 	/* ---------- 链路汇总行（Tab③ 专属件，纯函数可单测） ---------- */
@@ -129,9 +129,9 @@ final class DriverConfigSpecTest extends TestCase {
 			array( 'tencent_tms' => array( 'secret_id' => 'x', 'secret_key' => 'y' ) )
 		);
 		$this->assertNotNull( $summary );
-		$this->assertStringContainsString( '本地规则', $summary );
-		$this->assertStringContainsString( '腾讯云 TMS 文本审核', $summary );
-		$this->assertStringContainsString( '境内', $summary, '合规摘要=region_note 短语' );
+		$this->assertStringContainsString( 'Local rules', $summary );
+		$this->assertStringContainsString( 'Tencent Cloud TMS Text Moderation', $summary );
+		$this->assertStringContainsString( 'Domestic', $summary, '合规摘要=region_note 短语' );
 	}
 
 	public function test_chain_summary_null_when_chain_effectively_empty(): void {
@@ -141,12 +141,12 @@ final class DriverConfigSpecTest extends TestCase {
 	/* ---------- 合规行（R4 §C.3 逐驱动） ---------- */
 
 	public function test_privacy_notice_assembles_per_driver_row(): void {
-		$row = DriverConfigSpec::privacy_notice( self::tms_meta(), '腾讯云 TMS 文本审核' );
+		$row = DriverConfigSpec::privacy_notice( self::tms_meta(), 'Tencent Cloud TMS Text Moderation' );
 		$this->assertSame( 'normal', $row['level'], 'cross_border=false → 浅色 notice（非黄条）' );
-		$this->assertStringContainsString( '启用 腾讯云 TMS 文本审核 即向第三方', $row['text'] );
-		$this->assertStringContainsString( '提供访客信息', $row['text'] );
-		$this->assertStringContainsString( '昵称、邮箱、评论正文', $row['text'], 'data_fields 人话描述' );
-		$this->assertStringContainsString( '数据不出境', $row['text'], 'region_note 并入' );
+		$this->assertStringContainsString( 'Enabling Tencent Cloud TMS Text Moderation sends visitor data to a third party', $row['text'] );
+		$this->assertStringContainsString( 'visitor data:', $row['text'] );
+		$this->assertStringContainsString( 'Nickname, email, comment body', $row['text'], 'data_fields 人话描述' );
+		$this->assertStringContainsString( 'data stays in China', $row['text'], 'region_note 并入' );
 		$this->assertStringContainsString( 'https://cloud.tencent.com/document/product/301/1967', $row['text'] );
 	}
 
@@ -160,13 +160,13 @@ final class DriverConfigSpecTest extends TestCase {
 	public function test_privacy_notice_warn_and_unknown_region_when_cross_border_null(): void {
 		$meta = self::tms_meta();
 		$meta['privacy'] = array_merge( $meta['privacy'], array( 'cross_border' => null, 'privacy_url' => '' ) );
-		$row = DriverConfigSpec::privacy_notice( $meta, '自定义 OpenAI 兼容端点' );
+		$row = DriverConfigSpec::privacy_notice( $meta, 'Custom OpenAI-compatible endpoint' );
 		$this->assertSame( 'warn', $row['level'] );
-		$this->assertStringContainsString( '辖区未知', $row['text'], 'null=黄条+辖区未知提示（通用出境提示原文迁入）' );
+		$this->assertStringContainsString( 'jurisdiction of this service is unknown', $row['text'], 'null=黄条+辖区未知提示（通用出境提示原文迁入）' );
 	}
 
 	public function test_privacy_notice_null_when_driver_has_no_privacy(): void {
-		$this->assertNull( DriverConfigSpec::privacy_notice( array( 'label' => '本地规则' ), '本地规则' ), '本地驱动无第三方外送，无合规行' );
+		$this->assertNull( DriverConfigSpec::privacy_notice( array( 'label' => 'Local rules' ), 'Local rules' ), '本地驱动无第三方外送，无合规行' );
 	}
 
 	/* ---------- chain 单元素收口（下拉 hidden 伴随域） ---------- */

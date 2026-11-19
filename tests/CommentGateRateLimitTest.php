@@ -215,7 +215,7 @@ final class CommentGateRateLimitTest extends TestCase {
 		$this->assertSame( 'reject', $log[0]['verdict'] );
 		$this->assertSame( 'captcha_missing', $log[0]['rule'], '零新文案：复用 captcha_missing 文案键' );
 		$this->assertTrue( ! empty( $log[0]['meta']['rate_limited'] ), 'meta.rate_limited 标注可区分' );
-		$this->assertSame( '还差一个眨眼——完成人机验证再点提交。', $result['message'], '统一 captcha_missing 文案' );
+		$this->assertSame( 'One wink missing — complete human verification, then hit submit.', $result['message'], '统一 captcha_missing 文案' );
 		$this->assertSame( array(), $archive, '限流拒绝不留档（洪水防膨胀——stub 同款条款）' );
 	}
 

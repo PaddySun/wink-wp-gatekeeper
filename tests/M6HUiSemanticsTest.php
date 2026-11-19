@@ -740,7 +740,7 @@ namespace WinkGatekeeper\Tests {
 				'today_dash'           => '2026-11-16',
 				'captcha_configured'   => true,
 				'captcha_driver'       => 'aliyun',
-				'captcha_driver_label' => '阿里云验证码 2.0',
+				'captcha_driver_label' => 'Aliyun Captcha 2.0',
 				'driver_labels'        => array(),
 				'cron_alive'           => true,
 				'debug'                => false,
@@ -762,7 +762,7 @@ namespace WinkGatekeeper\Tests {
 
 			$ids = array_column( $out['usage']['domains'], 'id' );
 			self::assertSame( array( 'captcha', 'review', 'fetch', 'search', 'iprep' ), $ids, '【H-4】五域固定顺序（内容审核域=本地四闸不计数恒不渲染）' );
-			self::assertStringContainsString( '人机验证', (string) json_encode( $out['usage']['domains'], JSON_UNESCAPED_UNICODE ), '域头人话' );
+			self::assertStringContainsString( 'Human verification', (string) json_encode( $out['usage']['domains'], JSON_UNESCAPED_UNICODE ), '域头人话' );
 		}
 
 		public function test_h4_review_domain_shows_enabled_driver_row(): void {
@@ -776,7 +776,7 @@ namespace WinkGatekeeper\Tests {
 			$out = DashboardDigest::widget_overview( $this->digestArgs( array(
 				'usage'         => $usage,
 				'settings'      => $settings,
-				'driver_labels' => array( 'baidu' => '百度文本审核' ),
+				'driver_labels' => array( 'baidu' => 'Baidu Text Moderation' ),
 			) ) );
 
 			$review = null;
@@ -788,7 +788,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertNotNull( $review, '百度在链 → 评论审核域渲染' );
 			self::assertCount( 1, $review['rows'] );
 			self::assertSame( 'baidu', $review['rows'][0]['driver_id'], '百度审核显示百度行' );
-			self::assertSame( '百度文本审核', $review['rows'][0]['label'] );
+			self::assertSame( 'Baidu Text Moderation', $review['rows'][0]['label'] );
 
 			// LLM 自定义行。
 			$usage2 = Usage::seed();
@@ -823,7 +823,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertCount( 1, $fetch['rows'], '无计次行（本站直抓零计量——批 D 语义）' );
 			self::assertTrue( (bool) $fetch['rows'][0]['bill_free'], '不计费行标记' );
 			self::assertSame( 0, (int) $fetch['rows'][0]['used'], '无次数' );
-			self::assertStringContainsString( '本站直接打开', (string) $fetch['rows'][0]['label'], '行文案=本站直接打开——不计费' );
+			self::assertStringContainsString( 'Opened directly on this site', (string) $fetch['rows'][0]['label'], '行文案=本站直接打开——不计费' );
 		}
 
 		public function test_h4_unconfigured_fetcher_no_bill_free_row(): void {

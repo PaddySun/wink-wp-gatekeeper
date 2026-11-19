@@ -398,7 +398,7 @@ final class LoginGateTest extends TestCase {
 
 	public function test_over_threshold_failed_verify_rejects_with_driver_message(): void {
 		$log = array();
-		$mk  = $this->gate( $this->fake_captcha( '眨眼没对上——刷新页面再试一次？' ), $log );
+		$mk  = $this->gate( $this->fake_captcha( 'The wink did not land — refresh the page and try again?' ), $log );
 		$this->saturate( $mk['counters'] );
 
 		$result = $mk['gate']->verify_orchestrate( 'admin', array(
@@ -410,7 +410,7 @@ final class LoginGateTest extends TestCase {
 		$this->assertSame( 'reject', $result['decision'] );
 		$this->assertSame( 'captcha', $log[0]['stage'] );
 		$this->assertSame( 'captcha_failed', $log[0]['rule'], '无 last_verify_meta 的驱动回落 captcha_failed 档' );
-		$this->assertStringContainsString( '眨眼没对上', (string) $result['message'], '驱动文案直通 WP_Error' );
+		$this->assertStringContainsString( 'The wink did not land', (string) $result['message'], '驱动文案直通 WP_Error' );
 		$this->assertSame( 'fake-captcha', $log[0]['meta']['driver'] ?? '' );
 	}
 
@@ -633,7 +633,7 @@ final class LoginGateTest extends TestCase {
 		$result = $mk['gate']->verify_orchestrate( 'admin', array(), self::server(), false, true );
 
 		$this->assertSame( 'wk_captcha_failed', $result['error_code'], '02 §3.2：new WP_Error( wk_captcha_failed, msg ) 的码' );
-		$this->assertSame( 'WK-20261110-0001', $result['evidence']['事件编号'] );
+		$this->assertSame( 'WK-20261110-0001', $result['evidence']['Event No.'] );
 		$this->assertArrayNotHasKey( 'ip', $result['evidence'], '证据行不暴露 IP' );
 	}
 

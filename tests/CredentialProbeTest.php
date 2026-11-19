@@ -32,7 +32,7 @@ final class CredentialProbeTest extends TestCase {
 			) );
 			$state = CredentialProbe::classify( $result );
 			$this->assertSame( 'green', $state['state'], "CaptchaCode={$code} 应为绿态" );
-			$this->assertStringContainsString( '凭据可用', $state['message'] );
+			$this->assertStringContainsString( 'Credentials work', $state['message'] );
 		}
 	}
 
@@ -84,7 +84,7 @@ final class CredentialProbeTest extends TestCase {
 			'app_id' => '199999164', 'secret_id' => '', 'secret_key' => 'sk', 'app_secret_key' => '',
 		) );
 		$this->assertSame( 'yellow', $state['state'] );
-		$this->assertSame( array( 'SecretId（CAM）', 'AppSecretKey（验证码控制台）' ), $state['missing'] );
+		$this->assertSame( array( 'SecretId（CAM）', 'AppSecretKey (captcha console)' ), $state['missing'] );
 	}
 
 	public function test_local_precheck_passes_when_complete(): void {
@@ -97,7 +97,7 @@ final class CredentialProbeTest extends TestCase {
 		$result = RemoteResult::classify( null ); // 传输终态（连接失败/超时）。
 		$state  = CredentialProbe::classify( $result );
 		$this->assertSame( 'gray', $state['state'] );
-		$this->assertStringContainsString( '网络', $state['message'] );
+		$this->assertStringContainsString( 'Network', $state['message'] );
 	}
 
 	public function test_gray_on_unexpected_captcha_code(): void {

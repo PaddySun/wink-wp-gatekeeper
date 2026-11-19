@@ -49,7 +49,7 @@ final class M6CExistingAuditReformTest extends TestCase {
 		$n = (int) ( $opts['count'] ?? 0 );
 		if ( 0 < $n && array() === $state['comments'] ) {
 			for ( $i = 1; $i <= $n; $i++ ) {
-				$state['comments'][ $i ] = array( 'author' => '作者' . $i, 'body' => '正文' . $i );
+				$state['comments'][ $i ] = array( 'author' => '作者' . $i, 'body' => 'body' . $i );
 			}
 		}
 
@@ -57,7 +57,7 @@ final class M6CExistingAuditReformTest extends TestCase {
 		if ( null === $driver ) {
 			$driver = new class() implements \WinkGatekeeper\Drivers\ReviewDriverInterface {
 				public function check( string $content, array $meta ): Verdict {
-					return Verdict::reject( 'fake', '广告', array( '广告' ) );
+					return Verdict::reject( 'fake', 'Advertising', array( 'Advertising' ) );
 				}
 			};
 		}
@@ -235,7 +235,7 @@ final class M6CExistingAuditReformTest extends TestCase {
 	}
 
 	public function test_meta_record_carries_disposed_to(): void {
-		$m = ExistingAuditTask::meta_record( 'reject', '广告', array( '广告' ), 'deepseek', 1234, 'spam' );
+		$m = ExistingAuditTask::meta_record( 'reject', 'Advertising', array( 'Advertising' ), 'deepseek', 1234, 'spam' );
 		self::assertSame( 'spam', $m['disposed_to'], 'meta 新字段 disposed_to（处置结果可溯源）' );
 		$gone = ExistingAuditTask::meta_record( 'gone', '', array(), 'deepseek', 1234 );
 		self::assertSame( 'none', $gone['disposed_to'], '缺省 none（gone 仅记 meta）' );
@@ -313,7 +313,7 @@ final class M6CExistingAuditReformTest extends TestCase {
 			},
 			static fn(): array => array( 'driver' => new class() implements \WinkGatekeeper\Drivers\ReviewDriverInterface {
 				public function check( string $content, array $meta ): Verdict {
-					return Verdict::reject( 'fake', '广告', array() );
+					return Verdict::reject( 'fake', 'Advertising', array() );
 				}
 			}, 'id' => 'fake' ),
 			static fn(): float => $state['now'],
@@ -342,7 +342,7 @@ final class M6CExistingAuditReformTest extends TestCase {
 		self::assertSame( 'deepseek', $running['driver'] );
 
 		$done = ExistingAuditTask::report_view( array( 'status' => 'completed', 'driver' => 'deepseek', 'started_at' => 100, 'finished_at' => 200, 'processed' => 22, 'total' => 22 ), array() );
-		self::assertSame( 'completed', $done['state'], '完成' );
+		self::assertSame( 'completed', $done['state'], 'Done' );
 		self::assertSame( 200, $done['finished_at'] );
 
 		$paused = ExistingAuditTask::report_view( array( 'status' => 'quota_paused', 'driver' => 'deepseek', 'started_at' => 100 ), array() );
@@ -359,7 +359,7 @@ final class M6CExistingAuditReformTest extends TestCase {
 			'gone'   => 2,
 			'error'  => 0,
 		) );
-		self::assertSame( 3, $view['caliber']['pass'], '没问题（pass）' );
+		self::assertSame( 3, $view['caliber']['pass'], 'Clean (pass)' );
 		self::assertSame( 7, $view['caliber']['pending'], '待审核（review——未核实不下结论）' );
 		self::assertSame( 13, $view['caliber']['spam'], '垃圾箱（reject——已处置）' );
 		self::assertSame( 2, $view['caliber']['gone'], '已删除灰字注脚' );

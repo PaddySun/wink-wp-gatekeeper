@@ -162,7 +162,7 @@ final class CommentGateTest extends TestCase {
 		$this->assertSame( 'reject', $log[0]['verdict'] );
 		$this->assertSame( 'bad-signature', $log[0]['rule'] );
 		// 证据行只含事件编号/规则/时间（不暴露 IP/原文/reason）。
-		$this->assertSame( 'WK-20261109-0042', $result['evidence']['事件编号'] );
+		$this->assertSame( 'WK-20261109-0042', $result['evidence']['Event No.'] );
 		$this->assertArrayNotHasKey( 'ip', $result['evidence'] );
 	}
 
@@ -514,10 +514,10 @@ final class CommentGateTest extends TestCase {
 		$this->assertSame( 42, $log[0]['meta']['post_id'] );
 
 		// 品牌页面载荷：文案键命中文案工坊 + 证据行三件套。
-		$this->assertStringContainsString( '刚刚已经发过一遍', $out['message'] );
-		$this->assertSame( 'WK-20261109-0042', $out['evidence']['事件编号'] );
-		$this->assertSame( 'duplicate_comment', $out['evidence']['命中规则'] );
-		$this->assertArrayHasKey( '时间', $out['evidence'] );
+		$this->assertStringContainsString( 'was just submitted', $out['message'] );
+		$this->assertSame( 'WK-20261109-0042', $out['evidence']['Event No.'] );
+		$this->assertSame( 'duplicate_comment', $out['evidence']['Matched rule'] );
+		$this->assertArrayHasKey( 'Time', $out['evidence'] );
 	}
 
 	public function test_core_flood_rejection_records_event(): void {
@@ -528,7 +528,7 @@ final class CommentGateTest extends TestCase {
 
 		$this->assertSame( 'core', $log[0]['stage'] );
 		$this->assertSame( 'comment_flood', $log[0]['rule'] );
-		$this->assertStringContainsString( '稍等几秒', $out['message'] );
+		$this->assertStringContainsString( 'wait a few seconds', $out['message'] );
 	}
 
 	public function test_core_rejection_unknown_rule_falls_back_to_key_as_message(): void {
@@ -545,7 +545,7 @@ final class CommentGateTest extends TestCase {
 		$gate = $this->gate( $this->fake_captcha( null ), $log );
 
 		$this->assertStringContainsString(
-			'刚刚已经发过一遍',
+			'was just submitted',
 			$gate->filter_comment_duplicate_message( 'Duplicate comment detected; it looks as though you&#8217;ve already said that!' )
 		);
 	}
@@ -555,7 +555,7 @@ final class CommentGateTest extends TestCase {
 		$gate = $this->gate( $this->fake_captcha( null ), $log );
 
 		$this->assertStringContainsString(
-			'稍等几秒',
+			'wait a few seconds',
 			$gate->filter_comment_flood_message( 'You are posting comments too quickly. Slow down.' )
 		);
 	}
@@ -644,7 +644,7 @@ final class CommentGateTest extends TestCase {
 		$store = array();
 		$puts  = array();
 		$cache = self::memory_cache( 10, $store, $puts );
-		$gate  = $this->gate_with_cache( $this->counting_captcha( '眨眼没对上', $calls ), $log, $cache );
+		$gate  = $this->gate_with_cache( $this->counting_captcha( 'The wink did not land', $calls ), $log, $cache );
 
 		$result = $gate->orchestrate(
 			array( 'comment_content' => '这是正常的中文内容' ),

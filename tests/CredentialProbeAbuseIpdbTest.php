@@ -39,7 +39,7 @@ final class CredentialProbeAbuseIpdbTest extends TestCase {
 		) );
 		$state = CredentialProbe::classify_abuseipdb( $result );
 		$this->assertSame( 'green', $state['state'], 'isPublic:false 亦绿——验证的是凭据不是 IP（O5-P2-6）' );
-		$this->assertStringContainsString( '凭据可用', $state['message'] );
+		$this->assertStringContainsString( 'Credentials work', $state['message'] );
 	}
 
 	/** 绿态：HTTP 200 + JSON 可解析（公网地址形态 isPublic=true）。 */
@@ -98,7 +98,7 @@ final class CredentialProbeAbuseIpdbTest extends TestCase {
 		$result = RemoteResult::error( RemoteResult::TRANSPORT, 'cURL error 28: Connection timed out' );
 		$state  = CredentialProbe::classify_abuseipdb( $result );
 		$this->assertSame( 'gray', $state['state'], '超时=灰态（网络不可达），不误报红/黄' );
-		$this->assertStringContainsString( '网络不可达', $state['message'] );
+		$this->assertStringContainsString( 'Network unreachable', $state['message'] );
 	}
 
 	/** 灰态：HTTP 200 但 body 非 JSON（契约不符——给排查方向）。 */

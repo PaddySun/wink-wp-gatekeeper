@@ -640,7 +640,7 @@ final class ExistingAuditWorker {
 			if ( 'reject' === $verdict || 'review' === $verdict ) {
 				$reason = trim( (string) ( $meta['reason'] ?? '' ) );
 				if ( '' === $reason ) {
-					$reason = '（无原因说明）';
+					$reason = __( '(no reason given)', "wink-wp-gatekeeper" );
 				}
 				/* 【M6·批H3·H3-C】归堆键扩处置去向维度（手测反馈 C：行尾「→ 垃圾箱/
 				 * → 待审核」）：同原因不同去向拆行——去向如实（reject→spam/review→hold

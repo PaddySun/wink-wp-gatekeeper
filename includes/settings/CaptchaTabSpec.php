@@ -26,7 +26,7 @@ final class CaptchaTabSpec {
 			'app_id'         => 'CaptchaAppId',
 			'secret_id'      => 'SecretId（CAM）',
 			'secret_key'     => 'SecretKey（CAM）',
-			'app_secret_key' => 'AppSecretKey（验证码控制台）',
+			'app_secret_key' => __( 'AppSecretKey (captcha console)', 'wink-wp-gatekeeper' ),
 		);
 	}
 
@@ -57,7 +57,7 @@ final class CaptchaTabSpec {
 			'access_key_id'     => 'AccessKeyId',
 			'access_key_secret' => 'AccessKeySecret',
 			'scene_id'          => 'SceneId',
-			'prefix'            => 'prefix（身份标）',
+			'prefix'            => __( 'prefix (identity tag)', 'wink-wp-gatekeeper' ),
 		);
 	}
 
@@ -89,7 +89,7 @@ final class CaptchaTabSpec {
 	public static function driver_options( array $drivers, array $tencent, array $aliyun = array() ): array {
 		$options = array( array(
 			'value' => '',
-			'label' => '未配置（跳过验证码阶段）',
+			'label' => __( 'Not configured (captcha stage skipped)', 'wink-wp-gatekeeper' ),
 		) );
 		foreach ( $drivers as $id => $meta ) {
 			$option = array(
@@ -116,9 +116,9 @@ final class CaptchaTabSpec {
 	 */
 	public static function dot_labels(): array {
 		return array(
-			'configured'   => '已配置',
-			'unconfigured' => '未配置',
-			'error'        => '配置错误',
+			'configured'   => __( 'Configured', 'wink-wp-gatekeeper' ),
+			'unconfigured' => __( 'Not configured', 'wink-wp-gatekeeper' ),
+			'error'        => __( 'Configuration error', 'wink-wp-gatekeeper' ),
 		);
 	}
 
@@ -133,7 +133,7 @@ final class CaptchaTabSpec {
 		return array(
 			'visible'     => $visible,
 			'vendor'      => $visible ? $driver : null,
-			'hidden_note' => '未配置 = 验证码阶段整体跳过，评论闸仅内容过滤生效（02 §2.1 未配置行为）。',
+			'hidden_note' => __( 'Not configured = the captcha stage is skipped entirely and the comment gate relies on content filtering only (02 §2.1 unconfigured behavior).', 'wink-wp-gatekeeper' ),
 		);
 	}
 
@@ -154,9 +154,9 @@ final class CaptchaTabSpec {
 		if ( array() === $missing ) {
 			return null;
 		}
-		$label = 'tencent' === $driver ? '腾讯天御验证码 2.0' : ( 'aliyun' === $driver ? '阿里云验证码 2.0' : $driver );
-		return '已选择验证码驱动「' . $label . '」，但必填字段缺少：' . implode( '、', $missing )
-			. '。设置已保存，但该驱动在补齐前视为未配置（验证码阶段整体跳过，评论闸仅内容过滤生效）。';
+		$label = 'tencent' === $driver ? __( 'Tencent Tianyu Captcha 2.0', 'wink-wp-gatekeeper' ) : ( 'aliyun' === $driver ? __( 'Aliyun Captcha 2.0', 'wink-wp-gatekeeper' ) : $driver );
+		return __( 'Selected captcha driver “', 'wink-wp-gatekeeper' ) . $label . __( '”, but required fields are missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing )
+			. __( '. Settings were saved, but the driver counts as not configured until they are filled in (captcha stage skipped entirely, comment gate relies on content filtering only).', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -167,16 +167,16 @@ final class CaptchaTabSpec {
 	public static function aliyun_guide(): array {
 		return array(
 			'steps'       => array(
-				'1. 前往阿里云验证码 2.0 控制台开通服务（按量计费，有免费额度档）。',
-				'2. 在【场景管理】创建验证场景，获取 SceneId（必填——服务端补传防前端篡改场景，错配返回 F012）。',
-				'3. 在控制台概览页获取 prefix（前端身份标，AliyunCaptchaConfig 全局配置用）。',
-				'4. 前往「访问管理 → RAM」创建 AccessKey 对（禁主账号 AK），并授权 AliyunYundunAFSFullAccess。',
-				'5. 将四个字段粘贴至上方配置区（密钥仅服务端使用，绝不输出前端）。',
-				'6. 点击「测试凭据」——三态判定：绿=凭据可用；红=AK/签名/权限错；黄=必填字段缺。',
+				__( '1. Go to the Aliyun Captcha 2.0 console to enable the service (pay-as-you-go, with a free tier).', 'wink-wp-gatekeeper' ),
+				__( '2. Create a verification scene under “Scene Management” and get the SceneId (required — the server re-sends it to prevent front-end tampering; a mismatch returns F012).', 'wink-wp-gatekeeper' ),
+				__( '3. Get the prefix from the console overview page (front-end identity tag, used by the global AliyunCaptchaConfig).', 'wink-wp-gatekeeper' ),
+				__( '4. Go to “Access Management → RAM” to create an AccessKey pair (main-account AKs forbidden) and grant AliyunYundunAFSFullAccess.', 'wink-wp-gatekeeper' ),
+				__( '5. Paste the four fields into the configuration area above (keys are server-side only and never exposed to the front end).', 'wink-wp-gatekeeper' ),
+				__( '6. Click “Test credentials” — three-state verdict: green = credentials work; red = AK/signature/permission error; yellow = required fields missing.', 'wink-wp-gatekeeper' ),
 			),
 			'console_url' => 'https://captcha2.console.aliyun.com/',
 			'doc_url'     => 'https://help.aliyun.com/zh/captcha/user-guide/verify-intelligent-captcha',
-			'ticket_note' => '前端红线：AliyunCaptcha.js 必须动态引入（静态部署致对抗失效/误拦）；CaptchaVerifyParam 单次有效、90 秒时效（F019）——超时后前端自动回退未验证态，需重新完成验证；region 恒 cn（前端与服务端 endpoint 映射须一致）。',
+			'ticket_note' => __( 'Front-end red line: AliyunCaptcha.js must be loaded dynamically (a static deployment defeats adversarial resistance / causes false blocks); CaptchaVerifyParam is single-use with a 90-second validity (F019) — after expiry the front end automatically falls back to unverified and verification must be redone; region is always cn (the front-end and server endpoints must map consistently).', 'wink-wp-gatekeeper' ),
 		);
 	}
 
@@ -188,15 +188,15 @@ final class CaptchaTabSpec {
 	public static function guide(): array {
 		return array(
 			'steps'       => array(
-				'1. 前往腾讯云验证码控制台开通验证码服务（免费开通，验证量按套餐计费）。',
-				'2. 在【验证管理】创建验证场景，获取 CaptchaAppId 与 AppSecretKey（密钥列同页）。',
-				'3. 前往「访问管理 → API 密钥管理」准备 CAM 密钥对 SecretId/SecretKey（TC3 签名用，与验证码控制台密钥分属两套凭据体系）。',
-				'4. 将四个字段粘贴至上方配置区（密钥仅服务端使用，绝不输出前端）。',
-				'5. 点击「测试凭据」——三态判定：绿=凭据可用；红=CAM 密钥错；黄=必填参数缺。',
+				__( '1. Go to the Tencent Cloud captcha console to enable the service (free to enable; verifications are billed by package).', 'wink-wp-gatekeeper' ),
+				__( '2. Create a verification scene under “Verification Management” and get the CaptchaAppId and AppSecretKey (the key column is on the same page).', 'wink-wp-gatekeeper' ),
+				__( '3. Go to “Access Management → API Key Management” to prepare the CAM key pair SecretId/SecretKey (for TC3 signing; a separate credential system from the captcha console keys).', 'wink-wp-gatekeeper' ),
+				__( '4. Paste the four fields into the configuration area above (keys are server-side only and never exposed to the front end).', 'wink-wp-gatekeeper' ),
+				__( '5. Click “Test credentials” — three-state verdict: green = credentials work; red = CAM key error; yellow = required parameters missing.', 'wink-wp-gatekeeper' ),
 			),
 			'console_url' => 'https://console.cloud.tencent.com/captcha/graphical',
 			'doc_url'     => 'https://cloud.tencent.com/document/product/1110/36926',
-			'ticket_note' => '验证票据（Ticket）有效期 5 分钟且单次使用——超时后前端自动回退未验证态，需重新完成验证。',
+			'ticket_note' => __( 'The verification ticket (Ticket) is valid for 5 minutes and single-use — after expiry the front end automatically falls back to unverified and verification must be redone.', 'wink-wp-gatekeeper' ),
 		);
 	}
 }

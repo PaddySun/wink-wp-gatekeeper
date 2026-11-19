@@ -408,7 +408,7 @@ namespace WinkGatekeeper\Tests {
 		private static function chatResponse( string $verdict = 'pass', float $confidence = 0.95, ?array $usage = array( 'prompt_tokens' => 100, 'completion_tokens' => 20 ) ): array {
 			$body = array(
 				'choices' => array( array(
-					'message'       => array( 'role' => 'assistant', 'content' => (string) json_encode( array( 'verdict' => $verdict, 'confidence' => $confidence, 'reason' => '正常', 'hits' => array() ) ) ),
+					'message'       => array( 'role' => 'assistant', 'content' => (string) json_encode( array( 'verdict' => $verdict, 'confidence' => $confidence, 'reason' => 'Normal', 'hits' => array() ) ) ),
 					'finish_reason' => 'stop',
 				) ),
 			);
@@ -505,7 +505,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertSame( 'openai_custom', $entry['id'] );
 			self::assertSame( 'review', $entry['type'] );
 			self::assertSame( OpenAiCustomReviewDriver::class, $entry['class'] );
-			self::assertSame( '自定义 OpenAI 兼容端点', $entry['label'], '显示名单一来源迁移（future 表既有字面，不新造名）' );
+			self::assertSame( 'Custom OpenAI-compatible endpoint', $entry['label'], '显示名单一来源迁移（future 表既有字面，不新造名）' );
 			self::assertSame( 'self-managed', $entry['reachability'], '可达性自由字段（站长自负——DriverRegistry 不校验值域）' );
 			self::assertSame( 'usage', $entry['billing'], 'billing 闭集四选一（实际口径取决于端点——取按量通用义）' );
 			self::assertSame( array(), $entry['frontend'], 'review 类无前端形态' );
@@ -693,7 +693,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertSame( 'green', $state['state'] );
 			self::assertSame( 'models_ok', $state['code'] );
 			self::assertStringContainsString( 'my-model', $state['message'], '绿态升级为「列表含该模型」' );
-			self::assertStringContainsString( '零 token', $state['message'] );
+			self::assertStringContainsString( 'zero token', $state['message'] );
 		}
 
 		public function test_classify_green_without_model(): void {
@@ -706,7 +706,7 @@ namespace WinkGatekeeper\Tests {
 			foreach ( array( 401, 403 ) as $status ) {
 				$state = CredentialProbe::classify_openai_custom_models( RemoteResult::classify( self::httpErrorResponse( $status ) ) );
 				self::assertSame( 'red', $state['state'], "HTTP {$status} 红" );
-				self::assertStringContainsString( '密钥被端点拒绝', $state['message'], '不点名厂商（文案中性化）' );
+				self::assertStringContainsString( 'Key rejected by the endpoint', $state['message'], '不点名厂商（文案中性化）' );
 				self::assertStringNotContainsString( 'DeepSeek', $state['message'], '泛端点文案不点名厂商' );
 				self::assertSame( 'http=' . $status, $state['code'] );
 			}
@@ -716,7 +716,7 @@ namespace WinkGatekeeper\Tests {
 			$state = CredentialProbe::classify_openai_custom_models( RemoteResult::classify( self::httpErrorResponse( 402 ) ) );
 			self::assertSame( 'red', $state['state'], '402 归红（端点拒绝面）' );
 			self::assertStringContainsString( '402', $state['message'] );
-			self::assertStringContainsString( '计费口径', $state['message'], '计费口径由服务方定义（中性化——泛端点无统一计费语义）' );
+			self::assertStringContainsString( 'billing semantics', $state['message'], '计费口径由服务方定义（中性化——泛端点无统一计费语义）' );
 			self::assertStringNotContainsString( 'DeepSeek', $state['message'] );
 			self::assertStringNotContainsString( 'Create an API Key on the DeepSeek platform (platform.deepseek.com) and top up (pay-as-you-go; one verdict costs roughly a few hundred tokens).', $state['message'], '不指引特定厂商控制台' );
 		}
@@ -728,7 +728,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertSame( 'model_missing', $state['code'] );
 			self::assertStringContainsString( 'not-listed', $state['message'] );
 			self::assertStringContainsString( 'm1 / m2', $state['message'], '前 6 个列表提示（可照抄）' );
-			self::assertStringContainsString( '部分端点列表不全', $state['message'], '列表缺失不等于不可用注记' );
+			self::assertStringContainsString( 'some endpoint lists are incomplete', $state['message'], '列表缺失不等于不可用注记' );
 		}
 
 		public function test_classify_gray_contract_mismatch(): void {
@@ -736,15 +736,15 @@ namespace WinkGatekeeper\Tests {
 			$state = CredentialProbe::classify_openai_custom_models( RemoteResult::classify( $raw ) );
 			self::assertSame( 'gray', $state['state'] );
 			self::assertSame( 'contract', $state['code'] );
-			self::assertStringContainsString( '契约不符', $state['message'] );
+			self::assertStringContainsString( 'contract mismatch', $state['message'] );
 		}
 
 		public function test_classify_gray_404_models_not_provided_hint(): void {
 			$state = CredentialProbe::classify_openai_custom_models( RemoteResult::classify( self::httpErrorResponse( 404 ) ) );
 			self::assertSame( 'gray', $state['state'], '404 不误报红（部分网关不提供 /models——凭据状态未知）' );
 			self::assertStringContainsString( '/models', $state['message'] );
-			self::assertStringContainsString( '不提供', $state['message'] );
-			self::assertStringContainsString( '凭据状态未知', $state['message'], '观察首判指引' );
+			self::assertStringContainsString( 'may not provide', $state['message'] );
+			self::assertStringContainsString( 'credential status unknown', $state['message'], '观察首判指引' );
 		}
 
 		public function test_classify_transport_gray(): void {
@@ -760,13 +760,13 @@ namespace WinkGatekeeper\Tests {
 			self::assertNotNull( $pre );
 			self::assertSame( 'yellow', $pre['state'] );
 			self::assertStringContainsString( 'API Key', $pre['message'] );
-			self::assertStringContainsString( '接入地址', $pre['message'] );
-			self::assertStringContainsString( '判定模型', $pre['message'] );
+			self::assertStringContainsString( 'Endpoint URL', $pre['message'] );
+			self::assertStringContainsString( 'Verdict model', $pre['message'] );
 
 			// 任一缺 → 黄（逐字段）。
 			$pre = CredentialProbe::local_precheck_openai_custom( array( 'api_key' => 'sk', 'base_url' => '', 'model' => 'm' ) );
 			self::assertNotNull( $pre );
-			self::assertSame( array( '接入地址' ), $pre['missing'] );
+			self::assertSame( array( 'Endpoint URL' ), $pre['missing'] );
 
 			// 三键齐 → null 放行走远端探测。
 			self::assertNull( CredentialProbe::local_precheck_openai_custom( array( 'api_key' => 'sk', 'base_url' => 'https://relay.example.com/v1', 'model' => 'm' ) ) );

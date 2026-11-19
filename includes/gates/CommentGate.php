@@ -1030,10 +1030,10 @@ final class CommentGate extends AbstractGate {
 
 		$evidence = array();
 		if ( '' !== $event_no ) {
-			$evidence['事件编号'] = $event_no;
+			$evidence[__( 'Event No.', 'wink-wp-gatekeeper' )] = $event_no;
 		}
-		$evidence['命中规则'] = $rule;
-		$evidence['时间']     = $this->format_evidence_time( (int) call_user_func( $this->now ) ); // P2-3：wp_date 站点时区。
+		$evidence[__( 'Matched rule', 'wink-wp-gatekeeper' )] = $rule;
+		$evidence[__( 'Time', 'wink-wp-gatekeeper' )]     = $this->format_evidence_time( (int) call_user_func( $this->now ) ); // P2-3：wp_date 站点时区。
 
 		return array(
 			'message'  => $message,
@@ -1064,9 +1064,9 @@ final class CommentGate extends AbstractGate {
 		// 原生上下文：品牌页 wp_die 终止（保持核心「重复即终止」语义；标题/文案/联系邮箱
 		// 占位符由 DiePage::show 从文案工坊统一读取）。
 		DiePage::show( 'duplicate_comment', array(
-			'event_no' => isset( $payload['evidence']['事件编号'] ) ? $payload['evidence']['事件编号'] : '',
+			'event_no' => isset( $payload['evidence'][__( 'Event No.', 'wink-wp-gatekeeper' )] ) ? $payload['evidence'][__( 'Event No.', 'wink-wp-gatekeeper' )] : '',
 			'rule'     => 'duplicate_comment',
-			'time'     => isset( $payload['evidence']['时间'] ) ? $payload['evidence']['时间'] : '',
+			'time'     => isset( $payload['evidence'][__( 'Time', 'wink-wp-gatekeeper' )] ) ? $payload['evidence'][__( 'Time', 'wink-wp-gatekeeper' )] : '',
 		), $payload['evidence'] );
 	}
 
@@ -1102,9 +1102,9 @@ final class CommentGate extends AbstractGate {
 		 * 页面壳保持 WP 原生 wp_die，用户实测「文案品牌化但页面无品牌」（2026-11-12））。
 		 * DiePage::show 自身 wp_die 终止，先于核心 flood die——语义不变只换壳。 */
 		DiePage::show( 'comment_flood', array(
-			'event_no' => isset( $payload['evidence']['事件编号'] ) ? $payload['evidence']['事件编号'] : '',
+			'event_no' => isset( $payload['evidence'][__( 'Event No.', 'wink-wp-gatekeeper' )] ) ? $payload['evidence'][__( 'Event No.', 'wink-wp-gatekeeper' )] : '',
 			'rule'     => 'comment_flood',
-			'time'     => isset( $payload['evidence']['时间'] ) ? $payload['evidence']['时间'] : '',
+			'time'     => isset( $payload['evidence'][__( 'Time', 'wink-wp-gatekeeper' )] ) ? $payload['evidence'][__( 'Time', 'wink-wp-gatekeeper' )] : '',
 		), $payload['evidence'] );
 	}
 
@@ -1356,17 +1356,17 @@ final class CommentGate extends AbstractGate {
 		// 标签中文 + 置信；未收录标签原样兜底；LocalRules 键/核心拒绝键原样不放宽）。
 		$evidence = array();
 		if ( '' !== $event_no ) {
-			$evidence['事件编号'] = $event_no;
+			$evidence[__( 'Event No.', 'wink-wp-gatekeeper' )] = $event_no;
 		}
 		if ( '' !== $verdict->reason() ) {
-			$evidence['命中规则'] = $this->humanize_evidence_rule( $verdict );
+			$evidence[__( 'Matched rule', 'wink-wp-gatekeeper' )] = $this->humanize_evidence_rule( $verdict );
 		}
-		$evidence['时间'] = $this->format_evidence_time( $now );
+		$evidence[__( 'Time', 'wink-wp-gatekeeper' )] = $this->format_evidence_time( $now );
 
 		// 文案内 event_no/time 占位符替换（记录在案后回填）。
 		$message = Copywork::format( $message, array_merge( $vars, array(
 			'event_no' => $event_no,
-			'time'     => $evidence['时间'],
+			'time'     => $evidence[__( 'Time', 'wink-wp-gatekeeper' )],
 			'rule'     => $verdict->reason(),
 		) ) );
 
@@ -1657,8 +1657,8 @@ final class CommentGate extends AbstractGate {
 
 		$title = '';
 		// 按命中规则推断标题键（evidence 的规则名 = Copywork 键或驱动 rule 码）。
-		if ( isset( $result['evidence']['命中规则'] ) ) {
-			$rule  = (string) $result['evidence']['命中规则'];
+		if ( isset( $result['evidence'][__( 'Matched rule', 'wink-wp-gatekeeper' )] ) ) {
+			$rule  = (string) $result['evidence'][__( 'Matched rule', 'wink-wp-gatekeeper' )];
 			$first = explode( '/', $rule )[0]; // rule 码可能为 CaptchaCode=8 形态。
 			$first = explode( '=', $first )[0];
 			$key   = ( 'bad-signature' === $rule || 'captcha_missing' === $rule ) ? 'captcha_missing' : $first;
@@ -1681,11 +1681,11 @@ final class CommentGate extends AbstractGate {
 		if ( '' !== $custom['die_page_title'] || '' !== $custom['die_page_message'] ) {
 			$vars = array();
 			foreach ( $result['evidence'] as $label => $value ) {
-				if ( '事件编号' === $label ) {
+				if ( __( 'Event No.', 'wink-wp-gatekeeper' ) === $label ) {
 					$vars['event_no'] = (string) $value;
-				} elseif ( '命中规则' === $label ) {
+				} elseif ( __( 'Matched rule', 'wink-wp-gatekeeper' ) === $label ) {
 					$vars['rule'] = (string) $value;
-				} elseif ( '时间' === $label ) {
+				} elseif ( __( 'Time', 'wink-wp-gatekeeper' ) === $label ) {
 					$vars['time'] = (string) $value;
 				}
 			}

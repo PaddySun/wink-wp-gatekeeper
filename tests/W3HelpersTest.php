@@ -152,7 +152,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_notice_yellow_bar_classes_override_keeps_legacy_literal(): void {
 			// 迁段兼容位：编排位显式传 class 字面量（source-scan 契约钉——批 B 翻转后可去）。
-			$html = self::invoke_render( 'notice_yellow_bar', 'warn', '', '正文', '', 'notice notice-warning inline', '' );
+			$html = self::invoke_render( 'notice_yellow_bar', 'warn', '', 'body', '', 'notice notice-warning inline', '' );
 			self::assertStringContainsString( '<div class="notice notice-warning inline">', $html, '显式 classes 覆盖位生效（迁段等价）' );
 		}
 
@@ -173,7 +173,7 @@ namespace WinkGatekeeper\Tests {
 		 * =================================================================== */
 
 		public function test_credential_btn_output_anchors(): void {
-			$html = self::invoke_render( 'test_credential_btn', 'id="wk-x-test-credentials"', 'id="wk-x-test-result"', 'nonce123', '测试凭据', 'abuseipdb' );
+			$html = self::invoke_render( 'test_credential_btn', 'id="wk-x-test-credentials"', 'id="wk-x-test-result"', 'nonce123', 'Test credentials', 'abuseipdb' );
 			self::assertStringContainsString( '<button type="button" class="button" id="wk-x-test-credentials" data-nonce="nonce123">', $html, '按钮锚 + nonce 注入' );
 			self::assertStringContainsString( '<span id="wk-x-test-result" aria-live="polite"></span>', $html, '三态结果位锚（aria-live）' );
 			self::assertStringContainsString( 'class="cred-test"', $html, 'cred-test 组件类（原型新形态容器）' );
@@ -183,11 +183,11 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_probe_state_badge_five_states_closed_set(): void {
 			$map = array(
-				''       => array( 'b-dim', '未测试' ),
-				'green'  => array( 'b-ok', '贯通 · 凭据可用' ),
-				'yellow' => array( 'b-warn', '缺字 · 必填缺失' ),
-				'red'    => array( 'b-err', '被拒 · 密钥错' ),
-				'gray'   => array( 'b-dim', '契约不符 · 状态未知' ),
+				''       => array( 'b-dim', 'Not tested' ),
+				'green'  => array( 'b-ok', 'Connected · credentials work' ),
+				'yellow' => array( 'b-warn', 'Incomplete · required fields missing' ),
+				'red'    => array( 'b-err', 'Rejected · key error' ),
+				'gray'   => array( 'b-dim', 'Contract mismatch · status unknown' ),
 			);
 			foreach ( $map as $state => $conf ) {
 				$badge = self::invoke_render( 'probe_state_badge', $state, '11-18 14:30' );
@@ -209,16 +209,16 @@ namespace WinkGatekeeper\Tests {
 				'domains'       => array(
 					array(
 						'id'    => 'captcha',
-						'label' => '人机验证',
+						'label' => 'Human verification',
 						'rows'  => array(
-							array( 'driver_id' => 'aliyun', 'label' => '阿里云验证码 2.0', 'used' => 86, 'quota' => 300, 'quota_reached' => false, 'bill_free' => false ),
+							array( 'driver_id' => 'aliyun', 'label' => 'Aliyun Captcha 2.0', 'used' => 86, 'quota' => 300, 'quota_reached' => false, 'bill_free' => false ),
 						),
 					),
 					array(
 						'id'    => 'fetch',
-						'label' => '网页抓取',
+						'label' => 'Page fetching',
 						'rows'  => array(
-							array( 'driver_id' => 'self_fetch', 'label' => '本站直接打开——不计费', 'used' => 0, 'quota' => 0, 'quota_reached' => false, 'bill_free' => true ),
+							array( 'driver_id' => 'self_fetch', 'label' => 'Opened directly on this site — no billing', 'used' => 0, 'quota' => 0, 'quota_reached' => false, 'bill_free' => true ),
 						),
 					),
 				),
@@ -234,7 +234,7 @@ namespace WinkGatekeeper\Tests {
 			self::assertStringContainsString( '86 / 300', $html, '配额读数 N / M' );
 			self::assertStringContainsString( 'class="prog"', $html, '进度条' );
 			self::assertStringContainsString( 'class="usage-row free"', $html, '不计费声明行（free 形态）' );
-			self::assertStringContainsString( '本站直接打开——不计费', $html, 'free 行无次数渲染（M6·H-4 口径）' );
+			self::assertStringContainsString( 'Opened directly on this site — no billing', $html, 'free 行无次数渲染（M6·H-4 口径）' );
 			self::assertStringContainsString( 'Failover passes today', $html, '容灾放行行' );
 			// 空态：零数据域不渲染=显式空态行（「真安静/没记数」纪律）。
 			$empty = self::invoke_render( 'usage_card_html', array( 'domains' => array(), 'site_total' => 0, 'disaster_pass' => 0 ) );
@@ -250,16 +250,16 @@ namespace WinkGatekeeper\Tests {
 			$view = array(
 				'state'           => 'completed',
 				'section_id'      => 'wk-tools-existing-audit-report',
-				'title'           => '存量审核报告（历史评论体检）',
+				'title'           => 'Existing-comment audit report',
 				'meta_id'         => 'wk-tools-existing-report-meta',
 				'meta_text'       => '服务商：X · 发起：2026-11-18 09:00 · 已完成',
 				'tickets_class'   => 'wk-report-tickets',
 				'caliber_id'      => 'wk-tools-existing-audit-caliber',
 				'tickets'         => array(
-					array( 'name' => '没问题（pass）', 'main' => '10 条', 'sub' => '已核无问题——评论状态不动' ),
+					array( 'name' => 'Clean (pass)', 'main' => '10 条', 'sub' => 'Verified clean — comment status unchanged' ),
 				),
 				'actions_html'    => '<a href="#">去待审队列</a>',
-				'recovery_text'   => '判违规进垃圾箱、没看清进待审，都能手动恢复。',
+				'recovery_text'   => 'Violations go to Spam, unclear ones to pending review — both recoverable by hand.',
 				'reasons_id'      => 'wk-tools-existing-audit-reasons',
 				'reasons_summary' => '原因明细（2 类）',
 				'reasons_html'    => '<p>「垃圾广告」2 条 → 垃圾箱</p>',

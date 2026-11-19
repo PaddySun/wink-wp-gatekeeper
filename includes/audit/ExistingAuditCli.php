@@ -54,14 +54,14 @@ final class ExistingAuditCli {
 					$universe = ExistingAuditWorker::unaudited_universe_ids();
 					$p        = $worker->start( count( $universe ), $universe );
 					self::schedule_tick();
-					\WP_CLI::success( "任务已建立：共 {$p['total']} 条，服务商 {$p['driver']}，单轮 ≤{$p['batch_size']} 条。运行 `wp wink-gatekeeper audit-existing run` 或等待 cron tick。" );
+					\WP_CLI::success( __( 'Task created: ', 'wink-wp-gatekeeper' ) . $p['total'] . __( ' comments in total, provider ', 'wink-wp-gatekeeper' ) . $p['driver'] . __( ', at most ', 'wink-wp-gatekeeper' ) . $p['batch_size'] . __( ' per round. Run `wp wink-gatekeeper audit-existing run` or wait for the next cron tick.', 'wink-wp-gatekeeper' ) );
 				} catch ( \RuntimeException $e ) {
 					// 【M5 修复批·C5】无已配置云审驱动（C1 start 守卫）→ 显式人话报错，
 					// 区别于「任务已在运行」竞态——两者处置路径不同（先配置 vs 先 pause）。
 					if ( 'no configured cloud review driver' === $e->getMessage() ) {
-						\WP_CLI::error( '无已配置云审驱动——先在 Tab③ 配置并启用服务商。' );
+						\WP_CLI::error( __( 'No cloud review driver configured — configure and enable a provider on Tab 3 first.', 'wink-wp-gatekeeper' ) );
 					}
-					\WP_CLI::error( '任务已在运行（' . $e->getMessage() . '）——先 status 查看，或 pause/reset 后再发起。' );
+					\WP_CLI::error( __( 'A task is already running (', 'wink-wp-gatekeeper' ) . $e->getMessage() . __( ') — check status first, or pause/reset before starting again.', 'wink-wp-gatekeeper' ) );
 				}
 				break;
 			case 'run':
@@ -75,22 +75,22 @@ final class ExistingAuditCli {
 			case 'pause':
 				$p = $worker->pause_task();
 				self::unschedule_tick();
-				\WP_CLI::success( null === $p ? '无任务。' : '已暂停（' . ( $p['processed'] ?? 0 ) . '/' . ( $p['total'] ?? 0 ) . '）。resume 继续。' );
+				\WP_CLI::success( null === $p ? __( 'No task.', 'wink-wp-gatekeeper' ) : __( 'Paused (', 'wink-wp-gatekeeper' ) . ( $p['processed'] ?? 0 ) . '/' . ( $p['total'] ?? 0 ) . __( '). Run resume to continue.', 'wink-wp-gatekeeper' ) );
 				break;
 			case 'resume':
 				$p = $worker->resume_task();
 				if ( null !== $p ) {
 					self::schedule_tick();
 				}
-				\WP_CLI::success( null === $p ? '无任务。' : '已继续——cron tick 已重排，或手动 run。' );
+				\WP_CLI::success( null === $p ? __( 'No task.', 'wink-wp-gatekeeper' ) : __( 'Resumed — the cron tick is re-scheduled, or run manually.', 'wink-wp-gatekeeper' ) );
 				break;
 			case 'reset':
 				$count = $worker->reset_task( self::universe_ids() );
 				self::unschedule_tick();
-				\WP_CLI::success( '标记与进度已作废（曾有任务=' . var_export( $count, true ) . '）——可重新 start。' );
+				\WP_CLI::success( __( 'Marks and progress discarded (had a task=', 'wink-wp-gatekeeper' ) . var_export( $count, true ) . __( ') — you can start again.', 'wink-wp-gatekeeper' ) );
 				break;
 			default:
-				\WP_CLI::error( "未知动词：{$verb}（start|run|status|pause|resume|reset）" );
+				\WP_CLI::error( __( 'Unknown verb: ', 'wink-wp-gatekeeper' ) . $verb . '（start|run|status|pause|resume|reset）' );
 		}
 	}
 
@@ -103,11 +103,11 @@ final class ExistingAuditCli {
 	private static function report_round( array $r ): void {
 		$p = $r['progress'];
 		if ( ( $p['status'] ?? '' ) === 'idle' ) {
-			\WP_CLI::error( '无任务——先 start。' );
+			\WP_CLI::error( __( 'No task — run start first.', 'wink-wp-gatekeeper' ) );
 		}
 		$verdicts = $p['verdicts'] ?? array();
 		\WP_CLI::log( sprintf(
-			'本轮处理 %d 条 · 累计 %d/%d · %s · pass=%d reject=%d review=%d gone=%d',
+			/* translators: 1: 本轮处理数 2: 已处理 3: 总数 4: 状态 5-8: 判定计数 */ _n( 'Processed %1$d comment this round · cumulative %2$d/%3$d · %4$s · pass=%5$d reject=%6$d review=%7$d gone=%8$d', 'Processed %1$d comments this round · cumulative %2$d/%3$d · %4$s · pass=%5$d reject=%6$d review=%7$d gone=%8$d', ( $r['processed_this_round'] ?? 0 ), 'wink-wp-gatekeeper' ),
 			$r['processed_this_round'] ?? 0,
 			$p['processed'] ?? 0,
 			$p['total'] ?? 0,
@@ -118,10 +118,10 @@ final class ExistingAuditCli {
 			$verdicts['gone'] ?? 0
 		) );
 		if ( 'quota_paused' === ( $p['status'] ?? '' ) ) {
-			\WP_CLI::warning( '配额达限任务已暂停——次日自动恢复（或配额重置后 run 续跑）。' );
+			\WP_CLI::warning( __( 'Task paused at the quota limit — it resumes automatically tomorrow (or run again after the quota resets).', 'wink-wp-gatekeeper' ) );
 		}
 		if ( isset( $r['pause_reason'] ) && 'no_driver' === $r['pause_reason'] ) {
-			\WP_CLI::warning( '无已配置云审驱动——Tab③ 配置并启用后 resume。' );
+			\WP_CLI::warning( __( 'No cloud review driver configured — configure and enable one on Tab 3, then resume.', 'wink-wp-gatekeeper' ) );
 		}
 	}
 
@@ -135,10 +135,10 @@ final class ExistingAuditCli {
 			// 【M5 修复批·C5】driver 空串（半残任务）→ 人话「未配置」，不裸出 '-' 占位。
 			$driver = (string) ( $p['driver'] ?? '' );
 			if ( '' === $driver ) {
-				$driver = '未配置';
+				$driver = __( 'Not configured', 'wink-wp-gatekeeper' );
 			}
 			\WP_CLI::log( sprintf(
-				'进度 %d/%d · 服务商 %s · pass=%d reject=%d review=%d gone=%d',
+				/* translators: 1: 已处理 2: 总数 3: 服务商 4-7: 判定计数 */ __( 'Progress %1$d/%2$d · provider %3$s · pass=%4$d reject=%5$d review=%6$d gone=%7$d', 'wink-wp-gatekeeper' ),
 				$p['processed'] ?? 0,
 				$p['total'] ?? 0,
 				$driver,

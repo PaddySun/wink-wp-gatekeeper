@@ -41,13 +41,13 @@ final class LoginErrorMask {
 	/**
 	 * 登录域统一掩码文案（invalid_username/incorrect_password 共用——响应不可区分）。
 	 */
-	public const MESSAGE_LOGIN_FAILED = '错误：用户名或口令不正确。';
+	public const MESSAGE_LOGIN_FAILED = 'Error: The username or password is incorrect.'; // i18n 批 I-3：值同步为 en 键（消费位 :91 拍平字面量 __()，zh 走 po）。
 
 	/**
 	 * 找回域统一掩码文案（invalid_email/invalidcombo 共用；不带「Unknown email address」
 	 * 明文与存在性线索）。
 	 */
-	public const MESSAGE_RESET_UNAVAILABLE = '错误：暂时无法发送重置邮件——请确认输入后重试。';
+	public const MESSAGE_RESET_UNAVAILABLE = 'Error: The reset email could not be sent just now — please double-check your input and try again.'; // i18n 批 I-3 同上。
 
 	/**
 	 * 泄露存在性的 WP 原生错误码表（登录域 + 找回域）。
@@ -88,6 +88,9 @@ final class LoginErrorMask {
 		if ( ! self::is_masked_code( $code ) ) {
 			return $message;
 		}
-		return self::SCENE_RESET === $scene ? self::MESSAGE_RESET_UNAVAILABLE : self::MESSAGE_LOGIN_FAILED;
+		// i18n 批 I-3：掩码文案 key 化（msgid 字面量拍平——常量保留供测试契约引用，值已同步 en）。
+		return self::SCENE_RESET === $scene
+			? __( 'Error: The reset email could not be sent just now — please double-check your input and try again.', "wink-wp-gatekeeper" )
+			: __( 'Error: The username or password is incorrect.', "wink-wp-gatekeeper" );
 	}
 }

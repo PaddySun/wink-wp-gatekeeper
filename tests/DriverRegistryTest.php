@@ -28,7 +28,7 @@ final class DriverRegistryTest extends TestCase {
 			'id'            => 'tencent',
 			'type'          => 'captcha',
 			'class'         => 'WinkGatekeeper\Drivers\Captcha\TencentCaptchaDriver',
-			'label'         => '腾讯天御验证码 2.0',
+			'label'         => 'Tencent Tianyu Captcha 2.0',
 			'reachability'  => 'cn-excellent', // cn-excellent|cn-good|cn-env.
 			'billing'       => 'usage',        // free|usage|token.
 			'supports_report' => false,

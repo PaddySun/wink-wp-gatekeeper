@@ -42,7 +42,7 @@ final class RemoteErrorObservabilityTest extends TestCase {
 			'RequestId' => 'req-tms-1',
 		) ) );
 		$driver  = self::tms_with_raw( array( 'response' => array( 'code' => 401 ), 'body' => $body ) );
-		$verdict = $driver->check( '正文', array() );
+		$verdict = $driver->check( 'body', array() );
 		$meta    = $driver->last_check_meta();
 
 		$this->assertSame( Verdict::ERROR, $verdict->verdict() );
@@ -58,7 +58,7 @@ final class RemoteErrorObservabilityTest extends TestCase {
 	public function test_tms_transport_error_carries_raw_with_attempts(): void {
 		// 5xx 触发退避重试（sleeper 注入零等待）→ attempts=3。
 		$driver  = self::tms_with_raw( array( 'response' => array( 'code' => 503 ), 'body' => '' ) );
-		$verdict = $driver->check( '正文', array() );
+		$verdict = $driver->check( 'body', array() );
 		$meta    = $driver->last_check_meta();
 
 		$this->assertSame( Verdict::ERROR, $verdict->verdict() );
@@ -77,7 +77,7 @@ final class RemoteErrorObservabilityTest extends TestCase {
 			'stats'  => array( 'raw_capture' => false ),
 		), $client );
 
-		$verdict = $driver->check( '正文', array() );
+		$verdict = $driver->check( 'body', array() );
 		$meta    = $driver->last_check_meta();
 
 		$this->assertSame( Verdict::ERROR, $verdict->verdict() );

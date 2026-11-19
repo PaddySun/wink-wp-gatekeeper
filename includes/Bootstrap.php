@@ -243,7 +243,7 @@ final class Bootstrap {
 			static function ( $schedules ) {
 				$schedules[ ExistingAuditTask::CRON_INTERVAL ] = array(
 					'interval' => 300,
-					'display'  => '每 5 分钟（wink 存量审核 worker）',
+					'display'  => __( 'Every 5 minutes (wink existing-audit worker)', "wink-wp-gatekeeper" ),
 				);
 				return $schedules;
 			}
@@ -1089,6 +1089,18 @@ final class Bootstrap {
 			// 【v1.5·F4-1】免验轻提示（03 §2.1 v1.5：trust_pass 分支差异化文案——让「免验发生了」
 			// 前台可感知；aria-live 随按钮播报）。
 			'wk_trust_hint' => __( 'Old friend, no verification needed', 'wink-wp-gatekeeper' ),
+			// 【i18n 批 I-3】checking_submit 补录（gatekeeper.js 真实提交等待期 Toast 此前读
+			// wkGateL10n.checking_submit 恒缺键走 zh 兜底——本批扩键集，zh msgstr=原兜底原文）。
+			'checking_submit' => __( 'Your comment is being checked, please wait…', 'wink-wp-gatekeeper' ),
+			// 【i18n 批 I-3】checking_submit 补录（gatekeeper.js 真实提交等待期 Toast 此前读
+			// wkGateL10n.checking_submit 恒缺键走 zh 兜底——本批扩键集，zh msgstr=原兜底原文）。
+			'checking_submit' => __( 'Your comment is being checked, please wait…', 'wink-wp-gatekeeper' ),
+			// 【i18n 批 I-3】checking_submit 补录（gatekeeper.js 真实提交等待期 Toast 此前读
+			// wkGateL10n.checking_submit 恒缺键走 zh 兜底——本批扩键集，zh msgstr=原兜底原文）。
+			'checking_submit' => __( 'Your comment is being checked, please wait…', 'wink-wp-gatekeeper' ),
+			// 【i18n 批 I-3】checking_submit 补录（gatekeeper.js 真实提交等待期 Toast 此前读
+			// wkGateL10n.checking_submit 恒缺键走 zh 兜底——本批扩键集，zh msgstr=原兜底原文）。
+			'checking_submit' => __( 'Your comment is being checked, please wait…', 'wink-wp-gatekeeper' ),
 			// 【W2·无按钮模式】submit-gate 模块文案（0.8.4，gatekeeper.js 消费——Toast 单例播报；
 			// 无按钮语境的「重试」=再点一次提交）。
 			'submit_gate_verify' => __( 'Please complete human verification before submitting', 'wink-wp-gatekeeper' ),
@@ -1098,6 +1110,54 @@ final class Bootstrap {
 			// 改入人工卡备注行（MANUAL-CARD-M4UX ④），不做前台提示。
 		);
 	}
+
+	/**
+	 * admin 侧 L10N 键集（批 I-3——admin-brand.js 动态文案：测试凭据按钮态/诊断面板/
+	 * CIDR 校验/重置反馈等；键名=JS 侧 l10n() 第一参，兜底=同值 en）。
+	 *
+	 * @return array<string, string>
+	 */
+	private static function admin_l10n(): array {
+		return array(
+			'resetDone'        => __( 'Reset done.', 'wink-wp-gatekeeper' ),
+			'resetFail'        => __( 'Reset failed.', 'wink-wp-gatekeeper' ),
+			'resetFailNet'     => __( 'Reset failed (network error).', 'wink-wp-gatekeeper' ),
+			'drvMissingA'      => __( 'Driver “', 'wink-wp-gatekeeper' ),
+			'drvMissingB'      => __( '” is missing: ', 'wink-wp-gatekeeper' ),
+			'drvMissingC'      => __( ' — fill it in before saving (blocked this time; clicking save again force-submits and the server treats the driver as not configured).', 'wink-wp-gatekeeper' ),
+			'badgeGreen'       => __( 'Connected · credentials work', 'wink-wp-gatekeeper' ),
+			'badgeYellow'      => __( 'Incomplete · required fields missing', 'wink-wp-gatekeeper' ),
+			'badgeRed'         => __( 'Rejected · key error', 'wink-wp-gatekeeper' ),
+			'badgeGray'        => __( 'Contract mismatch · status unknown', 'wink-wp-gatekeeper' ),
+			'shortGreen'       => __( 'Connected', 'wink-wp-gatekeeper' ),
+			'shortYellow'      => __( 'Incomplete', 'wink-wp-gatekeeper' ),
+			'shortRed'         => __( 'Rejected', 'wink-wp-gatekeeper' ),
+			'shortGray'        => __( 'Contract mismatch', 'wink-wp-gatekeeper' ),
+			'stampMonth'       => __( '-', 'wink-wp-gatekeeper' ),
+			'stampDay'         => __( ' ', 'wink-wp-gatekeeper' ), // phpcs:ignore WordPress.WP.I18n -- 键值=单空格分隔位（zh msgstr=「日 」，日期词序不可整句化——⑤-补跨节点形态口径）。
+			'lastTest'         => __( 'Last test: ', 'wink-wp-gatekeeper' ),
+			'testing'          => __( 'Testing…', 'wink-wp-gatekeeper' ),
+			'testFail'         => __( 'Test failed.', 'wink-wp-gatekeeper' ),
+			'testFailNet'      => __( 'Test failed (network error).', 'wink-wp-gatekeeper' ),
+			'srcAbuseipdb'     => __( 'AbuseIPDB (threat group)', 'wink-wp-gatekeeper' ),
+			'srcStopforumspam' => __( 'StopForumSpam (threat group)', 'wink-wp-gatekeeper' ),
+			'srcIpncgy'        => __( 'ip.nc.gy (threat group)', 'wink-wp-gatekeeper' ),
+			'srcIpsb'          => __( 'ip.sb (geo group)', 'wink-wp-gatekeeper' ),
+			'lookupFail'       => __( 'The lookup failed.', 'wink-wp-gatekeeper' ),
+			'enterIp'          => __( 'Enter an IP to look up first.', 'wink-wp-gatekeeper' ),
+			'querying'         => __( 'Looking up… (3s timeout per source, up to ~12s total)', 'wink-wp-gatekeeper' ),
+			'donePrefix'       => __( 'Done: ', 'wink-wp-gatekeeper' ),
+			'lookupFailNet'    => __( 'The lookup failed (network error).', 'wink-wp-gatekeeper' ),
+			'cidrAll1'         => __( 'All ', 'wink-wp-gatekeeper' ),
+			'cidrAll2'         => __( ' lines are valid.', 'wink-wp-gatekeeper' ),
+			'cidrBad1'         => __( 'Found ', 'wink-wp-gatekeeper' ),
+			'cidrBad2'         => __( ' lines are not valid CIDR/IP: ', 'wink-wp-gatekeeper' ),
+			'etcSuffix'        => __( ' etc.', 'wink-wp-gatekeeper' ),
+		);
+	}
+
+
+
 
 	/**
 	 * 挂载设置页：设置 → Wink 门口保安（03 §1，权限 manage_options）。
@@ -1213,7 +1273,7 @@ final class Bootstrap {
 			// 消失——deepseek I-1 先例同款；单一来源=registry_entry 不硬抄字面）。
 			'openai_custom'    => (string) OpenAiCustomReviewDriver::registry_entry()['label'],
 			'abuseipdb'        => 'AbuseIPDB',
-			'abuseipdb_report' => 'AbuseIPDB（上报）',
+			'abuseipdb_report' => __( 'AbuseIPDB (reporting)', "wink-wp-gatekeeper" ),
 		);
 		// 【M6·批H2·H2-1】未来驱动显示名同源注入（future_review_drivers 公开件单一来源
 		// ——不硬抄字面；openai_custom/moli 未实装无计量=当前零可见效果的一致性/防御面，
@@ -1411,9 +1471,13 @@ final class Bootstrap {
 			// 0.8.5 进位一次击穿在批 D 收口）。
 			// 【W3-FIX】本批 JS 内容变化（测试凭据徽标全量回写共享件 wkProbeWriteBadges
 			// + 九个 probe log 闭集驱动探活接线——W3F2 手测缺陷①）→ -w3fix1。
-			WINK_GATEKEEPER_VERSION . '-w3fix1',
+			// 【i18n 批 I-3】本批 JS 内容变化（admin-brand.js 全量文案 L10N 通道化）→ -i3a1。
+			WINK_GATEKEEPER_VERSION . '-i3a1',
 			true
 		);
+
+		// 【i18n 批 I-3】admin 侧 L10N 注入（admin-brand.js 动态文案键集——PHP 侧全 __()）。
+		wp_localize_script( 'wink-gatekeeper-admin-brand', 'wkAdminL10n', self::admin_l10n() );
 	}
 
 	/**

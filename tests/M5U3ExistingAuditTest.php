@@ -113,10 +113,10 @@ final class M5U3ExistingAuditTest extends TestCase {
 	}
 
 	public function test_meta_record_shape(): void {
-		$m = ExistingAuditTask::meta_record( 'reject', '广告', array( '广告' ), 'tencent_tms', 1234 );
+		$m = ExistingAuditTask::meta_record( 'reject', 'Advertising', array( 'Advertising' ), 'tencent_tms', 1234 );
 		self::assertSame( 'reject', $m['verdict'] );
-		self::assertSame( '广告', $m['reason'] );
-		self::assertSame( array( '广告' ), $m['hits'] );
+		self::assertSame( 'Advertising', $m['reason'] );
+		self::assertSame( array( 'Advertising' ), $m['hits'] );
 		self::assertSame( 'tencent_tms', $m['driver'] );
 		self::assertSame( 1234, $m['audited_at'] );
 	}

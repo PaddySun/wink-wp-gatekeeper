@@ -80,11 +80,11 @@ final class M6CReportsContractTest extends TestCase {
 			'wk-report-tickets',               // wk-overview-report 同款票面形态。
 			'wk-tools-existing-audit-reasons', // 原因明细 details 折叠锚。
 			'没问题',                          // 口径三行之一。
-			'待审核',                          // 口径三行之二。
-			'垃圾箱',                          // 口径三行之三。
-			'服务商',                          // 报告头部=服务商。
+			'Pending review',                          // 口径三行之二。
+			'Spam',                          // 口径三行之三。
+			'Provider',                          // 报告头部=服务商。
 			'发起',                            // 发起时间。
-			'完成',                            // 完成时间。
+			'完成',                            // 完成时间。（i18n I-3：源注释层锚保留 zh）
 		) as $anchor ) {
 			self::assertStringContainsString( $anchor, $tools, "Tab⑦ 报告含 {$anchor}" );
 		}
@@ -147,8 +147,8 @@ final class M6CReportsContractTest extends TestCase {
 
 		$tools = self::functionBody( $sp, 'render_tab_tools' );
 		self::assertStringContainsString( 'wk-tools-url-audit-feedback', $tools, '点击反馈行锚' );
-		self::assertStringContainsString( '%s queued · checking starts (advances automatically within the daily quota; you can leave this page).', $tools, '「已入队 N 条·开始核查」人话行' );
-		self::assertStringContainsString( '%s queued · checking starts (advances automatically within the daily quota; you can leave this page).', $tools, '反馈行含开始核查' );
+		self::assertStringContainsString( '%s URL queued · checking starts (advances automatically within the daily quota; you can leave this page).', $tools, '「已入队 N 条·开始核查」人话行' );
+		self::assertStringContainsString( '%s URL queued · checking starts (advances automatically within the daily quota; you can leave this page).', $tools, '反馈行含开始核查' );
 	}
 
 	/* ===================================================================

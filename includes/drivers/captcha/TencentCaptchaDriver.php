@@ -66,12 +66,12 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 	/**
 	 * 传输终态拦截文案（02 §5 降级矩阵 captcha 行——不设开关；M4 文案键扩展时迁 Copywork）。
 	 */
-	private const MSG_TRANSPORT = '验证服务暂时打不开，请稍后再试；也可以刷新页面重试。';
+	private const MSG_TRANSPORT = 'The verification service is temporarily unavailable — please try again later, or refresh the page and retry.'; // i18n 批 I-3：值同步 en（消费位字面量 __()，zh 走 po）。
 
 	/**
 	 * 配置错误/契约不符文案（SemanticError 停转 + ContractError 哨兵共用展示层文案）。
 	 */
-	private const MSG_CONFIG = '验证码服务配置有误（请联系站长处理）。';
+	private const MSG_CONFIG = 'The captcha service is misconfigured (please contact the site owner).'; // i18n 批 I-3 同上。
 
 	/**
 	 * @var array{app_id: int|string, secret_id: string, secret_key: string}
@@ -177,7 +177,7 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 			'id'          => self::DRIVER_ID,
 			'type'        => 'captcha',
 			'class'       => self::class,
-			'label'       => '腾讯天御验证码 2.0',
+			'label'       => __( 'Tencent Tianyu Captcha 2.0', 'wink-wp-gatekeeper' ),
 			'reachability' => 'cn-excellent',
 			'billing'     => 'usage',
 			'frontend'    => array(
@@ -193,7 +193,7 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 			'app_id'         => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => 'CaptchaAppId', 'required' => true ),
 			'secret_id'      => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'SecretId（CAM）', 'required' => true ), // FIX-α 2026-11-10：入敏感字段清单（03 §1 v1.3 契约：registry type=password 自动派生）。
 			'secret_key'     => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'SecretKey（CAM）', 'required' => true ),
-			'app_secret_key' => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'AppSecretKey（验证码控制台）', 'required' => true ),
+			'app_secret_key' => array( 'type' => 'password', 'sanitize' => 'password', 'label' => __( 'AppSecretKey (captcha console)', 'wink-wp-gatekeeper' ), 'required' => true ),
 		),
 		'privacy'     => \WinkGatekeeper\Settings\DriverPrivacy::entry( self::DRIVER_ID ), // 【v1.4·R4】第七维（访客 IP+票据 / 境内）——顶层散件并入删除。
 		'doc_url'     => 'https://cloud.tencent.com/document/product/1110/36926',
@@ -223,7 +223,7 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 
 	/** 驱动显示名（设置页下拉项/配置区标题——运行时权威）。 */
 	public function label(): string {
-		return '腾讯天御验证码 2.0';
+		return __( 'Tencent Tianyu Captcha 2.0', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -445,9 +445,9 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 			. '<span class="wk-gate-inline">'
 			. '<button type="button" class="wk-captcha-btn wk-verify-btn button" data-wk-state="unverified"'
 			. ( $submit_gate ? ' hidden' : '' )
-			. ' aria-live="polite">完成人机验证</button>'
+			. ' aria-live="polite">' . __( 'Complete human verification', 'wink-wp-gatekeeper' ) . '</button>'
 			. '</span>'
-			. '<noscript>需要启用 JavaScript 完成人机验证。</noscript>'
+			. '<noscript>' . __( 'JavaScript is required to complete human verification.', 'wink-wp-gatekeeper' ) . '</noscript>'
 			. '</span>';
 
 		if ( $is_embed ) {
@@ -486,7 +486,7 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 				return array(
 					'pass'      => false,
 					'copy_key'  => 'captcha_failed',
-					'hint'      => '刷新页面再试一次。',
+					'hint'      => __( 'Refresh the page and try again.', 'wink-wp-gatekeeper' ),
 					'hint_kind' => 'refresh',
 					'rule'      => 'CaptchaCode=21/trerror-blocked',
 					'disaster'  => true,
@@ -518,7 +518,7 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 			return array(
 				'pass'      => false,
 				'copy_key'  => 'captcha_failed',
-				'hint'      => '站点验证码配置有误（请联系站长）。',
+				'hint'      => __( 'The site captcha is misconfigured (please contact the site owner).', 'wink-wp-gatekeeper' ),
 				'hint_kind' => 'config',
 				'rule'      => 'CaptchaCode=' . $code,
 				'disaster'  => false,
@@ -529,8 +529,8 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 		// 8/9 A-lite（M2 反馈2 T3）：验票结果短缓存窗口内「返回重提」不再走到本错误页——走到即
 		// 超窗（>10min）或换了表单，文案两分支都给：窗口内直接返回重提（无需重验）、超窗重新点验证。
 		$refresh_hint = in_array( $code, array( 8, 9 ), true )
-			? '验证已生效过一次——10 分钟内：点浏览器返回修改评论再提交即可，无需刷新、无需重新验证；已超 10 分钟：返回后重新点击验证按钮。'
-			: '刷新页面再试一次。';
+			? __( 'Verification already took effect once — within 10 minutes: press the browser back button, edit your comment, and resubmit; no refresh or re-verification needed. Past 10 minutes: go back and click the verification button again.', 'wink-wp-gatekeeper' )
+			: __( 'Refresh the page and try again.', 'wink-wp-gatekeeper' );
 
 		return array(
 			'pass'      => false,
@@ -600,12 +600,12 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 				'status'   => $result->status(),
 				'rule'     => 'remote_' . $result->category(),
 			);
-			$message = self::MSG_TRANSPORT;
+						$message = __( 'The verification service is temporarily unavailable — please try again later, or refresh the page and retry.', 'wink-wp-gatekeeper' ); // i18n 批 I-3：MSG_TRANSPORT 字面量拍平（常量保留供契约引用）。
 			if ( RemoteResult::CONTRACT === $result->category() ) {
 				$this->last_meta['rule'] = 'contract_mismatch'; // R6/R9 厂商改版哨兵。
-				$message                 = self::MSG_CONFIG;
+				$message                 = __( 'The captcha service is misconfigured (please contact the site owner).', 'wink-wp-gatekeeper' );
 			} elseif ( RemoteResult::TRANSPORT !== $result->category() ) {
-				$message = self::MSG_CONFIG;
+				$message = __( 'The captcha service is misconfigured (please contact the site owner).', 'wink-wp-gatekeeper' );
 			}
 			$raw = RemoteResult::raw_snapshot_from_settings( $result, $this->stats_settings );
 			if ( null !== $raw ) {
@@ -630,7 +630,7 @@ final class TencentCaptchaDriver implements CaptchaDriverInterface {
 			$mapped = array(
 				'pass'      => false,
 				'copy_key'  => 'captcha_failed',
-				'hint'      => '刷新页面再试一次。',
+				'hint'      => __( 'Refresh the page and try again.', 'wink-wp-gatekeeper' ),
 				'hint_kind' => 'refresh',
 				'rule'      => 'CaptchaCode=21/trerror-limited',
 				'disaster'  => true,

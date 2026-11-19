@@ -43,8 +43,8 @@ final class B1bContractTest extends TestCase {
 		// UI 批 1 承继形态：v1.5 四维小字（调用/通过/拦截/登录失败尝试）升级为登录段
 		// 概览行（拦下/验证放行/密码输错——人话译词）+ 三张门分账表（说明列带 attempts）。
 		$this->assertStringContainsString( 'account_gate_rows', $src, 'Tab⑥ 登录段须渲染三张门分账（v1.5 四维小字的承继形态）' );
-		$this->assertStringContainsString( '密码输错', $src, '四维之密码输错（attempts）在登录概览行展示' );
-		$this->assertStringContainsString( '验证放行', $src, '四维之验证放行（captcha_pass）在登录概览行展示' );
+		$this->assertStringContainsString( '密码输错', $src, '四维之密码输错（attempts）在登录概览行展示（i18n I-3：生产 translators 注释层锚）' );
+		$this->assertStringContainsString( '验证放行', $src, '四维之验证放行（captcha_pass）在登录概览行展示（注释层锚）' );
 		$this->assertStringContainsString( 'render_stats_login_section', $src, '登录防护段独立成段（DESIGN-UI-tab6 口径二）' );
 	}
 

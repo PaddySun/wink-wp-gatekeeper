@@ -61,7 +61,7 @@ final class CommentGateEvidenceTest extends TestCase {
 				),
 			),
 			'copy'   => array( 'messages' => array(
-				'banned_word' => '这串字符我们眼熟——换句人话再试试？',
+				'banned_word' => 'We have seen this string before — how about plain human words instead?',
 			) ),
 			'stats'  => array( 'enabled' => true, 'pass_sampling' => false ),
 		), $overrides );
@@ -109,15 +109,15 @@ final class CommentGateEvidenceTest extends TestCase {
 	public function test_cloud_reject_evidence_is_humanized_with_driver_meta(): void {
 		$log  = array();
 		$gate = $gate = $this->gate( $log, static function ( string $driver_id ): ?array {
-			return array( 'type' => 'review', 'label' => '腾讯云 TMS 文本审核', 'label_overrides' => array() );
+			return array( 'type' => 'review', 'label' => 'Tencent Cloud TMS Text Moderation', 'label_overrides' => array() );
 		} );
 
 		$result = $gate->orchestrate( self::commentdata(), self::request(), self::server() );
 
 		$this->assertSame( 'reject', $result['decision'] );
 		$this->assertSame(
-			'云端文本审核（腾讯云 TMS 文本审核）：辱骂违规 · 置信 100',
-			$result['evidence']['命中规则']
+			'Cloud text moderation (Tencent Cloud TMS Text Moderation):Abusive · confidence 100',
+			$result['evidence']['Matched rule']
 		);
 	}
 
@@ -128,7 +128,7 @@ final class CommentGateEvidenceTest extends TestCase {
 		$result = $gate->orchestrate( self::commentdata(), self::request(), self::server() );
 
 		$this->assertSame( 'reject', $result['decision'] );
-		$this->assertSame( 'Abuse,100', $result['evidence']['命中规则'] );
+		$this->assertSame( 'Abuse,100', $result['evidence']['Matched rule'] );
 	}
 
 	/**
@@ -137,7 +137,7 @@ final class CommentGateEvidenceTest extends TestCase {
 	public function test_local_rules_reject_evidence_stays_rule_key(): void {
 		$log = array();
 		$gate = $this->gate( $log, static function ( string $driver_id ): ?array {
-			return array( 'type' => 'review', 'label' => '腾讯云 TMS 文本审核', 'label_overrides' => array() );
+			return array( 'type' => 'review', 'label' => 'Tencent Cloud TMS Text Moderation', 'label_overrides' => array() );
 		}, null, array( 'review' => array(
 			'local' => array(
 				'min_length' => 10, 'max_length' => 1800, 'require_chinese' => 0,
@@ -157,7 +157,7 @@ final class CommentGateEvidenceTest extends TestCase {
 		);
 
 		$this->assertSame( 'reject', $result['decision'] );
-		$this->assertSame( 'too_short', $result['evidence']['命中规则'] );
+		$this->assertSame( 'too_short', $result['evidence']['Matched rule'] );
 	}
 
 	/**
@@ -188,7 +188,7 @@ final class CommentGateEvidenceTest extends TestCase {
 			null,
 			null,
 			static function ( string $driver_id ): ?array {
-				return array( 'type' => 'review', 'label' => '腾讯云 TMS 文本审核', 'label_overrides' => array() );
+				return array( 'type' => 'review', 'label' => 'Tencent Cloud TMS Text Moderation', 'label_overrides' => array() );
 			}
 		);
 
@@ -200,6 +200,6 @@ final class CommentGateEvidenceTest extends TestCase {
 
 		$this->assertSame( 'reject', $result['decision'] );
 		$this->assertStringContainsString( 'Abuse,100', $result['message'] );
-		$this->assertStringNotContainsString( '辱骂违规', $result['message'] );
+		$this->assertStringNotContainsString( 'Abusive', $result['message'] );
 	}
 }

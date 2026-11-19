@@ -199,8 +199,8 @@ final class ResponseDispatcher {
 	 * @return string
 	 */
 	private static function rule_of( array $result ): string {
-		return isset( $result['evidence']['命中规则'] ) && is_string( $result['evidence']['命中规则'] )
-			? $result['evidence']['命中规则']
+		return isset( $result['evidence'][__( 'Matched rule', 'wink-wp-gatekeeper' )] ) && is_string( $result['evidence'][__( 'Matched rule', 'wink-wp-gatekeeper' )] )
+			? $result['evidence'][__( 'Matched rule', 'wink-wp-gatekeeper' )]
 			: '';
 	}
 }

@@ -35,33 +35,33 @@ final class CaptchaTabSpecTest extends TestCase {
 
 	public function test_driver_options_lead_with_unconfigured_entry(): void {
 		$options = CaptchaTabSpec::driver_options( array(
-			'tencent' => array( 'label' => '腾讯天御验证码 2.0' ),
+			'tencent' => array( 'label' => 'Tencent Tianyu Captcha 2.0' ),
 		), self::full_tencent() );
 
 		$this->assertSame( '', $options[0]['value'] );
-		$this->assertSame( '未配置（跳过验证码阶段）', $options[0]['label'] );
+		$this->assertSame( 'Not configured (captcha stage skipped)', $options[0]['label'] );
 		$this->assertArrayNotHasKey( 'dot', $options[0], '未配置项无状态点' );
 	}
 
 	public function test_driver_options_suffix_configured_dot_when_fields_complete(): void {
 		$options = CaptchaTabSpec::driver_options(
-			array( 'tencent' => array( 'label' => '腾讯天御验证码 2.0' ) ),
+			array( 'tencent' => array( 'label' => 'Tencent Tianyu Captcha 2.0' ) ),
 			self::full_tencent()
 		);
 		$this->assertSame( 'tencent', $options[1]['value'] );
-		$this->assertSame( '腾讯天御验证码 2.0', $options[1]['label'] );
+		$this->assertSame( 'Tencent Tianyu Captcha 2.0', $options[1]['label'] );
 		$this->assertSame( 'configured', $options[1]['dot'], '四字段齐全 → 已配置点' );
-		$this->assertSame( '已配置', CaptchaTabSpec::dot_labels()['configured'] );
+		$this->assertSame( 'Configured', CaptchaTabSpec::dot_labels()['configured'] );
 	}
 
 	public function test_driver_options_suffix_unconfigured_dot_when_fields_missing(): void {
 		$options = CaptchaTabSpec::driver_options(
-			array( 'tencent' => array( 'label' => '腾讯天御验证码 2.0' ) ),
+			array( 'tencent' => array( 'label' => 'Tencent Tianyu Captcha 2.0' ) ),
 			array( 'app_id' => '', 'secret_id' => '', 'secret_key' => '', 'app_secret_key' => '' )
 		);
 		$this->assertSame( 'unconfigured', $options[1]['dot'] );
-		$this->assertSame( '未配置', CaptchaTabSpec::dot_labels()['unconfigured'] );
-		$this->assertSame( '配置错误', CaptchaTabSpec::dot_labels()['error'], '配置错误态位预留（M3 健康灯状态机）' );
+		$this->assertSame( 'Not configured', CaptchaTabSpec::dot_labels()['unconfigured'] );
+		$this->assertSame( 'Configuration error', CaptchaTabSpec::dot_labels()['error'], '配置错误态位预留（M3 健康灯状态机）' );
 	}
 
 	/* ---------- 配置区可见性 ---------- */
@@ -71,7 +71,7 @@ final class CaptchaTabSpecTest extends TestCase {
 		$this->assertFalse( $state['visible'] );
 		$this->assertNull( $state['vendor'] );
 		$this->assertNotSame( '', $state['hidden_note'], '未配置 = 一行说明（评论闸仅内容过滤生效）' );
-		$this->assertStringContainsString( '未配置', $state['hidden_note'] );
+		$this->assertStringContainsString( 'Not configured', $state['hidden_note'] );
 	}
 
 	public function test_config_area_visible_for_tencent(): void {
@@ -85,7 +85,7 @@ final class CaptchaTabSpecTest extends TestCase {
 	public function test_missing_fields_lists_display_names(): void {
 		$tencent = array( 'app_id' => '', 'secret_id' => 'AKIDx', 'secret_key' => '', 'app_secret_key' => '' );
 		$missing = CaptchaTabSpec::tencent_missing_fields( $tencent );
-		$this->assertSame( array( 'CaptchaAppId', 'SecretKey（CAM）', 'AppSecretKey（验证码控制台）' ), $missing );
+		$this->assertSame( array( 'CaptchaAppId', 'SecretKey（CAM）', 'AppSecretKey (captcha console)' ), $missing );
 	}
 
 	public function test_missing_fields_empty_when_complete(): void {
@@ -97,7 +97,7 @@ final class CaptchaTabSpecTest extends TestCase {
 		$this->assertSame( 'CaptchaAppId', $labels['app_id'] );
 		$this->assertSame( 'SecretId（CAM）', $labels['secret_id'] );
 		$this->assertSame( 'SecretKey（CAM）', $labels['secret_key'] );
-		$this->assertSame( 'AppSecretKey（验证码控制台）', $labels['app_secret_key'] );
+		$this->assertSame( 'AppSecretKey (captcha console)', $labels['app_secret_key'] );
 	}
 
 	/* ---------- 服务端黄条（双层校验第二层：驱动视为未配置 + 列缺失，不阻断保存） ---------- */
@@ -115,10 +115,10 @@ final class CaptchaTabSpecTest extends TestCase {
 			'app_id' => '', 'secret_id' => '', 'secret_key' => '', 'app_secret_key' => '',
 		) );
 		$this->assertIsString( $notice );
-		$this->assertStringContainsString( '腾讯天御验证码 2.0', $notice );
+		$this->assertStringContainsString( 'Tencent Tianyu Captcha 2.0', $notice );
 		$this->assertStringContainsString( 'CaptchaAppId', $notice );
 		$this->assertStringContainsString( 'SecretId（CAM）', $notice );
-		$this->assertStringContainsString( '视为未配置', $notice, '驱动回落未配置语义（设置仍保存，不阻断其它 Tab）' );
+		$this->assertStringContainsString( 'counts as not configured', $notice, '驱动回落未配置语义（设置仍保存，不阻断其它 Tab）' );
 	}
 
 	/* ---------- 切换保留（schema 子树天然支持——选项值域校验） ---------- */
@@ -141,7 +141,7 @@ final class CaptchaTabSpecTest extends TestCase {
 		$this->assertStringContainsString( 'CaptchaAppId', $joined );
 		$this->assertStringContainsString( 'AppSecretKey', $joined );
 		$this->assertStringContainsString( 'CAM', $joined );
-		$this->assertStringContainsString( '5 分钟', $guide['ticket_note'], '票据有效期 5 分钟（onExpire 回退依据）' );
-		$this->assertStringContainsString( '测试凭据', $joined );
+		$this->assertStringContainsString( '5 minutes', $guide['ticket_note'], '票据有效期 5 分钟（onExpire 回退依据）' );
+		$this->assertStringContainsString( 'Test credentials', $joined );
 	}
 }

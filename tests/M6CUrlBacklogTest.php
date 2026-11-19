@@ -337,7 +337,7 @@ namespace WinkGatekeeper\Tests {
 
 			self::assertSame( 'completed', $view['state'], '完成：全部收口（含 gone）' );
 			self::assertSame( 180, $view['finished_at'], '完成时间=meta 反查 max(judged_at)' );
-			self::assertSame( 1, $view['caliber']['pass'], '没问题（pass）' );
+			self::assertSame( 1, $view['caliber']['pass'], 'Clean (pass)' );
 			self::assertSame( 2, $view['caliber']['pending'], '待审核（review+inconclusive——未核实不下结论）' );
 			self::assertSame( 1, $view['caliber']['spam'], '垃圾箱（reject）' );
 			self::assertSame( 1, $view['gone'], 'gone=评论本体已删（收口不计残留）' );

@@ -80,12 +80,12 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 	/**
 	 * 传输终态拦截文案（02 §5 降级矩阵 captcha 行——与天御同一文案口径）。
 	 */
-	private const MSG_TRANSPORT = '验证服务暂时打不开，请稍后再试；也可以刷新页面重试。';
+	private const MSG_TRANSPORT = 'The verification service is temporarily unavailable — please try again later, or refresh the page and retry.'; // i18n 批 I-3：值同步 en（消费位字面量 __()，zh 走 po）。
 
 	/**
 	 * 配置错误/契约不符文案（SemanticError 停转 + ContractError 哨兵共用展示层文案）。
 	 */
-	private const MSG_CONFIG = '验证码服务配置有误（请联系站长处理）。';
+	private const MSG_CONFIG = 'The captcha service is misconfigured (please contact the site owner).'; // i18n 批 I-3 同上。
 
 	/**
 	 * @var array{access_key_id: string, access_key_secret: string, scene_id: string, prefix: string, mode: string, region: string, submit_flow: string}
@@ -166,7 +166,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			'id'           => self::DRIVER_ID,
 			'type'         => 'captcha',
 			'class'        => self::class,
-			'label'        => '阿里云验证码 2.0',
+			'label'        => __( 'Aliyun Captcha 2.0', 'wink-wp-gatekeeper' ),
 			'reachability' => 'cn-excellent', // L0 实测 781ms（05 §1.2 可达性行）。
 			'billing'      => 'usage',
 			'frontend'     => array(
@@ -183,7 +183,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 				'access_key_id'     => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'AccessKeyId', 'required' => true ),
 				'access_key_secret' => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'AccessKeySecret', 'required' => true ),
 				'scene_id'          => array( 'type' => 'text', 'sanitize' => 'text', 'label' => 'SceneId', 'required' => true ),
-				'prefix'            => array( 'type' => 'text', 'sanitize' => 'text', 'label' => 'prefix（身份标）', 'required' => true ),
+				'prefix'            => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'prefix (identity tag)', 'wink-wp-gatekeeper' ), 'required' => true ),
 			),
 			'privacy'      => DriverPrivacy::entry( self::DRIVER_ID ), // 第七维（访客 IP+CaptchaVerifyParam / 境内）。
 			'doc_url'      => 'https://help.aliyun.com/zh/captcha/user-guide/verify-intelligent-captcha',
@@ -213,7 +213,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 
 	/** 驱动显示名（设置页下拉项/配置区标题——运行时权威）。 */
 	public function label(): string {
-		return '阿里云验证码 2.0';
+		return __( 'Aliyun Captcha 2.0', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -400,9 +400,9 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 			. '<span class="wk-gate-inline">'
 			. '<button type="button" class="wk-captcha-btn wk-verify-btn button" data-wk-state="unverified"'
 			. ( $submit_gate ? ' hidden' : '' )
-			. ' aria-live="polite">完成人机验证</button>'
+			. ' aria-live="polite">' . __( 'Complete human verification', 'wink-wp-gatekeeper' ) . '</button>'
 			. '</span>'
-			. '<noscript>需要启用 JavaScript 完成人机验证。</noscript>'
+			. '<noscript>' . __( 'JavaScript is required to complete human verification.', 'wink-wp-gatekeeper' ) . '</noscript>'
 			. '</span>';
 
 		if ( 'embed' === $this->credentials['mode'] ) {
@@ -478,7 +478,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 		if ( in_array( $code, $policy['config_error'], true ) ) {
 			return array(
 				'pass'      => false,
-				'hint'      => '站点验证码配置有误（请联系站长）。',
+				'hint'      => __( 'The site captcha is misconfigured (please contact the site owner).', 'wink-wp-gatekeeper' ),
 				'hint_kind' => 'config',
 				'rule'      => $rule,
 			);
@@ -487,7 +487,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 		if ( in_array( $code, $policy['blocked'], true ) ) {
 			return array(
 				'pass'      => false,
-				'hint'      => '人机验证未通过（本次提交已被拦截）。',
+				'hint'      => __( 'Human verification did not pass (this submission was blocked).', 'wink-wp-gatekeeper' ),
 				'hint_kind' => 'blocked',
 				'rule'      => $rule,
 			);
@@ -497,7 +497,7 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 		// 文案按刷新重试（fail-closed：未知码不当通过）。
 		return array(
 			'pass'      => false,
-			'hint'      => '刷新页面再试一次。',
+			'hint'      => __( 'Refresh the page and try again.', 'wink-wp-gatekeeper' ),
 			'hint_kind' => 'refresh',
 			'rule'      => $rule,
 		);
@@ -536,12 +536,12 @@ final class AliyunCaptchaDriver implements CaptchaDriverInterface {
 				'status'   => $result->status(),
 				'rule'     => 'remote_' . $result->category(),
 			);
-			$message = self::MSG_TRANSPORT;
+						$message = __( 'The verification service is temporarily unavailable — please try again later, or refresh the page and retry.', 'wink-wp-gatekeeper' ); // i18n 批 I-3：MSG_TRANSPORT 字面量拍平（常量保留供契约引用）。
 			if ( RemoteResult::CONTRACT === $result->category() ) {
 				$this->last_meta['rule'] = 'contract_mismatch'; // R6/R9 厂商改版哨兵。
-				$message                 = self::MSG_CONFIG;
+				$message                 = __( 'The captcha service is misconfigured (please contact the site owner).', 'wink-wp-gatekeeper' );
 			} elseif ( RemoteResult::TRANSPORT !== $result->category() ) {
-				$message = self::MSG_CONFIG;
+				$message = __( 'The captcha service is misconfigured (please contact the site owner).', 'wink-wp-gatekeeper' );
 			}
 			$raw = RemoteResult::raw_snapshot_from_settings( $result, $this->stats_settings );
 			if ( null !== $raw ) {

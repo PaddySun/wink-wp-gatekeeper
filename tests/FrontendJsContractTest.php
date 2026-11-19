@@ -66,12 +66,12 @@ final class FrontendJsContractTest extends TestCase {
 	public function test_trust_pass_branch_uses_trust_hint_copy(): void {
 		$body = self::functionBody( self::js(), 'onTrustPass' );
 		self::assertStringContainsString(
-			"l10n( 'wk_trust_hint', '老朋友，免验放行' )",
+			"l10n( 'wk_trust_hint', 'Old friend, no verification needed' )",
 			$body,
 			'trust_pass 分支按钮文案必须用免验轻提示（区别于 done=已通过验证）'
 		);
 		self::assertStringNotContainsString(
-			"l10n( 'done', '已通过验证' )",
+			"l10n( 'done', 'Verification passed' )",
 			$body,
 			'trust_pass 不再复用真验通过文案——免验发生了要前台可感知'
 		);

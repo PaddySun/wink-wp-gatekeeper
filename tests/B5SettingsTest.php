@@ -81,8 +81,8 @@ final class B5SettingsTest extends TestCase {
 		$entry = DriverPrivacy::entry( 'aliyun_green' );
 		$this->assertNotNull( $entry );
 		$this->assertFalse( $entry['cross_border'], '境内 green-cip.cn-shanghai 不出境' );
-		$this->assertSame( '昵称、邮箱、评论正文（分通道送审）', $entry['data_fields'], '05 §2.5 分通道送审口径' );
-		$this->assertSame( '境内节点 green-cip.cn-shanghai，数据不出境', $entry['region_note'] );
+		$this->assertSame( 'Nickname, email, comment body (per-channel submission)', $entry['data_fields'], '05 §2.5 分通道送审口径' );
+		$this->assertSame( 'Domestic node green-cip.cn-shanghai; data stays in China', $entry['region_note'] );
 	}
 
 	/* ---------- F4-3：阿里标签映射核对补缺（05 §2.5 摘录族） ---------- */
@@ -90,21 +90,21 @@ final class B5SettingsTest extends TestCase {
 	public function test_cloud_labels_cover_aliyun_green_excerpt_family(): void {
 		$labels = Copywork::cloud_labels();
 		// L0 实测命中的 pt_* 三标签（昵称分送真机证据锚）。
-		$this->assertSame( '疑似站外引流', $labels['wk-label-pt_to_sites'] );
-		$this->assertSame( '疑似引流广告号', $labels['wk-label-pt_to_contact'] );
-		$this->assertSame( '疑似网赚兼职广告', $labels['wk-label-pt_by_recruitment'] );
+		$this->assertSame( 'Suspected off-site traffic diversion', $labels['wk-label-pt_to_sites'] );
+		$this->assertSame( 'Suspected ad-spam account', $labels['wk-label-pt_to_contact'] );
+		$this->assertSame( 'Suspected money-making job ad', $labels['wk-label-pt_by_recruitment'] );
 		// 05 §2.5 摘录族核对补缺（B5 前缺）。
-		$this->assertSame( '疑似不良价值观', $labels['wk-label-inappropriate_ethics'] );
-		$this->assertSame( '疑似封建迷信', $labels['wk-label-inappropriate_superstition'] );
-		$this->assertSame( '疑似性健康', $labels['wk-label-sexual_terms'] );
-		$this->assertSame( '疑似政治人物', $labels['wk-label-political_figure'] );
-		$this->assertSame( '疑似极端组织', $labels['wk-label-violent_extremist'] );
-		$this->assertSame( '疑似武器弹药', $labels['wk-label-violent_weapons'] );
-		$this->assertSame( '疑似毒品', $labels['wk-label-contraband_drug'] );
-		$this->assertSame( '疑似赌博', $labels['wk-label-contraband_gambling'] );
-		$this->assertSame( '涉佛教', $labels['wk-label-religion_b'] );
-		$this->assertSame( '涉伊斯兰', $labels['wk-label-religion_i'] );
-		$this->assertSame( '非 AI 生成', $labels['wk-label-ugc'] );
+		$this->assertSame( 'Suspected harmful values', $labels['wk-label-inappropriate_ethics'] );
+		$this->assertSame( 'Suspected superstition', $labels['wk-label-inappropriate_superstition'] );
+		$this->assertSame( 'Suspected sexual-health content', $labels['wk-label-sexual_terms'] );
+		$this->assertSame( 'Suspected political figure', $labels['wk-label-political_figure'] );
+		$this->assertSame( 'Suspected extremist group', $labels['wk-label-violent_extremist'] );
+		$this->assertSame( 'Suspected weapons', $labels['wk-label-violent_weapons'] );
+		$this->assertSame( 'Suspected drugs', $labels['wk-label-contraband_drug'] );
+		$this->assertSame( 'Suspected gambling', $labels['wk-label-contraband_gambling'] );
+		$this->assertSame( 'Buddhism-related', $labels['wk-label-religion_b'] );
+		$this->assertSame( 'Islam-related', $labels['wk-label-religion_i'] );
+		$this->assertSame( 'Not AI-generated', $labels['wk-label-ugc'] );
 	}
 
 	public function test_cloud_labels_all_use_wk_label_prefix(): void {
@@ -147,7 +147,7 @@ final class B5SettingsTest extends TestCase {
 			array( 'aliyun_green' => array( 'access_key_id' => 'id', 'access_key_secret' => 's', 'service_nickname' => 'n', 'service_comment' => 'c' ) )
 		);
 		$this->assertNotNull( $summary );
-		$this->assertStringContainsString( '数据不出境', $summary );
+		$this->assertStringContainsString( 'data stays in China', $summary );
 	}
 
 	/* ---------- SettingsPage AJAX 端点存在性 ---------- */

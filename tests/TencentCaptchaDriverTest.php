@@ -199,13 +199,13 @@ final class TencentCaptchaDriverTest extends TestCase {
 	public function test_codes_8_9_hint_guides_back_and_resubmit(): void {
 		foreach ( array( 8, 9 ) as $code ) {
 			$hint = TencentCaptchaDriver::verdict_for( $code, 'tok' )['hint'];
-			$this->assertStringContainsString( '验证已生效过一次', $hint, "code {$code} A-lite 返回重提引导" );
-			$this->assertStringContainsString( '无需刷新', $hint );
-			$this->assertStringContainsString( '10 分钟', $hint );
-			$this->assertStringContainsString( '重新点击验证按钮', $hint, "code {$code} 超窗分支引导" );
+			$this->assertStringContainsString( 'Verification already took effect once', $hint, "code {$code} A-lite 返回重提引导" );
+			$this->assertStringContainsString( 'no refresh', $hint );
+			$this->assertStringContainsString( '10 minutes', $hint );
+			$this->assertStringContainsString( 'click the verification button again', $hint, "code {$code} 超窗分支引导" );
 		}
 		// 其他重试码（7/15）保持刷新重试口径不变。
-		$this->assertStringContainsString( '刷新页面再试一次', TencentCaptchaDriver::verdict_for( 7, 'tok' )['hint'] );
+		$this->assertStringContainsString( 'Refresh the page and try again', TencentCaptchaDriver::verdict_for( 7, 'tok' )['hint'] );
 	}
 
 	/* ---------- verify()：缺票 ---------- */
@@ -259,14 +259,14 @@ final class TencentCaptchaDriverTest extends TestCase {
 		$driver = self::driver( null, self::client_returning( array( 'response' => array( 'code' => 503 ), 'body' => '' ) ) );
 		$message = $driver->verify( array( 'ticket' => 'tok', 'randstr' => 'r', 'user_ip' => '1.2.3.4' ) );
 		$this->assertIsString( $message );
-		$this->assertStringContainsString( '稍后再试', $message );
+		$this->assertStringContainsString( 'try again later', $message );
 	}
 
 	public function test_verify_semantic_error_intercepts_with_config_copy(): void {
 		$driver = self::driver( null, self::client_returning( array( 'response' => array( 'code' => 401 ), 'body' => '' ) ) );
 		$message = $driver->verify( array( 'ticket' => 'tok', 'randstr' => 'r', 'user_ip' => '1.2.3.4' ) );
 		$this->assertIsString( $message );
-		$this->assertStringContainsString( '配置', $message );
+		$this->assertStringContainsString( 'misconfigured', $message );
 	}
 
 	public function test_verify_contract_error_intercepts_and_records_mismatch(): void {
@@ -318,7 +318,7 @@ final class TencentCaptchaDriverTest extends TestCase {
 		) ) );
 		$message = $driver->verify( array( 'ticket' => 'tok', 'randstr' => 'r', 'user_ip' => '1.2.3.4' ) );
 		$this->assertIsString( $message );
-		$this->assertStringContainsString( '刷新', $message );
+		$this->assertStringContainsString( 'refresh', $message );
 		$this->assertSame( 'CaptchaCode=8', $driver->last_verify_meta()['rule'] );
 	}
 

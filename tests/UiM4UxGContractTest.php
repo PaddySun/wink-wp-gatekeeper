@@ -179,7 +179,7 @@ final class UiM4UxGContractTest extends TestCase {
 
 	public function test_g3_die_preview_sample_constants_no_hardcode(): void {
 		$this->assertSame( 'WK-00000000', Copywork::PREVIEW_EVENT_NO, '预览样例事件编号常量（示例值入常量防硬编码）' );
-		$this->assertSame( '示例规则', Copywork::PREVIEW_RULE_SAMPLE, '预览样例规则名常量' );
+		$this->assertSame( 'Sample rule', Copywork::PREVIEW_RULE_SAMPLE, '预览样例规则名常量' );
 	}
 
 	/**
@@ -200,9 +200,9 @@ final class UiM4UxGContractTest extends TestCase {
 		$this->assertStringContainsString( Copywork::PREVIEW_RULE_SAMPLE, $payload['message'], '{rule}=样例规则名填充' );
 		$this->assertStringContainsString( '2026-11-14 12:00:00', $payload['message'], '{time}=当前时间填充' );
 		$this->assertStringContainsString( 'webmaster@example.com', $payload['message'], '{contact_email}=联系邮箱填充' );
-		$this->assertSame( Copywork::PREVIEW_EVENT_NO, $payload['evidence']['事件编号'], '证据行 样例事件编号' );
-		$this->assertSame( Copywork::PREVIEW_RULE_SAMPLE, $payload['evidence']['命中规则'], '证据行 样例规则名' );
-		$this->assertSame( '2026-11-14 12:00:00', $payload['evidence']['时间'], '证据行 当前时间' );
+		$this->assertSame( Copywork::PREVIEW_EVENT_NO, $payload['evidence']['Event No.'], '证据行 样例事件编号' );
+		$this->assertSame( Copywork::PREVIEW_RULE_SAMPLE, $payload['evidence']['Matched rule'], '证据行 样例规则名' );
+		$this->assertSame( '2026-11-14 12:00:00', $payload['evidence']['Time'], '证据行 当前时间' );
 	}
 
 	/**

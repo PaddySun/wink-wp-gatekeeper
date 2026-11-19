@@ -123,7 +123,7 @@ final class B2GateTriTest extends TestCase {
 			) ),
 			'copy'    => array( 'messages' => array(
 				'captcha_missing' => '还差一个眨眼——完成上方的验证再点提交。',
-				'captcha_failed'  => '人机验证没有通过——{rule}。请刷新页面再试。',
+				'captcha_failed'  => 'Human verification did not pass — {rule}. Please refresh and try again.',
 			) ),
 			'stats'   => array( 'enabled' => true, 'pass_sampling' => false ),
 		), $overrides );
@@ -175,7 +175,7 @@ final class B2GateTriTest extends TestCase {
 		$captcha = $this->tri_captcha( array(
 			'state'   => 'error',
 			'score'   => null,
-			'message' => '验证服务暂时打不开，请稍后再试。',
+			'message' => 'The verification service is temporarily unavailable — please try again later.',
 			'meta'    => array( 'category' => 'transport', 'rule' => 'remote_transport', 'raw' => array( 'http' => 0 ) ),
 		) );
 		$gate = $this->comment_gate( $captcha, $log );
@@ -187,7 +187,7 @@ final class B2GateTriTest extends TestCase {
 		$this->assertSame( Verdict::ERROR, $log[0]['verdict'], '行为变化点 1：故障事件 verdict 由 reject 改 error' );
 		$this->assertSame( 'remote_transport', $log[0]['rule'] );
 		$this->assertSame( 'fake-captcha', $log[0]['driver'] );
-		$this->assertStringContainsString( '稍后再试', $result['message'] );
+		$this->assertStringContainsString( 'try again later', $result['message'] );
 		$this->assertSame( 1, $captcha->calls );
 	}
 
@@ -230,7 +230,7 @@ final class B2GateTriTest extends TestCase {
 		$this->assertSame( 'captcha_failed', $log[0]['rule'] );
 		$this->assertSame( 0.2, $log[0]['meta']['score'], 'reject meta 记 score' );
 		$this->assertSame( 0.5, $log[0]['meta']['threshold'], 'reject meta 记 threshold' );
-		$this->assertStringContainsString( '人机验证没有通过', $result['message'], 'user_retry 档回落闸 captcha_failed 文案链' );
+		$this->assertStringContainsString( 'Human verification did not pass', $result['message'], 'user_retry 档回落闸 captcha_failed 文案链' );
 	}
 
 	/* ---------- CommentGate：pass 写缓存 / 降级放行不写缓存 ---------- */

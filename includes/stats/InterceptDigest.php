@@ -233,7 +233,7 @@ final class InterceptDigest {
 	/**
 	 * 导出列头闭集（五列——fputcsv 表头行直喂；与登录流水表列面同词汇族）。
 	 */
-	public const EXPORT_CSV_COLUMNS = array( '时间', '结果', '哪张门', '原因', '事件编号' );
+	public const EXPORT_CSV_COLUMNS = array( 'Time', 'Result', 'Gate', 'Reason', 'Event No.' ); // i18n 批 I-3：列头值同步 en（消费位 SettingsPage fputcsv 前 array_map __() 翻译，zh msgstr=原中文）。
 
 	/**
 	 * 导出文件名（纯函数件——wink-intercepts-YYYY-MM-DD.csv；日期=current_time 当日）。
@@ -394,27 +394,27 @@ final class InterceptDigest {
 	 */
 	public static function handling_word( string $gate, string $stage, string $verdict, string $rule_hit ): string {
 		if ( 'driver_resumed' === $rule_hit ) {
-			return '服务商恢复正常';
+			return __( 'Provider recovered', 'wink-wp-gatekeeper' );
 		}
 		if ( 0 === strpos( $rule_hit, 'driver_halted:' ) ) {
-			return '今日暂停，防线跳过它继续';
+			return __( 'Paused for today; the defense line skips it and carries on', 'wink-wp-gatekeeper' );
 		}
 		if ( '' !== $rule_hit && false !== strpos( $rule_hit, 'degraded' ) ) {
-			return '故障降级放行（真访客不受影响）';
+			return __( 'Failure-fallback pass (real visitors unaffected)', 'wink-wp-gatekeeper' );
 		}
 		if ( 'error' === $verdict ) {
 			if ( 'comment' === $gate && 'review' === $stage ) {
-				return '先收进待审区，等你复核';
+				return __( 'Parked in pending review for you to check', 'wink-wp-gatekeeper' );
 			}
 			if ( in_array( $gate, self::ACCOUNT_GATES, true ) ) {
-				return '拦下该次尝试（故障兜底）';
+				return __( 'Blocked the attempt (failure fallback)', 'wink-wp-gatekeeper' );
 			}
-			return '已按兜底策略处理';
+			return __( 'Handled by the fallback policy', 'wink-wp-gatekeeper' );
 		}
 		if ( 'reject' === $verdict ) {
-			return '当场拦下（故障兜底）';
+			return __( 'Blocked on the spot (failure fallback)', 'wink-wp-gatekeeper' );
 		}
-		return '已按兜底策略处理';
+		return __( 'Handled by the fallback policy', 'wink-wp-gatekeeper' );
 	}
 
 	/**
@@ -430,7 +430,7 @@ final class InterceptDigest {
 			if ( ! is_array( $row ) ) {
 				continue;
 			}
-			$key = isset( $row['rule_hit'] ) && is_string( $row['rule_hit'] ) && '' !== $row['rule_hit'] ? $row['rule_hit'] : '(无类别)';
+			$key = isset( $row['rule_hit'] ) && is_string( $row['rule_hit'] ) && '' !== $row['rule_hit'] ? $row['rule_hit'] : __( '(no category)', 'wink-wp-gatekeeper' );
 			// 累加（同键多行归并——防御性；SQL GROUP BY 下不出现，行侧口径不依赖该前提）。
 			$dist[ $key ] = ( $dist[ $key ] ?? 0 ) + ( isset( $row['n'] ) && is_numeric( $row['n'] ) ? (int) $row['n'] : 0 );
 		}
@@ -535,7 +535,7 @@ final class InterceptDigest {
 			'enabled'          => $enabled,
 			'badge'            => '●',
 			'dot_class'        => 'wk-dot--ok', // 【v1.5·FIX】彩色状态点（绿=启用；用户三色体系：绿/蓝/灰）。
-			'health'           => '正常',
+			'health'           => __( 'Normal', 'wink-wp-gatekeeper' ),
 			'health_note'      => '',
 			'lines'            => array(),
 			'total_lines'      => array(),
@@ -548,9 +548,9 @@ final class InterceptDigest {
 		if ( ! $enabled ) {
 			$card['badge']            = '○';
 			$card['dot_class']        = 'wk-dot--standby'; // 蓝=已配置未启用。
-			$card['health']           = '未启用';
-			$card['health_note']      = '未启用——配置后这里会出现它的数字';
-			$card['placeholder_note'] = '未启用——配置后这里会出现它的数字';
+			$card['health']           = __( 'Not enabled', 'wink-wp-gatekeeper' );
+			$card['health_note']      = __( 'Not enabled — its numbers will appear here once configured', 'wink-wp-gatekeeper' );
+			$card['placeholder_note'] = __( 'Not enabled — its numbers will appear here once configured', 'wink-wp-gatekeeper' );
 			return $card;
 		}
 
@@ -558,29 +558,29 @@ final class InterceptDigest {
 		if ( 'config_error' === $halt ) {
 			$card['badge']       = '✕';
 			$card['dot_class']   = 'wk-dot--alert'; // 红=配置问题。
-			$card['health']      = '配置问题';
-			$card['health_note'] = '配置有问题——服务商拒绝了请求（查配置或欠费），当日暂停；修正凭据后点「测试凭据」解除';
+			$card['health']      = __( 'Configuration issue', 'wink-wp-gatekeeper' );
+			$card['health_note'] = __( 'Configuration problem — the provider refused the request (check configuration or billing), paused for the day; fix the credentials and click “Test credentials” to clear it', 'wink-wp-gatekeeper' );
 		} elseif ( null !== $halt ) {
 			$card['badge']       = '◐';
 			$card['dot_class']   = 'wk-dot--warn'; // 黄=今日暂停。
-			$card['health']      = '今日暂停';
-			$card['health_note'] = '今日暂停——' . Labels::halt_word( $halt ) . '，次日自动恢复';
+			$card['health']      = __( 'Paused today', 'wink-wp-gatekeeper' );
+			$card['health_note'] = __( 'Paused today — ', 'wink-wp-gatekeeper' ) . Labels::halt_word( $halt ) . __( ', resumes automatically tomorrow', 'wink-wp-gatekeeper' );
 		}
 
 		// 今日行（零值纪律：全零单行；正数箭头行自守恒——放行+拦下+转人工+出错）。
 		$zero = 0 === $used && 0 === $rejected && ( ! $has_review || 0 === $review ) && ( ! $has_errors || 0 === $errors );
 		if ( $zero ) {
-			$card['lines'] = array( Labels::zero_call_word() . '（0 次）' );
+			$card['lines'] = array( Labels::zero_call_word() . __( '(0 calls)', 'wink-wp-gatekeeper' ) );
 		} else {
 			$passed = null !== $passed_in ? $passed_in : max( 0, $used - $rejected - $review - $errors );
-			$parts  = array( '放行 ' . $passed, '拦下 ' . $rejected );
+			$parts  = array( sprintf( /* translators: %d: 放行数 */ _n( 'Passed %d', 'Passed %d', $passed, 'wink-wp-gatekeeper' ), $passed ), __( 'Blocked ', 'wink-wp-gatekeeper' ) . $rejected );
 			if ( $has_review ) {
-				$parts[] = '转人工 ' . $review;
+								$parts[] = __( 'Manual review ', 'wink-wp-gatekeeper' ) . $review;
 			}
 			if ( $has_errors ) {
-				$parts[] = '出错 ' . $errors;
+								$parts[] = __( 'Error ', 'wink-wp-gatekeeper' ) . $errors;
 			}
-			$card['lines'] = array( sprintf( '今日%s %d 次 → ', $card['action'], $used ) . implode( ' · ', $parts ) );
+			$card['lines'] = array( sprintf( /* translators: 1: 动作词 2: 调用次数 */ _n( 'Today %1$s %2$d time → ', 'Today %1$s %2$d times → ', $used, 'wink-wp-gatekeeper' ), $card['action'], $used ) . implode( ' · ', $parts ) );
 		}
 
 		// 累计行（可选——累计动作数 Usage 不留存，放行格仅在可直读时出现）。
@@ -591,7 +591,7 @@ final class InterceptDigest {
 
 		// 额度行（0=不限配额——无行）。
 		if ( $quota > 0 ) {
-			$card['quota_line'] = sprintf( '今日额度 %d / %d 次', $used, $quota );
+			$card['quota_line'] = sprintf( /* translators: 1: 已用次数 2: 额度 */ _n( 'Daily quota %1$d / %2$d time', 'Daily quota %1$d / %2$d times', $quota, 'wink-wp-gatekeeper' ), $used, $quota );
 		}
 
 		return $card;
@@ -614,18 +614,18 @@ final class InterceptDigest {
 
 		$parts = array();
 		if ( null !== $passed_in ) {
-			$parts[] = '放行 ' . $passed_in;
+			$parts[] = sprintf( /* translators: %d: 放行数 */ _n( 'Passed %d', 'Passed %d', $passed_in, 'wink-wp-gatekeeper' ), $passed_in );
 		} elseif ( null !== $used_in ) {
-			$parts[] = '放行 ' . max( 0, $used_in - $rejected - $review - $errors );
+			$parts[] = sprintf( /* translators: %d: 放行数 */ _n( 'Passed %d', 'Passed %d', max( 0, $used_in - $rejected - $review - $errors ), 'wink-wp-gatekeeper' ), max( 0, $used_in - $rejected - $review - $errors ) );
 		}
-		$parts[] = '拦下 ' . $rejected;
+		$parts[] = __( 'Blocked ', 'wink-wp-gatekeeper' ) . $rejected;
 		if ( $has_review ) {
-			$parts[] = '转人工 ' . $review;
+							$parts[] = __( 'Manual review ', 'wink-wp-gatekeeper' ) . $review;
 		}
 		if ( $has_errors ) {
-			$parts[] = '出错 ' . $errors;
+							$parts[] = __( 'Error ', 'wink-wp-gatekeeper' ) . $errors;
 		}
-		return '累计：' . implode( ' · ', $parts );
+		return __( 'Cumulative: ', 'wink-wp-gatekeeper' ) . implode( ' · ', $parts );
 	}
 
 	/* -------------------------------------------------------------------
@@ -643,8 +643,8 @@ final class InterceptDigest {
 		$total = self::driver_counts( $cache, 'local_rules', true );
 
 		return array(
-			'label'      => '本地规则',
-			'line'       => self::triple_line( '今日拦下', $today ),
+			'label'      => __( 'Local rules', 'wink-wp-gatekeeper' ),
+			'line'       => self::triple_line( __( 'Blocked today', 'wink-wp-gatekeeper' ), $today ),
 			'total_line' => self::triple_line( Labels::cumulative_word(), $total ),
 		);
 	}
@@ -740,11 +740,12 @@ final class InterceptDigest {
 	 */
 	public static function gate_note( string $gate, array $today_counts, int $window_minutes = 15 ): string {
 		if ( 'login' !== $gate ) {
-			return 'register' === $gate ? '注册时一律要过人机验证' : '找回密码时一律要过人机验证';
+			return 'register' === $gate ? __( 'Human verification is always required at registration', 'wink-wp-gatekeeper' ) : __( 'Human verification is always required for password recovery', 'wink-wp-gatekeeper' );
 		}
 		$attempts = (int) ( $today_counts['attempts'] ?? 0 );
 		return sprintf(
-			'%s %d 次（%d 分钟窗口内同账号），触发过验证码',
+			/* translators: 1: 动作词 2: 尝试次数 3: 窗口分钟数 */
+			_n( '%1$s %2$d time (same account within a %3$d-minute window) triggered a captcha', '%1$s %2$d times (same account within a %3$d-minute window) triggered a captcha', $attempts, 'wink-wp-gatekeeper' ),
 			Labels::attempts_word(),
 			$attempts,
 			max( 1, $window_minutes )
@@ -796,7 +797,8 @@ final class InterceptDigest {
 		$attempts  = isset( $counts['attempts'] ) && is_numeric( $counts['attempts'] ) ? (int) $counts['attempts'] : 0;
 
 		return sprintf(
-			'%s %d 次 · %s %d 人 · %s %d 次 · %s %d 次',
+			/* translators: 1: 动作词 2: 次数 3: 动作词 4: 人数 5: 动作词 6: 次数 7: 动作词 8: 次数 */
+			_n( '%1$s %2$d time · %3$s %4$d person · %5$s %6$d time · %7$s %8$d time', '%1$s %2$d times · %3$s %4$d people · %5$s %6$d times · %7$s %8$d times', $pass + $reject_c + $error, 'wink-wp-gatekeeper' ),
 			Labels::action_word( 'captcha' ),
 			$pass + $reject_c + $error,
 			Labels::pass_word(),

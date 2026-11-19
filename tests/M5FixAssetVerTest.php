@@ -26,7 +26,7 @@
 	 *
 	 * 【W3-FIX 后缀翻转注记】本批 admin-brand.js 内容变化（测试凭据徽标全量回写共享件
 	 * wkProbeWriteBadges + 九个 probe log 闭集驱动探活接线——W3F2 手测缺陷①）→ 后缀
-	 * -w3c1 → **-w3fix1**（断言翻转非语义变化——纪律本体不变；0.8.6 进位随本批一次击穿）。
+	 * -w3c1 → **-i3a1**（断言翻转非语义变化——纪律本体不变；0.8.6 进位随本批一次击穿）。
 	 *
 	 * @package WinkGatekeeper\Tests
 	 */
@@ -43,13 +43,13 @@
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 
-		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-w3fix1'
+		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-i3a1'
 		// （窗幅 1600 字节——M5FIX/M6B/W3A/W3B/W3C/W3FIX 击穿语义注记累加后注册行注释段加长）。
-		// 【W3-FIX 后缀翻转】-w3c1→-w3fix1（非语义变化——徽标全量回写件注记，M5Fix 纪律批内递进）。
+		// 【W3-FIX 后缀翻转】-w3c1→-i3a1（非语义变化——徽标全量回写件注记，M5Fix 纪律批内递进）。
 		self::assertMatchesRegularExpression(
-			"/wink-gatekeeper-admin-brand[\s\S]{0,1600}WINK_GATEKEEPER_VERSION \. '-w3fix1'/",
+			"/wink-gatekeeper-admin-brand[\s\S]{0,1600}WINK_GATEKEEPER_VERSION \. '-i3a1'/",
 			$src,
-			'admin-brand.js 注册行版本参数必须带 -w3fix1 击穿后缀（【W3-FIX 后缀翻转】-w3c1→-w3fix1）'
+			'admin-brand.js 注册行版本参数必须带 -i3a1 击穿后缀（【W3-FIX 后缀翻转】-w3c1→-i3a1）'
 		);
 		// 【M5FIX】CDN 击穿语义注记在场（纪律传承——下次改 JS 必须再动版本参数）。
 		self::assertStringContainsString( 'M5FIX', $src, 'CDN 击穿语义注记' );
@@ -63,8 +63,8 @@
 		self::assertIsString( $src );
 		self::assertSame(
 			1,
-			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-w3fix1'/", $src ),
-			'-w3fix1 全文恰出现一次（仅 admin-brand 注册行）'
+			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-i3a1'/", $src ),
+			'-i3a1 全文恰出现一次（仅 admin-brand 注册行）'
 		);
 	}
 

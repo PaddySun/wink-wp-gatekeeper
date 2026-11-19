@@ -180,9 +180,9 @@ final class W2NoButtonModeTest extends TestCase {
 			. '<input type="hidden" name="wk_captcha_verify_param" value="">'
 			. '<span class="wk-gate-inline">'
 			. '<button type="button" class="wk-captcha-btn wk-verify-btn button" data-wk-state="unverified"'
-			. ' aria-live="polite">完成人机验证</button>'
+			. ' aria-live="polite">Complete human verification</button>'
 			. '</span>'
-			. '<noscript>需要启用 JavaScript 完成人机验证。</noscript>'
+			. '<noscript>JavaScript is required to complete human verification.</noscript>'
 			. '</span>'
 			. '<div class="wk-gate-embed" hidden><div id="wk-captcha-element-comment"></div></div>';
 		$this->assertSame( $expected, self::aliyun( 'button' )->render( array( 'gate' => 'comment', 'stub' => 'STUBSIG' ) ), 'button 形态产物与 0.8.3 同构 + region 属性新增（N2——经典回归锚其余字节不变）' );

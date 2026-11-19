@@ -27,13 +27,13 @@ final class VerdictTest extends TestCase {
 	}
 
 	public function test_reject_factory_sets_state(): void {
-		$v = Verdict::reject( 'local_rules', '关键词命中', array( '广告', '灌水' ) );
+		$v = Verdict::reject( 'local_rules', '关键词命中', array( 'Advertising', '灌水' ) );
 		$this->assertSame( 'reject', $v->verdict() );
-		$this->assertSame( array( '广告', '灌水' ), $v->hits() );
+		$this->assertSame( array( 'Advertising', '灌水' ), $v->hits() );
 	}
 
 	public function test_review_factory_sets_state(): void {
-		$v = Verdict::review( 'deepseek', '低置信判定', array( '广告' ), 0.65 );
+		$v = Verdict::review( 'deepseek', '低置信判定', array( 'Advertising' ), 0.65 );
 		$this->assertSame( 'review', $v->verdict() );
 		$this->assertSame( 0.65, $v->confidence() );
 	}
@@ -80,16 +80,16 @@ final class VerdictTest extends TestCase {
 	}
 
 	public function test_properties_cannot_be_written_from_outside(): void {
-		$v = Verdict::reject( 'local_rules', '关键词命中', array( '广告' ) );
+		$v = Verdict::reject( 'local_rules', '关键词命中', array( 'Advertising' ) );
 		$this->expectException( \Error::class );
 		$v->reason = 'tampered';
 	}
 
 	public function test_hits_getter_returns_defensive_copy(): void {
-		$v = Verdict::reject( 'local_rules', 'r', array( '广告' ) );
+		$v = Verdict::reject( 'local_rules', 'r', array( 'Advertising' ) );
 		$hits     = $v->hits();
 		$hits['x'] = 'inject';
-		$this->assertSame( array( '广告' ), $v->hits() );
+		$this->assertSame( array( 'Advertising' ), $v->hits() );
 	}
 
 	public function test_most_severe_orders_reject_over_review_over_pass(): void {

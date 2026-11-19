@@ -266,12 +266,12 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 		// ④ finish_reason 感知。
 		if ( 'length' === $finish ) {
 			$this->last_meta['finish_reason'] = 'length';
-			$this->last_error_verdict = Verdict::error( $this->driver_id, 'finish_reason=length（截断判废不重试）' );
+			$this->last_error_verdict = Verdict::error( $this->driver_id, __( 'finish_reason=length (truncated, verdict discarded, no retry)', 'wink-wp-gatekeeper' ) );
 			return null;
 		}
 		if ( 'content_filter' === $finish ) {
 			$this->last_meta['finish_reason'] = 'content_filter';
-			return array( 'verdict' => 'review', 'confidence' => 0.0, 'reason' => '输出被内容过滤（非重试 inconclusive）', 'hits' => array(), 'final' => true );
+			return array( 'verdict' => 'review', 'confidence' => 0.0, 'reason' => __( 'Output caught by content filtering (non-retryable inconclusive)', 'wink-wp-gatekeeper' ), 'hits' => array(), 'final' => true );
 		}
 
 		// ② 宽容解析。

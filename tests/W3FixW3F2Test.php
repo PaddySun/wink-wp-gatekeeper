@@ -321,13 +321,13 @@ namespace WinkGatekeeper\Tests {
 			);
 
 			// 五态词/徽标类双写同源（PHP probe_state_badge 闭集——两处改动须同批同步）。
-			foreach ( array( '贯通 · 凭据可用', '缺字 · 必填缺失', '被拒 · 密钥错', '契约不符 · 状态未知' ) as $word ) {
+			foreach ( array( 'Connected · credentials work', 'Incomplete · required fields missing', 'Rejected · key error', 'Contract mismatch · status unknown' ) as $word ) {
 				self::assertStringContainsString( $word, $js, "五态词 {$word} 与服务端同源" );
 			}
 			foreach ( array( 'b-ok', 'b-warn', 'b-err', 'b-dim' ) as $cls ) {
 				self::assertStringContainsString( "'" . $cls . "'", $js, "徽标类 {$cls} 闭集在场" );
 			}
-			self::assertStringContainsString( '上次测试：', $js, '「上次测试」小字位回写文案' );
+			self::assertStringContainsString( 'Last test: ', $js, '「上次测试」小字位回写文案' );
 		}
 
 		/**
@@ -404,7 +404,7 @@ namespace WinkGatekeeper\Tests {
 			// 0.8.6 条目两缺陷要点在场（人话——手测档案缺陷①②；历史条目内容不随进位变化）。
 			$entry086 = self::block_between( $readme, '= 0.8.6 =', '= 0.8.5 =' );
 			self::assertStringContainsString( '向导', $entry086, '0.8.6 条目要点：向导出口链修复' );
-			self::assertStringContainsString( '测试凭据', $entry086, '0.8.6 条目要点：测试凭据徽标回写修复' );
+			self::assertStringContainsString( '测试凭据', $entry086, '0.8.6 条目要点：测试凭据徽标回写修复（readme zh 锚）' );
 
 			// 0.8.7 条目十件要点在场（人话——独立审计轻量批口径）。
 			$entry087 = self::block_between( $readme, '= 0.8.7 =', '= 0.8.6 =' );

@@ -485,7 +485,7 @@ namespace WinkGatekeeper\Tests {
 				'deepseek-flash',
 				$fake
 			);
-			$out = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
+			$out = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
 			self::assertSame( 'pass', $out['verdict'] );
 			$body = (string) $env['requests'][0]['args']['body'];
 			self::assertStringContainsString( 'FakeNews 集团', $body, 'provider 信号进 facts_json（第三方视角证据并列喂 LLM）' );
@@ -523,7 +523,7 @@ namespace WinkGatekeeper\Tests {
 				'deepseek-flash',
 				$fake
 			);
-			$out = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
+			$out = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
 			self::assertSame( 'pass', $out['verdict'], '搜索失败不阻塞不劣化判定' );
 			self::assertStringNotContainsString( 'FakeNews', (string) $env['requests'][0]['args']['body'], '失败信号不进 payload' );
 		}

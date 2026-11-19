@@ -63,9 +63,9 @@ final class UiM5Tab8ContractTest extends TestCase {
 	public function test_tabs_appends_enhance_as_tab8(): void {
 		$tabs = SettingsPage::TABS;
 		self::assertArrayHasKey( 'enhance', $tabs, 'Tab⑧ 站点增强已注册' );
-		self::assertSame( array( '⑧', '站点增强' ), $tabs['enhance'] );
+		self::assertSame( array( '⑧', 'Site enhancements' ), $tabs['enhance'] );
 		self::assertSame( 'enhance', array_key_last( $tabs ), '⑧ 顺延末位不重编号（D1）' );
-		self::assertSame( array( '⑦', '工具' ), $tabs['tools'], '①–⑦ 原序不动' );
+		self::assertSame( array( '⑦', 'Tools' ), $tabs['tools'], '①–⑦ 原序不动' );
 	}
 
 	public function test_render_tab_dispatches_enhance(): void {

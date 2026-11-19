@@ -40,7 +40,7 @@ final class CredentialProbe {
 		}
 		return array(
 			'state'   => 'yellow',
-			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'message' => __( 'Required fields missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing ) . __( ' — fill them in and test again.', 'wink-wp-gatekeeper' ),
 			'missing' => $missing,
 		);
 	}
@@ -66,23 +66,23 @@ final class CredentialProbe {
 			$payload['code'] = $error['Code'];
 			if ( 0 === strpos( $error['Code'], 'AuthFailure' ) ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '密钥错误（SecretId/SecretKey）：CAM 密钥对被腾讯云拒绝——请到「访问管理 → API 密钥管理」核对后重试。';
+				$payload['message'] = __( 'Key error (SecretId/SecretKey): the CAM key pair was rejected by Tencent Cloud — check it under “Access Management → API Key Management” and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			if ( 'MissingParameter' === $error['Code'] ) {
 				$missing           = self::parse_missing_params( isset( $error['Message'] ) && is_string( $error['Message'] ) ? $error['Message'] : '' );
 				$payload['state']  = 'yellow';
 				$payload['missing'] = $missing;
-				$payload['message'] = '必填参数缺失：' . ( array() !== $missing ? implode( '、', $missing ) : (string) ( $error['Message'] ?? '' ) ) . '——请补齐上方对应字段。';
+				$payload['message'] = __( 'Required parameters missing: ', 'wink-wp-gatekeeper' ) . ( array() !== $missing ? implode( '、', $missing ) : (string) ( $error['Message'] ?? '' ) ) . __( ' — please fill in the corresponding fields above.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
-			$payload['message'] = '服务端返回错误：' . $error['Code'] . '——' . (string) ( $error['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $error['Code'] . '——' . (string) ( $error['Message'] ?? '' );
 			return $payload;
 		}
 
 		if ( ! $result->is_ok() ) {
 			// 非 API 错误的传输终态（连接失败/超时等）。
-			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . ')——请稍后再试。';
+			$payload['message'] = __( 'Network unreachable or service temporarily unavailable (', 'wink-wp-gatekeeper' ) . $result->category() . __( ')— please try again later.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -95,16 +95,16 @@ final class CredentialProbe {
 		if ( in_array( $code, self::GREEN_CODES, true ) ) {
 			$payload['state']   = 'green';
 			$payload['code']    = 'CaptchaCode=' . $code;
-			$payload['message'] = '凭据可用（CaptchaCode=' . $code . '，全参假票的正常业务拒绝）——前端验证码应可拉起；若评论区仍显示加载中，请查前端网络或主题脚本。';
+			$payload['message'] = __( 'Credentials work (CaptchaCode=', 'wink-wp-gatekeeper' ) . $code . __( ', a normal business rejection of the all-parameter fake ticket) — the front-end captcha should come up; if the comment area still shows loading, check the front-end network or theme scripts.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		// 非预期码（16 appid 不匹配/100 参数校验错/21 票据异常等）：灰态给排查方向。
 		$hint = in_array( $code, array( 16, 100 ), true )
-			? '（大概率 CaptchaAppId 与 AppSecretKey 不匹配——请到验证码控制台【验证管理 → 基础配置】核对同页两值）'
+			? __( '(most likely CaptchaAppId does not match AppSecretKey — check both values from the same page in the captcha console under “Verification Management → Basic Configuration”)', 'wink-wp-gatekeeper' )
 			: '';
 		$payload['code']    = 'CaptchaCode=' . $code;
-		$payload['message'] = '未预期的核验返回（CaptchaCode=' . $code . ( '' !== $msg ? '：' . $msg : '' ) . '）' . $hint . '——请截图此信息联系排查。';
+		$payload['message'] = __( 'Unexpected verification return (CaptchaCode=', 'wink-wp-gatekeeper' ) . $code . ( '' !== $msg ? '：' . $msg : '' ) . '）' . $hint . __( ' — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -137,32 +137,32 @@ final class CredentialProbe {
 			$payload['code'] = $error['Code'];
 			if ( 0 === strpos( $error['Code'], 'AuthFailure' ) ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '密钥错误（SecretId/SecretKey）：CAM 密钥对被腾讯云拒绝——请到「访问管理 → API 密钥管理」核对后重试。';
+				$payload['message'] = __( 'Key error (SecretId/SecretKey): the CAM key pair was rejected by Tencent Cloud — check it under “Access Management → API Key Management” and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			if ( 0 === strpos( $error['Code'], 'UnauthorizedOperation' ) ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '未获接口授权：TMS 未开通/无有效套餐包/账号已欠费——请到内容安全控制台开通文本审核套餐包后重试。';
+				$payload['message'] = __( 'API authorization missing: TMS is not enabled / no valid package / the account is in arrears — enable a text moderation package in the Content Security console and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			if ( 'MissingParameter' === $error['Code'] ) {
 				$missing            = self::parse_missing_params( isset( $error['Message'] ) && is_string( $error['Message'] ) ? $error['Message'] : '' );
 				$payload['state']   = 'yellow';
 				$payload['missing'] = $missing;
-				$payload['message'] = '必填参数缺失：' . ( array() !== $missing ? implode( '、', $missing ) : (string) ( $error['Message'] ?? '' ) ) . '——请检查上方配置。';
+				$payload['message'] = __( 'Required parameters missing: ', 'wink-wp-gatekeeper' ) . ( array() !== $missing ? implode( '、', $missing ) : (string) ( $error['Message'] ?? '' ) ) . __( ' — please check the configuration above.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			if ( 0 === strpos( $error['Code'], 'InvalidParameter' ) ) {
 				$payload['state']   = 'yellow';
-				$payload['message'] = '参数错误（' . $error['Code'] . '）——请核对上方参数取值（如 BizType 策略编号）后重试。';
+				$payload['message'] = __( 'Parameter error (', 'wink-wp-gatekeeper' ) . $error['Code'] . __( ') — please check the parameter values above (e.g. the BizType policy ID) and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
-			$payload['message'] = '服务端返回错误：' . $error['Code'] . '——' . (string) ( $error['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $error['Code'] . '——' . (string) ( $error['Message'] ?? '' );
 			return $payload;
 		}
 
 		if ( ! $result->is_ok() ) {
-			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试。';
+			$payload['message'] = __( 'Network unreachable or service temporarily unavailable (', 'wink-wp-gatekeeper' ) . $result->category() . __( ') — please try again later.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -174,12 +174,12 @@ final class CredentialProbe {
 		if ( 'Pass' === $suggestion ) {
 			$payload['state']   = 'green';
 			$payload['code']    = 'Suggestion=Pass';
-			$payload['message'] = '凭据可用（Suggestion=Pass，正常文本实测通过）——审核链路已通；启用后评论将按「本地规则 → TMS」串联送审。';
+			$payload['message'] = __( 'Credentials work (Suggestion=Pass, a normal text passed the live test) — the moderation chain is connected; once enabled, comments will be submitted through “local rules → TMS” in series.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		$payload['code']    = 'Suggestion=' . ( '' !== $suggestion ? $suggestion : '?' );
-		$payload['message'] = '未预期的判定返回（Suggestion=' . $suggestion . '）——凭据与签名链路已通，但样本文本未获 Pass；可重试或截图此信息联系排查。';
+		$payload['message'] = __( 'Unexpected verdict return (Suggestion=', 'wink-wp-gatekeeper' ) . $suggestion . __( ') — the credential and signing chain works, but the sample text did not get Pass; retry or screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -218,7 +218,7 @@ final class CredentialProbe {
 			// 红 1：AK/签名错（前缀通配——实测变体后缀不一）。
 			if ( 0 === strpos( $code, 'InvalidAccessKeyId' ) || 0 === strpos( $code, 'SignatureDoesNotMatch' ) ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '密钥/签名错误：AccessKey 对被阿里云拒绝（' . $code . '）——请到「访问管理 → RAM AccessKey 管理」核对后重试。';
+				$payload['message'] = __( 'Key/signature error: the AccessKey pair was rejected by Aliyun (', 'wink-wp-gatekeeper' ) . $code . __( ') — check it under “Access Management → RAM AccessKey Management” and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
@@ -228,31 +228,31 @@ final class CredentialProbe {
 					? (string) $decoded['AccessDeniedDetail']['AuthAction']
 					: '';
 				$payload['state']   = 'red';
-				$payload['message'] = '权限不足（RAM 未授权' . ( '' !== $auth_action ? '：' . $auth_action : '' ) . '）——请为该 RAM 用户补授 AliyunYundunAFSFullAccess 后重试。';
+				$payload['message'] = __( 'Insufficient permissions (RAM not authorized', 'wink-wp-gatekeeper' ) . ( '' !== $auth_action ? '：' . $auth_action : '' ) . __( ') — grant AliyunYundunAFSFullAccess to this RAM user and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
 			// 红 3：403 Forbidden.AccountAccessDenied（未开通/欠费）。
 			if ( 'Forbidden.AccountAccessDenied' === $code ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '服务未开通或账号欠费——请到阿里云验证码 2.0 控制台开通服务/核对账户余额后重试。';
+				$payload['message'] = __( 'Service not enabled or account in arrears — enable the service / check the account balance in the Aliyun Captcha 2.0 console and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
 			// 黄：HTTP 级参数类（本地防呆提示——核对配置区取值）。
 			if ( 0 === strpos( $code, 'MissingParameter' ) || 0 === strpos( $code, 'InvalidParameter' ) ) {
 				$payload['state']   = 'yellow';
-				$payload['message'] = '参数错误（' . $code . '）——请核对上方配置区取值后重试。';
+				$payload['message'] = __( 'Parameter error (', 'wink-wp-gatekeeper' ) . $code . __( ') — please check the values in the configuration area above and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
-			$payload['message'] = '服务端返回错误：' . $code . '——' . (string) ( $decoded['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $code . '——' . (string) ( $decoded['Message'] ?? '' );
 			return $payload;
 		}
 
 		if ( ! $result->is_ok() ) {
 			// 非 API 错误的传输终态（连接失败/超时/5xx 等）。
-			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试。';
+			$payload['message'] = __( 'Network unreachable or service temporarily unavailable (', 'wink-wp-gatekeeper' ) . $result->category() . __( ') — please try again later.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -263,12 +263,12 @@ final class CredentialProbe {
 		if ( in_array( $verify_code, array( 'F002', 'F003' ), true ) ) {
 			$payload['state']   = 'green';
 			$payload['code']    = 'VerifyCode=' . $verify_code;
-			$payload['message'] = '凭据可用（VerifyCode=' . $verify_code . '，假参被业务层正常拒绝——网关鉴权+AccessKey+RAM 全通）——前端验证码应可拉起；若评论区仍显示加载中，请查前端网络或主题脚本。';
+			$payload['message'] = __( 'Credentials work (VerifyCode=', 'wink-wp-gatekeeper' ) . $verify_code . __( ', fake parameters normally rejected at the business layer — gateway auth + AccessKey + RAM all pass) — the front-end captcha should come up; if the comment area still shows loading, check the front-end network or theme scripts.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		$payload['code']    = 'VerifyCode=' . ( '' !== $verify_code ? $verify_code : '?' );
-		$payload['message'] = '未预期的核验返回（VerifyCode=' . $verify_code . '）——凭据与签名链路已通，但假参未被业务层按预期拒绝；可重试或截图此信息联系排查。';
+		$payload['message'] = __( 'Unexpected verification return (VerifyCode=', 'wink-wp-gatekeeper' ) . $verify_code . __( ') — the credential and signing chain works, but the fake parameters were not rejected as expected; retry or screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -286,7 +286,7 @@ final class CredentialProbe {
 		}
 		return array(
 			'state'   => 'yellow',
-			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'message' => __( 'Required fields missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing ) . __( ' — fill them in and test again.', 'wink-wp-gatekeeper' ),
 			'missing' => $missing,
 		);
 	}
@@ -333,31 +333,31 @@ final class CredentialProbe {
 			// 红 1：AK/签名错（前缀通配——实测变体后缀不一，如 InvalidAccessKeyId.NotFound）。
 			if ( 0 === strpos( $code, 'InvalidAccessKeyId' ) || 0 === strpos( $code, 'SignatureDoesNotMatch' ) ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '密钥/签名错误：AccessKey 对被阿里云拒绝（' . $code . '）——请到「访问管理 → RAM AccessKey 管理」核对后重试。';
+				$payload['message'] = __( 'Key/signature error: the AccessKey pair was rejected by Aliyun (', 'wink-wp-gatekeeper' ) . $code . __( ') — check it under “Access Management → RAM AccessKey Management” and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
 			// 红 2：408 PERMISSION_DENY（未授权/欠费/未开通——05 §2.5 error_map 语义档）。
 			if ( '408' === $code ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '权限不足（PERMISSION_DENY）：文本审核增强版未授权/欠费/未开通——请为该 RAM 用户补授 AliyunYundunGreenWebFullAccess，或到阿里云内容安全控制台开通「文本审核增强版」后重试。';
+				$payload['message'] = __( 'Insufficient permissions (PERMISSION_DENY): Text Moderation Plus is not authorized / in arrears / not enabled — grant AliyunYundunGreenWebFullAccess to this RAM user, or enable “Text Moderation Plus” in the Aliyun Content Security console and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
 			// 黄：body 400 参数类（本地防呆提示——核对配置区取值；不用于绿态判定）。
 			if ( '400' === $code ) {
 				$payload['state']   = 'yellow';
-				$payload['message'] = '参数错误（Code=400' . ( isset( $decoded['Message'] ) && is_string( $decoded['Message'] ) && '' !== $decoded['Message'] ? '：' . $decoded['Message'] : '' ) . '）——请核对上方配置区取值后重试。';
+				$payload['message'] = __( 'Parameter error (Code=400', 'wink-wp-gatekeeper' ) . ( isset( $decoded['Message'] ) && is_string( $decoded['Message'] ) && '' !== $decoded['Message'] ? '：' . $decoded['Message'] : '' ) . __( ') — please check the values in the configuration area above and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
-			$payload['message'] = '服务端返回错误：' . $code . '——' . (string) ( $decoded['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $code . '——' . (string) ( $decoded['Message'] ?? '' );
 			return $payload;
 		}
 
 		if ( ! $result->is_ok() ) {
 			// 非 API 错误的传输终态（连接失败/超时/5xx 等）。
-			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试。';
+			$payload['message'] = __( 'Network unreachable or service temporarily unavailable (', 'wink-wp-gatekeeper' ) . $result->category() . __( ') — please try again later.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -368,12 +368,12 @@ final class CredentialProbe {
 		if ( in_array( $risk, array( 'none', 'low' ), true ) ) {
 			$payload['state']   = 'green';
 			$payload['code']    = 'Code=200';
-			$payload['message'] = '凭据可用（Code=200，探测文本 RiskLevel=' . $risk . '）——审核链路已通；启用后评论将按「本地规则 → 阿里文本审核 PLUS」串联送审。';
+			$payload['message'] = __( 'Credentials work (Code=200, probe text RiskLevel=', 'wink-wp-gatekeeper' ) . $risk . __( ') — the moderation chain is connected; once enabled, comments will be submitted through “local rules → Aliyun Text Moderation Plus” in series.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		$payload['code']    = 'RiskLevel=' . ( '' !== $risk ? $risk : '?' );
-		$payload['message'] = '未预期的判定返回（RiskLevel=' . $risk . '）——凭据与签名链路已通，但探测文本未获干净判定；可重试或截图此信息联系排查。';
+		$payload['message'] = __( 'Unexpected verdict return (RiskLevel=', 'wink-wp-gatekeeper' ) . $risk . __( ') — the credential and signing chain works, but the probe text did not get a clean verdict; retry or screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -393,7 +393,7 @@ final class CredentialProbe {
 		}
 		return array(
 			'state'   => 'yellow',
-			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'message' => __( 'Required fields missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing ) . __( ' — fill them in and test again.', 'wink-wp-gatekeeper' ),
 			'missing' => $missing,
 		);
 	}
@@ -428,27 +428,27 @@ final class CredentialProbe {
 			// 红 1：token 鉴权失败（AK/SK 错或被重置——110 无效/111 过期）。
 			if ( 110 === $code || 111 === $code ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '鉴权失败（' . $code . '：access_token ' . ( 110 === $code ? '无效' : '过期' ) . '）：API Key/Secret Key 被百度云拒绝——请到「百度智能云控制台 → 应用列表」核对 API Key 与 Secret Key 后重试。';
+				$payload['message'] = __( 'Authentication failed (', 'wink-wp-gatekeeper' ) . $code . '：access_token ' . ( 110 === $code ? __( 'invalid', 'wink-wp-gatekeeper' ) : __( 'Expired', 'wink-wp-gatekeeper' ) ) . __( '): the API Key/Secret Key was rejected by Baidu Cloud — check the API Key and Secret Key under “Baidu AI Cloud Console → App List” and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
 			// 红 2：无权限调用（未开通文本审核服务）。
 			if ( 6 === $code ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '无权限调用（error_code=6）：文本审核服务未开通——请到百度智能云控制台开通「内容审核 · 文本审核」后重试。';
+				$payload['message'] = __( 'Not authorized to call (error_code=6): the text moderation service is not enabled — enable “Content Moderation · Text Moderation” in the Baidu AI Cloud console and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
 			// 黄：参数错（本地防呆提示——核对配置区取值）。
 			if ( 100 === $code ) {
 				$payload['state']   = 'yellow';
-				$payload['message'] = '参数错误（error_code=100' . ( '' !== $error_msg ? '：' . $error_msg : '' ) . '）——请核对上方配置区取值后重试。';
+				$payload['message'] = __( 'Parameter error (error_code=100', 'wink-wp-gatekeeper' ) . ( '' !== $error_msg ? '：' . $error_msg : '' ) . __( ') — please check the values in the configuration area above and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 
 			// 灰：配额超限/其它未知码——给原文与排查方向。
-			$hint = ( 17 === $code || 19 === $code ) ? '（配额超限——请到百度智能云控制台核对该应用的配额/付费状态）' : '';
-			$payload['message'] = '服务端返回错误（error_code=' . $code . '——' . $error_msg . '）' . $hint . '——请截图此信息联系排查。';
+			$hint = ( 17 === $code || 19 === $code ) ? __( '(quota exceeded — check the app’s quota / payment status in the Baidu AI Cloud console)', 'wink-wp-gatekeeper' ) : '';
+			$payload['message'] = __( 'Server returned an error (error_code=', 'wink-wp-gatekeeper' ) . $code . '——' . $error_msg . '）' . $hint . __( ' — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -459,10 +459,10 @@ final class CredentialProbe {
 			if ( RemoteResult::SEMANTIC === $result->category() ) {
 				$payload['state']   = 'red';
 				$payload['code']    = 'HTTP ' . $result->status();
-				$payload['message'] = '鉴权失败（HTTP ' . $result->status() . '）：API Key/Secret Key 被百度云拒绝——请到「百度智能云控制台 → 应用列表」核对 API Key 与 Secret Key 后重试。';
+				$payload['message'] = __( 'Authentication failed (HTTP ', 'wink-wp-gatekeeper' ) . $result->status() . __( '): the API Key/Secret Key was rejected by Baidu Cloud — check the API Key and Secret Key under “Baidu AI Cloud Console → App List” and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
-			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试。';
+			$payload['message'] = __( 'Network unreachable or service temporarily unavailable (', 'wink-wp-gatekeeper' ) . $result->category() . __( ') — please try again later.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -474,12 +474,12 @@ final class CredentialProbe {
 		if ( 1 === $type ) {
 			$payload['state']   = 'green';
 			$payload['code']    = 'conclusionType=1';
-			$payload['message'] = '凭据可用（conclusionType=1，探测文本合规）——审核链路已通；启用后评论将按「本地规则 → 百度文本审核」串联送审。';
+			$payload['message'] = __( 'Credentials work (conclusionType=1, probe text compliant) — the moderation chain is connected; once enabled, comments will be submitted through “local rules → Baidu Text Moderation” in series.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		$payload['code']    = 'conclusionType=' . ( $type > 0 ? (string) $type : '?' );
-		$payload['message'] = '未预期的判定返回（conclusionType=' . $type . '）——凭据与 token 链路已通，但探测文本未获合规判定；可重试或截图此信息联系排查。';
+		$payload['message'] = __( 'Unexpected verdict return (conclusionType=', 'wink-wp-gatekeeper' ) . $type . __( ') — the credential and token chain works, but the probe text was not judged compliant; retry or screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -498,7 +498,7 @@ final class CredentialProbe {
 		}
 		return array(
 			'state'   => 'yellow',
-			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'message' => __( 'Required fields missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing ) . __( ' — fill them in and test again.', 'wink-wp-gatekeeper' ),
 			'missing' => $missing,
 		);
 	}
@@ -528,14 +528,14 @@ final class CredentialProbe {
 		if ( 401 === $status || 402 === $status ) {
 			$payload['code']    = 'HTTP ' . $status;
 			$payload['state']   = 'red';
-			$payload['message'] = '密钥被拒（HTTP ' . $status . ( 401 === $status ? '：API Key 无效' : '：订阅或每日配额不可用' ) . '）——请到 AbuseIPDB 控制台核对 API Key 与订阅状态后重试。';
+			$payload['message'] = __( 'Key rejected (HTTP ', 'wink-wp-gatekeeper' ) . $status . ( 401 === $status ? __( ': API Key invalid', 'wink-wp-gatekeeper' ) : __( ': subscription or daily quota unavailable', 'wink-wp-gatekeeper' ) ) . __( ') — check the API Key and subscription status in the AbuseIPDB console and retry.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		// 灰：429 限流——凭据可能有效，不误报红档（给排查方向）。
 		if ( 429 === $status ) {
 			$payload['code']    = 'HTTP 429';
-			$payload['message'] = 'HTTP 429（请求被限流——免费档速率/每日配额约束）。凭据有效性本次无法确认——请稍后再试，或在 AbuseIPDB 控制台核对配额。';
+			$payload['message'] = __( 'HTTP 429 (rate limited — free-tier rate / daily quota constraints). Credential validity could not be confirmed this time — try again later, or check the quota in the AbuseIPDB console.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -549,24 +549,24 @@ final class CredentialProbe {
 				? (bool) $decoded['data']['isPublic'] : null;
 			$payload['state']   = 'green';
 			$payload['code']    = 'HTTP 200 + JSON';
-			$payload['message'] = '凭据可用（HTTP 200，响应 JSON 可解析）——查询链路已通。'
-				. ( false === $is_public ? '本次查询的是保留地址（isPublic:false 亦属绿态——验证的是凭据不是 IP）。' : '' );
+			$payload['message'] = __( 'Credentials work (HTTP 200, response JSON parsed) — the lookup chain is connected.', 'wink-wp-gatekeeper' )
+				. ( false === $is_public ? __( 'This lookup used a reserved address (isPublic:false is also a green state — it validates the credentials, not the IP).', 'wink-wp-gatekeeper' ) : '' );
 			return $payload;
 		}
 		if ( null !== $decoded || RemoteResult::PARSE === $result->category() || RemoteResult::CONTRACT === $result->category() ) {
 			// 2xx 但坏 JSON（传输脊归 PARSE）或其它契约形态——给排查方向不误报三态。
-			$payload['message'] = 'HTTP ' . ( $status > 0 ? $status : '200' ) . ' 但响应不是合法 JSON（契约不符——可能被中间层劫持/返回了 HTML）——请截图此信息联系排查。';
+			$payload['message'] = 'HTTP ' . ( $status > 0 ? $status : '200' ) . __( ' but the response is not valid JSON (contract mismatch — possibly hijacked by a middle layer / returned HTML) — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		if ( ! $result->is_ok() ) {
 			// 非 API 错误的传输终态（连接失败/超时/5xx 等）。
-			$payload['message'] = '网络不可达或服务暂不可用（' . $result->category() . '）——请稍后再试（无国际出口的网络环境会持续此态）。';
+			$payload['message'] = __( 'Network unreachable or service temporarily unavailable (', 'wink-wp-gatekeeper' ) . $result->category() . __( ') — please try again later (networks without an international exit will keep seeing this state).', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
 		// 200 且 body 非空但解析为空串等剩余形态——契约兜底。
-		$payload['message'] = 'HTTP 200 但响应不是合法 JSON（契约不符——可能被中间层劫持/返回了 HTML）——请截图此信息联系排查。';
+		$payload['message'] = __( 'HTTP 200 but the response is not valid JSON (contract mismatch — possibly hijacked by a middle layer / returned HTML) — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -583,7 +583,7 @@ final class CredentialProbe {
 		}
 		return array(
 			'state'   => 'yellow',
-			'message' => '必填字段缺少：API Key——请先在上方填入并保存（或填入后直接重测），再点「测试凭据」。',
+			'message' => __( 'Required field missing: API Key — fill it in above and save first (or just retest after filling), then click “Test credentials”.', 'wink-wp-gatekeeper' ),
 			'missing' => array( 'API Key' ),
 		);
 	}
@@ -635,11 +635,11 @@ final class CredentialProbe {
 			if ( 401 === $status || 402 === $status || 403 === $status ) {
 				$payload['state']   = 'red';
 				$payload['message'] = 402 === $status
-					? '密钥被拒（402 账户欠费）：请到 DeepSeek 开放平台充值后重试。'
-					: '密钥被拒（HTTP ' . $status . '）：API Key 无效——请到 DeepSeek 开放平台核对后重试。';
+					? __( 'Key rejected (402, account in arrears): top up on the DeepSeek open platform and retry.', 'wink-wp-gatekeeper' )
+					: __( 'Key rejected (HTTP ', 'wink-wp-gatekeeper' ) . $status . __( '): API Key invalid — check it on the DeepSeek open platform and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
-			$payload['message'] = '探活未成功（HTTP ' . $status . '，' . $result->category() . '）——稍后重试；持续失败请核对接入地址。';
+			$payload['message'] = __( 'Probe unsuccessful (HTTP ', 'wink-wp-gatekeeper' ) . $status . '，' . $result->category() . __( ') — retry later; if it keeps failing, check the endpoint URL.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -656,18 +656,18 @@ final class CredentialProbe {
 		if ( array() === $ids ) {
 			$payload['state']   = 'gray';
 			$payload['code']    = 'contract';
-			$payload['message'] = '响应不含模型列表（契约不符）——端点可能不是 DeepSeek 官方形态，请核对接入地址。';
+			$payload['message'] = __( 'Response contains no model list (contract mismatch) — the endpoint may not be the official DeepSeek form; check the endpoint URL.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 		if ( '' !== $model && ! in_array( $model, $ids, true ) ) {
 			$payload['state']   = 'yellow';
 			$payload['code']    = 'model_missing';
-			$payload['message'] = '凭据可用，但判定模型「' . $model . '」不在可用列表（' . implode( ' / ', array_slice( $ids, 0, 6 ) ) . '）——请到「判定模型」下拉换选。';
+			$payload['message'] = __( 'Credentials work, but the verdict model “', 'wink-wp-gatekeeper' ) . $model . __( '” is not in the available list (', 'wink-wp-gatekeeper' ) . implode( ' / ', array_slice( $ids, 0, 6 ) ) . __( ') — pick a different one from the “Verdict model” dropdown.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 		$payload['state']   = 'green';
 		$payload['code']    = 'models_ok';
-		$payload['message'] = '凭据可用（模型列表探活通过，零 token 消耗）。';
+		$payload['message'] = __( 'Credentials work (model-list probe passed, zero token cost).', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -681,7 +681,7 @@ final class CredentialProbe {
 		if ( '' === trim( $api_key ) ) {
 			return array(
 				'state'   => 'yellow',
-				'message' => '缺参数：API Key 未填——填好后重试。',
+				'message' => __( 'Missing parameter: API Key is not filled in — fill it in and retry.', 'wink-wp-gatekeeper' ),
 				'missing' => array( 'api_key' ),
 				'code'    => '',
 			);
@@ -718,17 +718,17 @@ final class CredentialProbe {
 			if ( 401 === $status || 402 === $status || 403 === $status ) {
 				$payload['state']   = 'red';
 				$payload['message'] = 402 === $status
-					? '密钥有效但账户欠费（402）：请到 DeepSeek 开放平台充值后重试。'
-					: '密钥被拒（HTTP ' . $status . '）：API Key 无效——请到 DeepSeek 开放平台核对后重试。';
+					? __( 'Key valid but the account is in arrears (402): top up on the DeepSeek open platform and retry.', 'wink-wp-gatekeeper' )
+					: __( 'Key rejected (HTTP ', 'wink-wp-gatekeeper' ) . $status . __( '): API Key invalid — check it on the DeepSeek open platform and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			if ( RemoteResult::TRANSPORT === $result->category() ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '连接不上 DeepSeek（网络异常）——稍后重试；持续失败请检查服务器出网。';
+				$payload['message'] = __( 'Cannot reach DeepSeek (network issue) — retry later; if it keeps failing, check the server’s outbound network.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			$payload['state']   = 'red';
-			$payload['message'] = '探测未成功（HTTP ' . $status . '，' . $result->category() . '）——稍后重试；持续失败请核对接入地址。';
+			$payload['message'] = __( 'Detection unsuccessful (HTTP ', 'wink-wp-gatekeeper' ) . $status . '，' . $result->category() . __( ') — retry later; if it keeps failing, check the endpoint URL.', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -737,7 +737,7 @@ final class CredentialProbe {
 		if ( ! is_array( $decoded ) || ! array_key_exists( 'is_available', $decoded ) ) {
 			$payload['state']   = 'gray';
 			$payload['code']    = 'contract';
-			$payload['message'] = '响应不含余额结构（契约不符）——端点可能不是 DeepSeek 官方形态，请核对接入地址（独立端点无标准余额 API 时用模型列表探活）。';
+			$payload['message'] = __( 'Response contains no balance structure (contract mismatch) — the endpoint may not be the official DeepSeek form; check the endpoint URL (for standalone endpoints without a standard balance API, use the model-list probe).', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -753,7 +753,7 @@ final class CredentialProbe {
 		$payload['state']   = 'yellow';
 		$payload['code']    = 'balance_unavailable';
 		$payload['balance'] = $balance;
-		$payload['message'] = '账户当前不可调用（余额不可用，可能已欠费）——请到 DeepSeek 开放平台充值后重试。';
+		$payload['message'] = __( 'The account cannot be called right now (balance unavailable, possibly in arrears) — top up on the DeepSeek open platform and retry.', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -787,11 +787,11 @@ final class CredentialProbe {
 		$total    = is_array( $balance ) ? (string) ( $balance['total_balance'] ?? '' ) : '';
 		$granted  = is_array( $balance ) ? (string) ( $balance['granted_balance'] ?? '' ) : '';
 		if ( '' === $total ) {
-			return '凭据可用（余额探测通过，零费用）——账户可用，余额信息未返回。';
+			return __( 'Credentials work (balance probe passed, zero cost) — the account works; no balance information was returned.', 'wink-wp-gatekeeper' );
 		}
-		$line = '凭据可用（余额探测通过，零费用）。余额 ' . $total . ( '' !== $currency ? ' ' . $currency : '' );
+		$line = __( 'Credentials work (balance probe passed, zero cost). Balance ', 'wink-wp-gatekeeper' ) . $total . ( '' !== $currency ? ' ' . $currency : '' );
 		if ( '' !== $granted && 0.0 < (float) $granted ) {
-			$line .= '（含赠金 ' . $granted . '）';
+			$line .= __( ' (including grants ', 'wink-wp-gatekeeper' ) . $granted . '）';
 		}
 		return $line . '。';
 	}
@@ -824,19 +824,19 @@ final class CredentialProbe {
 			$payload['code'] = 'http=' . $status;
 			if ( 401 === $status || 403 === $status ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '密钥被端点拒绝（HTTP ' . $status . '）——请核对 API Key 与该端点的访问权限后重试。';
+				$payload['message'] = __( 'Key rejected by the endpoint (HTTP ', 'wink-wp-gatekeeper' ) . $status . __( ') — check the API Key and your access to this endpoint and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			if ( 402 === $status ) {
 				$payload['state']   = 'red';
-				$payload['message'] = '端点拒绝（402）——请核对 Key/账户状态（该端点的计费口径由服务方定义）。';
+				$payload['message'] = __( 'Endpoint rejected (402) — check the key / account status (billing semantics for this endpoint are defined by its operator).', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
 			if ( 404 === $status ) {
-				$payload['message'] = '端点可能不提供 /models 列表（部分网关如此）——凭据状态未知，可跳过测试直接启用观察首判。';
+				$payload['message'] = __( 'The endpoint may not provide a /models list (some gateways do not) — credential status unknown; you may skip the test, enable it, and watch the first verdict.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
-			$payload['message'] = '探活未成功（HTTP ' . $status . '，' . $result->category() . '）——稍后重试；持续失败请核对接入地址（注意路径前缀：插件在所填地址后拼 /chat/completions 与 /models）。';
+			$payload['message'] = __( 'Probe unsuccessful (HTTP ', 'wink-wp-gatekeeper' ) . $status . '，' . $result->category() . __( ') — retry later; if it keeps failing, check the endpoint URL (mind the path prefix: the plugin appends /chat/completions and /models to whatever you enter).', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 
@@ -853,20 +853,20 @@ final class CredentialProbe {
 		if ( array() === $ids ) {
 			$payload['state']   = 'gray';
 			$payload['code']    = 'contract';
-			$payload['message'] = '响应不含模型列表（契约不符）——请核对接入地址是否为 OpenAI 兼容端点（注意路径前缀）。';
+			$payload['message'] = __( 'Response contains no model list (contract mismatch) — check whether the endpoint URL is OpenAI-compatible (mind the path prefix).', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 		if ( '' !== $model && ! in_array( $model, $ids, true ) ) {
 			$payload['state']   = 'yellow';
 			$payload['code']    = 'model_missing';
-			$payload['message'] = '凭据可用，但模型「' . $model . '」不在可用列表（' . implode( ' / ', array_slice( $ids, 0, 6 ) ) . '）——请核对手填模型名（部分端点列表不全，列表缺失不等于不可用）。';
+			$payload['message'] = __( 'Credentials work, but the model “', 'wink-wp-gatekeeper' ) . $model . __( '” is not in the available list (', 'wink-wp-gatekeeper' ) . implode( ' / ', array_slice( $ids, 0, 6 ) ) . __( ') — check the model name you entered (some endpoint lists are incomplete; a missing entry does not mean unusable).', 'wink-wp-gatekeeper' );
 			return $payload;
 		}
 		$payload['state']   = 'green';
 		$payload['code']    = 'models_ok';
 		$payload['message'] = '' !== $model
-			? '凭据可用（模型列表探活通过，「' . $model . '」在可用列表，零 token 消耗）。'
-			: '凭据可用（模型列表探活通过，零 token 消耗）。';
+			? __( 'Credentials work (model-list probe passed, “', 'wink-wp-gatekeeper' ) . $model . __( '” is in the available list, zero token cost).', 'wink-wp-gatekeeper' )
+			: __( 'Credentials work (model-list probe passed, zero token cost).', 'wink-wp-gatekeeper' );
 		return $payload;
 	}
 
@@ -885,7 +885,7 @@ final class CredentialProbe {
 		}
 		return array(
 			'state'   => 'yellow',
-			'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+			'message' => __( 'Required fields missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing ) . __( ' — fill them in and test again.', 'wink-wp-gatekeeper' ),
 			'missing' => $missing,
 		);
 	}

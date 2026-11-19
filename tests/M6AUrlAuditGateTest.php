@@ -254,7 +254,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_engine_usage_key_follows_incr_lane(): void {
 			$env = self::makeEngine( array( self::judgeResponse() ) );
 
-			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
+			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
 
 			self::assertSame( array( 'url_audit_incr' ), $env['usage_keys'], '增量车道 usage_key=url_audit_incr（闸读侧所查键——修复前恒 deepseek）' );
 		}
@@ -262,7 +262,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_engine_usage_key_follows_batch_lane(): void {
 			$env = self::makeEngine( array( self::judgeResponse() ) );
 
-			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_batch' );
+			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_batch' );
 
 			self::assertSame( array( 'url_audit_batch' ), $env['usage_keys'], '批量车道 usage_key=url_audit_batch' );
 		}
@@ -270,7 +270,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_engine_never_counts_url_audit_under_deepseek_key(): void {
 			// deepseek 键保留给评论云审主链（K1 语义不变——url_audit 消耗不得再混入）。
 			$env = self::makeEngine( array( self::judgeResponse() ) );
-			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
+			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
 
 			self::assertNotContains( 'deepseek', $env['usage_keys'], 'url_audit LLM 消耗不得计入 deepseek 键' );
 		}
@@ -278,7 +278,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_engine_unknown_caller_failsafe_to_incr_key(): void {
 			// 非法 caller fail-safe 归增量闸键（只放大严——消耗必须可被某道闸拦住）。
 			$env = self::makeEngine( array( self::judgeResponse() ) );
-			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'bogus_lane' );
+			$env['engine']->judge( array( 'title' => 'T', 'meta_description' => 'D', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'bogus_lane' );
 
 			self::assertSame( array( 'url_audit_incr' ), $env['usage_keys'] );
 		}

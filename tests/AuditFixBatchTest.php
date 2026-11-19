@@ -267,8 +267,8 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_p1_1_ajax_reject_headers_carry_content_type(): void {
 			$result  = array(
-				'message'  => '还差一个眨眼',
-				'evidence' => array( '命中规则' => 'captcha_missing' ),
+				'message'  => 'One wink missing',
+				'evidence' => array( 'Matched rule' => 'captcha_missing' ),
 			);
 			$headers = ResponseDispatcher::ajax_reject_headers( $result, 'comment' );
 
@@ -279,7 +279,7 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		public function test_p1_1_rest_error_headers_stay_four_header_protocol(): void {
-			$result  = array( 'evidence' => array( '命中规则' => 'bad-signature' ) );
+			$result  = array( 'evidence' => array( 'Matched rule' => 'bad-signature' ) );
 			$headers = ResponseDispatcher::rest_error_headers( $result, 'comment' );
 			$this->assertArrayNotHasKey( 'Content-Type', $headers, 'REST 分支不加 Content-Type（WP REST 层强制 application/json——重复头面不引入）' );
 			$this->assertCount( 4, $headers, 'REST 补头协议维持四头' );
@@ -288,7 +288,7 @@ namespace WinkGatekeeper\Tests {
 		public function test_p1_1_ajax_body_json_hex_escapes_reason(): void {
 			$result = array(
 				'message'  => '拦下了',
-				'evidence' => array( '命中规则' => '<img src=x onerror=alert(document.domain)> "quoted" & amp \'apos' ),
+				'evidence' => array( 'Matched rule' => '<img src=x onerror=alert(document.domain)> "quoted" & amp \'apos' ),
 			);
 			$json   = ResponseDispatcher::ajax_body_json( $result, 'comment', false, 'json_encode' );
 
@@ -467,7 +467,7 @@ namespace WinkGatekeeper\Tests {
 			$count  = preg_match_all( '/update_option\([^\n]*\);/', $src, $matches );
 			$this->assertGreaterThan( 0, $count, 'SettingsPage 写点在场' );
 			foreach ( $matches[0] as $line ) {
-				$this->assertStringEndsWith( ', false );', $line, '涉密/状态 option 写点全量 autoload=false（漂移再断言面——发现行：' . $line . '）' );
+				$this->assertStringEndsWith( ', false );', $line, '涉密/状态 option 写点全量 autoload=false（漂移再断言面——发现行：' . $line . ')' );
 			}
 		}
 
@@ -666,8 +666,8 @@ namespace WinkGatekeeper\Tests {
 		public function test_p7_die_page_build_pure_html_still_escapes_internally(): void {
 			$html = DiePage::build(
 				'</title><script>alert(1)</script>',
-				'正文',
-				array( '事件编号' => 'WK-20261120-0001' ),
+				'body',
+				array( 'Event No.' => 'WK-20261120-0001' ),
 				'',
 				'',
 				'zh-CN'

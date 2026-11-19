@@ -57,28 +57,28 @@ final class UrlVerdicts {
 		// hold=悬置待审人工判定，可手动批准恢复；误伤面（正常站抓取失败）用户明示接受，
 		// inconclusive 缓存 TTL 24h+「重新核查此站」可复验）。
 		if ( 'inconclusive' === $verdict || 'review' === $verdict ) {
-			return array( 'action' => 'hold', 'auto_url_reject' => false, 'note' => '没看清/存疑——进待审等你判定（可手动恢复）' );
+			return array( 'action' => 'hold', 'auto_url_reject' => false, 'note' => __( 'Unclear/dubious — sent to pending review for your decision (manually recoverable)', 'wink-wp-gatekeeper' ) );
 		}
 
 		// 保守档：reject 不自动定罪（nw §5.2 默认——只出报告与标记，处置人工）。
 		if ( 'conservative' === $profile ) {
-			return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => '保守档：仅标记' );
+			return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => __( 'Conservative: mark only', 'wink-wp-gatekeeper' ) );
 		}
 
 		// URL pass 恒不自动放行（三原则③；injection_attempt 保险丝——nw §3.4）。
 		if ( 'pass' === $verdict ) {
 			if ( $injection_attempt ) {
-				return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => '注入尝试命中——自动放行保险丝失效' );
+				return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => __( 'Injection attempt hit — the auto-approve fuse is disabled', 'wink-wp-gatekeeper' ) );
 			}
-			return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => 'URL 已核无问题（不改变评论状态）' );
+			return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => __( 'URL verified clean (comment status unchanged)', 'wink-wp-gatekeeper' ) );
 		}
 
 		// reject：自动定罪门（均衡=0.95 / 激进=0.8）。
 		$gate = 'balanced' === $profile ? self::AUTO_CONVICT_CONFIDENCE : 0.8;
 		if ( $confidence >= $gate ) {
-			return array( 'action' => 'spam', 'auto_url_reject' => true, 'note' => '自动标垃圾（可一键撤销）' );
+			return array( 'action' => 'spam', 'auto_url_reject' => true, 'note' => __( 'Automatically marked as Spam (one-click undo)', 'wink-wp-gatekeeper' ) );
 		}
-		return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => 'reject 中置信——保持待审附证据' );
+		return array( 'action' => 'keep', 'auto_url_reject' => false, 'note' => __( 'Medium-confidence reject — kept in pending review with evidence', 'wink-wp-gatekeeper' ) );
 	}
 
 	/**
@@ -93,11 +93,11 @@ final class UrlVerdicts {
 	 */
 	public static function disposal_existing( string $verdict, float $confidence ): array {
 		if ( 'reject' === $verdict ) {
-			return array( 'action' => 'spam', 'note' => '判违规——进垃圾箱（可手动恢复）' );
+			return array( 'action' => 'spam', 'note' => __( 'Judged violating — moved to Spam (manually recoverable)', 'wink-wp-gatekeeper' ) );
 		}
 		if ( 'inconclusive' === $verdict || 'review' === $verdict ) {
-			return array( 'action' => 'hold', 'note' => '没看清/存疑——进待审（可手动恢复）' );
+			return array( 'action' => 'hold', 'note' => __( 'Unclear/dubious — sent to pending review (manually recoverable)', 'wink-wp-gatekeeper' ) );
 		}
-		return array( 'action' => 'none', 'note' => '没问题——不动（可选已核无问题计数）' );
+		return array( 'action' => 'none', 'note' => __( 'Clean — left as is (optional verified-clean counting)', 'wink-wp-gatekeeper' ) );
 	}
 }

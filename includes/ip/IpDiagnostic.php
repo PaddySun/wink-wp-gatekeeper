@@ -183,7 +183,7 @@ final class IpDiagnostic {
 
 		if ( ! empty( $proxies['cloudflare'] ) ) {
 			$rows[] = array(
-				'label' => 'Cloudflare 官方段',
+				'label' => __( 'Cloudflare official ranges', 'wink-wp-gatekeeper' ),
 				'count' => count( TrustedProxies::CLOUDFLARE_V4 ) + count( TrustedProxies::CLOUDFLARE_V6 ),
 				'kind'  => 'preset',
 			);
@@ -204,7 +204,7 @@ final class IpDiagnostic {
 		$valid_custom = array_filter( $custom_lines, static fn( string $line ) => null !== TrustedProxies::parse_cidr( $line ) );
 		if ( array() !== $valid_custom ) {
 			$rows[] = array(
-				'label' => '自定义 CIDR',
+				'label' => __( 'Custom CIDR', 'wink-wp-gatekeeper' ),
 				'count' => count( $valid_custom ),
 				'kind'  => 'custom',
 			);
@@ -284,17 +284,17 @@ final class IpDiagnostic {
 			case 'abuseipdb':
 				$data = $decoded['data'] ?? null;
 				if ( ! is_array( $data ) || ! array_key_exists( 'abuseConfidenceScore', $data ) ) {
-					return self::fail_card( '响应结构不符（data 缺失）' );
+					return self::fail_card( __( 'Response shape mismatch (data missing)', 'wink-wp-gatekeeper' ) );
 				}
 				return array(
 					'ok'   => true,
 					'rows' => array(
-						'评分'   => self::scalar_str( $data['abuseConfidenceScore'] ?? '' ),
-						'国家'   => self::scalar_str( $data['countryCode'] ?? '' ),
-						'用途'   => self::scalar_str( $data['usageType'] ?? '' ),
+						__( 'Score', 'wink-wp-gatekeeper' )   => self::scalar_str( $data['abuseConfidenceScore'] ?? '' ),
+						__( 'Country', 'wink-wp-gatekeeper' )   => self::scalar_str( $data['countryCode'] ?? '' ),
+						__( 'Usage', 'wink-wp-gatekeeper' )   => self::scalar_str( $data['usageType'] ?? '' ),
 						'ISP'   => self::scalar_str( $data['isp'] ?? '' ),
 						'Tor'   => self::bool_zh( $data['isTor'] ?? null ),
-						'报告数' => self::scalar_str( $data['totalReports'] ?? '' ),
+						__( 'Reports', 'wink-wp-gatekeeper' ) => self::scalar_str( $data['totalReports'] ?? '' ),
 					),
 					'error' => '',
 				);
@@ -302,13 +302,13 @@ final class IpDiagnostic {
 			case 'stopforumspam':
 				$ip = $decoded['ip'] ?? null;
 				if ( empty( $decoded['success'] ) || ! is_array( $ip ) ) {
-					return self::fail_card( '响应 success=0 或结构不符' );
+					return self::fail_card( __( 'Response success=0 or shape mismatch', 'wink-wp-gatekeeper' ) );
 				}
 				return array(
 					'ok'   => true,
 					'rows' => array(
-						'黑名单出现' => self::scalar_str( $ip['appears'] ?? '' ),
-						'报告频次'  => self::scalar_str( $ip['frequency'] ?? '' ),
+						__( 'Blacklist appearance', 'wink-wp-gatekeeper' ) => self::scalar_str( $ip['appears'] ?? '' ),
+						__( 'Report frequency', 'wink-wp-gatekeeper' )  => self::scalar_str( $ip['frequency'] ?? '' ),
 					),
 					'error' => '',
 				);
@@ -317,7 +317,7 @@ final class IpDiagnostic {
 				$proxy = $decoded['proxy'] ?? null;
 				$asn   = $decoded['asn'] ?? null;
 				if ( ! is_array( $proxy ) ) {
-					return self::fail_card( '响应结构不符（proxy 缺失）' );
+					return self::fail_card( __( 'Response shape mismatch (proxy missing)', 'wink-wp-gatekeeper' ) );
 				}
 				$country = is_array( $decoded['country'] ?? null ) ? $decoded['country'] : array();
 				$asn_row = '';
@@ -329,21 +329,21 @@ final class IpDiagnostic {
 				return array(
 					'ok'   => true,
 					'rows' => array(
-						'代理'     => self::bool_zh( $proxy['is_proxy'] ?? null ),
+						__( 'Proxy', 'wink-wp-gatekeeper' )     => self::bool_zh( $proxy['is_proxy'] ?? null ),
 						'VPN'    => self::bool_zh( $proxy['is_vpn'] ?? null ),
 						'Tor'    => self::bool_zh( $proxy['is_tor'] ?? null ),
-						'主机托管'  => self::bool_zh( $proxy['is_hosting'] ?? null ),
+						__( 'Hosting', 'wink-wp-gatekeeper' )  => self::bool_zh( $proxy['is_hosting'] ?? null ),
 						'CDN'    => self::bool_zh( $proxy['is_cdn'] ?? null ),
-						'匿名网络'  => self::bool_zh( $proxy['is_anonymous'] ?? null ),
+						__( 'Anonymous network', 'wink-wp-gatekeeper' )  => self::bool_zh( $proxy['is_anonymous'] ?? null ),
 						'ASN'    => $asn_row,
-						'国家'    => self::scalar_str( $country['iso_code'] ?? '' ),
+						__( 'Country', 'wink-wp-gatekeeper' )    => self::scalar_str( $country['iso_code'] ?? '' ),
 					),
 					'error' => '',
 				);
 
 			case 'ipsb':
 				if ( ! isset( $decoded['ip'] ) ) {
-					return self::fail_card( '响应结构不符（ip 缺失）' );
+					return self::fail_card( __( 'Response shape mismatch (ip missing)', 'wink-wp-gatekeeper' ) );
 				}
 				$geo = trim( implode( ' ', array_filter( array(
 					self::scalar_str( $decoded['country'] ?? '' ),
@@ -355,7 +355,7 @@ final class IpDiagnostic {
 				return array(
 					'ok'   => true,
 					'rows' => array(
-						'归属地' => $geo,
+						__( 'Geolocation', 'wink-wp-gatekeeper' ) => $geo,
 						'ISP'  => self::scalar_str( $decoded['isp'] ?? '' ),
 						'ASN'  => $asn_row,
 					),
@@ -363,7 +363,7 @@ final class IpDiagnostic {
 				);
 		}
 
-		return self::fail_card( '未知来源' );
+		return self::fail_card( __( 'Unknown source', 'wink-wp-gatekeeper' ) );
 	}
 
 	/**
@@ -376,18 +376,18 @@ final class IpDiagnostic {
 	public static function card_error( string $category, int $status ): string {
 		switch ( $category ) {
 			case 'transport':
-				return 0 === $status ? '网络错误/超时' : 'HTTP ' . $status . ' 服务端错误';
+				return 0 === $status ? __( 'Network error/timeout', 'wink-wp-gatekeeper' ) : 'HTTP ' . $status . __( ' server error', 'wink-wp-gatekeeper' );
 			case 'semantic':
 				if ( 401 === $status ) {
-					return '鉴权失败（API Key 无效？）';
+					return __( 'Authentication failed (invalid API Key?)', 'wink-wp-gatekeeper' );
 				}
-				return '请求被拒（HTTP ' . $status . '）';
+				return __( 'Request rejected (HTTP ', 'wink-wp-gatekeeper' ) . $status . '）';
 			case 'contract':
-				return '响应结构不符（服务端改版？）';
+				return __( 'Response shape mismatch (server-side redesign?)', 'wink-wp-gatekeeper' );
 			case 'parse':
-				return '响应非 JSON';
+				return __( 'Response is not JSON', 'wink-wp-gatekeeper' );
 		}
-		return '查询失败';
+		return __( 'Lookup failed', 'wink-wp-gatekeeper' );
 	}
 
 	/* -----------------------------------------------------------------
@@ -431,6 +431,6 @@ final class IpDiagnostic {
 		if ( null === $value ) {
 			return '—';
 		}
-		return $value ? '是' : '否';
+		return $value ? __( 'Yes', 'wink-wp-gatekeeper' ) : __( 'No', 'wink-wp-gatekeeper' );
 	}
 }

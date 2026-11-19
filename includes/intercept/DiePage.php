@@ -42,18 +42,18 @@ final class DiePage {
 			foreach ( $evidence as $label => $value ) {
 				$evidence_rows .= '<tr><th scope="row">' . $e( (string) $label ) . '</th><td class="wk-ev">' . $e( (string) $value ) . '</td></tr>';
 			}
-			$evidence_rows = '<table class="wk-evidence" aria-label="证据">' . $evidence_rows . '</table>';
+			$evidence_rows = '<table class="wk-evidence" aria-label="' . esc_attr__( 'Evidence', 'wink-wp-gatekeeper' ) . '">' . $evidence_rows . '</table>';
 		}
 
 		$contact = '';
 		if ( '' !== $contact_email ) {
-			$contact = '<p class="wk-contact">仍有疑问？联系站长：<a href="mailto:' . $e( $contact_email ) . '">' . $e( $contact_email ) . '</a></p>';
+			$contact = '<p class="wk-contact">' . __( 'Still have questions? Contact the site owner: ', 'wink-wp-gatekeeper' ) . '<a href="mailto:' . $e( $contact_email ) . '">' . $e( $contact_email ) . '</a></p>';
 		}
 
 		$logo = '';
 		if ( '' !== $logo_url ) {
 			// 【W3·批B·改名⑧】alt 改名（原 alt="wink"——显示层改名 8 处之一，§1.5 R3 清单）。
-			$logo = '<img class="wk-logo" src="' . $e( $logo_url ) . '" alt="Wink WP 保安" width="40" height="45" decoding="async">';
+			$logo = '<img class="wk-logo" src="' . $e( $logo_url ) . '" alt="' . esc_attr__( 'Wink WP Guard', 'wink-wp-gatekeeper' ) . '" width="40" height="45" decoding="async">';
 		}
 
 		return '<!DOCTYPE html><html lang="' . $e( $lang ) . '"><head><meta charset="utf-8">'
@@ -93,9 +93,9 @@ final class DiePage {
 			. '<h1>' . $e( $title ) . '</h1>'
 			. '<p class="wk-msg">' . $e( $message ) . '</p>'
 			. $evidence_rows
-			. '<a class="wk-back" href="javascript:history.back()">&larr; 返回上一页</a>'
+			. '<a class="wk-back" href="javascript:history.back()">&larr; ' . esc_html__( 'Back to the previous page', 'wink-wp-gatekeeper' ) . '</a>'
 			. $contact
-			. '<p class="wk-sign">Wink WP 保安</p>'
+			. '<p class="wk-sign">' . esc_html__( 'Wink WP Guard', 'wink-wp-gatekeeper' ) . '</p>'
 			. '</div></body></html>';
 	}
 

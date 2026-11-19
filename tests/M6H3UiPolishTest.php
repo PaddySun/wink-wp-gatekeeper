@@ -545,7 +545,7 @@ namespace WinkGatekeeper\Tests {
 						(string) serialize( array( 'verdict' => 'reject', 'reason' => '垃圾广告', 'disposed_to' => 'spam' ) ),
 						(string) serialize( array( 'verdict' => 'reject', 'reason' => '垃圾广告', 'disposed_to' => 'spam' ) ),
 						(string) serialize( array( 'verdict' => 'review', 'reason' => '垃圾广告', 'disposed_to' => 'hold' ) ),
-						(string) serialize( array( 'verdict' => 'pass', 'reason' => '正常', 'disposed_to' => 'none' ) ),
+						(string) serialize( array( 'verdict' => 'pass', 'reason' => 'Normal', 'disposed_to' => 'none' ) ),
 					);
 				}
 			};

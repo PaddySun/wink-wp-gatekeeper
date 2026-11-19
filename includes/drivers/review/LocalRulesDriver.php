@@ -70,7 +70,7 @@ final class LocalRulesDriver implements ReviewDriverInterface {
 			'id'          => self::DRIVER_ID,
 			'type'        => 'review',
 			'class'       => self::class,
-			'label'       => '本地规则四闸（上游迁移）',
+			'label'       => __( 'Local rules four gates (upstream migration)', "wink-wp-gatekeeper" ),
 			'billing'     => 'free',
 			'frontend'    => array(), // review 类无前端形态.
 			'error_map'   => array(),

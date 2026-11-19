@@ -45,7 +45,7 @@ final class DashboardDigestTest extends TestCase {
 			'today_dash'        => self::YMD_DASH,
 			'captcha_configured' => true,
 			'captcha_driver'    => 'tencent',
-			'captcha_driver_label' => '腾讯天御验证码 2.0',
+			'captcha_driver_label' => 'Tencent Tianyu Captcha 2.0',
 			'driver_labels'     => array(),
 			'cron_alive'        => true,
 			'debug'             => false,
@@ -61,8 +61,8 @@ final class DashboardDigestTest extends TestCase {
 		$gates = $out['health']['gates'];
 		$this->assertCount( 4, $gates, '四闸状态点' );
 		$this->assertSame( array( 'comment', 'login', 'register', 'lostpassword' ), array_column( $gates, 'gate' ) );
-		$this->assertSame( '评论门', $gates[0]['label'] );
-		$this->assertSame( '登录门', $gates[1]['label'] );
+		$this->assertSame( 'Comments', $gates[0]['label'] );
+		$this->assertSame( 'Login', $gates[1]['label'] );
 		$this->assertTrue( $gates[0]['enabled'], '默认设置树四闸全启用' );
 		$this->assertTrue( $gates[3]['enabled'] );
 	}
@@ -87,7 +87,7 @@ final class DashboardDigestTest extends TestCase {
 		$out = DashboardDigest::widget_overview( $this->args() );
 		$this->assertTrue( $out['health']['captcha']['configured'] );
 		$this->assertSame( 'tencent', $out['health']['captcha']['driver_id'] );
-		$this->assertSame( '腾讯天御验证码 2.0', $out['health']['captcha']['label'] );
+		$this->assertSame( 'Tencent Tianyu Captcha 2.0', $out['health']['captcha']['label'] );
 	}
 
 	public function test_health_card_captcha_unconfigured_yellow_state(): void {
@@ -106,9 +106,9 @@ final class DashboardDigestTest extends TestCase {
 		$this->assertCount( 2, $halts, '当日停转驱动=红警报行' );
 		$this->assertSame( 'tencent_tms', $halts[0]['driver_id'] );
 		$this->assertSame( DriverHealth::STATE_CONFIG_ERROR, $halts[0]['state'] );
-		$this->assertSame( '配置有问题', $halts[0]['note'], '停转原因走 Labels 人话（状态码不进站长文案）' );
-		$this->assertSame( '额度用完', $halts[1]['note'] );
-		$this->assertStringContainsString( '密钥', $halts[0]['detail'], 'config_error 一句话原因含密钥提示' );
+		$this->assertSame( 'Configuration problem', $halts[0]['note'], '停转原因走 Labels 人话（状态码不进站长文案）' );
+		$this->assertSame( 'Quota used up', $halts[1]['note'] );
+		$this->assertStringContainsString( 'key', $halts[0]['detail'], 'config_error 一句话原因含密钥提示' );
 	}
 
 	public function test_health_card_halt_stale_date_is_empty(): void {
@@ -157,7 +157,7 @@ final class DashboardDigestTest extends TestCase {
 		$out = DashboardDigest::widget_overview( $this->args( array(
 			'usage'         => $usage,
 			'settings'      => $settings,
-			'driver_labels' => array( 'tencent' => '腾讯天御验证码 2.0', 'tencent_tms' => '腾讯云文本审核' ),
+			'driver_labels' => array( 'tencent' => 'Tencent Tianyu Captcha 2.0', 'tencent_tms' => '腾讯云文本审核' ),
 		) ) );
 
 		$domains = $this->domainsById( $out['usage'] );
@@ -170,7 +170,7 @@ final class DashboardDigestTest extends TestCase {
 		$this->assertSame( 128, $captcha_rows[0]['used'] );
 		$this->assertSame( 0, $captcha_rows[0]['quota'], '验证码驱动无日配额=0（不渲染 N / M 行）' );
 		$this->assertFalse( $captcha_rows[0]['quota_reached'] );
-		$this->assertSame( '腾讯天御验证码 2.0', $captcha_rows[0]['label'] );
+		$this->assertSame( 'Tencent Tianyu Captcha 2.0', $captcha_rows[0]['label'] );
 		$this->assertSame( 'tencent_tms', $review_rows[0]['driver_id'] );
 		$this->assertSame( 1, $review_rows[0]['used'] );
 		$this->assertSame( 500, $review_rows[0]['quota'] );

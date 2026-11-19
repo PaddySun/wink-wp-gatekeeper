@@ -159,7 +159,7 @@ final class M6BBalanceProbeTest extends TestCase {
 		self::assertSame( 'CNY', $state['balance']['currency'], '响应附 balance 对象' );
 		self::assertSame( '110.00', $state['balance']['total_balance'] );
 		self::assertSame( '10.00', $state['balance']['granted_balance'] );
-		self::assertStringContainsString( '余额 110.00 CNY（含赠金 10.00）', $state['message'], '绿态人话行（施工图 B-3 逐字）' );
+		self::assertStringContainsString( 'Balance 110.00 CNY (including grants 10.00', $state['message'], '绿态人话行（施工图 B-3 逐字）' );
 	}
 
 	public function test_classify_green_without_grant_omits_grant_segment(): void {
@@ -172,7 +172,7 @@ final class M6BBalanceProbeTest extends TestCase {
 		$state = CredentialProbe::classify_deepseek_balance( RemoteResult::classify( self::okResponse( $body ) ) );
 
 		self::assertSame( 'green', $state['state'] );
-		self::assertStringContainsString( '余额 100.00 CNY', $state['message'] );
+		self::assertStringContainsString( 'Balance 100.00 CNY', $state['message'] );
 		self::assertStringNotContainsString( '含赠金', $state['message'], '零赠金不虚构赠金段' );
 	}
 
@@ -202,7 +202,7 @@ final class M6BBalanceProbeTest extends TestCase {
 			'body'     => '{"error":{"message":"insufficient balance"}}',
 		) ) );
 		self::assertSame( 'red', $state['state'] );
-		self::assertStringContainsString( '充值', $state['message'], '402 提示充值' );
+		self::assertStringContainsString( 'top up', $state['message'], '402 提示充值' );
 	}
 
 	public function test_classify_red_on_transport_failure(): void {
@@ -277,7 +277,7 @@ final class M6BBalanceProbeTest extends TestCase {
 
 	public function test_provider_test_button_rendered_in_provider_rows(): void {
 		$sp   = self::source( 'includes/settings/SettingsPage.php' );
-		$rows = self::blockBetween( $sp, 'id="wk-url-audit-provider-rows"', '日额度' );
+		$rows = self::blockBetween( $sp, 'id="wk-url-audit-provider-rows"', 'Daily allowance' );
 		self::assertStringContainsString( 'wk-url-audit-provider-test-btn', $rows, '独立凭据测试按钮在 provider rows 内' );
 		self::assertStringContainsString( 'wk-url-audit-provider-test-result', $rows, '结果展示位' );
 	}

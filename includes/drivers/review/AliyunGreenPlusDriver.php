@@ -140,7 +140,7 @@ final class AliyunGreenPlusDriver implements ReviewDriverInterface {
 			'id'           => self::DRIVER_ID,
 			'type'         => 'review',
 			'class'        => self::class,
-			'label'        => '阿里云内容安全·文本审核增强版 PLUS',
+			'label'        => __( 'Aliyun Content Security · Text Moderation Plus', 'wink-wp-gatekeeper' ),
 			'reachability' => 'cn-excellent', // L0 实测 657–947ms（05 §2.5 可达性行）。
 			'billing'      => 'usage',        // text_standard 档 7.5 元/万次按量（双送 ×2 如实计量）。
 			'frontend'     => array(),        // review 类无前端形态.
@@ -149,20 +149,20 @@ final class AliyunGreenPlusDriver implements ReviewDriverInterface {
 			'settings'     => array(
 				'access_key_id'     => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'AccessKeyId', 'required' => true ),
 				'access_key_secret' => array( 'type' => 'password', 'sanitize' => 'password', 'label' => 'AccessKeySecret', 'required' => true ),
-				'service_nickname'  => array( 'type' => 'text', 'sanitize' => 'text', 'label' => '昵称 Service 名', 'required' => true ),
-				'service_comment'   => array( 'type' => 'text', 'sanitize' => 'text', 'label' => '正文 Service 名', 'required' => true ),
-				'timeout'           => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '超时（秒）' ),
-				'daily_quota'       => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => '日配额' ),
-				'fail_mode'         => array( 'type' => 'text', 'sanitize' => 'text', 'label' => '故障降级' ),
-				'dual_dispatch'     => array( 'type' => 'bool', 'sanitize' => 'bool', 'label' => '双 Service 分送（关=拼接串单调兼容回退）' ),
+				'service_nickname'  => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'Nickname service name', 'wink-wp-gatekeeper' ), 'required' => true ),
+				'service_comment'   => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'Body service name', 'wink-wp-gatekeeper' ), 'required' => true ),
+				'timeout'           => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Timeout (seconds)', 'wink-wp-gatekeeper' ) ),
+				'daily_quota'       => array( 'type' => 'number', 'sanitize' => 'absint', 'label' => __( 'Daily quota', 'wink-wp-gatekeeper' ) ),
+				'fail_mode'         => array( 'type' => 'text', 'sanitize' => 'text', 'label' => __( 'Failure fallback', 'wink-wp-gatekeeper' ) ),
+				'dual_dispatch'     => array( 'type' => 'bool', 'sanitize' => 'bool', 'label' => __( 'Dual-service dispatch (off = monotonous compatibility fallback for the concatenated string)', 'wink-wp-gatekeeper' ) ),
 			),
 			'privacy'      => DriverPrivacy::entry( self::DRIVER_ID ), // 第七维（内容表单一来源引用，禁双源漂移）.
 			'guide'        => array( // 【v1.4·R4 §A.5】接入指引下放 registry（guide 维渲染）。
 				'steps' => array(
-					'1. 阿里云控制台开通「内容安全 · 文本审核增强版」（TextModerationPlus，Green 2022-03-02）。',
-					'2. 准备 RAM AccessKey 对（可与验证码 2.0 共用同一 RAM 用户——同一账号双产品线，L0 实测注记），并授予 AliyunYundunGreenWebFullAccess 权限。',
-					'3. 粘贴至下方（双 Service 名默认 nickname/comment_detection_pro，一般无需修改）→ 点「测试凭据」。',
-					'4. 判定映射（站长不可调）：RiskLevel none/low→放行、medium→入待审、high→直接拦截；分档界线在阿里控制台规则配置。如需 medium/low 中间态与小数置信分，请在内容安全控制台规则配置中开启细粒度检测。',
+					__( '1. Enable “Content Security · Text Moderation Plus” (TextModerationPlus, Green 2022-03-02) in the Aliyun console.', 'wink-wp-gatekeeper' ),
+					__( '2. Prepare a RAM AccessKey pair (it can share the RAM user with Captcha 2.0 — one account, two product lines, per L0 field notes) and grant it AliyunYundunGreenWebFullAccess.', 'wink-wp-gatekeeper' ),
+					__( '3. Paste below (the dual service names default to nickname/comment_detection_pro and rarely need changes) → click “Test credentials”.', 'wink-wp-gatekeeper' ),
+					__( '4. Verdict mapping (not admin-adjustable): RiskLevel none/low → pass, medium → pending review, high → direct block; band boundaries live in the Aliyun console rule config. For a medium/low middle band and decimal confidence scores, enable fine-grained detection in the Content Security console rule config.', 'wink-wp-gatekeeper' ),
 				),
 				'doc_url' => 'https://help.aliyun.com/zh/green/developer-reference/api-green-2022-03-02-textmoderationplus',
 			),

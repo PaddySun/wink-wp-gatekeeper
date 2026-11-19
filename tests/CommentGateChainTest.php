@@ -73,7 +73,7 @@ final class CommentGateChainTest extends TestCase {
 				),
 			),
 			'copy'   => array( 'messages' => array(
-				'banned_word' => '这串字符我们眼熟——换句人话再试试？',
+				'banned_word' => 'We have seen this string before — how about plain human words instead?',
 			) ),
 			'stats'  => array( 'enabled' => true, 'pass_sampling' => false ),
 		), $overrides );
@@ -159,8 +159,8 @@ final class CommentGateChainTest extends TestCase {
 		$this->assertSame( 'Ad,99', $log[0]['rule'] );
 		$this->assertSame( 99, $log[0]['meta']['Score'] );
 		// 证据行：事件编号/规则名/时间（规则名 = Label,Score；不暴露 IP/原文/reason 细节）。
-		$this->assertSame( 'Ad,99', $result['evidence']['命中规则'] );
-		$this->assertStringContainsString( '换句人话', (string) $result['message'] );
+		$this->assertSame( 'Ad,99', $result['evidence']['Matched rule'] );
+		$this->assertStringContainsString( 'plain human words', (string) $result['message'] );
 		$this->assertSame( 1, $calls );
 	}
 

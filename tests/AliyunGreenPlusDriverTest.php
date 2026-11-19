@@ -85,14 +85,14 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			'Result'   => array(
 				array(
 					'RiskWords'     => '加微信,加&微信',
-					'Description'   => '疑似站外引流',
+					'Description'   => 'Suspected off-site traffic diversion',
 					'Confidence'    => 100,
 					'Label'         => 'pt_to_sites',
 					'RiskPositions' => array(),
 				),
 				array(
 					'RiskWords'     => '加微,福利,abc123',
-					'Description'   => '疑似引流广告号',
+					'Description'   => 'Suspected ad-spam account',
 					'Confidence'    => 100,
 					'Label'         => 'pt_to_contact',
 					'RiskPositions' => array(),
@@ -191,13 +191,13 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 	}
 
 	public function test_build_payload_form_shape_like_l0_smoke(): void {
-		$payload = AliyunGreenPlusDriver::build_payload( 'comment_detection_pro', '正文', 'wk-comment-abc' );
+		$payload = AliyunGreenPlusDriver::build_payload( 'comment_detection_pro', 'body', 'wk-comment-abc' );
 		// form body 形态（L0 实调 + SDK reqBodyType=formData）：Service=..&ServiceParameters=<json>。
 		$this->assertMatchesRegularExpression( '/^Service=comment_detection_pro&ServiceParameters=/', $payload );
 		parse_str( $payload, $parsed );
 		$this->assertSame( 'comment_detection_pro', $parsed['Service'] );
 		$sp = json_decode( $parsed['ServiceParameters'], true );
-		$this->assertSame( '正文', $sp['content'] );
+		$this->assertSame( 'body', $sp['content'] );
 		$this->assertSame( 'wk-comment-abc', $sp['dataId'] );
 		$this->assertArrayNotHasKey( 'accountId', $sp, 'PIPL 最小化：accountId 不送（05 §2.5）' );
 	}
@@ -258,7 +258,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			self::raw_ok( self::clean_data() ),
 			self::raw_ok( self::clean_data() ),
 		), $log );
-		self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		foreach ( $log as $i => $call ) {
 			parse_str( (string) $call[1]['body'], $body );
@@ -281,7 +281,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 		$this->assertSame( Verdict::REJECT, $verdict->verdict() );
 		$this->assertCount( 1, $log, '先昵称后正文（快短路）——昵称 reject 即终止，不烧第二调' );
 		$this->assertSame( array( 'pt_to_sites', 'pt_to_contact' ), $verdict->hits(), 'hits=全部 Label' );
-		$this->assertSame( 'pt_to_sites,疑似站外引流', $verdict->reason(), 'reason=首条 Label,Description（05 §2.5）' );
+		$this->assertSame( 'pt_to_sites,Suspected off-site traffic diversion', $verdict->reason(), 'reason=首条 Label,Description（05 §2.5）' );
 	}
 
 	public function test_comment_channel_reject_when_nickname_clean(): void {
@@ -295,7 +295,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 		$verdict = self::driver( null, $client )->check( "山间清风\na@b.c\n限时福利！加微信 abc123 领取兼职", $meta );
 
 		$this->assertSame( Verdict::REJECT, $verdict->verdict() );
-		$this->assertSame( 'pt_to_sites,疑似站外引流', $verdict->reason() );
+		$this->assertSame( 'pt_to_sites,Suspected off-site traffic diversion', $verdict->reason() );
 	}
 
 	public function test_medium_review_or_semantics(): void {
@@ -306,7 +306,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			self::raw_ok( self::clean_data() ),
 		), $log );
 
-		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertSame( Verdict::REVIEW, $verdict->verdict() );
 		$this->assertSame( array( 'pt_to_sites', 'pt_to_contact' ), $verdict->hits() );
@@ -320,7 +320,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			self::raw_ok( self::clean_data() ),
 		), $log );
 
-		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertSame( Verdict::PASS, $verdict->verdict() );
 		$this->assertSame( array(), $verdict->hits(), 'nonLabel 伪标签剔除后零标签' );
@@ -336,7 +336,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			self::raw_ok( self::clean_data() ),
 		), $log );
 
-		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 		$this->assertSame( Verdict::REVIEW, $verdict->verdict(), '兜底 review（从严）' );
 	}
 
@@ -350,7 +350,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			self::raw_ok( self::clean_data() ),
 		), $log );
 
-		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 		$this->assertSame( Verdict::REVIEW, $verdict->verdict() );
 		$this->assertSame( 'mystery', $verdict->reason() );
 	}
@@ -365,7 +365,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			self::raw_ok( self::clean_data() ),
 		), $log );
 
-		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertSame( Verdict::PASS, $verdict->verdict(), '一通道故障不吞另一通道的有效判定' );
 	}
@@ -378,7 +378,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			self::raw_ok( self::risky_data( 'high' ) ),
 		), $log );
 
-		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = self::driver( null, $client )->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 		$this->assertSame( Verdict::REJECT, $verdict->verdict() );
 	}
 
@@ -391,7 +391,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 		), $log );
 
 		$driver  = self::driver( null, $client );
-		$verdict = $driver->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = $driver->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertSame( Verdict::ERROR, $verdict->verdict() );
 		$this->assertSame( 'remote_semantic', $verdict->reason(), '闸侧当日停转按 meta.category=semantic 判定' );
@@ -411,7 +411,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 		), $log );
 
 		$driver  = self::driver( null, $client );
-		$verdict = $driver->check( "日结兼职加V\na@b.c\n正文", array( 'author' => '日结兼职加V', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = $driver->check( "日结兼职加V\na@b.c\n正文", array( 'author' => '日结兼职加V', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertSame( Verdict::REJECT, $verdict->verdict() );
 		$meta = $driver->last_check_meta();
@@ -432,7 +432,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 
 		$long   = str_repeat( '好', 700 );
 		$driver = self::driver( null, $client );
-		$driver->check( "昵称\na@b.c\n" . $long, array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => $long ) );
+		$driver->check( "昵称\na@b.c\n" . $long, array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => $long ) );
 
 		$meta = $driver->last_check_meta();
 		$this->assertTrue( $meta['truncated'] );
@@ -455,7 +455,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			static function (): void {}
 		);
 		$driver  = self::driver( null, $client );
-		$verdict = $driver->check( "昵称\na@b.c\n正文", array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$verdict = $driver->check( "昵称\na@b.c\n正文", array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertSame( Verdict::ERROR, $verdict->verdict() );
 		$this->assertSame( array( 'aliyun_green', 'aliyun_green' ), $usage, '双通道分送两调均计入 usage（成本 ×2 如实计量）' );
@@ -482,7 +482,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 		$green  = array( 'access_key_id' => 'id', 'access_key_secret' => 's', 'dual_dispatch' => false );
 		$concat = "昵称\na@b.c\n正文";
 		$driver = self::driver( $green, $client );
-		$driver->check( $concat, array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$driver->check( $concat, array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertCount( 1, $log, 'F36 兼容回退：拼接串单调一调' );
 		parse_str( (string) $log[0][1]['body'], $body );
@@ -501,7 +501,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 			'cloud'                 => array( 'aliyun_green' => array( 'access_key_id' => 'id', 'access_key_secret' => 's' ) ),
 		) );
 		$driver = self::driver( null, $client, $settings_extra );
-		$driver->check( '仅正文', array( 'author' => '昵称', 'email' => 'a@b.c', 'content' => '仅正文' ) );
+		$driver->check( '仅正文', array( 'author' => 'Nickname', 'email' => 'a@b.c', 'content' => '仅正文' ) );
 
 		$this->assertCount( 1, $log );
 		parse_str( (string) $log[0][1]['body'], $body );
@@ -515,7 +515,7 @@ final class AliyunGreenPlusDriverTest extends TestCase {
 		$client = self::client_sequence( array( self::raw_ok( self::clean_data() ) ), $log );
 
 		$driver = self::driver( null, $client );
-		$driver->check( "a@b.c\n正文", array( 'author' => '', 'email' => 'a@b.c', 'content' => '正文' ) );
+		$driver->check( "a@b.c\n正文", array( 'author' => '', 'email' => 'a@b.c', 'content' => 'body' ) );
 
 		$this->assertCount( 1, $log );
 		parse_str( (string) $log[0][1]['body'], $body );

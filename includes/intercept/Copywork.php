@@ -36,7 +36,7 @@ final class Copywork {
 	 * {contact_email}=站长当前配置值。
 	 */
 	public const PREVIEW_EVENT_NO     = 'WK-00000000';
-	public const PREVIEW_RULE_SAMPLE  = '示例规则';
+	public const PREVIEW_RULE_SAMPLE  = 'Sample rule'; // i18n 批 I-3：值同步 en（消费位 __() 字面量拍平，zh msgstr=示例规则）。
 
 	/**
 	 * 云端 Label 映射键前缀（03 §3【v1.5·F4-3】：映射表落点=Copywork 键值表，键 wk-label-<Label>）。
@@ -87,28 +87,28 @@ final class Copywork {
 	public static function defaults(): array {
 		return array(
 			'messages' => array(
-				'too_short'       => '这条评论看起来像还没写完。也可能是手滑提前按了提交——写到 {min_length} 字（{max_length} 字以内）再试试？',
-				'too_long'        => '这条评论看起来像模板群发的第 4,000 份。也可能是话痨附体——控制在 {min_length}–{max_length} 字之间再试试？',
-				'no_chinese'      => '这条评论看起来像模板群发的第 4,000 份。也可能是网络抽风替你按了提交——再试一次？',
-				'banned_word'     => '这串字符我们眼熟——换句人话再试试？',
-				'captcha_failed'  => '眨眼没对上——刷新页面再试一次？换个浏览器也行。实在不行：{contact_email}',
-				'captcha_missing' => '还差一个眨眼——完成人机验证再点提交。', // 【v1.4·反馈5/R2 §5 改词】原「完成上方的验证」——嵌入式后验证码不一定在「上方」（键名不变）。
-				'ip_malicious'    => '这次连接的来路有点可疑。如果你是正常访客，换个网络或稍后再来；认为是误判：{contact_email}',
-				'cloud_error'     => '这条评论先替你收进待审区了——站长稍后会看，不用重发。',
-				'duplicate_comment' => '这条评论刚刚已经发过一遍了——是手滑连点了两下？返回看看它是否已经在排队/显示。',
-				'comment_flood'   => '手速比眨眼还快——稍等几秒再发。',
+				'too_short'       => __( 'This comment looks unfinished — maybe an accidental early submit. Write {min_length} characters or more (under {max_length}) and try again?', 'wink-wp-gatekeeper' ),
+				'too_long'        => __( 'This comment looks like template copy #4,000 — or maybe you got carried away. Keep it between {min_length} and {max_length} characters and try again?', 'wink-wp-gatekeeper' ),
+				'no_chinese'      => __( 'This comment looks like template copy #4,000 — or maybe a network hiccup pressed submit for you. Try again?', 'wink-wp-gatekeeper' ),
+				'banned_word'     => __( 'We have seen this string before — how about plain human words instead?', 'wink-wp-gatekeeper' ),
+				'captcha_failed'  => __( 'The wink did not land — refresh the page and try again? Another browser works too. If all else fails: {contact_email}', 'wink-wp-gatekeeper' ),
+				'captcha_missing' => __( 'One wink missing — complete human verification, then hit submit.', 'wink-wp-gatekeeper' ), // 【v1.4·反馈5/R2 §5 改词】原「完成上方的验证」——嵌入式后验证码不一定在「上方」（键名不变）。
+				'ip_malicious'    => __( 'This connection looks a bit suspicious. If you are a regular visitor, try another network or come back later; if you think this is a false positive: {contact_email}', 'wink-wp-gatekeeper' ),
+				'cloud_error'     => __( 'Your comment has been parked in the pending queue — the site owner will review it shortly, no need to resubmit.', 'wink-wp-gatekeeper' ),
+				'duplicate_comment' => __( 'This comment was just submitted — did you double-click by accident? Go back and check whether it is already queued or showing.', 'wink-wp-gatekeeper' ),
+				'comment_flood'   => __( 'Faster than a blink — wait a few seconds before posting again.', 'wink-wp-gatekeeper' ),
 			),
 			'titles'   => array(
-				'too_short'       => '这条评论有点短',
-				'too_long'        => '这条评论有点长',
-				'no_chinese'      => '缺了点中文味儿',
-				'banned_word'     => '这串字符我们眼熟',
-				'captcha_failed'  => '眨眼没对上',
-				'captcha_missing' => '还差一个眨眼',
-				'ip_malicious'    => '这次连接的来路有点可疑',
-				'cloud_error'     => '已收进待审区',
-				'duplicate_comment' => '这条评论已经发过了',
-				'comment_flood'   => '手速比眨眼还快',
+				'too_short'       => __( 'This comment is a bit short', 'wink-wp-gatekeeper' ),
+				'too_long'        => __( 'This comment is a bit long', 'wink-wp-gatekeeper' ),
+				'no_chinese'      => __( 'Missing some Chinese', 'wink-wp-gatekeeper' ),
+				'banned_word'     => __( 'We know this string', 'wink-wp-gatekeeper' ),
+				'captcha_failed'  => __( 'The wink did not land', 'wink-wp-gatekeeper' ),
+				'captcha_missing' => __( 'One wink missing', 'wink-wp-gatekeeper' ),
+				'ip_malicious'    => __( 'This connection looks suspicious', 'wink-wp-gatekeeper' ),
+				'cloud_error'     => __( 'Parked in pending review', 'wink-wp-gatekeeper' ),
+				'duplicate_comment' => __( 'This comment was already posted', 'wink-wp-gatekeeper' ),
+				'comment_flood'   => __( 'Faster than a blink', 'wink-wp-gatekeeper' ),
 			),
 		);
 	}
@@ -143,47 +143,47 @@ final class Copywork {
 	public static function cloud_labels(): array {
 		return array(
 			// 腾讯云 TMS 文本审核（实测定稿 Label 集）。
-			'wk-label-Abuse'      => '辱骂违规',
-			'wk-label-Ad'         => '广告',
-			'wk-label-Porn'       => '色情低俗',
-			'wk-label-Politics'   => '涉政',
-			'wk-label-Terrorism'  => '暴恐',
-			'wk-label-Contraband' => '违禁',
-			'wk-label-Sexy'       => '性感的',
+			'wk-label-Abuse'      => __( 'Abusive', 'wink-wp-gatekeeper' ),
+			'wk-label-Ad'         => __( 'Advertising', 'wink-wp-gatekeeper' ),
+			'wk-label-Porn'       => __( 'Pornographic / vulgar', 'wink-wp-gatekeeper' ),
+			'wk-label-Politics'   => __( 'Politics', 'wink-wp-gatekeeper' ),
+			'wk-label-Terrorism'  => __( 'Terrorism', 'wink-wp-gatekeeper' ),
+			'wk-label-Contraband' => __( 'Contraband', 'wink-wp-gatekeeper' ),
+			'wk-label-Sexy'       => __( 'Sexual content', 'wink-wp-gatekeeper' ),
 			// 阿里文本审核增强版 PLUS（05 §2.5 摘录族；B5 核对补缺——L0 实测 pt_* 三标签命中）。
-			'wk-label-pt_to_sites'              => '疑似站外引流',
-			'wk-label-pt_to_contact'            => '疑似引流广告号',
-			'wk-label-pt_by_recruitment'        => '疑似网赚兼职广告',
-			'wk-label-ad_compliance'            => '违反广告法内容',
-			'wk-label-inappropriate_profanity'  => '疑似攻击辱骂',
-			'wk-label-inappropriate_oral'       => '疑似低俗口头语',
-			'wk-label-inappropriate_nonsense'   => '疑似无意义灌水',
-			'wk-label-inappropriate_discrimination' => '疑似偏见歧视',
-			'wk-label-inappropriate_ethics'     => '疑似不良价值观',
-			'wk-label-inappropriate_superstition' => '疑似封建迷信',
-			'wk-label-pornographic_adult'       => '疑似色情',
-			'wk-label-sexual_terms'             => '疑似性健康',
-			'wk-label-sexual_suggestive'        => '疑似低俗',
-			'wk-label-political_figure'         => '疑似政治人物',
-			'wk-label-political_entity'         => '疑似政治实体',
-			'wk-label-political_n'              => '疑似政治敏感',
-			'wk-label-political_p'              => '疑似政治禁宣',
-			'wk-label-political_a'              => '疑似政治专项',
-			'wk-label-violent_extremist'        => '疑似极端组织',
-			'wk-label-violent_incidents'        => '疑似暴力事件',
-			'wk-label-violent_weapons'          => '疑似武器弹药',
-			'wk-label-contraband_drug'          => '疑似毒品',
-			'wk-label-contraband_gambling'      => '疑似赌博',
-			'wk-label-contraband_act'           => '疑似违禁行为',
-			'wk-label-contraband_entity'        => '疑似违禁工具',
-			'wk-label-religion_b'               => '涉佛教',
-			'wk-label-religion_t'               => '涉道教',
-			'wk-label-religion_c'               => '涉基督',
-			'wk-label-religion_i'               => '涉伊斯兰',
-			'wk-label-religion_h'               => '涉印度教',
-			'wk-label-customized'               => '命中自定义词库',
-			'wk-label-aigc'                     => '文本疑似 AI 生成',
-			'wk-label-ugc'                      => '非 AI 生成',
+			'wk-label-pt_to_sites'              => __( 'Suspected off-site traffic diversion', 'wink-wp-gatekeeper' ),
+			'wk-label-pt_to_contact'            => __( 'Suspected ad-spam account', 'wink-wp-gatekeeper' ),
+			'wk-label-pt_by_recruitment'        => __( 'Suspected money-making job ad', 'wink-wp-gatekeeper' ),
+			'wk-label-ad_compliance'            => __( 'Ad-law violating content', 'wink-wp-gatekeeper' ),
+			'wk-label-inappropriate_profanity'  => __( 'Suspected abusive attack', 'wink-wp-gatekeeper' ),
+			'wk-label-inappropriate_oral'       => __( 'Suspected vulgar language', 'wink-wp-gatekeeper' ),
+			'wk-label-inappropriate_nonsense'   => __( 'Suspected meaningless flooding', 'wink-wp-gatekeeper' ),
+			'wk-label-inappropriate_discrimination' => __( 'Suspected bias / discrimination', 'wink-wp-gatekeeper' ),
+			'wk-label-inappropriate_ethics'     => __( 'Suspected harmful values', 'wink-wp-gatekeeper' ),
+			'wk-label-inappropriate_superstition' => __( 'Suspected superstition', 'wink-wp-gatekeeper' ),
+			'wk-label-pornographic_adult'       => __( 'Suspected pornography', 'wink-wp-gatekeeper' ),
+			'wk-label-sexual_terms'             => __( 'Suspected sexual-health content', 'wink-wp-gatekeeper' ),
+			'wk-label-sexual_suggestive'        => __( 'Suspected vulgarity', 'wink-wp-gatekeeper' ),
+			'wk-label-political_figure'         => __( 'Suspected political figure', 'wink-wp-gatekeeper' ),
+			'wk-label-political_entity'         => __( 'Suspected political entity', 'wink-wp-gatekeeper' ),
+			'wk-label-political_n'              => __( 'Suspected politically sensitive', 'wink-wp-gatekeeper' ),
+			'wk-label-political_p'              => __( 'Suspected banned political promotion', 'wink-wp-gatekeeper' ),
+			'wk-label-political_a'              => __( 'Suspected special political campaign', 'wink-wp-gatekeeper' ),
+			'wk-label-violent_extremist'        => __( 'Suspected extremist group', 'wink-wp-gatekeeper' ),
+			'wk-label-violent_incidents'        => __( 'Suspected violent incident', 'wink-wp-gatekeeper' ),
+			'wk-label-violent_weapons'          => __( 'Suspected weapons', 'wink-wp-gatekeeper' ),
+			'wk-label-contraband_drug'          => __( 'Suspected drugs', 'wink-wp-gatekeeper' ),
+			'wk-label-contraband_gambling'      => __( 'Suspected gambling', 'wink-wp-gatekeeper' ),
+			'wk-label-contraband_act'           => __( 'Suspected banned behavior', 'wink-wp-gatekeeper' ),
+			'wk-label-contraband_entity'        => __( 'Suspected banned tools', 'wink-wp-gatekeeper' ),
+			'wk-label-religion_b'               => __( 'Buddhism-related', 'wink-wp-gatekeeper' ),
+			'wk-label-religion_t'               => __( 'Taoism-related', 'wink-wp-gatekeeper' ),
+			'wk-label-religion_c'               => __( 'Christianity-related', 'wink-wp-gatekeeper' ),
+			'wk-label-religion_i'               => __( 'Islam-related', 'wink-wp-gatekeeper' ),
+			'wk-label-religion_h'               => __( 'Hinduism-related', 'wink-wp-gatekeeper' ),
+			'wk-label-customized'               => __( 'Custom word list hit', 'wink-wp-gatekeeper' ),
+			'wk-label-aigc'                     => __( 'Text suspected AI-generated', 'wink-wp-gatekeeper' ),
+			'wk-label-ugc'                      => __( 'Not AI-generated', 'wink-wp-gatekeeper' ),
 		);
 	}
 
@@ -198,11 +198,11 @@ final class Copywork {
 	public static function driver_prefix( string $type, string $label ): string {
 		switch ( $type ) {
 			case 'review':
-				return '云端文本审核（' . $label . '）';
+				return __( 'Cloud text moderation (', 'wink-wp-gatekeeper' ) . $label . __( ')', 'wink-wp-gatekeeper' );
 			case 'captcha':
-				return '人机验证（' . $label . '）';
+				return __( 'Human verification (', 'wink-wp-gatekeeper' ) . $label . __( ')', 'wink-wp-gatekeeper' );
 			case 'ip':
-				return 'IP 信誉（' . $label . '）';
+				return __( 'IP reputation (', 'wink-wp-gatekeeper' ) . $label . __( ')', 'wink-wp-gatekeeper' );
 		}
 		return $label;
 	}
@@ -235,7 +235,7 @@ final class Copywork {
 		$zh     = isset( $labels[ $key ] ) && is_string( $labels[ $key ] ) && '' !== $labels[ $key ]
 			? $labels[ $key ]
 			: $label; // 未收录标签原样兜底。
-		return $prefix . '：' . $zh . ' · 置信 ' . $m[2];
+		return $prefix . __( ':', 'wink-wp-gatekeeper' ) . $zh . __( ' · confidence ', 'wink-wp-gatekeeper' ) . $m[2];
 	}
 
 	/**

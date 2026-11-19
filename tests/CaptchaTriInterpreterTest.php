@@ -152,7 +152,7 @@ final class CaptchaTriInterpreterTest extends TestCase {
 		$outcome     = $interpreter->interpret( array(
 			'state'   => 'reject',
 			'score'   => null,
-			'message' => '刷新页面再试一次。',
+			'message' => 'Refresh the page and try again.',
 			'meta'    => array( 'rule' => 'CaptchaCode=8' ),
 		) );
 		$this->assertSame( Verdict::REJECT, $outcome['verdict'] );
@@ -160,7 +160,7 @@ final class CaptchaTriInterpreterTest extends TestCase {
 		$this->assertFalse( $outcome['write_cache'] );
 		$this->assertSame( 'CaptchaCode=8', $outcome['rule'] );
 		$this->assertSame( array( 'CaptchaCode=8' ), $outcome['hits'] );
-		$this->assertSame( '刷新页面再试一次。', $outcome['message'], '驱动终态文案直通' );
+		$this->assertSame( 'Refresh the page and try again.', $outcome['message'], '驱动终态文案直通' );
 	}
 
 	/* ---------- interpret：error（四类终态）——C1 统计纠偏点 ---------- */

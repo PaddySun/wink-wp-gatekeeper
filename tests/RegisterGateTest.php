@@ -230,7 +230,7 @@ use WinkGatekeeper\Verdict;
 
 	public function test_verify_failed_ticket_rejects_with_driver_message(): void {
 		$log = array();
-		$g   = $this->gate( $this->fake_captcha( '眨眼没对上——刷新页面再试一次？' ), $log );
+		$g   = $this->gate( $this->fake_captcha( 'The wink did not land — refresh the page and try again?' ), $log );
 
 		$result = $g->verify_orchestrate( array(
 			'wk_stub'            => self::shown_stub(),
@@ -241,7 +241,7 @@ use WinkGatekeeper\Verdict;
 		$this->assertSame( 'reject', $result['decision'] );
 		$this->assertSame( 'captcha', $log[0]['stage'] );
 		$this->assertSame( 'captcha_failed', $log[0]['rule'], '无 last_verify_meta 驱动回落 captcha_failed 档' );
-		$this->assertStringContainsString( '眨眼没对上', (string) $result['message'], '驱动文案直通 WP_Error 注入' );
+		$this->assertStringContainsString( 'The wink did not land', (string) $result['message'], '驱动文案直通 WP_Error 注入' );
 	}
 
 	public function test_verify_valid_ticket_allows_without_events(): void {
@@ -337,7 +337,7 @@ use WinkGatekeeper\Verdict;
 
 		$this->assertSame( 'always', $log[0]['meta']['trigger_source'] ?? null, '常显闸归因=always（02 §3.2 事件可观测性）' );
 		$this->assertSame( '203.0.113.7', $log[0]['meta']['client_ip'] ?? '', 'meta.client_ip 供默认记录器算 ip_hash' );
-		$this->assertSame( 'WK-20261110-0001', $result['evidence']['事件编号'] ?? '', '证据行携带事件编号' );
+		$this->assertSame( 'WK-20261110-0001', $result['evidence']['Event No.'] ?? '', '证据行携带事件编号' );
 	}
 
 	/* ---------- 验证短缓存复用（Bootstrap 单例装配同一实例） ---------- */

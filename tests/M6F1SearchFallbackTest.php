@@ -964,7 +964,7 @@ namespace WinkGatekeeper\Tests {
 			$sp   = self::source( 'includes/settings/SettingsPage.php' );
 			$card = self::blockBetween( $sp, 'id="wk-tools-url-audit-report"', 'wk-card--ghost' );
 			self::assertStringContainsString( 'id="wk-tools-url-audit-reasons"', $card, 'URL 报告原因明细折叠锚' );
-			self::assertStringContainsString( '网址打不开，依据搜索线索判定', $card, '人话标记（evidence=search 行）' );
+			self::assertStringContainsString( 'URL would not open; judged from search clues', $card, '人话标记（evidence=search 行）' );
 		}
 
 		public function test_backlog_report_view_reasons_grouped_with_evidence(): void {

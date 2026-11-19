@@ -77,7 +77,7 @@ final class OverviewRosterTest extends TestCase {
 	public function test_captcha_duty_matrix(): void {
 		$drivers = array(
 			self::meta( 'tencent', '腾讯天御验证码', 'captcha', array( 'secret_id' ) ),
-			self::meta( 'aliyun', '阿里云验证码 2.0', 'captcha', array( 'access_key_id' ) ),
+			self::meta( 'aliyun', 'Aliyun Captcha 2.0', 'captcha', array( 'access_key_id' ) ),
 		);
 
 		// 当班：选中 + 必填齐；另一家配好未排班=待命。
@@ -105,8 +105,8 @@ final class OverviewRosterTest extends TestCase {
 
 	public function test_review_duty_matrix(): void {
 		$drivers = array(
-			self::meta( 'tencent_tms', '腾讯 TMS 文本审核', 'review', array( 'secret_id' ) ),
-			self::meta( 'baidu', '百度文本审核', 'review', array( 'api_key' ) ),
+			self::meta( 'tencent_tms', 'Tencent TMS text moderation', 'review', array( 'secret_id' ) ),
+			self::meta( 'baidu', 'Baidu Text Moderation', 'review', array( 'api_key' ) ),
 		);
 		$ctx = array(
 			'cloud_enabled' => true,
@@ -134,7 +134,7 @@ final class OverviewRosterTest extends TestCase {
 	 * 「已配置未启用」；必填缺=未配置收拢行；config_tab=iprep（Tab④）。
 	 */
 	public function test_ip_duty_matrix(): void {
-		$drivers = array( self::meta( 'abuseipdb', 'AbuseIPDB（IP 信誉查询）', 'ip', array( 'api_key' ) ) );
+		$drivers = array( self::meta( 'abuseipdb', 'AbuseIPDB (IP reputation lookup)', 'ip', array( 'api_key' ) ) );
 
 		// enabled + 必填齐 = 当班。
 		$cards = OverviewRoster::cards( $drivers, self::ctx( array(
@@ -142,7 +142,7 @@ final class OverviewRosterTest extends TestCase {
 			'configs'       => array( 'abuseipdb' => array( 'api_key' => 'k' ) ),
 		) ) );
 		$this->assertSame( 'active', self::card( $cards, 'abuseipdb' )['duty'], 'iprep.enabled=true + api_key 齐 = 当班' );
-		$this->assertSame( 'IP 信誉', self::card( $cards, 'abuseipdb' )['role'], '分组词=stage_word(ip)' );
+		$this->assertSame( 'IP reputation', self::card( $cards, 'abuseipdb' )['role'], '分组词=stage_word(ip)' );
 		$this->assertSame( 'iprep', self::card( $cards, 'abuseipdb' )['config_tab'], '配置去向=Tab④' );
 
 		// !enabled + 必填齐 = 待命（已配置未启用——蓝点态如实）。
@@ -160,7 +160,7 @@ final class OverviewRosterTest extends TestCase {
 	/* ---------- 健康态推导（正常/故障/额度用完——DriverHealth state map 消费） ---------- */
 
 	public function test_health_states_and_notes(): void {
-		$drivers = array( self::meta( 'tencent_tms', '腾讯 TMS 文本审核', 'review', array( 'secret_id' ) ) );
+		$drivers = array( self::meta( 'tencent_tms', 'Tencent TMS text moderation', 'review', array( 'secret_id' ) ) );
 		$base    = array(
 			'cloud_enabled' => true,
 			'chain'         => array( 'tencent_tms' ),
@@ -170,7 +170,7 @@ final class OverviewRosterTest extends TestCase {
 		// 正常（无停转行=null——F8）。
 		$card = self::card( OverviewRoster::cards( $drivers, self::ctx( $base ) ), 'tencent_tms' );
 		$this->assertTrue( $card['healthy'] );
-		$this->assertSame( '正常', $card['health_word'] );
+		$this->assertSame( 'Normal', $card['health_word'] );
 		$this->assertSame( '', $card['halt_note'] );
 
 		// 故障（config_error——密钥被拒）。
@@ -178,14 +178,14 @@ final class OverviewRosterTest extends TestCase {
 		$ctx['halted'] = array( 'tencent_tms' => 'config_error' );
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent_tms' );
 		$this->assertFalse( $card['healthy'] );
-		$this->assertSame( '故障', $card['health_word'] );
-		$this->assertStringContainsString( '密钥被拒', $card['halt_note'] );
+		$this->assertSame( 'Fault', $card['health_word'] );
+		$this->assertStringContainsString( 'key rejected', $card['halt_note'] );
 
 		// 额度用完（quota_exhausted——次日自动恢复）。
 		$ctx['halted'] = array( 'tencent_tms' => 'quota_exhausted' );
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent_tms' );
-		$this->assertSame( '额度用完', $card['health_word'] );
-		$this->assertStringContainsString( '次日自动恢复', $card['halt_note'] );
+		$this->assertSame( 'Quota used up', $card['health_word'] );
+		$this->assertStringContainsString( 'resumes automatically tomorrow', $card['halt_note'] );
 		$this->assertSame( 'active', $card['duty'], '残留停转态不盖排班态——当班为准' );
 
 		// 状态码不出站长文案（反钉）。
@@ -197,10 +197,10 @@ final class OverviewRosterTest extends TestCase {
 	public function test_sort_anomaly_first_then_active_standby_unconfigured(): void {
 		$drivers = array(
 			self::meta( 'tencent', '腾讯天御验证码', 'captcha', array( 'secret_id' ) ),
-			self::meta( 'aliyun', '阿里云验证码 2.0', 'captcha', array( 'access_key_id' ) ),
-			self::meta( 'tencent_tms', '腾讯 TMS 文本审核', 'review', array( 'secret_id' ) ),
+			self::meta( 'aliyun', 'Aliyun Captcha 2.0', 'captcha', array( 'access_key_id' ) ),
+			self::meta( 'tencent_tms', 'Tencent TMS text moderation', 'review', array( 'secret_id' ) ),
 			self::meta( 'aliyun_green', '阿里云文本审核 PLUS', 'review', array( 'access_key_id' ) ),
-			self::meta( 'baidu', '百度文本审核', 'review', array( 'api_key' ) ),
+			self::meta( 'baidu', 'Baidu Text Moderation', 'review', array( 'api_key' ) ),
 		);
 		$ctx = array(
 			'captcha_driver' => 'tencent',
@@ -233,30 +233,30 @@ final class OverviewRosterTest extends TestCase {
 
 		// 拦下 N 次（captcha_reject 账户域净口径 + reject 评论域——F3/E-c）。
 		$card = self::card( OverviewRoster::cards( $drivers, self::ctx( $base ) ), 'tencent' );
-		$this->assertSame( '今日验 12 次 · 拦下 2 次', $card['summary'] );
+		$this->assertSame( 'Today Verify 12 times · Blocked 2 times', $card['summary'] );
 
 		// 全部通过（零拦下零出错——推算口径，脚注另交代）。
 		$ctx           = $base;
 		$ctx['counts'] = array( 'tencent' => array( 'captcha_pass' => 12 ) );
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent' );
-		$this->assertSame( '今日验 12 次 · 全部通过', $card['summary'] );
+		$this->assertSame( 'Today Verify 12 times · All passed', $card['summary'] );
 
 		// 零调用（Labels::zero_call_word 显式空态）。
 		$ctx           = $base;
 		$ctx['usage']  = array();
 		$ctx['counts'] = array();
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent' );
-		$this->assertSame( '今日没用到（0 次）', $card['summary'] );
+		$this->assertSame( 'Not used today(0 calls)', $card['summary'] );
 
 		// 拦下+出错并存。
 		$ctx           = $base;
 		$ctx['counts'] = array( 'tencent' => array( 'captcha_reject' => 2, 'reject' => 1, 'error' => 1 ) );
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent' );
-		$this->assertSame( '今日验 12 次 · 拦下 3 次 · 出错 1 次', $card['summary'] );
+		$this->assertSame( 'Today Verify 12 times · Blocked 3 times · Error 1 time', $card['summary'] );
 	}
 
 	public function test_review_summary_lines(): void {
-		$drivers = array( self::meta( 'tencent_tms', '腾讯 TMS 文本审核', 'review', array() ) );
+		$drivers = array( self::meta( 'tencent_tms', 'Tencent TMS text moderation', 'review', array() ) );
 		$base    = array(
 			'cloud_enabled' => true,
 			'chain'         => array( 'tencent_tms' ),
@@ -266,32 +266,32 @@ final class OverviewRosterTest extends TestCase {
 
 		// 拦下 + 转人工。
 		$card = self::card( OverviewRoster::cards( $drivers, self::ctx( $base ) ), 'tencent_tms' );
-		$this->assertSame( '今日审 8 次 · 拦下 2 次 · 转人工 1 次', $card['summary'] );
+		$this->assertSame( 'Today Review 8 times · Blocked 2 times · Manual review 1 time', $card['summary'] );
 
 		// 有调用零拦下 = 没有可疑内容。
 		$ctx           = $base;
 		$ctx['counts'] = array();
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent_tms' );
-		$this->assertSame( '今日审 8 次 · 没有可疑内容', $card['summary'] );
+		$this->assertSame( 'Today Review 8 times · Nothing suspicious', $card['summary'] );
 
 		// 零调用零判定（云审 reject 必随调用发生——零调用即全零）。
 		$ctx           = $base;
 		$ctx['usage']  = array();
 		$ctx['counts'] = array();
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent_tms' );
-		$this->assertSame( '今日没用到（0 次）', $card['summary'] );
+		$this->assertSame( 'Not used today(0 calls)', $card['summary'] );
 
 		// 出错段。
 		$ctx           = $base;
 		$ctx['counts'] = array( 'tencent_tms' => array( 'error' => 2 ) );
 		$card          = self::card( OverviewRoster::cards( $drivers, self::ctx( $ctx ) ), 'tencent_tms' );
-		$this->assertSame( '今日审 8 次 · 出错 2 次', $card['summary'] );
+		$this->assertSame( 'Today Review 8 times · Error 2 times', $card['summary'] );
 	}
 
 	public function test_standby_and_unconfigured_summary(): void {
 		$drivers = array(
-			self::meta( 'aliyun', '阿里云验证码 2.0', 'captcha', array( 'access_key_id' ) ),
-			self::meta( 'baidu', '百度文本审核', 'review', array( 'api_key' ) ),
+			self::meta( 'aliyun', 'Aliyun Captcha 2.0', 'captcha', array( 'access_key_id' ) ),
+			self::meta( 'baidu', 'Baidu Text Moderation', 'review', array( 'api_key' ) ),
 		);
 		$ctx = array(
 			'configs' => array( 'aliyun' => array( 'access_key_id' => 'k' ) ),
@@ -299,7 +299,7 @@ final class OverviewRosterTest extends TestCase {
 		);
 
 		$cards = OverviewRoster::cards( $drivers, self::ctx( $ctx ) );
-		$this->assertSame( '今日 0 次（未排班）', self::card( $cards, 'aliyun' )['summary'], '待命=未排班显式空态' );
+		$this->assertSame( 'Today 0 calls (unscheduled)', self::card( $cards, 'aliyun' )['summary'], '待命=未排班显式空态' );
 		$this->assertSame( '', self::card( $cards, 'baidu' )['summary'], '未配置=无摘要（给去处不给数字）' );
 	}
 
@@ -308,25 +308,25 @@ final class OverviewRosterTest extends TestCase {
 	public function test_card_static_fields(): void {
 		$drivers = array(
 			self::meta( 'tencent', '腾讯天御验证码', 'captcha', array() ),
-			self::meta( 'tencent_tms', '腾讯 TMS 文本审核', 'review', array() ),
+			self::meta( 'tencent_tms', 'Tencent TMS text moderation', 'review', array() ),
 		);
 		$ctx = array( 'captcha_driver' => 'tencent', 'cloud_enabled' => true, 'chain' => array( 'tencent_tms' ) );
 
 		$cards = OverviewRoster::cards( $drivers, self::ctx( $ctx ) );
-		$this->assertSame( '人机验证', self::card( $cards, 'tencent' )['role'] );
-		$this->assertSame( '内容审核', self::card( $cards, 'tencent_tms' )['role'] );
+		$this->assertSame( 'Human verification', self::card( $cards, 'tencent' )['role'] );
+		$this->assertSame( 'Content moderation', self::card( $cards, 'tencent_tms' )['role'] );
 		$this->assertSame( 'captcha', self::card( $cards, 'tencent' )['config_tab'] );
 		$this->assertSame( 'review', self::card( $cards, 'tencent_tms' )['config_tab'] );
-		$this->assertSame( '当班', self::card( $cards, 'tencent' )['duty_word'] );
+		$this->assertSame( 'On duty', self::card( $cards, 'tencent' )['duty_word'] );
 	}
 
 	/* ---------- 战报小票主行/副行 ---------- */
 
 	public function test_ticket_main_lines(): void {
-		$this->assertSame( '平静的一天', OverviewRoster::ticket_main( 0, 'comment' ), '零值显式空态' );
-		$this->assertSame( '拦下 3 条', OverviewRoster::ticket_main( 3, 'comment' ), '评论量词=条' );
-		$this->assertSame( '拦下 2 次', OverviewRoster::ticket_main( 2, 'login' ), '登录量词=次' );
-		$this->assertSame( '拦下 1 次', OverviewRoster::ticket_main( 1, 'register' ) );
+		$this->assertSame( 'A quiet day', OverviewRoster::ticket_main( 0, 'comment' ), '零值显式空态' );
+		$this->assertSame( 'Blocked 3 comments', OverviewRoster::ticket_main( 3, 'comment' ), '评论量词=条' );
+		$this->assertSame( 'Blocked 2 times', OverviewRoster::ticket_main( 2, 'login' ), '登录量词=次' );
+		$this->assertSame( 'Blocked 1 times', OverviewRoster::ticket_main( 1, 'register' ) );
 	}
 
 	public function test_ticket_subline_top3_and_mapping(): void {
@@ -338,7 +338,7 @@ final class OverviewRosterTest extends TestCase {
 		);
 		$line = OverviewRoster::ticket_subline( $dist );
 		// 计数倒序取前 3：too_long 9 · too_short 4 · banned_word 2。
-		$this->assertSame( '超字数上限 9 · 字数太少 4 · 关键词黑名单 2', $line );
+		$this->assertSame( 'Over length limit 9 · Too short 4 · Keyword blacklist 2', $line );
 		$this->assertStringNotContainsString( 'banned_word', $line, '规则键不外露' );
 
 		$this->assertSame( '', OverviewRoster::ticket_subline( array() ), '空分布=空副行' );
@@ -347,9 +347,9 @@ final class OverviewRosterTest extends TestCase {
 	/* ---------- 友好时间（今天/昨天/日期三档） ---------- */
 
 	public function test_friendly_time(): void {
-		$this->assertSame( '今天 09:12', OverviewRoster::friendly_time( '2026-11-12 09:12:30', '2026-11-12', '2026-11-11' ) );
-		$this->assertSame( '昨天 21:04', OverviewRoster::friendly_time( '2026-11-11 21:04:00', '2026-11-12', '2026-11-11' ) );
-		$this->assertSame( '11月8日 03:00', OverviewRoster::friendly_time( '2026-11-08 03:00:00', '2026-11-12', '2026-11-11' ), '更早=日期档（月日去前导零）' );
+		$this->assertSame( 'Today 09:12', OverviewRoster::friendly_time( '2026-11-12 09:12:30', '2026-11-12', '2026-11-11' ) );
+		$this->assertSame( 'Yesterday 21:04', OverviewRoster::friendly_time( '2026-11-11 21:04:00', '2026-11-12', '2026-11-11' ) );
+		$this->assertSame( '11-8 03:00', OverviewRoster::friendly_time( '2026-11-08 03:00:00', '2026-11-12', '2026-11-11' ), '更早=日期档（月日去前导零）' );
 		$this->assertSame( '—', OverviewRoster::friendly_time( '', '2026-11-12', '2026-11-11' ), '空时间安全回落' );
 	}
 
@@ -370,7 +370,7 @@ final class OverviewRosterTest extends TestCase {
 			'event_no'     => 'WK-20261112-0001',
 			'created_at'   => $created_at,
 			'gate'         => 'system',
-			'gate_word'    => '服务商健康',
+			'gate_word'    => 'Provider health',
 			'stage'        => 'health',
 			'driver'       => 'tencent_tms',
 			'driver_label' => $driver_label,
@@ -384,29 +384,29 @@ final class OverviewRosterTest extends TestCase {
 
 	public function test_incident_lines_limit_and_composition(): void {
 		$rows = array(
-			self::tl_row( '2026-11-12 09:12:00', '腾讯 TMS 文本审核', '当日额度用完', '今日暂停，防线跳过它继续' ),
-			self::tl_row( '2026-11-11 21:04:00', '百度文本审核', '服务商恢复正常', '服务商恢复正常' ),
-			self::tl_row( '2026-11-10 08:00:00', '百度文本审核', '网络连不上', '已按兜底策略处理' ),
-			self::tl_row( '2026-11-09 08:00:00', '百度文本审核', '网络连不上', '已按兜底策略处理' ),
-			self::tl_row( '2026-11-08 08:00:00', '百度文本审核', '网络连不上', '已按兜底策略处理' ),
-			self::tl_row( '2026-11-07 08:00:00', '百度文本审核', '网络连不上', '已按兜底策略处理' ),
-			self::tl_row( '2026-11-06 08:00:00', '百度文本审核', '网络连不上', '已按兜底策略处理' ),
+			self::tl_row( '2026-11-12 09:12:00', 'Tencent TMS text moderation', 'Daily quota used up', 'Paused for today; the defense line skips it and carries on' ),
+			self::tl_row( '2026-11-11 21:04:00', 'Baidu Text Moderation', 'Provider recovered', 'Provider recovered' ),
+			self::tl_row( '2026-11-10 08:00:00', 'Baidu Text Moderation', 'Network unreachable', 'Handled by the fallback policy' ),
+			self::tl_row( '2026-11-09 08:00:00', 'Baidu Text Moderation', 'Network unreachable', 'Handled by the fallback policy' ),
+			self::tl_row( '2026-11-08 08:00:00', 'Baidu Text Moderation', 'Network unreachable', 'Handled by the fallback policy' ),
+			self::tl_row( '2026-11-07 08:00:00', 'Baidu Text Moderation', 'Network unreachable', 'Handled by the fallback policy' ),
+			self::tl_row( '2026-11-06 08:00:00', 'Baidu Text Moderation', 'Network unreachable', 'Handled by the fallback policy' ),
 		);
 
 		$lines = OverviewRoster::incident_lines( $rows, '2026-11-12', '2026-11-11', 5 );
 		$this->assertCount( 5, $lines, '入口性质只留 5 条（明细归 Tab⑥）' );
 
 		// 行 1：停转——岔子+处理两句拼接。
-		$this->assertSame( '今天 09:12', $lines[0]['time_word'] );
-		$this->assertSame( '腾讯 TMS 文本审核', $lines[0]['driver'] );
-		$this->assertSame( '当日额度用完；今日暂停，防线跳过它继续', $lines[0]['text'] );
+		$this->assertSame( 'Today 09:12', $lines[0]['time_word'] );
+		$this->assertSame( 'Tencent TMS text moderation', $lines[0]['driver'] );
+		$this->assertSame( 'Daily quota used up；Paused for today; the defense line skips it and carries on', $lines[0]['text'] );
 
 		// 行 2：解除——handling 与 rule_word 同语不重复拼接。
-		$this->assertSame( '昨天 21:04', $lines[1]['time_word'] );
-		$this->assertSame( '服务商恢复正常', $lines[1]['text'] );
+		$this->assertSame( 'Yesterday 21:04', $lines[1]['time_word'] );
+		$this->assertSame( 'Provider recovered', $lines[1]['text'] );
 
 		// 行 3：更早=日期档。
-		$this->assertSame( '11月10日 08:00', $lines[2]['time_word'] );
+		$this->assertSame( '11-10 08:00', $lines[2]['time_word'] );
 
 		// LIMIT 钳界（0/负数=1，超大=行数上限）。
 		$this->assertCount( 1, OverviewRoster::incident_lines( $rows, '2026-11-12', '2026-11-11', 0 ) );

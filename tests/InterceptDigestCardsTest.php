@@ -23,7 +23,7 @@ final class InterceptDigestCardsTest extends TestCase {
 
 	public function test_card_normal_enabled_comment(): void {
 		$card = InterceptDigest::driver_card( array(
-			'label'      => '腾讯天御验证码 2.0',
+			'label'      => 'Tencent Tianyu Captcha 2.0',
 			'type'       => 'captcha',
 			'context'    => 'comment',
 			'enabled'    => true,
@@ -40,19 +40,19 @@ final class InterceptDigestCardsTest extends TestCase {
 
 		$this->assertSame( '●', $card['badge'] );
 		$this->assertSame( 'wk-dot--ok', $card['dot_class'], '启用=绿点（用户三色体系）' );
-		$this->assertSame( '正常', $card['health'] );
+		$this->assertSame( 'Normal', $card['health'] );
 		$this->assertTrue( $card['enabled'] );
 		$this->assertSame( 'captcha', $card['type'], '输出回带输入类型（渲染层按防线分组筛选——真机 render 通道钉）' );
-		$this->assertSame( '人机验证', $card['action'], '动作名按类型翻译（对照表 1）' );
-		$this->assertSame( array( '今日人机验证 30 次 → 放行 28 · 拦下 1 · 转人工 0 · 出错 1' ), $card['lines'], '放行=减法推导 30−1−0−1' );
-		$this->assertSame( '今日额度 30 / 500 次', $card['quota_line'] );
-		$this->assertSame( array( '累计：拦下 18 · 转人工 0 · 出错 1' ), $card['total_lines'], '累计放行格仅在可直读时出现（累计动作数 Usage 不留存——不虚构）' );
+		$this->assertSame( 'Human verification', $card['action'], '动作名按类型翻译（对照表 1）' );
+		$this->assertSame( array( 'Today Human verification 30 times → Passed 28 · Blocked 1 · Manual review 0 · Error 1' ), $card['lines'], '放行=减法推导 30−1−0−1' );
+		$this->assertSame( 'Daily quota 30 / 500 times', $card['quota_line'] );
+		$this->assertSame( array( 'Cumulative: Blocked 18 · Manual review 0 · Error 1' ), $card['total_lines'], '累计放行格仅在可直读时出现（累计动作数 Usage 不留存——不虚构）' );
 		$this->assertNull( $card['placeholder_note'] );
 	}
 
 	public function test_card_pass_derivation_floors_at_zero(): void {
 		$card = InterceptDigest::driver_card( array(
-			'label'      => '腾讯云 TMS 文本审核',
+			'label'      => 'Tencent Cloud TMS Text Moderation',
 			'type'       => 'review',
 			'context'    => 'comment',
 			'enabled'    => true,
@@ -67,14 +67,14 @@ final class InterceptDigestCardsTest extends TestCase {
 			'config_tab' => 'review',
 		) );
 
-		$this->assertStringContainsString( '放行 0', $card['lines'][0], '减法推导下限 0（stub 拦截未发起调用的形态不透支）' );
-		$this->assertSame( '送审', $card['action'], '审核类动作名=送审' );
+		$this->assertStringContainsString( 'Passed 0', $card['lines'][0], '减法推导下限 0（stub 拦截未发起调用的形态不透支）' );
+		$this->assertSame( 'Sent for review', $card['action'], '审核类动作名=送审' );
 		$this->assertNull( $card['quota_line'], '不限配额 → 无额度行' );
 	}
 
 	public function test_card_zero_usage_single_line(): void {
 		$card = InterceptDigest::driver_card( array(
-			'label'      => '阿里云验证码 2.0',
+			'label'      => 'Aliyun Captcha 2.0',
 			'type'       => 'captcha',
 			'context'    => 'comment',
 			'enabled'    => true,
@@ -90,12 +90,12 @@ final class InterceptDigestCardsTest extends TestCase {
 		) );
 
 		$this->assertSame( '●', $card['badge'] );
-		$this->assertSame( array( '今日没用到（0 次）' ), $card['lines'], '零值纪律：整卡单行「今日没用到」（P12 乱码感消除）' );
+		$this->assertSame( array( 'Not used today(0 calls)' ), $card['lines'], '零值纪律：整卡单行「今日没用到」（P12 乱码感消除）' );
 	}
 
 	public function test_card_quota_halted_badge_and_note(): void {
 		$card = InterceptDigest::driver_card( array(
-			'label'      => '腾讯云 TMS 文本审核',
+			'label'      => 'Tencent Cloud TMS Text Moderation',
 			'type'       => 'review',
 			'context'    => 'comment',
 			'enabled'    => true,
@@ -112,14 +112,14 @@ final class InterceptDigestCardsTest extends TestCase {
 
 		$this->assertSame( '◐', $card['badge'] );
 		$this->assertSame( 'wk-dot--warn', $card['dot_class'], '今日暂停=黄点' );
-		$this->assertSame( '今日暂停', $card['health'] );
-		$this->assertStringContainsString( '额度用完', $card['health_note'], '停转有主语（状态码不出现在站长文案）' );
+		$this->assertSame( 'Paused today', $card['health'] );
+		$this->assertStringContainsString( 'Quota used up', $card['health_note'], '停转有主语（状态码不出现在站长文案）' );
 		$this->assertStringNotContainsString( 'quota_exhausted', $card['health_note'] );
 	}
 
 	public function test_card_config_error_badge_and_note(): void {
 		$card = InterceptDigest::driver_card( array(
-			'label'      => '腾讯天御验证码 2.0',
+			'label'      => 'Tencent Tianyu Captcha 2.0',
 			'type'       => 'captcha',
 			'context'    => 'comment',
 			'enabled'    => true,
@@ -136,14 +136,14 @@ final class InterceptDigestCardsTest extends TestCase {
 
 		$this->assertSame( '✕', $card['badge'] );
 		$this->assertSame( 'wk-dot--alert', $card['dot_class'], '配置问题=红点' );
-		$this->assertSame( '配置问题', $card['health'] );
-		$this->assertStringContainsString( '拒绝', $card['health_note'] );
+		$this->assertSame( 'Configuration issue', $card['health'] );
+		$this->assertStringContainsString( 'refused', $card['health_note'] );
 		$this->assertStringNotContainsString( 'config_error', $card['health_note'] );
 	}
 
 	public function test_card_disabled_placeholder_grey_card(): void {
 		$card = InterceptDigest::driver_card( array(
-			'label'      => '百度文本审核',
+			'label'      => 'Baidu Text Moderation',
 			'type'       => 'review',
 			'context'    => 'comment',
 			'enabled'    => false,
@@ -160,9 +160,9 @@ final class InterceptDigestCardsTest extends TestCase {
 
 		$this->assertSame( '○', $card['badge'] );
 		$this->assertSame( 'wk-dot--standby', $card['dot_class'], '未启用=蓝点' );
-		$this->assertSame( '未启用', $card['health'] );
+		$this->assertSame( 'Not enabled', $card['health'] );
 		$this->assertFalse( $card['enabled'] );
-		$this->assertStringContainsString( '未启用', (string) $card['placeholder_note'] );
+		$this->assertStringContainsString( 'Not enabled', (string) $card['placeholder_note'] );
 		$this->assertStringNotContainsString( '去 Tab', (string) $card['placeholder_note'], '占位句去 Tab 序号引用（UI-FIX B②——指引收敛段标题，卡内极简一句无链接）' );
 		$this->assertSame( 'review', $card['config_tab'], '占位卡带跳转目标（D6 数据面保留——段级 stats_config_hint 消费）' );
 		$this->assertSame( array(), $card['lines'], '未启用卡无数字行' );
@@ -170,7 +170,7 @@ final class InterceptDigestCardsTest extends TestCase {
 
 	public function test_card_login_context_hides_review_and_uses_direct_pass(): void {
 		$card = InterceptDigest::driver_card( array(
-			'label'      => '腾讯天御验证码 2.0',
+			'label'      => 'Tencent Tianyu Captcha 2.0',
 			'type'       => 'captcha',
 			'context'    => 'login',
 			'enabled'    => true,
@@ -185,9 +185,9 @@ final class InterceptDigestCardsTest extends TestCase {
 			'config_tab' => 'captcha',
 		) );
 
-		$this->assertSame( '人机验证', $card['action'] );
-		$this->assertSame( array( '今日人机验证 5 次 → 放行 3 · 拦下 2' ), $card['lines'], '登录卡无转人工/出错格' );
-		$this->assertSame( array( '累计：放行 10 · 拦下 4' ), $card['total_lines'] );
+		$this->assertSame( 'Human verification', $card['action'] );
+		$this->assertSame( array( 'Today Human verification 5 times → Passed 3 · Blocked 2' ), $card['lines'], '登录卡无转人工/出错格' );
+		$this->assertSame( array( 'Cumulative: Passed 10 · Blocked 4' ), $card['total_lines'] );
 	}
 
 	/* ---------- review_split：待审排除 IP 信誉强制验证码（统筹裁决 2） ---------- */
@@ -270,30 +270,30 @@ final class InterceptDigestCardsTest extends TestCase {
 		$rows = InterceptDigest::account_gate_rows( self::login_cache() );
 
 		$this->assertSame( array( 'login', 'register', 'lostpassword' ), array_column( $rows, 'gate' ) );
-		$this->assertSame( array( '登录门', '注册门', '找回密码门' ), array_column( $rows, 'label' ), '门名（闸字退到括号层）' );
+		$this->assertSame( array( 'Login', 'Registration', 'Password recovery' ), array_column( $rows, 'label' ), '门名（闸字退到括号层）' );
 
 		$login = $rows[0];
 		$this->assertSame( 1, $login['today_reject'] );
 		$this->assertSame( 5, $login['total_reject'] );
-		$this->assertStringContainsString( '密码输错 37 次', $login['note'] );
+		$this->assertStringContainsString( 'Wrong passwords 37 times', $login['note'] );
 
 		$register = $rows[1];
-		$this->assertSame( '注册时一律要过人机验证', $register['note'] );
+		$this->assertSame( 'Human verification is always required at registration', $register['note'] );
 
 		$lost = $rows[2];
-		$this->assertSame( '找回密码时一律要过人机验证', $lost['note'] );
+		$this->assertSame( 'Human verification is always required for password recovery', $lost['note'] );
 	}
 
 	public function test_gate_note_login_carries_dynamic_window(): void {
 		$note = InterceptDigest::gate_note( 'login', array( 'attempts' => 37, 'captcha_reject' => 1 ), 15 );
-		$this->assertStringContainsString( '密码输错 37 次', $note );
-		$this->assertStringContainsString( '15 分钟', $note, '窗口标注随配置动态（D3）' );
+		$this->assertStringContainsString( 'Wrong passwords 37 times', $note );
+		$this->assertStringContainsString( '15-minute window', $note, '窗口标注随配置动态（D3）' );
 
 		$custom = InterceptDigest::gate_note( 'login', array( 'attempts' => 5 ), 30 );
-		$this->assertStringContainsString( '30 分钟', $custom );
+		$this->assertStringContainsString( '30-minute window', $custom );
 
 		$zero = InterceptDigest::gate_note( 'login', array(), 15 );
-		$this->assertStringContainsString( '密码输错 0 次', $zero, '零值显式（恒 0 不可区分教训）' );
+		$this->assertStringContainsString( 'Wrong passwords 0 times', $zero, '零值显式（恒 0 不可区分教训）' );
 	}
 
 	/* ---------- 本地规则卡：三数式（A-3 微调——砍「检查 N 条」） ---------- */
@@ -309,8 +309,8 @@ final class InterceptDigestCardsTest extends TestCase {
 
 		$card = InterceptDigest::local_rules_card( $cache );
 
-		$this->assertSame( '本地规则', $card['label'] );
-		$this->assertSame( '今日拦下 2 · 转人工复核 1 · 出错 0', $card['line'], '三数式（无「检查 N 条」——无数据源砍除，agent C A-3）' );
-		$this->assertSame( '累计拦下 20 · 转人工复核 5 · 出错 1', $card['total_line'] );
+		$this->assertSame( 'Local rules', $card['label'] );
+		$this->assertSame( 'Blocked today 2 · Manual review 1 · Errors 0', $card['line'], '三数式（无「检查 N 条」——无数据源砍除，agent C A-3）' );
+		$this->assertSame( 'Blocked cumulatively 20 · Manual review 5 · Errors 1', $card['total_line'] );
 	}
 }

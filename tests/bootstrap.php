@@ -194,6 +194,24 @@ namespace WinkGatekeeper\Settings {
 		}
 	}
 
+	if ( ! function_exists( 'WinkGatekeeper\Settings\_n' ) ) {
+		/**
+		 * _n 命名空间桩（批 I-3 复数化配套——WP 语义：1 → single、其他 → plural；
+		 * 与 en 无翻译渲染一致；zh nplurals=1 语义下真 WP 恒取 single，测试桩按
+		 * en 兜底语义取 n==1 判定即可）。
+		 *
+		 * @param string $single  单数形。
+		 * @param string $plural  复数形。
+		 * @param int    $n       计数。
+		 * @param string $domain  文本域（桩忽略）。
+		 * @return string
+		 */
+		function _n( string $single, string $plural, int $n, string $domain = 'wink-wp-gatekeeper' ): string {
+			unset( $domain );
+			return 1 === $n ? $single : $plural;
+		}
+	}
+
 	if ( ! function_exists( 'WinkGatekeeper\Settings\add_query_arg' ) ) {
 		/**
 		 * add_query_arg 命名空间桩（wizard_url 行为级测试——query 追加最小形态）。
@@ -227,7 +245,137 @@ namespace WinkGatekeeper\Settings {
 	}
 }
 
-namespace WinkGatekeeper\Tests {
+	/* 【i18n 批 I-3】数据面收编配套：以下命名空间的 i18n identity 桩族——生产文件
+	 * （Stats、Intercept、Gates、Drivers 及其子层、Ip、UrlAudit、Audit）本批引入
+	 * i18n 调用，纯 PHP 单测无 WP 时未定义即 fatal。全部 function_exists 守卫 +
+	 * identity 语义，与上方 Settings 块同款（先载者生效，不破坏任何测试内既有定义）。 */
+	namespace WinkGatekeeper\Stats {
+
+		if ( ! function_exists( 'WinkGatekeeper\Stats\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+		if ( ! function_exists( 'WinkGatekeeper\Stats\esc_html__' ) ) {
+			function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+		if ( ! function_exists( 'WinkGatekeeper\Stats\_n' ) ) {
+			function _n( string $single, string $plural, int $n, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return 1 === $n ? $single : $plural;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Intercept {
+
+		if ( ! function_exists( 'WinkGatekeeper\Intercept\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+		if ( ! function_exists( 'WinkGatekeeper\Intercept\esc_html__' ) ) {
+			function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+		if ( ! function_exists( 'WinkGatekeeper\Intercept\esc_attr__' ) ) {
+			function esc_attr__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Gates {
+
+		if ( ! function_exists( 'WinkGatekeeper\Gates\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+		if ( ! function_exists( 'WinkGatekeeper\Gates\esc_html__' ) ) {
+			function esc_html__( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Drivers {
+
+		if ( ! function_exists( 'WinkGatekeeper\Drivers\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Drivers\Captcha {
+
+		if ( ! function_exists( 'WinkGatekeeper\Drivers\Captcha\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Drivers\Review {
+
+		if ( ! function_exists( 'WinkGatekeeper\Drivers\Review\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Ip {
+
+		if ( ! function_exists( 'WinkGatekeeper\Ip\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\UrlAudit {
+
+		if ( ! function_exists( 'WinkGatekeeper\UrlAudit\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Audit {
+
+		if ( ! function_exists( 'WinkGatekeeper\Audit\__' ) ) {
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+		if ( ! function_exists( 'WinkGatekeeper\Audit\_n' ) ) {
+			function _n( string $single, string $plural, int $n, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return 1 === $n ? $single : $plural;
+			}
+		}
+	}
+
+	namespace WinkGatekeeper\Tests {
 
 	/**
 	 * 单测 WP option 可编程 store（W3·批C——probe log / 向导状态行为级测试承载面）。

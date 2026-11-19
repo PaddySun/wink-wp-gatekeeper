@@ -443,7 +443,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_engine_marks_llm_runtime_error_on_transport_failure(): void {
 			$engine = self::makeEngine( null );
-			$out    = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
+			$out    = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
 			self::assertSame( 'inconclusive', $out['verdict'], '传输失败=业务 inconclusive 保持待审（原语义不变）' );
 			$meta = $engine->last_meta();
 			self::assertArrayHasKey( 'llm_error', $meta, '运行性错误标记（B-5 事件源）' );
@@ -463,7 +463,7 @@ namespace WinkGatekeeper\Tests {
 					) ),
 				) ),
 			) );
-			$out  = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_batch' );
+			$out  = $engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_batch' );
 			$meta = $engine->last_meta();
 			self::assertSame( 'inconclusive', $out['verdict'] );
 			self::assertArrayHasKey( 'llm_error', $meta, '解析失败=模型契约异常（发射面）' );
@@ -471,7 +471,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_engine_does_not_mark_error_on_business_verdict(): void {
 			$engine = self::makeEngine( self::judgeOkResponse() );
-			$engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => '正文' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
+			$engine->judge( array( 'title' => 'T', 'meta_description' => '', 'text' => 'body' ), 'https://example.com/', '作者\n正文', 'url_audit_incr' );
 			self::assertArrayNotHasKey( 'llm_error', $engine->last_meta(), '业务判定（pass/reject/review）非运行性错误' );
 		}
 
@@ -744,10 +744,10 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		public function test_labels_human_words_for_new_stage_and_pause(): void {
-			self::assertSame( '网址核查', Labels::stage_word( 'url_audit' ), 'stage 人话补录（时间线哪道防线列）' );
-			self::assertSame( '评论门', Labels::gate_word( 'comment' ) );
-			self::assertSame( '今日额度用完（网址核查暂停）', Labels::rule_hit_word( 'quota_paused' ), '暂停边沿 rule_hit 人话' );
-			self::assertSame( '网络连不上', Labels::rule_hit_word( 'remote_transport' ) );
+			self::assertSame( 'URL check', Labels::stage_word( 'url_audit' ), 'stage 人话补录（时间线哪道防线列）' );
+			self::assertSame( 'Comments', Labels::gate_word( 'comment' ) );
+			self::assertSame( 'Daily quota used up (URL checks paused)', Labels::rule_hit_word( 'quota_paused' ), '暂停边沿 rule_hit 人话' );
+			self::assertSame( 'Network unreachable', Labels::rule_hit_word( 'remote_transport' ) );
 		}
 	}
 }

@@ -62,8 +62,8 @@ final class IpReputationService {
 	public static function state_label( array $settings ): string {
 		$iprep = isset( $settings['iprep'] ) && is_array( $settings['iprep'] ) ? $settings['iprep'] : array();
 		if ( empty( $iprep['enabled'] ) ) {
-			return '未启用';
+			return __( 'Not enabled', "wink-wp-gatekeeper" );
 		}
-		return '已启用（AbuseIPDB）';
+		return __( 'Enabled (AbuseIPDB)', "wink-wp-gatekeeper" );
 	}
 }

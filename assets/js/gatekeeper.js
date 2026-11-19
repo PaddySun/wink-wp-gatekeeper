@@ -32,7 +32,7 @@
 
 	/* ---------- 未验证禁用提交（渐进增强）+ 禁用反馈（M2-FIX2 D3） ---------- */
 
-	var HINT_TEXT = ( window.wkGateL10n && window.wkGateL10n.hint ) || '请先完成人机验证';
+	var HINT_TEXT = ( window.wkGateL10n && window.wkGateL10n.hint ) || 'Please complete human verification first';
 	var HINT_MS = 2500; // 禁用提交点击提示的驻留时长。
 
 	function ownedForm( container ) {
@@ -383,7 +383,7 @@
 			return;
 		}
 		container.setAttribute( 'data-wk-checking', '1' );
-		setGateButton( container, 'checking', l10n( 'checking', '检查中…' ) );
+		setGateButton( container, 'checking', l10n( 'checking', 'Checking…' ) );
 
 		var draft = collectDraft( form, container );
 		var body = new URLSearchParams();
@@ -416,7 +416,7 @@
 			finish();
 			clearNativeGateHint( form );
 			hideMsgBar( container );
-			setGateButton( container, 'unverified', l10n( 'idle', '完成人机验证' ) );
+			setGateButton( container, 'unverified', l10n( 'idle', 'Complete human verification' ) );
 			if ( isSubmitGate( container ) ) {
 				// 【W2·R5】无按钮模式：预检放行 = 续接人机验证（无按钮可点——requestVerify
 				// 契约承接；gating 标志已在拦截链④置位）。
@@ -447,7 +447,7 @@
 			if ( data && 'four_gate_fail' === data.result ) {
 				finish();
 				form.removeAttribute( 'data-wk-gating' ); // 【W2】gating 期结束（拦截止于本次提交——访客改稿后重新提交）。
-				setGateButton( container, 'unverified', l10n( 'idle', '完成人机验证' ) );
+				setGateButton( container, 'unverified', l10n( 'idle', 'Complete human verification' ) );
 				if ( data.rule && LOCAL_CONTENT_RULES[ data.rule ] ) {
 					// 【G2】本地内容四闸失败 → 评论框原生气泡弹后台自定义文案（动态不写死，
 					// wk-gate-msg 不出现）；老环境 fallback → 既有 wk-gate-msg 通道（渐进增强）。
@@ -479,7 +479,7 @@
 
 		// 【v1.5·F4-1】免验轻提示（区别于真验通过的「已通过验证」——让「免验发生了」前台
 		// 可感知：多次正常评论后不再出验证码属设计行为）。aria-live 由按钮 polite 播报。
-		setGateButton( container, 'verified', l10n( 'wk_trust_hint', '老朋友，免验放行' ) );
+		setGateButton( container, 'verified', l10n( 'wk_trust_hint', 'Old friend, no verification needed' ) );
 		container.dispatchEvent( new CustomEvent( 'wk-gate-token', { bubbles: true } ) ); // 解除提交禁用。
 
 		// 前端 TTL 计时器（对齐天御票据 5min 过期回退模式——03 §2.1）：到点清凭证回退未验证态。
@@ -491,7 +491,7 @@
 			}
 			field.value = '';
 			hideMsgBar( container ); // 【v1.5·F4-2③】凭证过期旧错误语境失效，同拍清错误条。
-			setGateButton( container, 'unverified', l10n( 'expired', '验证已过期，请重新验证' ) );
+			setGateButton( container, 'unverified', l10n( 'expired', 'Verification expired — please verify again' ) );
 			container.dispatchEvent( new CustomEvent( 'wk-gate-expire', { bubbles: true } ) ); // 重新禁用提交。
 		}, ttlMs );
 	}
@@ -566,7 +566,7 @@
 			if ( isSubmitGate( container ) ) {
 				restoreClassicButton( container ); // 【W2】hidden 按钮还原——错误文案可见可点。
 			}
-			setStatus( container, window.wkGateL10n && window.wkGateL10n.mismatch ? window.wkGateL10n.mismatch : '验证组件加载异常，请刷新页面重试。' );
+			setStatus( container, window.wkGateL10n && window.wkGateL10n.mismatch ? window.wkGateL10n.mismatch : 'The verification widget failed to load. Please refresh the page and try again.' );
 			return;
 		}
 
@@ -598,7 +598,7 @@
 				}
 				showToast( window.wkGateL10n && window.wkGateL10n.checking_submit
 					? window.wkGateL10n.checking_submit
-					: '您的评论正在接收检查，请稍候……' );
+					: 'Your comment is being checked, please wait…' );
 				submitControls( submitForm ).forEach( function ( control ) {
 					control.disabled = true; // 防重复提交（本次提交已在途，禁用无碍）。
 				} );
@@ -609,7 +609,7 @@
 			adapter.init( container );
 			armContainer( container ); // init 成功 → 未验证禁用提交（渐进增强）。
 		} catch ( err ) {
-			setStatus( container, ( window.wkGateL10n && window.wkGateL10n.error ) || '验证组件初始化失败，请刷新页面重试。' );
+			setStatus( container, ( window.wkGateL10n && window.wkGateL10n.error ) || 'The verification widget failed to initialize — refresh to retry' );
 			// 初始化异常：还原可点（可能已被部分武装——等价无 JS 场景）。
 			container.removeAttribute( 'data-wk-armed' );
 			var form = ownedForm( container );
@@ -617,7 +617,7 @@
 				if ( isSubmitGate( container ) ) {
 					// 【W2】无按钮容器 init 抛错：Toast 播报 + 回退经典形态（降级矩阵——
 					// 适配器故障=无拦截+服务端兜底；错误文案随 hidden 还原可见可点）。
-					showToast( ( window.wkGateL10n && window.wkGateL10n.error ) || '验证组件初始化失败，请刷新页面重试。' );
+					showToast( ( window.wkGateL10n && window.wkGateL10n.error ) || 'The verification widget failed to initialize — refresh to retry' );
 					restoreClassicButton( container );
 				} else {
 					refreshLocks( form );
@@ -686,7 +686,7 @@
 		if ( adapter && typeof adapter.requestVerify === 'function' ) {
 			try {
 				adapter.requestVerify( container );
-				showToast( l10n( 'submit_gate_verify', '请先完成人机验证再提交' ) );
+				showToast( l10n( 'submit_gate_verify', 'Please complete human verification before submitting' ) );
 				return;
 			} catch ( err ) {} // 契约抛错 → 经典回退。
 		}
@@ -708,7 +708,7 @@
 		// ⑦ 失败面播报：适配器失败态（loadFail/onError/关层未过码）派发 wk-gate-verify-failed
 		// → Toast（R10：按钮 hidden 后的外显主通道；访客可再点提交重试——保持拦截）。
 		container.addEventListener( 'wk-gate-verify-failed', function () {
-			showToast( l10n( 'submit_gate_retry', '人机验证未完成，请再点一次提交重试' ) );
+			showToast( l10n( 'submit_gate_retry', 'Human verification incomplete — click submit once more to retry' ) );
 		} );
 
 		if ( form.dataset.wkSubmitGateBound === '1' ) {

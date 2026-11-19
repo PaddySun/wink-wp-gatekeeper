@@ -257,18 +257,18 @@ final class SettingsPage {
 	 * @var array<string, array{0: string, 1: string}>
 	 */
 	const TABS = array(
-		'overview' => array( '①', '总览' ),
-		'captcha'  => array( '②', '验证码' ),
-		'review'   => array( '③', '内容审核' ),
-		'iprep'    => array( '④', 'IP 信誉' ),
-		'copy'     => array( '⑤', '文案工坊' ),
-		'stats'    => array( '⑥', '统计' ),
-		'tools'    => array( '⑦', '工具' ),
+		'overview' => array( '①', 'Overview' ),
+		'captcha'  => array( '②', 'Captcha' ),
+		'review'   => array( '③', 'Content moderation' ),
+		'iprep'    => array( '④', 'IP reputation' ),
+		'copy'     => array( '⑤', 'Copy Workshop' ),
+		'stats'    => array( '⑥', 'Statistics' ),
+		'tools'    => array( '⑦', 'Tools' ),
 		// 【M5·UI-A】⑧「站点增强」顺延追加（UI 设计 D1 裁决——零重编号迁移；语义=
 		// 影响站点前台行为的长期设置：网站字段/头像源。⑦=工具（一次性操作）、
 		// ⑧=站点增强（长期设置）——hover/文档统一话术「⑧ 改的是站点长什么样，
 		// ⑦ 做的是你想干的某件事」）。
-		'enhance'  => array( '⑧', '站点增强' ),
+		'enhance'  => array( '⑧', 'Site enhancements' ),
 	);
 
 	/**
@@ -623,7 +623,7 @@ final class SettingsPage {
 						alt="<?php esc_attr_e( 'Wink WP Guard', 'wink-wp-gatekeeper' ); ?>"
 						width="40" height="45" decoding="async"
 					/>
-					<span class="wk-wordmark">Wink <em>WP</em> 保安</span>
+					<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( 'Guard', 'wink-wp-gatekeeper' ); ?></span>
 					<span class="wk-tagline"><?php esc_html_e( 'It winks at real visitors and keeps its eyes open for bots.', 'wink-wp-gatekeeper' ); ?></span>
 				</div>
 				<div class="wk-header-meta">
@@ -643,7 +643,8 @@ final class SettingsPage {
 					>
 						<?php
 						// 输出固定常量（序号 + Tab 标题），无需转义；仍走 esc_html 保持统一纪律。
-						echo esc_html( $tab_def[0] . ' ' . $tab_def[1] );
+						// i18n 批 I-3：Tab 标题经 __() 翻译（const 常量不能内联调用——值=en 键，zh 走 po）。
+						echo esc_html( $tab_def[0] . ' ' . __( $tab_def[1], 'wink-wp-gatekeeper' ) ); // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- const TABS 常量值=en 键（PHP 常量表达式禁函数调用）；msgid 皆目录键，pot 由 catalog 管线承载。
 						?>
 					</a>
 				<?php endforeach; ?>
@@ -769,11 +770,11 @@ final class SettingsPage {
 	 */
 	private static function probe_state_badge( string $state, string $last_tested, string $driver_key = '' ): string {
 		$states = array(
-			''       => array( 'b-dim', '未测试' ),
-			'green'  => array( 'b-ok', '贯通 · 凭据可用' ),
-			'yellow' => array( 'b-warn', '缺字 · 必填缺失' ),
-			'red'    => array( 'b-err', '被拒 · 密钥错' ),
-			'gray'   => array( 'b-dim', '契约不符 · 状态未知' ),
+			''       => array( 'b-dim', __( 'Not tested', 'wink-wp-gatekeeper' ) ),
+			'green'  => array( 'b-ok', __( 'Connected · credentials work', 'wink-wp-gatekeeper' ) ),
+			'yellow' => array( 'b-warn', __( 'Incomplete · required fields missing', 'wink-wp-gatekeeper' ) ),
+			'red'    => array( 'b-err', __( 'Rejected · key error', 'wink-wp-gatekeeper' ) ),
+			'gray'   => array( 'b-dim', __( 'Contract mismatch · status unknown', 'wink-wp-gatekeeper' ) ),
 		);
 		$conf = isset( $states[ $state ] ) ? $states[ $state ] : $states[''];
 		$last = '' !== $last_tested ? $last_tested : '--';
@@ -851,14 +852,14 @@ final class SettingsPage {
 			return array( '', '' );
 		}
 		$words = array(
-			'green'  => '贯通',
-			'yellow' => '缺字',
-			'red'    => '被拒',
-			'gray'   => '契约不符',
+			'green'  => __( 'Connected', 'wink-wp-gatekeeper' ),
+			'yellow' => __( 'Incomplete', 'wink-wp-gatekeeper' ),
+			'red'    => __( 'Rejected', 'wink-wp-gatekeeper' ),
+			'gray'   => __( 'Contract mismatch', 'wink-wp-gatekeeper' ),
 		);
 		$ts    = isset( $entry['tested_at'] ) && is_numeric( $entry['tested_at'] ) ? (int) $entry['tested_at'] : 0;
 		$last  = $ts > 0
-			? date_i18n( 'm月d日 H:i', $ts ) . ' · ' . ( $words[ $state ] ?? $state )
+			? date_i18n( __( 'M j, H:i', 'wink-wp-gatekeeper' ), $ts ) . ' · ' . ( $words[ $state ] ?? $state )
 			: ( $words[ $state ] ?? $state ); // 时间戳缺失防御：只显状态词。
 		return array( $state, $last );
 	}
@@ -1083,7 +1084,7 @@ final class SettingsPage {
 			'deepseek'         => (string) \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::registry_entry()['label'],
 			'openai_custom'    => (string) \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::registry_entry()['label'],
 			'abuseipdb'        => 'AbuseIPDB',
-			'abuseipdb_report' => 'AbuseIPDB（上报）',
+			'abuseipdb_report' => __( 'AbuseIPDB (reporting)', 'wink-wp-gatekeeper' ),
 		);
 		foreach ( self::future_review_drivers() as $future_id => $future_meta ) {
 			$driver_labels[ (string) $future_id ] = isset( $future_meta['label'] ) && is_string( $future_meta['label'] )
@@ -1296,8 +1297,8 @@ final class SettingsPage {
 		?>
 		<div class="wk-wizard" id="wk-wizard" data-wk-current="<?php echo esc_attr( (string) $step ); ?>">
 			<p class="wizard-head">
-				<span class="wk-wordmark">Wink <em>WP</em> 保安</span>
-				<span class="wk-muted">· 首次上岗</span>
+				<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( 'Guard', 'wink-wp-gatekeeper' ); ?></span>
+				<span class="wk-muted">· <?php esc_html_e( 'First day on duty', 'wink-wp-gatekeeper' ); ?></span>
 			</p>
 
 			<ol class="wk-stepper">
@@ -1668,13 +1669,12 @@ final class SettingsPage {
 		self::notice_yellow_bar(
 			'warn',
 			'<strong>' . esc_html__( 'A WordPress native moderation switch is on', 'wink-wp-gatekeeper' ) . '</strong>',
-			esc_html__( '— comments still require manual approval after passing the captcha (this is not a malfunction).', 'wink-wp-gatekeeper' )
-				. esc_html( sprintf(
-					/* translators: 1: 手动批准状态 2: 先前已批准状态 */
-					__( '“Comment must be manually approved”: %1$s; “Comment author must have a previously approved comment”: %2$s.', 'wink-wp-gatekeeper' ),
-					$state_word( $wp_moderation ),
-					$state_word( $wp_whitelist )
-				) )
+			esc_html( sprintf(
+				/* translators: 1: 手动批准状态 2: 先前已批准状态 */
+				__( '— Comments still require manual approval after passing the captcha (this is not a malfunction). “Comment must be manually approved”: %1$s; “Comment author must have a previously approved comment”: %2$s.', 'wink-wp-gatekeeper' ),
+				$state_word( $wp_moderation ),
+				$state_word( $wp_whitelist )
+			) )
 				. ' <a href="' . esc_url( admin_url( 'options-discussion.php' ) ) . '">' . esc_html__( 'Adjust in Discussion Settings', 'wink-wp-gatekeeper' ) . '</a>'
 		);
 	}
@@ -1703,7 +1703,13 @@ final class SettingsPage {
 				&& '' !== trim( (string) ( $tencent['secret_key'] ?? '' ) );
 		}
 		if ( 'aliyun' === $captcha_driver ) {
-			$captcha_word = $captcha_ok ? __( 'Aliyun Captcha 2.0 · all four keys set (submit-trigger flow=', 'wink-wp-gatekeeper' ) . ( 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? __( 'Classic button', 'wink-wp-gatekeeper' ) : __( 'No-button mode', 'wink-wp-gatekeeper' ) ) . '）' : __( 'Aliyun Captcha 2.0 · four keys incomplete', 'wink-wp-gatekeeper' );
+			$captcha_word = $captcha_ok
+				? sprintf(
+					/* translators: %s: 提交触发形态（经典按钮 / 无按钮模式） */
+					__( 'Aliyun Captcha 2.0 · all four keys set (submit-trigger flow=%s)', 'wink-wp-gatekeeper' ),
+					'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? __( 'Classic button', 'wink-wp-gatekeeper' ) : __( 'No-button mode', 'wink-wp-gatekeeper' )
+				)
+				: __( 'Aliyun Captcha 2.0 · four keys incomplete', 'wink-wp-gatekeeper' );
 		} elseif ( 'tencent' === $captcha_driver ) {
 			$captcha_word = $captcha_ok ? __( 'Tencent Tianyu 2.0 · credentials set (existing setups still work)', 'wink-wp-gatekeeper' ) : __( 'Tencent Tianyu 2.0 · credentials incomplete', 'wink-wp-gatekeeper' );
 		}
@@ -1718,7 +1724,7 @@ final class SettingsPage {
 		?>
 		<ul class="wk-checklist">
 			<li>✓ <?php esc_html_e( 'Four built-in rule defenses · on duty (length / no-Chinese / keywords / regex — free, zero outbound calls, always on)', 'wink-wp-gatekeeper' ); ?></li>
-			<li><?php echo '' !== $captcha_driver ? '✓' : '·'; ?> <?php echo esc_html( __( 'Human verification · ', 'wink-wp-gatekeeper' ) . $captcha_word ); ?></li>
+			<li><?php echo '' !== $captcha_driver ? '✓' : '·'; ?> <?php echo esc_html( sprintf( /* translators: %s: 人机验证状态句 */ __( 'Human verification · %s', 'wink-wp-gatekeeper' ), $captcha_word ) ); ?></li>
 			<li><?php echo ! empty( $cloud['enabled'] ) && '' !== $selected ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $cloud['enabled'] ) && '' !== $selected ? __( 'Cloud moderation · enabled (provider credentials count as good when “Test credentials” shows green)', 'wink-wp-gatekeeper' ) : __( 'Cloud moderation · disabled (the built-in rules keep watch as usual)', 'wink-wp-gatekeeper' ) ); ?></li>
 			<li><?php echo ! empty( $iprep['enabled'] ) ? '✓' : '·'; ?> <?php echo esc_html( ! empty( $iprep['enabled'] ) ? __( 'IP reputation (AbuseIPDB) · enabled (credentials count as good when “Test credentials” shows green)', 'wink-wp-gatekeeper' ) : __( 'IP reputation (AbuseIPDB) · optional enhancement — skipping it does not affect the protections above', 'wink-wp-gatekeeper' ) ); ?></li>
 		</ul>
@@ -1808,7 +1814,7 @@ final class SettingsPage {
 			// 【W3·批A】迁段 notice_yellow_bar（演练模式通栏——Labels::test_mode_word 映射词留编排位）。
 			self::notice_yellow_bar(
 				'warn',
-				'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html( \WinkGatekeeper\Stats\Labels::test_mode_word() . '进行中（今天 ' . $tm_time . ' 开启，还剩约 ' . $tm_left . ' 小时）' ) . '</strong>',
+				'<span class="wk-dot wk-dot--alert" aria-hidden="true"></span> <strong>' . esc_html( \WinkGatekeeper\Stats\Labels::test_mode_word() . __( 'Active (enabled today at ', 'wink-wp-gatekeeper' ) . $tm_time . __( ', about ', 'wink-wp-gatekeeper' ) . $tm_left . sprintf( /* translators: %d: 剩余小时数 */ _n( ' hour)', ' hours)', (int) $tm_left, 'wink-wp-gatekeeper' ), (int) $tm_left ) ) . '</strong>',
 				'——' . esc_html__( 'Site-wide human verification is temporarily bypassed for pipeline drills only; it ends automatically after 24 hours (bypassed events are tagged drill and excluded from statistics).', 'wink-wp-gatekeeper' ),
 				' <a href="' . esc_url( self::tab_url( 'captcha' ) ) . '">' . esc_html__( 'Turn it off now', 'wink-wp-gatekeeper' ) . '</a>'
 			);
@@ -1933,7 +1939,7 @@ final class SettingsPage {
 		$pending  = wp_count_comments(); // WP 边界。
 		$pending_n = is_object( $pending ) && isset( $pending->moderated ) ? (int) $pending->moderated : 0;
 		$spam_n    = \WinkGatekeeper\Stats\StatsCache::archived_spam_count();
-		$today_label = date_i18n( 'n月j日' ); // WP 边界（站点时区）。
+		$today_label = date_i18n( __( 'M j', 'wink-wp-gatekeeper' ) ); // WP 边界（站点时区）。
 		?>
 		<section id="wk-overview-report" class="wk-card">
 			<h2><?php
@@ -1945,7 +1951,7 @@ final class SettingsPage {
 				?> <span class="wk-muted"><?php echo esc_html( $stats_enabled ? __( 'Statistics: enabled', 'wink-wp-gatekeeper' ) : __( 'Statistics: disabled', 'wink-wp-gatekeeper' ) ); ?></span></h2>
 			<div class="wk-report-tickets">
 				<?php if ( ! $stats_enabled ) : ?>
-					<?php foreach ( array( '评论闸', '登录闸', '注册·找回闸' ) as $gray_gate ) : ?>
+					<?php foreach ( array( __( 'Comment gate', 'wink-wp-gatekeeper' ), __( 'Login gate', 'wink-wp-gatekeeper' ), __( 'Registration & recovery gate', 'wink-wp-gatekeeper' ) ) as $gray_gate ) : ?>
 						<div class="wk-report-ticket wk-report-ticket--disabled">
 							<p class="wk-report-ticket__name"><strong><?php echo esc_html( $gray_gate ); ?></strong></p>
 							<p class="wk-muted"><?php esc_html_e( 'Statistics are disabled, so nothing was counted today (events are still recorded)', 'wink-wp-gatekeeper' ); ?></p>
@@ -2444,8 +2450,8 @@ final class SettingsPage {
 			 * 默认开；未配验证码驱动自动 inert；users_can_register=off 站注册表单核心不可达；
 			 * 多站点注册走 wp-signup.php 本闸不覆盖——02 §3.2a）。 */
 			foreach ( array(
-				'register'     => array( 'label' => '注册闸', 'hint' => '注册表单（wp-login.php?action=register）常显验证码，无票注册被拒且用户不创建。' ),
-				'lostpassword' => array( 'label' => '找回密码闸', 'hint' => '找回密码表单常显验证码，无票提交被拒且重置邮件不发（含用户不存在的提交——防枚举）。' ),
+				'register'     => array( 'label' => __( 'Registration gate', 'wink-wp-gatekeeper' ), 'hint' => __( 'The registration form (wp-login.php?action=register) always shows a captcha; ticketless registrations are rejected and no user is created.', 'wink-wp-gatekeeper' ) ),
+				'lostpassword' => array( 'label' => __( 'Password recovery gate', 'wink-wp-gatekeeper' ), 'hint' => __( 'The lost-password form always shows a captcha; ticketless submissions are rejected and no reset email is sent (including submissions for nonexistent users — anti-enumeration).', 'wink-wp-gatekeeper' ) ),
 			) as $account_key => $account_meta ) :
 				?>
 			<div class="switch-row">
@@ -2557,7 +2563,7 @@ final class SettingsPage {
 			// 【v1.4·反馈9/R4 §C.3】逐驱动合规行（registry privacy 维渲染；原接入指引内的
 			// 「核验将提交访客 IP」注记上移至此——常驻不可关闭，cross_border=true 升级黄条）。
 			// 【W3·批B】黄条壳 helper 化（判定/文案留编排位——DriverPrivacyTable 契约零变化）。
-			$privacy_row = DriverConfigSpec::privacy_notice( TencentCaptchaDriver::registry_entry(), '腾讯天御验证码 2.0' );
+			$privacy_row = DriverConfigSpec::privacy_notice( TencentCaptchaDriver::registry_entry(), __( 'Tencent Tianyu Captcha 2.0', 'wink-wp-gatekeeper' ) );
 			if ( null !== $privacy_row ) :
 				self::notice_yellow_bar( 'warn' === $privacy_row['level'] ? 'warn' : 'info', '', esc_html( $privacy_row['text'] ) );
 			endif;
@@ -2604,7 +2610,7 @@ final class SettingsPage {
 				<tr>
 					<th scope="row"><label for="wk-tencent-app-secret-key"><?php esc_html_e( 'AppSecretKey (captcha console)', 'wink-wp-gatekeeper' ); ?></label></th>
 					<td>
-						<?php self::password_field( array( 'captcha', 'tencent', 'app_secret_key' ), '' !== $tencent['app_secret_key'], 'AppSecretKey（验证码控制台）' ); ?>
+						<?php self::password_field( array( 'captcha', 'tencent', 'app_secret_key' ), '' !== $tencent['app_secret_key'], __( 'AppSecretKey (captcha console)', 'wink-wp-gatekeeper' ) ); ?>
 						<p class="description"><?php esc_html_e( 'The key on the same captcha console page as the CaptchaAppId — a required body parameter of the verification request (enforced by server-side online checks, confirmed by live testing on 2026-11-09). Server-side only.', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
@@ -2669,7 +2675,7 @@ final class SettingsPage {
 
 			<?php
 			// 逐驱动合规行（registry privacy 维渲染——R4 §C.3 同款；常驻不可关闭）。
-			$privacy_row = DriverConfigSpec::privacy_notice( AliyunCaptchaDriver::registry_entry(), '阿里云验证码 2.0' );
+			$privacy_row = DriverConfigSpec::privacy_notice( AliyunCaptchaDriver::registry_entry(), __( 'Aliyun Captcha 2.0', 'wink-wp-gatekeeper' ) );
 			if ( null !== $privacy_row ) :
 				self::notice_yellow_bar( 'warn' === $privacy_row['level'] ? 'warn' : 'info', '', esc_html( $privacy_row['text'] ) );
 			endif;
@@ -3035,7 +3041,7 @@ final class SettingsPage {
 			self::probe_log_record( 'tencent_tms', 'yellow' ); // W3-C N1 黄态（必填缺）同落最近一次测试态。
 			wp_send_json_success( array(
 				'state'   => 'yellow',
-				'message' => '必填字段缺少：' . implode( '、', $missing ) . '——补齐后重新测试。',
+				'message' => __( 'Required fields missing: ', 'wink-wp-gatekeeper' ) . implode( '、', $missing ) . __( ' — fill them in and test again.', 'wink-wp-gatekeeper' ),
 				'missing' => $missing,
 				'code'    => '',
 			) );
@@ -3325,7 +3331,7 @@ final class SettingsPage {
 				$cloud_selected,
 				$cloud_registered[ $cloud_selected ],
 				isset( $cloud_configs[ $cloud_selected ] ) ? $cloud_configs[ $cloud_selected ] : array(),
-				'云端审核'
+				__( 'Cloud moderation', 'wink-wp-gatekeeper' )
 			);
 		}
 		if ( null !== $cloud_notice ) {
@@ -3493,11 +3499,11 @@ final class SettingsPage {
 		 * #wk-cloud-driver 切换显隐（各厂商 schema 子树独立保存、切换不清空已填）；
 		 * 「未配置」= 三区全 hidden + 说明行 #wk-review-unconfigured-note。 */
 		$tms_meta      = isset( $cloud_registered['tencent_tms'] ) ? $cloud_registered['tencent_tms'] : TencentTmsDriver::registry_entry();
-		$tms_privacy   = DriverConfigSpec::privacy_notice( $tms_meta, '腾讯云 TMS 文本审核' );
+		$tms_privacy   = DriverConfigSpec::privacy_notice( $tms_meta, __( 'Tencent Cloud TMS Text Moderation', 'wink-wp-gatekeeper' ) );
 		$green_meta    = isset( $cloud_registered['aliyun_green'] ) ? $cloud_registered['aliyun_green'] : AliyunGreenPlusDriver::registry_entry();
-		$green_privacy = DriverConfigSpec::privacy_notice( $green_meta, '阿里云内容安全·文本审核增强版 PLUS' );
+		$green_privacy = DriverConfigSpec::privacy_notice( $green_meta, __( 'Aliyun Content Security · Text Moderation Plus', 'wink-wp-gatekeeper' ) );
 		$baidu_meta    = isset( $cloud_registered['baidu'] ) ? $cloud_registered['baidu'] : BaiduTextModerationDriver::registry_entry();
-		$baidu_privacy = DriverConfigSpec::privacy_notice( $baidu_meta, '百度文本审核' );
+		$baidu_privacy = DriverConfigSpec::privacy_notice( $baidu_meta, __( 'Baidu Text Moderation', 'wink-wp-gatekeeper' ) );
 		?>
 		<section class="wk-card" id="wk-tms-config-area" data-wk-vendor="tencent_tms"<?php echo ( 'tencent_tms' === $cloud_selected ) ? '' : ' hidden'; ?>>
 			<h2><?php esc_html_e( 'Tencent Cloud TMS text moderation · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
@@ -3953,7 +3959,7 @@ final class SettingsPage {
 		 * system_prompt/min_confidence 高级键不开 UI（deepseek 卡对称——两键保留
 		 * sanitize/schema 通道，未来「高级折叠区」统一开）。 */
 		$oc_meta    = isset( $cloud_registered['openai_custom'] ) ? $cloud_registered['openai_custom'] : \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::registry_entry();
-		$oc_privacy = DriverConfigSpec::privacy_notice( $oc_meta, '自定义 OpenAI 兼容端点' );
+		$oc_privacy = DriverConfigSpec::privacy_notice( $oc_meta, __( 'Custom OpenAI-compatible endpoint', 'wink-wp-gatekeeper' ) );
 		?>
 		<section class="wk-card" id="wk-review-openai-custom-card" data-wk-vendor="openai_custom"<?php echo ( 'openai_custom' === $cloud_selected ) ? '' : ' hidden'; ?>>
 			<h2><?php esc_html_e( 'Custom OpenAI-compatible endpoint (AI verdict) · Configuration', 'wink-wp-gatekeeper' ); ?></h2>
@@ -3988,7 +3994,7 @@ final class SettingsPage {
 					<td>
 						<input type="url" id="wk-openai-custom-base-url" name="<?php echo esc_attr( self::field_name( array( 'review', 'cloud', 'openai_custom', 'base_url' ) ) ); ?>"
 							value="<?php echo esc_attr( (string) ( $openai_custom['base_url'] ?? '' ) ); ?>" class="regular-text code"
-							placeholder="https://你的端点/v1" />
+							placeholder="<?php esc_attr_e( 'https://your-endpoint/v1', 'wink-wp-gatekeeper' ); ?>" />
 						<p class="description"><?php esc_html_e( 'Enter the root URL of your OpenAI-compatible endpoint — the plugin appends /chat/completions to it. For the official OpenAI family stop at https://…/v1; for official DeepSeek use https://api.deepseek.com (without /v1).', 'wink-wp-gatekeeper' ); ?></p>
 					</td>
 				</tr>
@@ -4819,7 +4825,7 @@ final class SettingsPage {
 					<?php
 					$trusted_bits = array();
 					foreach ( $panel['trusted']['rows'] as $row ) {
-						$trusted_bits[] = sprintf( '%s（%d 条）', $row['label'], (int) $row['count'] );
+						$trusted_bits[] = sprintf( /* translators: 1: 网段名 2: 条数 */ _n( '%1$s (%2$d range)', '%1$s (%2$d ranges)', (int) $row['count'], 'wink-wp-gatekeeper' ), $row['label'], (int) $row['count'] );
 					}
 					if ( null !== $panel['trusted']['verified'] ) {
 						$trusted_bits[] = sprintf(
@@ -4828,9 +4834,13 @@ final class SettingsPage {
 							(string) $panel['trusted']['verified']
 						);
 					}
-					echo esc_html( array() !== $trusted_bits
-						? __( 'Trusted ranges:', 'wink-wp-gatekeeper' ) . implode( ' · ', $trusted_bits )
-						: __( 'Trusted ranges: (no preset or custom ranges enabled — forwarded headers take no part in parsing)', 'wink-wp-gatekeeper' ) );
+					echo array() !== $trusted_bits
+						? esc_html( sprintf(
+							/* translators: %s: 受信网段列表 */
+							__( 'Trusted ranges: %s', 'wink-wp-gatekeeper' ),
+							implode( ' · ', $trusted_bits )
+						) )
+						: esc_html__( 'Trusted ranges: (no preset or custom ranges enabled — forwarded headers take no part in parsing)', 'wink-wp-gatekeeper' );
 					?>
 				</span>
 			</p>
@@ -4862,7 +4872,7 @@ final class SettingsPage {
 			<h3 class="wk-sub-title"><?php esc_html_e( 'Manual aggregate query', 'wink-wp-gatekeeper' ); ?></h3>
 			<p>
 				<label class="screen-reader-text" for="wk-ip-diag-ip"><?php esc_html_e( 'IP address to look up', 'wink-wp-gatekeeper' ); ?></label>
-				<input type="text" id="wk-ip-diag-ip" class="regular-text" placeholder="8.8.8.8 或 2001:db8::1" autocomplete="off" />
+				<input type="text" id="wk-ip-diag-ip" class="regular-text" placeholder="<?php esc_attr_e( '8.8.8.8 or 2001:db8::1', 'wink-wp-gatekeeper' ); ?>" autocomplete="off" />
 				<button type="button" class="button" id="wk-ip-diag-query" data-nonce="<?php echo esc_attr( wp_create_nonce( self::AJAX_IP_DIAGNOSE ) ); ?>"><?php esc_html_e( 'Sources to query', 'wink-wp-gatekeeper' ); ?></button>
 				<span id="wk-ip-diag-status" class="wk-muted" aria-live="polite"></span>
 			</p>
@@ -5009,7 +5019,7 @@ final class SettingsPage {
 
 		$vars = array(
 			'event_no' => Copywork::PREVIEW_EVENT_NO,
-			'rule'     => Copywork::PREVIEW_RULE_SAMPLE,
+			'rule'     => __( 'Sample rule', 'wink-wp-gatekeeper' ),
 			'time'     => $time,
 		);
 		if ( '' !== $contact ) {
@@ -5022,9 +5032,9 @@ final class SettingsPage {
 			'title'    => $page['title'],
 			'message'  => $page['message'],
 			'evidence' => array(
-				'事件编号' => Copywork::PREVIEW_EVENT_NO,
-				'命中规则' => Copywork::PREVIEW_RULE_SAMPLE,
-				'时间'     => $time,
+				__( 'Event No.', 'wink-wp-gatekeeper' ) => Copywork::PREVIEW_EVENT_NO,
+				__( 'Matched rule', 'wink-wp-gatekeeper' ) => __( 'Sample rule', 'wink-wp-gatekeeper' ),
+				__( 'Time', 'wink-wp-gatekeeper' )     => $time,
 			),
 		);
 	}
@@ -5365,7 +5375,7 @@ final class SettingsPage {
 								<input type="checkbox" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'bocha', 'enabled' ) ) ); ?>" value="1" <?php checked( ! empty( $ua['bocha']['enabled'] ) ); ?>>
 								<?php esc_html_e( 'When a page will not open, search results can still serve as clues, reducing “could not tell” cases (off by default)', 'wink-wp-gatekeeper' ); ?>
 							</label>
-							<?php self::password_field( array( 'url_audit', 'bocha', 'api_key' ), '' !== (string) ( $ua['bocha']['api_key'] ?? '' ), '博查 API Key' ); ?>
+							<?php self::password_field( array( 'url_audit', 'bocha', 'api_key' ), '' !== (string) ( $ua['bocha']['api_key'] ?? '' ), __( 'Bocha API Key', 'wink-wp-gatekeeper' ) ); ?>
 							<p>
 								<label for="wk-url-audit-search-source"><?php esc_html_e( 'Search source', 'wink-wp-gatekeeper' ); ?></label>
 								<select id="wk-url-audit-search-source" name="<?php echo esc_attr( self::field_name( array( 'url_audit', 'search_source' ) ) ); ?>">
@@ -5404,7 +5414,7 @@ final class SettingsPage {
 					<tr>
 						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( 'Separate-credentials API Key', 'wink-wp-gatekeeper' ); ?></span></th>
 						<td>
-							<?php self::password_field( array( 'url_audit', 'provider', 'api_key' ), '' !== (string) ( $ua_provider['api_key'] ?? '' ), '网址核查 API Key' ); ?>
+							<?php self::password_field( array( 'url_audit', 'provider', 'api_key' ), '' !== (string) ( $ua_provider['api_key'] ?? '' ), __( 'URL check API Key', 'wink-wp-gatekeeper' ) ); ?>
 							<p class="description"><?php esc_html_e( 'An API Key from the DeepSeek platform (may be a different account from Tab 3 cloud moderation).', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
@@ -5476,7 +5486,7 @@ final class SettingsPage {
 					<tr>
 						<th scope="row"><span class="screen-reader-text"><?php esc_html_e( 'DeepSeek key for fetching', 'wink-wp-gatekeeper' ); ?></span></th>
 						<td>
-							<?php self::password_field( array( 'url_audit', 'fetcher', 'api_key' ), '' !== (string) ( $ua['fetcher']['api_key'] ?? '' ), '抓取专用 DeepSeek Key' ); ?>
+							<?php self::password_field( array( 'url_audit', 'fetcher', 'api_key' ), '' !== (string) ( $ua['fetcher']['api_key'] ?? '' ), __( 'DeepSeek key for fetching', 'wink-wp-gatekeeper' ) ); ?>
 							<p class="description"><?php esc_html_e( 'Blank = use the “LLM provider” key above (usually leave it empty). Fill it in only to give page fetching its own DeepSeek account.', 'wink-wp-gatekeeper' ); ?></p>
 						</td>
 					</tr>
@@ -5712,7 +5722,7 @@ final class SettingsPage {
 				<dd>
 					<?php esc_html_e( 'The human-readable name of the matched rule key (translated by the Labels map; unmapped keys display as-is; the actual keyword hit is visible to admins only in the event stream). Mapping examples:', 'wink-wp-gatekeeper' ); ?>
 					<!-- 【M4UX F3-4】映射示例独立样式行（术语 code 与示例排版分离）。 -->
-					<code class="wk-example-line"><?php echo esc_html( 'remote_semantic → 「服务商拒绝了（查配置或欠费）」 · banned_word → 「命中关键词黑名单」' ); ?></code>
+					<code class="wk-example-line"><?php echo esc_html( __( 'remote_semantic → “Provider refused the request (check configuration or billing)” · banned_word → “Keyword blacklist hit”', 'wink-wp-gatekeeper' ) ); ?></code>
 				</dd>
 				<dt><code>{time}</code></dt>
 				<dd><?php esc_html_e( 'When the block happened (site timezone).', 'wink-wp-gatekeeper' ); ?></dd>
@@ -5904,7 +5914,7 @@ final class SettingsPage {
 				) );
 				?>
 			</p>
-			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::cumulative_line( (string) number_format_i18n( (int) ( $cache['total']['reject'] ?? 0 ) ), '次', $since_date ) ); ?></p>
+			<p class="wk-muted"><?php echo esc_html( \WinkGatekeeper\Stats\Labels::cumulative_line( (string) number_format_i18n( (int) ( $cache['total']['reject'] ?? 0 ) ), __( 'times', 'wink-wp-gatekeeper' ), $since_date ) ); ?></p>
 			<?php if ( empty( $settings['stats']['enabled'] ) ) : ?>
 				<p class="wk-muted"><strong><?php esc_html_e( 'Counting disabled', 'wink-wp-gatekeeper' ); ?></strong><?php esc_html_e( '— blocks during statistics-off periods are not counted, while the event table still records them (this page is authoritative for block details).', 'wink-wp-gatekeeper' ); ?></p>
 			<?php endif; ?>
@@ -5966,7 +5976,7 @@ final class SettingsPage {
 				echo esc_html( sprintf(
 					/* translators: %s: 累计行（含窗口标注） */
 					__( '“To manual review” means it sits in the pending queue awaiting you. %s', 'wink-wp-gatekeeper' ),
-					\WinkGatekeeper\Stats\Labels::cumulative_line( (string) number_format_i18n( (int) ( $comment_total['reject'] ?? 0 ) ), '条', $since_date )
+					\WinkGatekeeper\Stats\Labels::cumulative_line( (string) number_format_i18n( (int) ( $comment_total['reject'] ?? 0 ) ), __( 'comments', 'wink-wp-gatekeeper' ), $since_date )
 				) );
 				?>
 			</p>
@@ -6436,7 +6446,11 @@ final class SettingsPage {
 			wp_die( esc_html__( 'Failed to open the export stream.', 'wink-wp-gatekeeper' ), 500 );
 		}
 		fwrite( $out, "\xEF\xBB\xBF" ); // UTF-8 BOM（Excel 中文表头兼容）。
-		fputcsv( $out, \WinkGatekeeper\Stats\InterceptDigest::EXPORT_CSV_COLUMNS );
+		// i18n 批 I-3：CSV 列头经 __() 翻译（msgid 皆既有键，pot 由字面量位点与 catalog 管线承载）。
+		fputcsv( $out, array_map( static function ( string $column ): string {
+			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- const 列头闭集值=en 键（PHP 常量表达式禁函数调用）。
+			return __( $column, 'wink-wp-gatekeeper' );
+		}, \WinkGatekeeper\Stats\InterceptDigest::EXPORT_CSV_COLUMNS ) );
 		foreach ( \WinkGatekeeper\Stats\InterceptDigest::export_csv_rows( $rows ) as $row ) {
 			fputcsv( $out, $row );
 		}
@@ -6719,7 +6733,7 @@ final class SettingsPage {
 	 */
 	public static function future_review_drivers(): array {
 		return array(
-			'moli' => array( 'label' => '模力 System One', 'milestone' => 'M4', 'required' => array( 'api_key' ) ),
+			'moli' => array( 'label' => __( 'Moli System One', 'wink-wp-gatekeeper' ), 'milestone' => 'M4', 'required' => array( 'api_key' ) ),
 			// openai_custom 已于 M6·批E 实装——登记入 registry，脱离 future 段（下拉已实装驱动）。
 			// deepseek 已于 M5 U4 批实装——同上。
 			// aliyun_green 已于 M3' 批次 3（B5）实装——同上。
@@ -6897,10 +6911,10 @@ final class SettingsPage {
 				// 【M6·批H·H-8】截断展示补「…」省略号（单点件全消费面生效）；
 				// 【M6·批H3·H3-C】行尾补处置去向（→ 垃圾箱/→ 待审核——去向词常量安全）。
 				$parts[] = sprintf(
-					'「%s」%d 条 → %s',
+					/* translators: 1: 原因 2: 条数 3: 去向 */ _n( '“%1$s” %2$d item → %3$s', '“%1$s” %2$d items → %3$s', (int) $row['n'], 'wink-wp-gatekeeper' ),
 					esc_html( self::truncate_reason( (string) $row['reason'] ) ),
 					(int) $row['n'],
-					'spam' === (string) ( $row['disposal'] ?? 'hold' ) ? '垃圾箱' : '待审核'
+					'spam' === (string) ( $row['disposal'] ?? 'hold' ) ? __( 'Spam', 'wink-wp-gatekeeper' ) : __( 'Pending review', 'wink-wp-gatekeeper' )
 				);
 			}
 			// XSS 红线：原因=攻击者可控（AI 原文/驱动透传）——转义+截断（编排在位）。
@@ -6938,13 +6952,13 @@ final class SettingsPage {
 			'actions_html'    => '<a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ) . '">'
 				. esc_html( sprintf(
 					/* translators: %d: 待审核条数 */
-					__( 'Handle the pending queue (%d) →', 'wink-wp-gatekeeper' ),
+					_n( 'Handle the pending queue (%d item) →', 'Handle the pending queue (%d items) →', $rep_view['caliber']['pending'], 'wink-wp-gatekeeper' ),
 					$rep_view['caliber']['pending']
 				) )
 				. '</a> · <a href="' . esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ) . '">'
 				. esc_html( sprintf(
 					/* translators: %d: 垃圾箱条数 */
-					__( 'View Spam (%d) →', 'wink-wp-gatekeeper' ),
+					_n( 'View Spam (%d item) →', 'View Spam (%d items) →', $rep_view['caliber']['spam'], 'wink-wp-gatekeeper' ),
 					$rep_view['caliber']['spam']
 				) )
 				. '</a>',
@@ -7025,7 +7039,7 @@ final class SettingsPage {
 					<?php
 					printf(
 						/* translators: %s: 待核查条数。 */
-						esc_html__( '%s URLs queued for checking (advances automatically within the daily quota).', 'wink-wp-gatekeeper' ),
+						esc_html( /* translators: %s: 待核查条数 */ _n( '%s URL queued for checking (advances automatically within the daily quota).', '%s URLs queued for checking (advances automatically within the daily quota).', $backlog_count, 'wink-wp-gatekeeper' ) ),
 						esc_html( number_format_i18n( $backlog_count ) )
 					);
 					?>
@@ -7038,7 +7052,7 @@ final class SettingsPage {
 				echo esc_html( $backlog_added > 0
 					? sprintf(
 						/* translators: %s: 本次入队条数 */
-						__( '%s queued · checking starts (advances automatically within the daily quota; you can leave this page).', 'wink-wp-gatekeeper' ),
+						_n( '%s URL queued · checking starts (advances automatically within the daily quota; you can leave this page).', '%s URLs queued · checking starts (advances automatically within the daily quota; you can leave this page).', $backlog_added, 'wink-wp-gatekeeper' ),
 						number_format_i18n( $backlog_added )
 					)
 					: __( 'No newly found existing URLs to check — they may already be queued.', 'wink-wp-gatekeeper' ) );
@@ -7105,14 +7119,14 @@ final class SettingsPage {
 					<a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=moderated' ) ); ?>"><?php
 						echo esc_html( sprintf(
 							/* translators: %d: 待审核条数 */
-							__( 'Handle the pending queue (%d) →', 'wink-wp-gatekeeper' ),
+							_n( 'Handle the pending queue (%d item) →', 'Handle the pending queue (%d items) →', $url_view['caliber']['pending'], 'wink-wp-gatekeeper' ),
 							$url_view['caliber']['pending']
 						) );
 					?></a>
 					· <a href="<?php echo esc_url( admin_url( 'edit-comments.php?comment_status=spam' ) ); ?>"><?php
 						echo esc_html( sprintf(
 							/* translators: %d: 垃圾箱条数 */
-							__( 'View Spam (%d) →', 'wink-wp-gatekeeper' ),
+							_n( 'View Spam (%d item) →', 'View Spam (%d items) →', $url_view['caliber']['spam'], 'wink-wp-gatekeeper' ),
 							$url_view['caliber']['spam']
 						) );
 					?></a>
@@ -7121,7 +7135,7 @@ final class SettingsPage {
 					if ( $url_view['gone'] > 0 ) {
 						echo ' ' . esc_html( sprintf(
 							/* translators: %d: 评论已删条数 */
-							__( 'Also: %d comments deleted.', 'wink-wp-gatekeeper' ),
+							_n( 'Also: %d comment deleted.', 'Also: %d comments deleted.', $url_view['gone'], 'wink-wp-gatekeeper' ),
 							$url_view['gone']
 						) );
 					}
@@ -7147,11 +7161,11 @@ final class SettingsPage {
 									? __( 'URL would not open; judged from search clues', 'wink-wp-gatekeeper' )
 									: '';
 							$url_parts[] = sprintf(
-								'%2$s「%1$s」%3$d 条 → %4$s',
+								/* translators: 1: 原因 2: 前缀 3: 条数 4: 去向 */ _n( '%2$s“%1$s” %3$d item → %4$s', '%2$s“%1$s” %3$d items → %4$s', (int) ( $url_reason_row['n'] ?? 0 ), 'wink-wp-gatekeeper' ),
 								self::truncate_reason( (string) ( $url_reason_row['reason'] ?? '' ) ), // 【M6·批H·H-8】截断补「…」（单点件）。
 								'' !== $url_prefix ? '【' . $url_prefix . '】' : '',
 								(int) ( $url_reason_row['n'] ?? 0 ),
-								'spam' === (string) ( $url_reason_row['disposal'] ?? 'hold' ) ? '垃圾箱' : '待审核' // 【M6·批H3·H3-C】行尾处置去向。
+								'spam' === (string) ( $url_reason_row['disposal'] ?? 'hold' ) ? __( 'Spam', 'wink-wp-gatekeeper' ) : __( 'Pending review', 'wink-wp-gatekeeper' ) // 【M6·批H3·H3-C】行尾处置去向。
 							);
 							}
 							echo esc_html( implode( ' · ', $url_parts ) ); // XSS 红线：单次转义收口。

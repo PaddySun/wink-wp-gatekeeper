@@ -39,16 +39,16 @@ final class DriverPrivacyTableTest extends TestCase {
 		$tms = DriverPrivacy::entry( 'tencent_tms' );
 		$this->assertFalse( $tms['cross_border'] );
 		$this->assertSame( 'https://cloud.tencent.com/document/product/301/1967', $tms['privacy_url'] );
-		$this->assertStringContainsString( '昵称', $tms['data_fields'] );
-		$this->assertStringContainsString( '正文', $tms['data_fields'] );
-		$this->assertStringContainsString( '境内', $tms['region_note'] );
+		$this->assertStringContainsString( 'Nickname', $tms['data_fields'] );
+		$this->assertStringContainsString( 'body', $tms['data_fields'] );
+		$this->assertStringContainsString( 'Domestic', $tms['region_note'] );
 
 		// 出境两档：hCaptcha/Turnstile/AbuseIPDB=true；自定义端点=null（辖区未知）。
 		$this->assertTrue( DriverPrivacy::entry( 'hcaptcha' )['cross_border'] );
 		$this->assertTrue( DriverPrivacy::entry( 'turnstile' )['cross_border'] );
 		$this->assertTrue( DriverPrivacy::entry( 'abuseipdb' )['cross_border'] );
 		$this->assertNull( DriverPrivacy::entry( 'openai_custom' )['cross_border'] );
-		$this->assertStringContainsString( '辖区未知', DriverPrivacy::entry( 'openai_custom' )['region_note'], 'v1.2 通用出境提示原文迁入' );
+		$this->assertStringContainsString( 'The jurisdiction of the endpoint is unknown', DriverPrivacy::entry( 'openai_custom' )['region_note'], 'v1.2 通用出境提示原文迁入' );
 
 		// 天御：访客 IP + 票据（DescribeCaptchaResult UserIp 参数）。
 		$tencent = DriverPrivacy::entry( 'tencent' );
@@ -96,7 +96,7 @@ final class DriverPrivacyTableTest extends TestCase {
 			$registry->register( self::base_entry( array( 'id' => 'p_' . var_export( $border, true ), 'privacy' => array(
 				'cross_border' => $border,
 				'privacy_url'  => 'https://example.com/privacy',
-				'data_fields'  => '正文',
+				'data_fields'  => 'body',
 				'region_note'  => '测试',
 			) ) ) );
 		}

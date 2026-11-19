@@ -22,8 +22,8 @@ final class DiePageTest extends TestCase {
 
 	private static function build( array $evidence = array( 'event_no' => 'WK-20261109-0042', 'rule' => 'banned_word', 'time' => '2026-11-09 21:33:05' ) ): string {
 		return DiePage::build(
-			'这串字符我们眼熟',
-			'这串字符我们眼熟——换句人话再试试？',
+			'We know this string',
+			'We have seen this string before — how about plain human words instead?',
 			$evidence,
 			'admin@example.com',
 			'https://example.com/wp-content/plugins/wink/assets/brand/logo-wink.svg',
@@ -34,8 +34,8 @@ final class DiePageTest extends TestCase {
 	public function test_contains_title_message_and_lang(): void {
 		$html = self::build();
 		$this->assertStringContainsString( '<html lang="zh-CN">', $html );
-		$this->assertStringContainsString( '这串字符我们眼熟', $html );
-		$this->assertStringContainsString( '换句人话再试试', $html );
+		$this->assertStringContainsString( 'We know this string', $html );
+		$this->assertStringContainsString( 'plain human words instead?', $html );
 	}
 
 	public function test_inline_styles_do_not_depend_on_theme(): void {
@@ -66,7 +66,7 @@ final class DiePageTest extends TestCase {
 
 	public function test_back_link_present(): void {
 		$html = self::build();
-		$this->assertStringContainsString( '返回', $html );
+		$this->assertStringContainsString( 'Back to the previous page', $html ); // i18n 批 I-3：回链接文案 key 化（zh msgstr=返回上一页）。
 	}
 
 	public function test_contact_email_shown_when_provided(): void {
@@ -95,7 +95,7 @@ final class DiePageTest extends TestCase {
 
 	public function test_empty_evidence_renders_no_evidence_block(): void {
 		$html = DiePage::build( '标题', '文案', array(), '', 'https://x/logo.svg', 'zh-CN' );
-		$this->assertStringNotContainsString( '事件编号', $html );
+		$this->assertStringNotContainsString( 'Event No.', $html );
 	}
 
 	/* -----------------------------------------------------------------

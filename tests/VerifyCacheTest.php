@@ -82,7 +82,7 @@ final class VerifyCacheTest extends TestCase {
 		 * 落成 '1' 读回——命中判定按「标量且真值」；假值/非标量不命中。 */
 		foreach ( array( false, '0', 0, '', null, array() ) as $value ) {
 			$store[ VerifyCache::key( 'STUB_A', '1.2.3.4', self::$mac ) ] = $value;
-			$this->assertFalse( $cache->hit( 'STUB_A', '1.2.3.4' ), '假值/非标量不算命中（值=' . var_export( $value, true ) . '）' );
+			$this->assertFalse( $cache->hit( 'STUB_A', '1.2.3.4' ), '假值/非标量不算命中（值=' . var_export( $value, true ) . ')' );
 		}
 	}
 
@@ -91,7 +91,7 @@ final class VerifyCacheTest extends TestCase {
 		$cache = self::cache( 10, $store );
 		foreach ( array( true, '1', 1 ) as $value ) {
 			$store[ VerifyCache::key( 'STUB_A', '1.2.3.4', self::$mac ) ] = $value;
-			$this->assertTrue( $cache->hit( 'STUB_A', '1.2.3.4' ), '后端形态漂移后的真值应命中（值=' . var_export( $value, true ) . '）' );
+			$this->assertTrue( $cache->hit( 'STUB_A', '1.2.3.4' ), '后端形态漂移后的真值应命中（值=' . var_export( $value, true ) . ')' );
 		}
 	}
 

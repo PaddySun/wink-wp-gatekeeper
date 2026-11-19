@@ -91,7 +91,7 @@ final class ResponseDispatcherTest extends TestCase {
 	public function test_ajax_headers_carry_four_protocol_headers(): void {
 		$result = array(
 			'message'  => '眨眼没对上——刷新页面再试一次？',
-			'evidence' => array( '命中规则' => 'CaptchaCode=8', '事件编号' => 'WK-20261111-0001' ),
+			'evidence' => array( 'Matched rule' => 'CaptchaCode=8', 'Event No.' => 'WK-20261111-0001' ),
 		);
 
 		$headers = ResponseDispatcher::ajax_headers( $result, 'comment' );
@@ -114,13 +114,13 @@ final class ResponseDispatcherTest extends TestCase {
 
 	public function test_ajax_body_short_when_headers_were_sent(): void {
 		$result = array(
-			'message'  => '还差一个眨眼',
-			'evidence' => array( '命中规则' => 'captcha_missing' ),
+			'message'  => 'One wink missing',
+			'evidence' => array( 'Matched rule' => 'captcha_missing' ),
 		);
 		$body = ResponseDispatcher::ajax_body( $result, 'comment', false );
 		$this->assertFalse( $body['success'] );
 		$this->assertSame( 'captcha_missing', $body['data']['code'] );
-		$this->assertSame( '还差一个眨眼', $body['data']['message'] );
+		$this->assertSame( 'One wink missing', $body['data']['message'] );
 		$this->assertArrayNotHasKey( 'scene', $body['data'], '头协议正常发出：scene/error 在头里，body 保持简短' );
 		$this->assertArrayNotHasKey( 'error', $body['data'] );
 	}
@@ -128,7 +128,7 @@ final class ResponseDispatcherTest extends TestCase {
 	public function test_ajax_body_degrades_to_full_payload_when_headers_already_sent(): void {
 		$result = array(
 			'message'  => '还差一个眨眼——完成上方的验证再点提交。',
-			'evidence' => array( '命中规则' => 'captcha_missing' ),
+			'evidence' => array( 'Matched rule' => 'captcha_missing' ),
 		);
 		$body = ResponseDispatcher::ajax_body( $result, 'comment', true );
 
@@ -144,7 +144,7 @@ final class ResponseDispatcherTest extends TestCase {
 	public function test_rest_error_headers_share_protocol(): void {
 		$result = array(
 			'message'  => '评论未通过验证',
-			'evidence' => array( '命中规则' => 'bad-signature' ),
+			'evidence' => array( 'Matched rule' => 'bad-signature' ),
 		);
 		$headers = ResponseDispatcher::rest_error_headers( $result, 'comment' );
 		$this->assertSame( 'comment', $headers['X-Wink-Gatekeeper-Scene'] );

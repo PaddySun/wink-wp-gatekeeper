@@ -135,9 +135,9 @@ final class InterceptDigestRowsTest extends TestCase {
 
 	private static function driver_labels(): array {
 		return array(
-			'tencent_tms'     => '腾讯云 TMS 文本审核',
-			'tencent_captcha' => '腾讯天御验证码 2.0',
-			'aliyun_captcha'  => '阿里云验证码 2.0',
+			'tencent_tms'     => 'Tencent Cloud TMS Text Moderation',
+			'tencent_captcha' => 'Tencent Tianyu Captcha 2.0',
+			'aliyun_captcha'  => 'Aliyun Captcha 2.0',
 		);
 	}
 
@@ -148,21 +148,21 @@ final class InterceptDigestRowsTest extends TestCase {
 
 		$this->assertCount( 3, $rows );
 
-		$this->assertSame( '登录门', $rows[0]['gate_word'], '门名（对照表 23）' );
-		$this->assertSame( '人机验证', $rows[0]['stage_word'], '防线（对照表 12）' );
-		$this->assertSame( '没带验证码票据', $rows[0]['reason'], '原因人话（rule_hit 映射）' );
-		$this->assertSame( '同一账号连错太多次', $rows[0]['trigger'], '为什么拦=触发归因人话（trigger_source 全集——愿望 4/F13）' );
+		$this->assertSame( 'Login', $rows[0]['gate_word'], '门名（对照表 23）' );
+		$this->assertSame( 'Human verification', $rows[0]['stage_word'], '防线（对照表 12）' );
+		$this->assertSame( 'No captcha ticket', $rows[0]['reason'], '原因人话（rule_hit 映射）' );
+		$this->assertSame( 'Too many consecutive failures for this account', $rows[0]['trigger'], '为什么拦=触发归因人话（trigger_source 全集——愿望 4/F13）' );
 		$this->assertSame( 'WK-20261112-0003', $rows[0]['event_no'] );
 		$this->assertSame( '2026-11-12 08:03:00', $rows[0]['created_at'] );
 
-		$this->assertSame( '注册门', $rows[1]['gate_word'] );
-		$this->assertSame( '机器人试探', $rows[1]['stage_word'], 'stub→机器人试探（对照表 12）' );
-		$this->assertSame( '票据签名不对', $rows[1]['reason'] );
+		$this->assertSame( 'Registration', $rows[1]['gate_word'] );
+		$this->assertSame( 'Bot probing', $rows[1]['stage_word'], 'stub→机器人试探（对照表 12）' );
+		$this->assertSame( 'Bad ticket signature', $rows[1]['reason'] );
 		$this->assertSame( '', $rows[1]['trigger'], '无 trigger_source 归因=空串（渲染层省略括号注）' );
 
-		$this->assertSame( '找回密码门', $rows[2]['gate_word'] );
-		$this->assertSame( '人机验证没通过（返回码 8）', $rows[2]['reason'], 'CaptchaCode=N 族映射（对照表 13-17）' );
-		$this->assertSame( '配置为一律要过人机验证', $rows[2]['trigger'] );
+		$this->assertSame( 'Password recovery', $rows[2]['gate_word'] );
+		$this->assertSame( 'Human verification failed (return code 8）', $rows[2]['reason'], 'CaptchaCode=N 族映射（对照表 13-17）' );
+		$this->assertSame( 'Configured to always require human verification', $rows[2]['trigger'] );
 	}
 
 	public function test_account_reject_rows_omit_ip_hash_and_account_names(): void {
@@ -185,7 +185,7 @@ final class InterceptDigestRowsTest extends TestCase {
 		$this->assertSame( '', $rows[0]['gate_word'], '缺 gate → 空门名（不虚构）' );
 		$this->assertSame( '', $rows[0]['reason'] );
 		$this->assertSame( '', $rows[1]['trigger'], 'meta 非数组 → 无归因（防御性回落）' );
-		$this->assertSame( '登录门', $rows[1]['gate_word'] );
+		$this->assertSame( 'Login', $rows[1]['gate_word'] );
 	}
 
 	/* ---------- N2+N3：全闸故障+停转解除合并时间线 ---------- */
@@ -248,37 +248,37 @@ final class InterceptDigestRowsTest extends TestCase {
 
 		$halt = $rows[0];
 		$this->assertSame( 12, $halt['id'] );
-		$this->assertSame( '服务商健康', $halt['gate_word'], 'system 门名（ Labels::gate_word 新收录键）' );
-		$this->assertSame( '腾讯云 TMS 文本审核', $halt['driver_label'], '驱动 id → registry 人话名' );
-		$this->assertSame( '当日额度用完', $halt['rule_word'], 'rule_hit 人话（对照表）' );
-		$this->assertSame( '今日暂停，防线跳过它继续', $halt['handling'] );
+		$this->assertSame( 'Provider health', $halt['gate_word'], 'system 门名（ Labels::gate_word 新收录键）' );
+		$this->assertSame( 'Tencent Cloud TMS Text Moderation', $halt['driver_label'], '驱动 id → registry 人话名' );
+		$this->assertSame( 'Daily quota used up', $halt['rule_word'], 'rule_hit 人话（对照表）' );
+		$this->assertSame( 'Paused for today; the defense line skips it and carries on', $halt['handling'] );
 		$this->assertSame( array(), $halt['raw'], '健康行无 meta.raw' );
 
 		$resume = $rows[5];
 		$this->assertSame( 2, $resume['id'] );
-		$this->assertSame( '服务商恢复正常', $resume['handling'], '解除留痕人话（对照表 driver_resumed）' );
-		$this->assertSame( '服务商恢复正常', $resume['rule_word'] );
+		$this->assertSame( 'Provider recovered', $resume['handling'], '解除留痕人话（对照表 driver_resumed）' );
+		$this->assertSame( 'Provider recovered', $resume['rule_word'] );
 	}
 
 	public function test_fault_timeline_rows_handling_per_shape(): void {
 		$rows = InterceptDigest::fault_timeline_rows( self::fault_events(), array(), self::driver_labels() );
 
 		$review_error = $rows[0]; // id 10：评论门 review 阶段 error。
-		$this->assertSame( '评论门', $review_error['gate_word'] );
-		$this->assertSame( '先收进待审区，等你复核', $review_error['handling'], '云端故障收口待审（v1.4 口径延续）' );
+		$this->assertSame( 'Comments', $review_error['gate_word'] );
+		$this->assertSame( 'Parked in pending review for you to check', $review_error['handling'], '云端故障收口待审（v1.4 口径延续）' );
 		$this->assertSame( array( 'code' => 'FailedOperation', 'message' => 'timeout' ), $review_error['raw'], 'meta.raw 透传（展开行数据源）' );
 
 		$login_error = $rows[1]; // id 8：登录门 captcha 阶段 error（block 拦下）。
-		$this->assertSame( '登录门', $login_error['gate_word'] );
-		$this->assertSame( '拦下该次尝试（故障兜底）', $login_error['handling'], 'fail-closed 主语化' );
+		$this->assertSame( 'Login', $login_error['gate_word'] );
+		$this->assertSame( 'Blocked the attempt (failure fallback)', $login_error['handling'], 'fail-closed 主语化' );
 
 		$captcha_reject_fault = $rows[2]; // id 6：评论门 captcha 阶段以 reject 落库的远端故障。
-		$this->assertSame( '当场拦下（故障兜底）', $captcha_reject_fault['handling'] );
-		$this->assertSame( '服务商拒绝了（查配置或欠费）', $captcha_reject_fault['rule_word'] );
+		$this->assertSame( 'Blocked on the spot (failure fallback)', $captcha_reject_fault['handling'] );
+		$this->assertSame( 'Provider refused the request (check configuration or billing)', $captcha_reject_fault['rule_word'] );
 
 		$degraded = $rows[3]; // id 4：pass_limited 降级放行。
-		$this->assertSame( '注册门', $degraded['gate_word'] );
-		$this->assertSame( '故障降级放行（真访客不受影响）', $degraded['handling'] );
+		$this->assertSame( 'Registration', $degraded['gate_word'] );
+		$this->assertSame( 'Failure-fallback pass (real visitors unaffected)', $degraded['handling'] );
 	}
 
 	public function test_fault_timeline_rows_unknown_driver_falls_back_to_id(): void {
@@ -294,29 +294,29 @@ final class InterceptDigestRowsTest extends TestCase {
 	/* ---------- handling_word：组合映射逐例 ---------- */
 
 	public function test_handling_word_full_matrix(): void {
-		$this->assertSame( '今日暂停，防线跳过它继续', InterceptDigest::handling_word( 'system', 'health', 'error', 'driver_halted:quota_exhausted' ) );
-		$this->assertSame( '今日暂停，防线跳过它继续', InterceptDigest::handling_word( 'system', 'health', 'error', 'driver_halted:config_error' ) );
-		$this->assertSame( '服务商恢复正常', InterceptDigest::handling_word( 'system', 'health', 'pass', 'driver_resumed' ) );
-		$this->assertSame( '先收进待审区，等你复核', InterceptDigest::handling_word( 'comment', 'review', 'error', 'remote_transport' ) );
-		$this->assertSame( '拦下该次尝试（故障兜底）', InterceptDigest::handling_word( 'login', 'captcha', 'error', 'remote_transport' ) );
-		$this->assertSame( '拦下该次尝试（故障兜底）', InterceptDigest::handling_word( 'lostpassword', 'captcha', 'error', 'contract_mismatch' ) );
-		$this->assertSame( '当场拦下（故障兜底）', InterceptDigest::handling_word( 'comment', 'captcha', 'reject', 'remote_semantic' ) );
-		$this->assertSame( '当场拦下（故障兜底）', InterceptDigest::handling_word( 'comment', 'captcha', 'reject', 'remote_parse' ) );
-		$this->assertSame( '故障降级放行（真访客不受影响）', InterceptDigest::handling_word( 'comment', 'captcha', 'error', 'remote_transport_degraded' ) );
-		$this->assertSame( '故障降级放行（真访客不受影响）', InterceptDigest::handling_word( 'login', 'captcha', 'error', 'remote_transport_degraded' ) );
-		$this->assertSame( '已按兜底策略处理', InterceptDigest::handling_word( 'comment', 'ip', 'error', '' ), '缺省兜底（状态码不出站长文案）' );
+		$this->assertSame( 'Paused for today; the defense line skips it and carries on', InterceptDigest::handling_word( 'system', 'health', 'error', 'driver_halted:quota_exhausted' ) );
+		$this->assertSame( 'Paused for today; the defense line skips it and carries on', InterceptDigest::handling_word( 'system', 'health', 'error', 'driver_halted:config_error' ) );
+		$this->assertSame( 'Provider recovered', InterceptDigest::handling_word( 'system', 'health', 'pass', 'driver_resumed' ) );
+		$this->assertSame( 'Parked in pending review for you to check', InterceptDigest::handling_word( 'comment', 'review', 'error', 'remote_transport' ) );
+		$this->assertSame( 'Blocked the attempt (failure fallback)', InterceptDigest::handling_word( 'login', 'captcha', 'error', 'remote_transport' ) );
+		$this->assertSame( 'Blocked the attempt (failure fallback)', InterceptDigest::handling_word( 'lostpassword', 'captcha', 'error', 'contract_mismatch' ) );
+		$this->assertSame( 'Blocked on the spot (failure fallback)', InterceptDigest::handling_word( 'comment', 'captcha', 'reject', 'remote_semantic' ) );
+		$this->assertSame( 'Blocked on the spot (failure fallback)', InterceptDigest::handling_word( 'comment', 'captcha', 'reject', 'remote_parse' ) );
+		$this->assertSame( 'Failure-fallback pass (real visitors unaffected)', InterceptDigest::handling_word( 'comment', 'captcha', 'error', 'remote_transport_degraded' ) );
+		$this->assertSame( 'Failure-fallback pass (real visitors unaffected)', InterceptDigest::handling_word( 'login', 'captcha', 'error', 'remote_transport_degraded' ) );
+		$this->assertSame( 'Handled by the fallback policy', InterceptDigest::handling_word( 'comment', 'ip', 'error', '' ), '缺省兜底（状态码不出站长文案）' );
 	}
 
 	/* ---------- 今日分布行组装（N4 行侧——人话映射由 Labels 承担，此处钉空类目归并） ---------- */
 
 	public function test_reject_distribution_keys_map_empty_rule_hit(): void {
-		// 与 today_fault_distribution 同款空键归并（'(无类别)'）——纯行侧。
+		// 与 today_fault_distribution 同款空键归并（'(no category)'）——纯行侧。
 		$rows = array(
 			array( 'rule_hit' => 'banned_word', 'n' => '2' ),
 			array( 'rule_hit' => '', 'n' => 1 ),
 			array( 'rule_hit' => null, 'n' => '3' ),
 		);
 		$dist = InterceptDigest::distribution_from_rows( $rows );
-		$this->assertSame( array( 'banned_word' => 2, '(无类别)' => 4 ), $dist, '空/缺 rule_hit 归并单键（计数强转 int）' );
+		$this->assertSame( array( 'banned_word' => 2, '(no category)' => 4 ), $dist, '空/缺 rule_hit 归并单键（计数强转 int）' );
 	}
 }

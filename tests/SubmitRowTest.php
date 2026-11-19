@@ -107,7 +107,7 @@ final class SubmitRowTest extends TestCase {
 		$this->assertStringContainsString( 'wk-verify-btn', $html );
 		$this->assertMatchesRegularExpression( '/class="[^"]*\bbutton\b[^"]*"/', $html, '挂主题通用 .button 类（样式向提交按钮看齐）' );
 		$this->assertStringContainsString( 'data-wk-state="unverified"', $html );
-		$this->assertStringContainsString( '完成人机验证', $html );
+		$this->assertStringContainsString( 'Complete human verification', $html );
 		$this->assertMatchesRegularExpression(
 			'/<button[^>]*aria-live="polite"/',
 			$html,

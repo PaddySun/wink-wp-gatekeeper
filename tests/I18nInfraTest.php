@@ -61,7 +61,7 @@ final class I18nInfraTest extends TestCase {
 		// （Text Domain 翻新为 wink-wp-gatekeeper 后 make-pot 纳入 Name/Description/
 		// PluginURI/Author）+ 1 头部空 msgid；msgctxt 4 条（call-count/error-count/
 		// drill-active/audit-running）各计一行 msgid。
-		self::assertSame( 869, $count, 'pot ^msgid 行数 === 869（批 I-2b key 化后英文 key pot——含插件头元数据）' );
+		self::assertSame( 1369, $count, 'pot ^msgid 行数 === 1369（i18n 批 I-3 数据面/JS/属性/_n 收编后：1368 唯一 msgid + 头部空 msgid；_n 18 处 msgid_plural 另计；插件头 4 元数据已英文化）' );
 	}
 
 	public function test_pot_first_entry_is_empty_translation_template(): void {
@@ -144,12 +144,43 @@ final class I18nInfraTest extends TestCase {
 		$po_src  = (string) file_get_contents( $base . '.po' );
 		$count   = preg_match_all( '/^msgid /m', $po_src );
 		self::assertIsInt( $count );
-		self::assertSame( 852, $count, 'zh_CN po ^msgid === 852（851 翻译条 + 头部空 msgid；对账 work 目录 873 条 - 22 既有英文键）' );
+		self::assertSame( 1347, $count, 'zh_CN po ^msgid === 1347（i18n 批 I-3：1346 翻译条 + 头部空 msgid；对账 i3-work 目录 1388 条 - 20 retired - 22 既有英文键）' );
 	}
 
 	/**
 	 * 批 I-2b：po 头部 locale 钉（zh_CN 单复数 + Language 标记）。
 	 */
+	/**
+	 * 【i18n 批 I-3】JS 注入面钉：admin_l10n（admin-brand.js 通道）与 front_l10n
+	 * checking_submit 补录键在场——数据面收编后 JS 文案全走注入/兜底 en 通道。
+	 */
+	public function test_i3_js_l10n_injections_present(): void {
+		$bootstrap = self::src( 'includes/Bootstrap.php' );
+		self::assertStringContainsString(
+			"wp_localize_script( 'wink-gatekeeper-admin-brand', 'wkAdminL10n', self::admin_l10n() )",
+			$bootstrap,
+			'批 I-3：admin-brand.js 的 wkAdminL10n 注入在场（enqueue admin-brand 处）'
+		);
+		self::assertStringContainsString(
+			"'checking_submit' => __( 'Your comment is being checked, please wait…', 'wink-wp-gatekeeper' )",
+			$bootstrap,
+			'批 I-3：front_l10n 补录 checking_submit 键（gatekeeper.js 提交等待期 Toast 此前恒缺键走 zh 兜底）'
+		);
+		$admin_js = (string) file_get_contents( dirname( __DIR__ ) . '/assets/js/admin-brand.js' );
+		self::assertStringContainsString( 'window.wkAdminL10n', $admin_js, '批 I-3：admin-brand.js 读 wkAdminL10n 通道' );
+	}
+
+	/**
+	 * 【i18n 批 I-3】插件头英文化钉：Plugin Name/Description 已为 en 键原文（zh 走 po
+	 * msgstr——WP 后台插件列表零漂移）；pot 侧 4 条 meta msgid 随之全英文属预期。
+	 */
+	public function test_i3_plugin_header_english_meta(): void {
+		$plugin = self::src( 'wink-wp-gatekeeper.php' );
+		self::assertStringContainsString( 'Plugin Name:       Wink WP Guard', $plugin, '批 I-3：插件头 Plugin Name 英文化（zh=Wink WP 保安 走 po）' );
+		self::assertStringContainsString( 'Plugin Name of the plugin', (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper.pot' ), 'pot 插件头 meta 提取形态在场' );
+		self::assertStringContainsString( 'msgid "Wink WP Guard"', (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper.pot' ), '批 I-3：pot meta msgid 已英文化（原中文 meta msgid 消失属预期对账项）' );
+	}
+
 	public function test_zh_cn_po_header_locale_pins(): void {
 		$po_src = (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper-zh_CN.po' );
 		self::assertStringContainsString( 'Plural-Forms: nplurals=1; plural=0;', $po_src, 'zh_CN 单复数形态头' );

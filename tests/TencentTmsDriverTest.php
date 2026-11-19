@@ -109,7 +109,7 @@ final class TencentTmsDriverTest extends TestCase {
 			return array( 'response' => array( 'code' => 200 ), 'body' => self::ok_body( array( 'Suggestion' => 'Pass', 'Label' => 'Normal', 'Score' => 0, 'RequestId' => 'r1' ) ) );
 		}, null, static function (): void {} );
 
-		$verdict = self::driver( null, $client )->check( "昵称\n邮箱\n正文", array( 'author' => '昵称' ) );
+		$verdict = self::driver( null, $client )->check( "昵称\n邮箱\n正文", array( 'author' => 'Nickname' ) );
 
 		$this->assertSame( Verdict::PASS, $verdict->verdict() );
 		list( $url, $args ) = $captured;

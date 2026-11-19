@@ -487,7 +487,7 @@ namespace WinkGatekeeper\Tests {
 			// 【M6·批E 契约翻转】openai_custom 已实装——脱离 future 表（显示名单一来源
 			// 迁 registry_entry；本钉原断言 openai_custom label 在表，随退役翻转）。
 			self::assertArrayNotHasKey( 'openai_custom', $future, 'openai_custom 已于 M6E 实装——脱离 future 表' );
-			self::assertSame( '模力 System One', $future['moli']['label'] ?? '', 'moli 同表' );
+			self::assertSame( 'Moli System One', $future['moli']['label'] ?? '', 'moli 同表' );
 		}
 
 		public function test_h21_bootstrap_widget_labels_inject_future_source(): void {
@@ -509,8 +509,8 @@ namespace WinkGatekeeper\Tests {
 
 			$labels = array(
 				'deepseek'      => 'DeepSeek',
-				'openai_custom' => '自定义 OpenAI 兼容端点',
-				'moli'          => '模力 System One',
+				'openai_custom' => 'Custom OpenAI-compatible endpoint',
+				'moli'          => 'Moli System One',
 			);
 
 			$out    = DashboardDigest::widget_overview( array(
@@ -522,7 +522,7 @@ namespace WinkGatekeeper\Tests {
 				'today_dash'           => self::YMD_DASH,
 				'captcha_configured'   => true,
 				'captcha_driver'       => 'aliyun',
-				'captcha_driver_label' => '阿里云验证码 2.0',
+				'captcha_driver_label' => 'Aliyun Captcha 2.0',
 				'driver_labels'        => $labels,
 				'cron_alive'           => true,
 				'debug'                => false,
@@ -534,7 +534,7 @@ namespace WinkGatekeeper\Tests {
 				}
 			}
 			self::assertNotNull( $review, '评论审核域渲染（chain[0]=openai_custom+有计量）' );
-			self::assertSame( '自定义 OpenAI 兼容端点', $review['rows'][0]['label'], '【H2-1】注入后 openai_custom 行显人话名（原裸 id 退役——未来实装批防御面）' );
+			self::assertSame( 'Custom OpenAI-compatible endpoint', $review['rows'][0]['label'], '【H2-1】注入后 openai_custom 行显人话名（原裸 id 退役——未来实装批防御面）' );
 			self::assertSame( 'openai_custom', $review['rows'][0]['driver_id'], 'driver_id 机器可读面不变' );
 		}
 
