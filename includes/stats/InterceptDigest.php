@@ -271,15 +271,38 @@ final class InterceptDigest {
 				? Labels::trigger_word( $source )
 				: ( '' !== $rule_hit ? Labels::rule_hit_word( $rule_hit ) : '' );
 
+			/* 【AUDIT-FIX 2026-11-20·S1-F2】全列公式前缀中和（原因列=LLM hits 原样兜底可达面
+			 * ——Labels::rule_hit_word 未收录键原样；时间/事件编号列同走中和件为纵深防御，
+			 * 既有数据面零行为变化——正常单元格首字符非 =+-@\t）。 */
 			$rows[] = array(
-				isset( $event['created_at'] ) && is_string( $event['created_at'] ) ? $event['created_at'] : '',
-				'' !== $stage ? Labels::export_result_word( $stage ) : '',
-				'' !== $gate ? Labels::gate_word( $gate ) : '',
-				$reason,
-				isset( $event['event_no'] ) && is_string( $event['event_no'] ) ? $event['event_no'] : '',
+				self::neutralize_csv_formula( isset( $event['created_at'] ) && is_string( $event['created_at'] ) ? $event['created_at'] : '' ),
+				self::neutralize_csv_formula( '' !== $stage ? Labels::export_result_word( $stage ) : '' ),
+				self::neutralize_csv_formula( '' !== $gate ? Labels::gate_word( $gate ) : '' ),
+				self::neutralize_csv_formula( $reason ),
+				self::neutralize_csv_formula( isset( $event['event_no'] ) && is_string( $event['event_no'] ) ? $event['event_no'] : '' ),
 			);
 		}
 		return $rows;
+	}
+
+	/**
+	 * CSV 单元格公式前缀中和（【AUDIT-FIX 2026-11-20·S1-F2】纯函数，单测覆盖）。
+	 *
+	 * 以 = + - @ 或制表符开头的单元格前置单引号 `'`（OWASP CSV Injection 前缀中和手法）：
+	 * Excel/WPS 打开导出文件不执行公式/DDE/超链接外呼。既有数据面零变化——正常单元格
+	 * （时间数字开头/结果与门的中文词/原因分类词/WK- 事件编号）首字符均不在中和集。
+	 *
+	 * @param string $cell 单元格原值。
+	 * @return string
+	 */
+	public static function neutralize_csv_formula( string $cell ): string {
+		if ( '' === $cell ) {
+			return $cell;
+		}
+		if ( in_array( $cell[0], array( '=', '+', '-', '@', "\t" ), true ) ) {
+			return "'" . $cell;
+		}
+		return $cell;
 	}
 
 	/**

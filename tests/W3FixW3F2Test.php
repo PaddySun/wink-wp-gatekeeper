@@ -22,7 +22,9 @@
  *      闭集驱动全接线（avatar 结果不落库语境不入回写——N1 红线）。
  *
  * 版本面：0.8.5→0.8.6 四点 + tests 全目录零 0.8.5 当前版本钉残留（批 D
- * test_zero_084_version_pins_anywhere_in_tests 同款防漏翻扫描）。
+ * test_zero_084_version_pins_anywhere_in_tests 同款防漏翻扫描）；
+ * 【AUDIT-FIX 2026-11-20 批】四点断言翻转 0.8.6→0.8.7（断言值翻转非语义变化——
+ * 0.8.6/0.8.5 历史条目断言原样保留+0.8.7 条目位次与要点断言新增）。
  *
  * 桩注记：WinkGatekeeper\Settings 命名空间桩（render 级渲染面 WP 函数——本文件
  * 首立六件，function_exists 守卫同进程共存；checked/wp_nonce_url/wp_create_nonce/
@@ -378,23 +380,37 @@ namespace WinkGatekeeper\Tests {
 			$entry  = self::src( 'wink-wp-gatekeeper.php' );
 			$readme = self::src( 'readme.txt' );
 
-			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.6$/m', $entry, '四点①插件头 Version 0.8.6' );
-			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.6' )", $entry, '四点②版本常量 0.8.6' );
-			self::assertMatchesRegularExpression( '/^Stable tag: 0\.8\.6$/m', $readme, '四点③readme Stable tag 0.8.6' );
-			self::assertStringContainsString( '= 0.8.6 =', $readme, '四点④changelog 当前条目 0.8.6（向导出口链修复+徽标回写修复）' );
+			// 【AUDIT-FIX 2026-11-20 批】四点随批进位 0.8.6→0.8.7（十件轻量修复批——0.8.6 收口在前；
+			// 本测试名保留 0_8_6 历史锚——断言值翻转非语义变化，M5FixAssetVerTest -w3fix1 翻转先例）。
+			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.7$/m', $entry, '四点①插件头 Version 0.8.7' );
+			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.7' )", $entry, '四点②版本常量 0.8.7' );
+			self::assertMatchesRegularExpression( '/^Stable tag: 0\.8\.7$/m', $readme, '四点③readme Stable tag 0.8.7' );
+			self::assertStringContainsString( '= 0.8.7 =', $readme, '四点④changelog 当前条目 0.8.7（AUDIT-FIX 十件——独立审计轻量修复批）' );
 
-			// 0.8.5 条目还原保留（历史条目不删——readme changelog 只增不删纪律）。
+			// 0.8.5/0.8.6 条目还原保留（历史条目不删——readme changelog 只增不删纪律）。
 			self::assertStringContainsString( '= 0.8.5 =', $readme, '0.8.5 历史条目保留' );
+			self::assertStringContainsString( '= 0.8.6 =', $readme, '0.8.6 历史条目保留（W3-FIX 两缺陷）' );
 			self::assertLessThan(
 				strpos( $readme, '= 0.8.5 =' ),
 				(int) strpos( $readme, '= 0.8.6 =' ),
 				'0.8.6 条目位次在 0.8.5 之前（Changelog 倒序纪律）'
 			);
+			self::assertLessThan(
+				strpos( $readme, '= 0.8.6 =' ),
+				(int) strpos( $readme, '= 0.8.7 =' ),
+				'0.8.7 条目位次在 0.8.6 之前（AUDIT-FIX 批新条目——倒序纪律）'
+			);
 
-			// 0.8.6 条目两缺陷要点在场（人话——手测档案缺陷①②）。
+			// 0.8.6 条目两缺陷要点在场（人话——手测档案缺陷①②；历史条目内容不随进位变化）。
 			$entry086 = self::block_between( $readme, '= 0.8.6 =', '= 0.8.5 =' );
 			self::assertStringContainsString( '向导', $entry086, '0.8.6 条目要点：向导出口链修复' );
 			self::assertStringContainsString( '测试凭据', $entry086, '0.8.6 条目要点：测试凭据徽标回写修复' );
+
+			// 0.8.7 条目十件要点在场（人话——独立审计轻量批口径）。
+			$entry087 = self::block_between( $readme, '= 0.8.7 =', '= 0.8.6 =' );
+			self::assertStringContainsString( '审计', $entry087, '0.8.7 条目要点：独立审计修复批' );
+			self::assertStringContainsString( '黄条', $entry087, '0.8.7 条目要点：CDN 代理头告警' );
+			self::assertStringContainsString( '无 breaking', $entry087, '0.8.7 条目要点：breaking 注（纵深加固+行为收紧两处如实注明）' );
 		}
 
 		/**

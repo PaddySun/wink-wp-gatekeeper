@@ -56,6 +56,22 @@ namespace WinkGatekeeper\Settings {
 		}
 	}
 
+	if ( ! function_exists( 'WinkGatekeeper\Settings\delete_transient' ) ) {
+		/**
+		 * delete_transient 命名空间桩（可编程记录删除——AUDIT-FIX 2026-11-20 S4-F6 行为级
+		 * 测试承载面：百度凭据清除/换钥联动删旧 token transient 的删除记录入
+		 * WpOptionStub::$deleted_transients，逐测自清理；记录语义与既有 update_option
+		 * 桩同约定，不引入全局 WP 依赖）。
+		 *
+		 * @param string $key transient 键。
+		 * @return bool
+		 */
+		function delete_transient( string $key ): bool {
+			\WinkGatekeeper\Tests\WpOptionStub::$deleted_transients[] = $key;
+			return true;
+		}
+	}
+
 	if ( ! function_exists( 'WinkGatekeeper\Settings\date_i18n' ) ) {
 		/**
 		 * date_i18n 命名空间桩（N1「上次测试」小字时间格式化——纯 PHP date 等价形态）。
@@ -194,10 +210,15 @@ namespace WinkGatekeeper\Tests {
 		 */
 		public static array $options = array();
 
-		/**
-		 * @var int date_i18n 桩的固定时刻（0=真实 time()）。
-		 */
-		public static int $now = 0;
+	/**
+	 * @var int date_i18n 桩的固定时刻（0=真实 time()）。
+	 */
+	public static int $now = 0;
+
+	/**
+	 * @var string[] delete_transient 桩记录的删除键（AUDIT-FIX S4-F6 行为级断言面）。
+	 */
+	public static array $deleted_transients = array();
 
 		/**
 		 * @param string $name    option 名。
@@ -233,9 +254,10 @@ namespace WinkGatekeeper\Tests {
 		 *
 		 * @return void
 		 */
-		public static function reset(): void {
-			self::$options = array();
-			self::$now     = 0;
-		}
+	public static function reset(): void {
+		self::$options            = array();
+		self::$now                = 0;
+		self::$deleted_transients = array();
+	}
 	}
 }

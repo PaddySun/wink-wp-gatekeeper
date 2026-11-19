@@ -399,7 +399,47 @@ final class SettingsPage {
 			\WinkGatekeeper\Gates\TestMode::record_lifecycle( $lifecycle );
 		}
 
+		/* 【AUDIT-FIX 2026-11-20·S4-F6】百度凭据清除/换钥联动删旧 token transient（派生凭证
+		 * 生命周期与凭据本体对齐——残留 access_token 在 30 天 TTL 内仍可调百度审核接口）。 */
+		self::maybe_delete_baidu_token_transient( $stored, $merged );
+
 		return SettingsSchema::merge_defaults( $merged );
+	}
+
+	/**
+	 * 百度凭据清除/换钥 → 联动删旧 token transient（【AUDIT-FIX 2026-11-20·S4-F6】sanitize 桥收口）。
+	 *
+	 * token 缓存键 = wk_baidu_token_ + sha256(api_key) 前 12（BaiduTextModerationDriver::
+	 * token_cache_key 单一来源——不重写第二套键推导）。判定口径：旧树有 api_key 且
+	 * (api_key 或 secret_key 任一变化) → 按旧 api_key 指纹删除该键 transient。
+	 *   - 清除（勾选 clear + 留空 → api_key 置空串）：旧键删除（清除承诺覆盖派生凭证）；
+	 *   - 换钥（A→B）：旧 A 键删除（新 B 键无缓存——首次使用自建，驱动 110/111 自愈通道兜底）；
+	 *   - 仅换 Secret Key（同 API Key 键面）：同键删除（旧 token 对新凭据已失效）；
+	 *   - 未变化 / 首配（旧树无凭据）：零联动（防每保存误删——token 缓存复用是计费防呆第一道）。
+	 *
+	 * WP 边界（delete_transient）——仅 sanitize 桥（管理上下文）执行；卸载面由 uninstall.php
+	 * 步骤 4 的 wk_baidu_token_ 前缀清理承接（同批 P3-F5/A1-F9 补录）。
+	 *
+	 * @param array<string, mixed> $stored 已存储树（get_option 原值）。
+	 * @param array<string, mixed> $merged 本次合并后树（清洗+清除旗标+merge_submitted 产物）。
+	 * @return void
+	 */
+	private static function maybe_delete_baidu_token_transient( array $stored, array $merged ): void {
+		$old = self::dig( $stored, array( 'review', 'cloud', 'baidu' ), array() );
+		$new = self::dig( $merged, array( 'review', 'cloud', 'baidu' ), array() );
+
+		$old_api    = is_array( $old ) && isset( $old['api_key'] ) && is_string( $old['api_key'] ) ? $old['api_key'] : '';
+		$new_api    = is_array( $new ) && isset( $new['api_key'] ) && is_string( $new['api_key'] ) ? $new['api_key'] : '';
+		$old_secret = is_array( $old ) && isset( $old['secret_key'] ) && is_string( $old['secret_key'] ) ? $old['secret_key'] : '';
+		$new_secret = is_array( $new ) && isset( $new['secret_key'] ) && is_string( $new['secret_key'] ) ? $new['secret_key'] : '';
+
+		if ( '' === $old_api ) {
+			return; // 旧树无凭据（首配/从未配置）：无派生 token 可吊销。
+		}
+		if ( $old_api === $new_api && $old_secret === $new_secret ) {
+			return; // 凭据未变化：零联动。
+		}
+		delete_transient( BaiduTextModerationDriver::token_cache_key( $old_api ) ); // WP 边界（测试经 WinkGatekeeper\Settings\delete_transient 桩承载）。
 	}
 
 	/**
@@ -790,7 +830,7 @@ final class SettingsPage {
 			'state'     => $state,
 			'tested_at' => time(), // WP 边界时钟。
 		);
-		update_option( self::OPTION_PROBE_LOG, $log );
+		update_option( self::OPTION_PROBE_LOG, $log, false ); // 【AUDIT-FIX 2026-11-20·P1-9/S4-F2】第三参 false——写点全量对齐（缺参=行缺失重建即漂移 autoload=auto，S4 确定性漂移口收口）。
 	}
 
 	/**
@@ -4072,6 +4112,24 @@ final class SettingsPage {
 
 	private static function render_tab_iprep(): void {
 		$settings = self::settings();
+
+		/* 【AUDIT-FIX 2026-11-20·P0-E1②】CDN 代理转发头 × ip_source=direct 冲突黄条（Tab④ 页顶
+		 * 常显位——部署级告警：per-IP 防线（提交限流/登录阈/事件采样/信誉归因）可能整体失效；
+		 * 判定=IpResolver::proxy_header_conflict 纯函数单一来源（vendor 无关零网段知识——只认
+		 * 典型代理头非空），helper 复用 notice_yellow_bar（warn 级）+ DOM 锚。 */
+		$ip_source_mode = isset( $settings['network']['ip_source'] ) && is_string( $settings['network']['ip_source'] )
+			? $settings['network']['ip_source'] : IpResolver::MODE_DIRECT;
+		if ( IpResolver::proxy_header_conflict( $ip_source_mode, isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() ) ) {
+			self::notice_yellow_bar(
+				'warn',
+				'<strong>' . esc_html__( '检测到代理转发头但 IP 来源=直连', 'wink-gatekeeper' ) . '</strong>',
+				esc_html__( 'per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源（CDN 站点=custom_header、自建反代=xff/traverse），并在下方诊断面板核对解析结果。', 'wink-gatekeeper' ),
+				'',
+				'',
+				'wk-iprep-proxy-header-alert'
+			);
+		}
+
 		self::render_iprep_zone_source( $settings );
 		self::render_iprep_zone_check( $settings );
 		self::render_iprep_zone_report( $settings );

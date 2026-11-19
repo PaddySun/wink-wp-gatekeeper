@@ -36,6 +36,17 @@ final class VerifyCache {
 	public const PREFIX = 'wk_cv_';
 
 	/**
+	 * 窗内口令错误计次键前缀（【AUDIT-FIX 2026-11-20·P1-2/S6-F1】）：wk_cv_f_<HMAC16(存根原文|IP)>。
+	 * 前缀仍在 wk_cv_ 族内——uninstall 步骤 4 前缀清单天然覆盖，不新增卸载面。
+	 */
+	public const FAIL_PREFIX = 'wk_cv_f_';
+
+	/**
+	 * 窗内口令错误吊销阈（P1-2：错 ≥5 次吊销该 wk_cv_ 缓存键——审计修复口径原值）。
+	 */
+	public const FAIL_LIMIT = 5;
+
+	/**
 	 * 默认窗口（分钟；04 §2 captcha.verify_cache_minutes 默认值的单一来源）。
 	 */
 	public const DEFAULT_TTL_MINUTES = 10;
@@ -61,18 +72,29 @@ final class VerifyCache {
 	private $mac;
 
 	/**
+	 * @var callable|null 缓存删除 fn(string $key): void（P1-2 吊销面；null = delete_transient WP 边界默认）。
+	 */
+	private $store_del;
+
+	/**
 	 * @param int      $minutes    窗口分钟数（≤0 = 停用）。
 	 * @param callable $store_get  读取回调。
 	 * @param callable $store_put  写入回调（含 TTL 秒）。
-	 * @param callable|null $mac   键 HMAC 回调（null = wp_salt('auth') WP 边界默认）。
+	 * @param callable|null $mac      键 HMAC 回调（null = wp_salt('auth') WP 边界默认）。
+	 * @param callable|null $store_del 删除回调（【AUDIT-FIX 2026-11-20·P1-2】null = delete_transient WP 边界默认；
+	 *                                  单测注入内存假件——Bootstrap 生产装配传 'delete_transient'）。
 	 */
-	public function __construct( int $minutes, callable $store_get, callable $store_put, ?callable $mac = null ) {
+	public function __construct( int $minutes, callable $store_get, callable $store_put, ?callable $mac = null, ?callable $store_del = null ) {
 		$this->minutes    = max( 0, $minutes );
 		$this->store_get = $store_get;
 		$this->store_put = $store_put;
 		$this->mac       = $mac
 			?? static function ( string $data ): string {
 				return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // WP 边界。
+			};
+		$this->store_del = $store_del
+			?? static function ( string $key ): void {
+				delete_transient( $key ); // WP 边界。
 			};
 	}
 
@@ -129,5 +151,73 @@ final class VerifyCache {
 			return;
 		}
 		call_user_func( $this->store_put, self::key( $stub_raw, $ip, $this->mac ), true, $this->minutes * 60 );
+	}
+
+	/* ---------------------------------------------------------------
+	 * 窗内口令错误计次（【AUDIT-FIX 2026-11-20·P1-2/S6-F1】——S6 报告 §2 F1 修复面）
+	 *
+	 * 缺口：verify_ticket 首查 VerifyCache 命中即放行（先于一切计数）——过一次码得
+	 * 10min 同存根同 IP 无限次口令重试窗（WP 核心无锁定兜底）。修法：窗内口令错误
+	 * 计次（键=同存根|IP 双绑定），错 ≥FAIL_LIMIT 吊销该 wk_cv_ 键（delete）→ 后续
+	 * 提交须重新过码；成功登录清计数（真人口令手滑→成功的正常路径零残余）。
+	 *
+	 * 计次 TTL=窗口分钟×60（与缓存同窗）：计数窗起点=首次错误，缓存窗起点=过码时刻
+	 * ——计数到期时缓存必已到期（T1≥T0 ⇒ T1+W ≥ T0+W），无「计数清零而窗仍开」的
+	 * 绕行面。键前缀 wk_cv_f_（wk_cv_ 族——uninstall 天然覆盖）。
+	 * --------------------------------------------------------------- */
+
+	/**
+	 * 窗内口令错误计次（LoginGate::hook_wp_login_failed 边界消费——仅 incorrect_password）。
+	 *
+	 * 达阈动作：删该 wk_cv_ 缓存键（吊销）+ 删计次键（重新过码后重新起算）。
+	 *
+	 * @param string $stub_raw 存根原文（与缓存键同 HMAC 键材）。
+	 * @param string $ip       提交者 IP。
+	 * @param int    $limit    吊销阈（缺省 FAIL_LIMIT=5）。
+	 * @return bool true = 本次计次已触发吊销（缓存键已删）。
+	 */
+	public function record_password_failure( string $stub_raw, string $ip, int $limit = self::FAIL_LIMIT ): bool {
+		if ( ! $this->enabled() || '' === $stub_raw || '' === $ip ) {
+			return false; // 窗停用/身份不齐：零计次零吊销（宁不误伤）。
+		}
+		$limit = max( 1, $limit );
+		$key   = self::fail_key( $stub_raw, $ip );
+		$raw   = call_user_func( $this->store_get, $key );
+		$n     = is_numeric( $raw ) ? (int) $raw : 0; // is_numeric 归一（M6·批I·I-2 数值串回读同型雷）。
+		++$n;
+
+		if ( $n >= $limit ) {
+			// 吊销：缓存键 + 计次键同删（重新过码后重新起算）。
+			call_user_func( $this->store_del, self::key( $stub_raw, $ip, $this->mac ) );
+			call_user_func( $this->store_del, $key );
+			return true;
+		}
+		call_user_func( $this->store_put, $key, $n, $this->minutes * 60 );
+		return false;
+	}
+
+	/**
+	 * 成功登录清计数（LoginGate::hook_wp_login 边界消费——真人口令手滑→成功零残余）。
+	 *
+	 * @param string $stub_raw 存根原文。
+	 * @param string $ip       提交者 IP。
+	 * @return void
+	 */
+	public function clear_password_failures( string $stub_raw, string $ip ): void {
+		if ( '' === $stub_raw || '' === $ip ) {
+			return;
+		}
+		call_user_func( $this->store_del, self::fail_key( $stub_raw, $ip ) );
+	}
+
+	/**
+	 * 窗内口令错误计次键：FAIL_PREFIX + HMAC(存根原文|IP) 前 16 位（与缓存键同键材——双绑定）。
+	 *
+	 * @param string $stub_raw 存根原文。
+	 * @param string $ip       提交者 IP。
+	 * @return string
+	 */
+	private function fail_key( string $stub_raw, string $ip ): string {
+		return self::FAIL_PREFIX . substr( (string) call_user_func( $this->mac, $stub_raw . '|' . $ip ), 0, 16 );
 	}
 }

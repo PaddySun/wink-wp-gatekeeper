@@ -27,6 +27,14 @@ final class ResponseDispatcher {
 	 */
 	public const NATIVE_SCRIPT = 'wp-comments-post.php';
 
+	/**
+	 * AJAX body JSON 编码旗标闭集（【AUDIT-FIX 2026-11-20·P1-1/S1-F1】）：
+	 * 拦截响应 data.code/message 可携 LLM 原样兜底文本（humanize_rule 非 Label,Score 形态
+	 * 直通——S1 报告 §2.3 provenance 链），宿主 admin-ajax 恒 text/html——JSON_HEX 四旗使
+	 * <>&'" 全部转义为 \uXXXX，即使响应被顶层导航以 HTML 呈现也不产生可执行标签。
+	 */
+	public const BODY_JSON_FLAGS = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+
 	/* ---------- 原生判定 ---------- */
 
 	/**
@@ -133,6 +141,42 @@ final class ResponseDispatcher {
 			'success' => false,
 			'data'    => $data,
 		);
+	}
+
+	/**
+	 * AJAX 拦截响应完整响应头（【AUDIT-FIX 2026-11-20·P1-1/S1-F1】）：Content-Type 收口 + 四头协议。
+	 *
+	 * admin-ajax.php 上下文默认响应 text/html（核心恒设）——裸 echo JSON 必须自带
+	 * application/json 类型头，主题 JS 解析面之外杜绝「顶层导航以 HTML 呈现响应体」的
+	 * 反射 XSS 载体。REST 分支不加（rest_error_headers 维持四头——REST 层强制
+	 * application/json，重复 Content-Type 面不引入）。
+	 *
+	 * @param array<string, mixed> $result reject 结果。
+	 * @param string               $scene  场景（comment/login）。
+	 * @return array<string, string> 头名 => 头值（Content-Type 首位）。
+	 */
+	public static function ajax_reject_headers( array $result, string $scene ): array {
+		return array_merge(
+			array( 'Content-Type' => 'application/json; charset=utf-8' ),
+			self::ajax_headers( $result, $scene )
+		);
+	}
+
+	/**
+	 * AJAX body 的 JSON 输出串（【AUDIT-FIX 2026-11-20·P1-1/S1-F1】）：BODY_JSON_FLAGS 编码。
+	 *
+	 * $encoder 由 WP 边界注入（生产 = 'wp_json_encode'，签名兼容 fn($data, $flags)；单测注入
+	 * 'json_encode'）——本类保持纯 PHP 零 WP 依赖（类头注分层契约不变），编码策略与旗标
+	 * 闭集收口在本件（可单测矩阵覆盖）。
+	 *
+	 * @param array<string, mixed> $result       reject 结果。
+	 * @param string               $scene        场景。
+	 * @param bool                 $headers_sent headers_sent() 结果。
+	 * @param callable             $encoder      JSON 编码回调 fn(array $data, int $flags): string|false。
+	 * @return string
+	 */
+	public static function ajax_body_json( array $result, string $scene, bool $headers_sent, callable $encoder ): string {
+		return (string) $encoder( self::ajax_body( $result, $scene, $headers_sent ), self::BODY_JSON_FLAGS );
 	}
 
 	/* ---------- REST 分支补充头 ---------- */

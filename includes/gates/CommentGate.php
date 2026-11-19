@@ -1167,8 +1167,14 @@ final class CommentGate extends AbstractGate {
 	}
 
 	/**
-	 * AJAX 分支头协议响应（02 §3.5 ③）：四头 + 简短 JSON body；headers_sent 退化
+	 * AJAX 分支头协议响应（02 §3.5 ③）：Content-Type + 四头 + 简短 JSON body；headers_sent 退化
 	 * 为 body 全量携带——杜绝「AJAX 主题收到整页 HTML 致命错误」事故形态（红线 6）。
+	 *
+	 * 【AUDIT-FIX 2026-11-20·P1-1/S1-F1】头协议收口 ResponseDispatcher::ajax_reject_headers
+	 * （补 Content-Type: application/json; charset=utf-8——admin-ajax 恒 text/html）；JSON 输出
+	 * 走 ajax_body_json（JSON_HEX 四旗——LLM reason/humanize 兜底文本可携 HTML/引号，
+	 * text/html 宿主下不可执行；WP 前台 gatekeeper.js 只消费 precheck 端点 wp_send_json 面，
+	 * 本 body 的消费方为主题 JS 按 success/data 解析——JSON 语义不变零破坏）。
 	 *
 	 * @param array<string, mixed> $result reject 结果。
 	 * @return void
@@ -1176,13 +1182,13 @@ final class CommentGate extends AbstractGate {
 	private function send_ajax_reject( array $result ): void {
 		$sent = headers_sent();
 		if ( ! $sent ) {
-			foreach ( ResponseDispatcher::ajax_headers( $result, $this->id ) as $name => $value ) {
+			foreach ( ResponseDispatcher::ajax_reject_headers( $result, $this->id ) as $name => $value ) {
 				header( $name . ': ' . $value );
 			}
 		}
 		// WP AJAX 约定形态 {success:false,data:{…}}；默认 200（admin-ajax 惯例，
 		// 主题 JS 按 success/data 解析；头协议承载错误语义）。
-		echo wp_json_encode( ResponseDispatcher::ajax_body( $result, $this->id, $sent ) );
+		echo ResponseDispatcher::ajax_body_json( $result, $this->id, $sent, 'wp_json_encode' );
 		exit;
 	}
 
@@ -1696,7 +1702,7 @@ final class CommentGate extends AbstractGate {
 
 		wp_die(
 			DiePage::build( $title, $message, $result['evidence'], $contact, WINK_GATEKEEPER_URL . 'assets/brand/logo-wink.svg', get_locale() ),
-			$title,
+			esc_html( $title ), // 【AUDIT-FIX 2026-11-20·S1-F3】core 不转义 die 外层骨架（<title> 等）——调用方自转义；纯文本标题零视觉差。
 			array( 'back_link' => false ) // back_link 由品牌按钮承担（03 §3 版式）。
 		);
 	}

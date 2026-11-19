@@ -205,7 +205,7 @@ final class DiePage {
 
 		wp_die(
 			self::build( $title, $message, $evidence, $contact, WINK_GATEKEEPER_URL . 'assets/brand/logo-wink.svg', get_locale() ),
-			$title,
+			esc_html( $title ), // 【AUDIT-FIX 2026-11-20·S1-F3】core 不转义 die 外层骨架——{rule} 占位符标题 + LLM 文本可达位调用方自转义。
 			array( 'back_link' => false ) // back_link 由页内品牌按钮承担（03 §3 版式），不经 WP 默认返回链接。
 		);
 	}

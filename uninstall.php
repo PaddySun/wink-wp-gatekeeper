@@ -21,7 +21,7 @@
  *   同族指引：docs 06 真机计划顶部接续横幅「勘误」行已按此口径（`wp plugin uninstall`）。
  *
  * 数据红线（只碰 wink 自有数据，绝不删坏）：
- *   - 删 12 个 option：wink_gatekeeper_settings / stats / usage / health
+ *   - 删 13 个 option：wink_gatekeeper_settings / stats / usage / health
  *     【v1.9·M5 回写·审计 C2】+ wink_gatekeeper_llm_usage（LLM 消耗统计，
  *     LlmUsage::OPTION_NAME）+ wink_gatekeeper_url_audit_incr_queue（网址核查增量
  *     队列，UrlAuditWorker::OPTION_INCR_QUEUE）+ wink_gatekeeper_url_audit_batch_queue
@@ -40,7 +40,10 @@
  *   - DROP 仅 wink 自建事件表（{prefix}wink_gatekeeper_events——先 SHOW TABLES 探测后
  *     PHP 侧严格全等比对，防 LIKE 下划线通配的相似表名误伤）；
  *   - 清 wink 自有 transient 前缀（wk_lf_ / wk_ip_ / wk_rp_ / wk_cv_ / wk_pk_ / wk_tc_ /
- *     wk_cm_ / wk_irb_ / wk_ua_ / 【M6·批F-b】wk_es_ / wk_ec_log_——逐前缀精确，
+ *     wk_cm_ / wk_irb_ / wk_ua_ / 【M6·批F-b】wk_es_ / wk_ec_log_ /
+ *     【AUDIT-FIX 2026-11-20·P3-F5/A1-F9】wk_baidu_token_（百度 access_token 缓存——
+ *     BaiduTextModerationDriver::token_cache_key，TTL 最长 30 天；表存储形态卸载后
+ *     不清则残留至 TTL，派生凭证面非凭据本体）——逐前缀精确，
  *     禁止 LIKE %wink% 类宽匹配）；
  *   - 清 wink 自有 comment meta 键 wink_gatekeeper_archive（逐键 delete_metadata，不清整行评论）
  *     【v1.9·M5 回写·审计 C2】+ wink_audit_existing（存量审核判定标记，
@@ -83,7 +86,9 @@ $wink_guarded = static function ( callable $wink_step ): void {
 	}
 };
 
-/* 1. 删 12 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留；
+/* 1. 删 13 个 option（键名全等逐个精确——非卸载清单的相似键名原样保留；
+ * 【AUDIT-FIX 2026-11-20·A1-F11】计数 12→13（注释漂移修正：实际 delete_option 自 W3 批 C
+ * probe log 补录起已 13 处，头注漏记 1——数字对齐实况，非新增 option）。
  * 【v1.9·M5 回写·审计 C2】M5 三 option 补录：LlmUsage::OPTION_NAME /
  * UrlAuditWorker::OPTION_INCR_QUEUE / ExistingAuditTask::OPTION_PROGRESS；
  * 【M6·批A·P1-3】批量回捞显式队列 UrlAuditWorker::OPTION_BATCH_QUEUE 补录；
@@ -154,13 +159,16 @@ $wink_guarded( static function (): void {
  * （I2 批补录——AbuseIpdbService 步 2 全局退避 transient）；
  * 【M6·批F-b】wk_es_ stub/rate 事件采样小时桶（P1-4 配套补录，TTL 2h）/
  * wk_ec_log_ 事件表容量闸小时日志去重键（P1-4 配套补录，TTL 2h）；
+ * 【AUDIT-FIX 2026-11-20·P3-F5/A1-F9】wk_baidu_token_ 百度 access_token 30 天缓存
+ * （卸载链演练实锤补录——表存储形态卸载后残留至 TTL 的派生凭证面；对象缓存形态
+ * 由下方步骤 6 flush 兜底不变）；
  * trust stub 无状态纯签名、无存储无清理（02 §3.3a））。
  * transients 可能落数据库 options 表或对象缓存——这里按 option 存的键索引清理
  * （04 §7 口径）；对象缓存型 transients 由下方步骤 6 的 flush 兜底。
  * 每前缀匹配两种键：主键 _transient_<prefix>_* 与过期时间键 _transient_timeout_<prefix>_*。
  * 【F3-1 谨慎性】逐前缀精确匹配（wink 自有前缀），禁止 %wink% 类宽匹配误伤同前缀他人数据。 */
 $wink_guarded( static function () use ( $wpdb ): void {
-	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_irb_', 'wk_ua_', 'wk_es_', 'wk_ec_log_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.【M6·F2】wk_es_/wk_ec_log_ 事件写放大封顶键.
+	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_irb_', 'wk_ua_', 'wk_es_', 'wk_ec_log_', 'wk_baidu_token_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.【M6·F2】wk_es_/wk_ec_log_ 事件写放大封顶键.【AUDIT-FIX】wk_baidu_token_ 百度 token 缓存（P3-F5/A1-F9）.
 		$wink_transient_keys = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options}

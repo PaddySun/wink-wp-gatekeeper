@@ -130,6 +130,16 @@ final class LoginGate extends AccountFormGate {
 	private static $captured_user_login = null;
 
 	/**
+	 * 请求内捕获的存根原文（【AUDIT-FIX 2026-11-20·P1-2/S6-F1】verify_orchestrate 写入；
+	 * 供同一 PHP 请求随后触发的 wp_login_failed/wp_login 读取——hook_wp_authenticate_user
+	 * 的 unset_post_fields 已清 $_POST['wk_stub']（token 单次消费 A6），存根原文经本静态
+	 * 面跨链传递；请求内一次性消费语义同 $captured_user_login）。
+	 *
+	 * @var string|null
+	 */
+	private static $captured_stub = null;
+
+	/**
 	 * @var LoginCounters 双计数器（v1.4 重构版：纯用户名键 + IP 键 + 站点警报）。
 	 */
 	private $counters;
@@ -349,6 +359,7 @@ final class LoginGate extends AccountFormGate {
 
 		/* 存根三态（gate=login, context_id='login'）。 */
 		$stub_raw = isset( $request['wk_stub'] ) && is_scalar( $request['wk_stub'] ) ? (string) $request['wk_stub'] : '';
+		self::$captured_stub = '' !== $stub_raw ? $stub_raw : null; // 【P1-2】供同一请求 wp_login_failed/wp_login 边界读取（unset_post_fields 后 $_POST 已清）。
 		$state    = Stub::verify( $stub_raw, $this->id, 'login', (int) call_user_func( $this->now ), $this->stub_hash );
 
 		if ( null === $state ) {
@@ -521,6 +532,15 @@ final class LoginGate extends AccountFormGate {
 		}
 		$this->counters->record_failure( $ip, $user_dim );
 
+		/* 【AUDIT-FIX 2026-11-20·P1-2/S6-F1】验证短缓存窗内口令错误计次——VerifyCache 命中
+		 * 放行窗≠无限口令爆破窗（过一次码 10min 重试口令的摊销面收口：错 ≥5 吊销 wk_cv_ 键，
+		 * 后续须重新过码）。仅口令错误 incorrect_password 计次（本闸拒绝码 wk_captcha_failed/
+		 * missing 不计——不惩罚已过码但手滑的真人，与 classify_error_code 同口径出处）；
+		 * 计次键/吊销语义全在 VerifyCache（纯逻辑类，单测覆盖）。 */
+		if ( 'incorrect_password' === $error_code ) {
+			$this->record_verify_cache_password_failure( $ip, (string) ( self::$captured_stub ?? '' ) );
+		}
+
 		/* 【I3·定稿 §4.2 T3】login_attempts：登录 IP 聚合维度计数**饱和判定处**（复用
 		 * LoginCounters 现有 ip_threshold=10——零新增计数器零新键；用户名维度饱和不触发
 		 * ——T3 只认单 IP password spray 形态，分布式单账号爆破归用户名维度）。
@@ -535,6 +555,41 @@ final class LoginGate extends AccountFormGate {
 				'gate'    => 'login',
 			) );
 		}
+	}
+
+	/**
+	 * 验证短缓存窗内口令错误计次（【AUDIT-FIX 2026-11-20·P1-2/S6-F1】纯逻辑面——
+	 * hook_wp_login_failed 边界消费，仅口令错误 incorrect_password 调用；本闸拒绝码
+	 * wk_captcha_failed/missing 不计——不惩罚已过码但手滑的真人，与 LoginCounters
+	 * classify_error_code 同口径出处）。
+	 *
+	 * 计次键=同存根|IP 双绑定（VerifyCache::FAIL_PREFIX）；错 ≥5 吊销该 wk_cv_ 缓存键
+	 * （delete）→ 后续提交须重新过码。verify_cache 未装配/存根缺失=零操作。
+	 *
+	 * @param string $ip       提交者真实 IP。
+	 * @param string $stub_raw 请求内捕获的存根原文（verify_orchestrate 写入；空=跳过）。
+	 * @return void
+	 */
+	public function record_verify_cache_password_failure( string $ip, string $stub_raw ): void {
+		if ( null === $this->verify_cache || '' === $stub_raw || '' === $ip ) {
+			return;
+		}
+		$this->verify_cache->record_password_failure( $stub_raw, $ip );
+	}
+
+	/**
+	 * 成功登录清窗内计次（【AUDIT-FIX 2026-11-20·P1-2】纯逻辑面——hook_wp_login 边界消费；
+	 * 真人口令手滑→成功的正常路径零残余，计数不跨窗口累计）。
+	 *
+	 * @param string $ip       提交者真实 IP。
+	 * @param string $stub_raw 请求内捕获的存根原文（verify_orchestrate 写入；空=跳过）。
+	 * @return void
+	 */
+	public function clear_verify_cache_failures( string $ip, string $stub_raw ): void {
+		if ( null === $this->verify_cache || '' === $stub_raw || '' === $ip ) {
+			return;
+		}
+		$this->verify_cache->clear_password_failures( $stub_raw, $ip );
 	}
 
 	/* -------------------------------------------------------------------
@@ -671,28 +726,35 @@ final class LoginGate extends AccountFormGate {
 			return;
 		}
 		/* 【v1.5·F4-6】attempts 维：失败尝试直 bump（04 §4——不经事件表；empty_* 不计）。 */
-		if ( self::attempts_countable( is_wp_error( $error ) ? (string) $error->get_error_code() : '' ) ) {
+		$error_code = is_wp_error( $error ) ? (string) $error->get_error_code() : '';
+		if ( self::attempts_countable( $error_code ) ) {
 			StatsCache::record_attempts( 'login' );
 		}
 		$resolved = $this->resolver->resolve( isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() );
+		$ip       = is_string( $resolved['ip'] ) ? $resolved['ip'] : '';
 		$this->record_auth_failure(
-			is_string( $resolved['ip'] ) ? $resolved['ip'] : '',
+			$ip,
 			sanitize_user( $username ),
 			self::$captured_user_login,
-			is_wp_error( $error ) ? (string) $error->get_error_code() : ''
+			$error_code
 		);
 		self::$captured_user_login = null; // 请求内一次性消费。
+		self::$captured_stub       = null; // 【P1-2】存根捕获同拍消费（计次在 record_auth_failure 内 incorrect_password 分派）。
 	}
 
 	/**
-	 * wp_login @ 10：成功清键（v1.3 吸收③：直接删键；站点警报不随单次成功清除）。
+	 * wp_login @ 10：成功清键（v1.3 吸收③：直接删键；站点警报不随单次成功清除）
+	 * + 【AUDIT-FIX 2026-11-20·P1-2】清验证短缓存窗内计次。
 	 *
 	 * @param string $user_login 登录名（core 传入规范 user_login）。
 	 * @return void
 	 */
 	public function hook_wp_login( string $user_login ): void {
 		$resolved = $this->resolver->resolve( isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array() );
-		$this->counters->clear( is_string( $resolved['ip'] ) ? $resolved['ip'] : '', $user_login );
+		$ip       = is_string( $resolved['ip'] ) ? $resolved['ip'] : '';
+		$this->counters->clear( $ip, $user_login );
+		$this->clear_verify_cache_failures( $ip, (string) ( self::$captured_stub ?? '' ) ); // 【P1-2】成功登录清计数。
+		self::$captured_stub = null; // 请求内一次性消费。
 	}
 
 	/**

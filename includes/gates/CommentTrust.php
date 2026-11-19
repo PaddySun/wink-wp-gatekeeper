@@ -13,6 +13,8 @@
  *
  * 缓存（R2 §2.4）：transient wk_tc_<HMAC16(身份)>，值=布尔（≥N 与否，不存计数——防邮箱枚举
  * 信息泄漏），TTL=captcha.trust.credit_cache_minutes（默认 5min，0=每点必查）。
+ * 【AUDIT-FIX 2026-11-20·S6-F2】游客键身份=lower(email)+'|'+昵称（判定双因子与键材对齐——
+ * 旧 email-only 键 5min TTL 自然过期不迁移）。
  * 失效钩子（与 TTL 双保险，Bootstrap 挂 transition_comment_status + wp_insert_comment）：
  * 站长刚批完评论，访客下一次预检立即可信（无需等 TTL）。
  * 提交期终判不重跑 COUNT（trust stub 即凭证——信任凭证化的性能意义）。
@@ -123,10 +125,12 @@ final class CommentTrust {
 	}
 
 	/**
-	 * 缓存键：前缀 + HMAC(身份) 前 16 位（R2 §2.4：'g:'+lower(email) / 'u:'+user_id）。
+	 * 缓存键：前缀 + HMAC(身份) 前 16 位（R2 §2.4：'g:'+lower(email) / 'u:'+user_id；
+	 * 【AUDIT-FIX 2026-11-20·S6-F2】游客调用位 $value=email+'|'+author——键材并入昵称维，
+	 * 本函数保持通用键形态不特判）。
 	 *
 	 * @param string   $kind 'g'（游客）| 'u'（登录用户）。
-	 * @param string   $value 身份值（email 小写 / user_id 字面）。
+	 * @param string   $value 身份值（游客=email 小写+'|'+昵称 / 登录=user_id 字面）。
 	 * @param callable $mac  身份 HMAC 回调。
 	 * @return string
 	 */
@@ -155,8 +159,13 @@ final class CommentTrust {
 		}
 
 		if ( '' !== $email && '' !== $author ) {
+			/* 【AUDIT-FIX 2026-11-20·S6-F2】游客键并入昵称维（键材 g:+email+|+nick）——判定值
+			 * 来自 (email,nick) 计数而旧键只取 email：正缓存命中跨昵称泄漏（同邮箱换昵称
+			 * 零已批评论 5min 窗内 trust_pass——审计 3.6 冒充链 B 实测）。键随昵称分化后
+			 * 双向正确性恢复（正向不跨昵称放行/反向同邮箱换昵称不被负缓存误拒）。
+			 * 旧 email-only 键不迁移——一次性 5min TTL 窗自然过期（credit_cache_minutes）。 */
 			return $this->judge(
-				self::cache_key( 'g', $email, $this->mac ),
+				self::cache_key( 'g', $email . '|' . $author, $this->mac ),
 				array( $this, 'count_for_guest' ),
 				array( $email, $author )
 			);
@@ -167,16 +176,20 @@ final class CommentTrust {
 
 	/**
 	 * 失效钩子面（Bootstrap 挂 transition_comment_status/wp_insert_comment 后调用）：
-	 * 清除该 email 命中的游客键与（评论带 user_id 时）登录用户键。
+	 * 清除该 (email,author) 命中的游客键与（评论带 user_id 时）登录用户键。
+	 *
+	 * 【AUDIT-FIX 2026-11-20·S6-F2】游客键含昵称维——$author 与判定键材同步（Bootstrap 两
+	 * 钩子消费 comment_author）；author 缺省空串=不碰游客键（TTL 5min 窗自然过期兜底）。
 	 *
 	 * @param string $email   评论作者邮箱。
 	 * @param int    $user_id 评论作者用户 ID（游客 0）。
+	 * @param string $author  评论作者昵称（游客键清键材料——S6-F2 同步面）。
 	 * @return void
 	 */
-	public function invalidate( string $email, int $user_id = 0 ): void {
+	public function invalidate( string $email, int $user_id = 0, string $author = '' ): void {
 		$email = strtolower( trim( $email ) );
-		if ( '' !== $email ) {
-			call_user_func( $this->store_delete, self::cache_key( 'g', $email, $this->mac ) );
+		if ( '' !== $email && '' !== $author ) {
+			call_user_func( $this->store_delete, self::cache_key( 'g', $email . '|' . $author, $this->mac ) );
 		}
 		if ( $user_id > 0 ) {
 			call_user_func( $this->store_delete, self::cache_key( 'u', (string) $user_id, $this->mac ) );

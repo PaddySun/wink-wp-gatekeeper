@@ -255,7 +255,9 @@ final class CommentTrustTest extends TestCase {
 		$trust->history_pass( array( 'user_id' => 7, 'email' => 'author@site.com' ) );
 
 		// 站长刚批完评论（transition_comment_status → 已批）：email 命中的游客键 + user_id 键即时清除。
-		$trust->invalidate( 'reader@example.com', 7 );
+		// 【AUDIT-FIX 2026-11-20·S6-F2】游客键并入昵称维（g:+email+|+nick）——失效面增 author 参
+		// （Bootstrap 两钩子消费 comment_author；断言值零变化——输入面随键面同步）。
+		$trust->invalidate( 'reader@example.com', 7, '老读者' );
 
 		$trust->history_pass( array( 'email' => 'reader@example.com', 'author' => '老读者' ) );
 		$trust->history_pass( array( 'user_id' => 7, 'email' => 'author@site.com' ) );
@@ -272,7 +274,8 @@ final class CommentTrustTest extends TestCase {
 			}
 		);
 		$trust->history_pass( array( 'email' => 'guest@example.com', 'author' => '游客' ) );
-		$trust->invalidate( 'guest@example.com' );
+		// 【AUDIT-FIX 2026-11-20·S6-F2】同上——游客键含昵称维，失效面按 (email,author) 精确清键。
+		$trust->invalidate( 'guest@example.com', 0, '游客' );
 		$trust->history_pass( array( 'email' => 'guest@example.com', 'author' => '游客' ) );
 		$this->assertSame( 2, $queries );
 	}

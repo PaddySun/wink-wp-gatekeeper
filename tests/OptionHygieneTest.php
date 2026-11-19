@@ -84,8 +84,10 @@ final class OptionHygieneTest extends TestCase {
 	public function test_uninstall_header_documents_all_options(): void {
 		$src = self::uninstall_src();
 
-		// 【W3·批C】10→12（N1 probe log + R5 向导状态补录——注记原因=新增 option 落位，非语义翻转）。
-		$this->assertStringContainsString( '12 个 option', $src, '头注清单与实际删除数同步（4→7·M5 三 option 补录；7→8·M6 批A 回捞队列补录；8→9·M6 批B 暂停边沿标记补录；9→10·M6 批C 运行记录补录；10→12·W3 批C probe log+向导状态补录）' );
+		// 【AUDIT-FIX 2026-11-20·A1-F11】12→13（注释漂移修正：delete_option 实删 13 处
+		// 而头注自 W3 批 C 起漏记 1——数字对齐实况，非新增 option；P3-F5/A1-F9 卸载链批同步）。
+		$this->assertStringContainsString( '13 个 option', $src, '头注清单与实际删除数同步（4→7·M5 三 option 补录；7→8·M6 批A 回捞队列补录；8→9·M6 批B 暂停边沿标记补录；9→10·M6 批C 运行记录补录；10→12·W3 批C probe log+向导状态补录；12→13·A1-F11 注释漂移修正）' );
+		$this->assertStringNotContainsString( '删 12 个 option', $src, '旧计数 12 退役（A1-F11——实际 13）' );
 		$this->assertStringContainsString( DriverHealth::OPTION_NAME, $src, '头注点名 health 键（R-AK §D P0-1：头注自己写的清单就是承诺）' );
 		$this->assertStringContainsString( LlmUsage::OPTION_NAME, $src, '头注点名 llm_usage 键（M5·审计 C2）' );
 		$this->assertStringContainsString( UrlAuditWorker::OPTION_INCR_QUEUE, $src, '头注点名 url_audit_incr_queue 键（M5·审计 C2）' );

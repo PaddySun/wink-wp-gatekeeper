@@ -55,6 +55,48 @@ final class IpResolver {
 	public const MODE_TRAVERSE      = 'traverse';
 
 	/**
+	 * 典型代理转发头（$_SERVER 键形态——【AUDIT-FIX 2026-11-20·P0-E1②】）：
+	 * 通用反代 XFF / 腾讯 EdgeOne EO-Connecting-IP / Cloudflare CF-Connecting-IP /
+	 * Nginx 生态 X-Real-IP。vendor 无关——只认头在场形态，不写死任何 CDN 网段
+	 * （网段面由 trusted_proxies 站长配置承载，本判定零网段知识）。
+	 */
+	public const PROXY_HEADER_SERVER_KEYS = array(
+		'HTTP_X_FORWARDED_FOR',
+		'HTTP_EO_CONNECTING_IP',
+		'HTTP_CF_CONNECTING_IP',
+		'HTTP_X_REAL_IP',
+	);
+
+	/**
+	 * CDN 代理转发头 × ip_source=direct 冲突判定（【AUDIT-FIX 2026-11-20·P0-E1②】纯函数）。
+	 *
+	 * 背景（审计 P0-E1——B 机实测 ip_source=direct + EO 边缘回源出口轮换 → 全部 per-IP
+	 * 控制键被键漂移整体稀释，插件侧此前无任何告警面）：ip_source=direct 而请求携带典型
+	 * 代理转发头 → per-IP 防线（提交限流/登录阈/事件采样/信誉归因）可能整体失效——
+	 * 提示站长在网络配置中选择与部署拓扑匹配的 IP 来源。判定只看「direct + 典型头非空」，
+	 * 不读 REMOTE_ADDR 网段归属（vendor 无关、零网段知识——无误报网段过时面）；
+	 * xff/traverse/custom_header 模式下代理头=预期形态恒 false。
+	 *
+	 * @param string               $ip_source network.ip_source（direct|xff|traverse|custom_header）。
+	 * @param array<string, mixed> $server    $_SERVER（边界层注入；只读 PROXY_HEADER_SERVER_KEYS）。
+	 * @return bool true = 冲突（应渲染告警黄条）。
+	 */
+	public static function proxy_header_conflict( string $ip_source, array $server ): bool {
+		if ( self::MODE_DIRECT !== $ip_source ) {
+			return false; // 仅 direct 模式存在冲突（代理头在其他模式=设计内形态）。
+		}
+		foreach ( self::PROXY_HEADER_SERVER_KEYS as $key ) {
+			if ( ! isset( $server[ $key ] ) || ! is_scalar( $server[ $key ] ) ) {
+				continue;
+			}
+			if ( '' !== trim( (string) $server[ $key ] ) ) {
+				return true; // 任一典型代理头非空。
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * @var string 当前解析模式。
 	 */
 	private $mode;

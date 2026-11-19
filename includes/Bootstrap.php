@@ -136,6 +136,13 @@ final class Bootstrap {
 	 */
 	private $assembled_settings = null;
 
+	/**
+	 * autoload 自愈同请求幂等标志（【AUDIT-FIX 2026-11-20·P1-9】heal_option_autoload 消费）。
+	 *
+	 * @var bool
+	 */
+	private $autoload_healed = false;
+
 	private function __construct( string $base_dir, string $base_url ) {
 		$this->base_dir = $base_dir;
 		$this->base_url = $base_url;
@@ -161,6 +168,11 @@ final class Bootstrap {
 	public function boot(): void {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'admin_init', array( SettingsPage::class, 'register_settings' ) );
+		// 【AUDIT-FIX 2026-11-20·P1-9/S4-F1】option autoload 漂移读路径一次性自愈（幂等——
+		// 现值已 off 零写）。挂 admin_init 而非 init：漂移唯一通道=保存链在行缺失时按默认
+		// autoload 重建（options.php 主保存通道），管理上下文即全部需 healing 的时机；
+		// 前台高频面零新增查询（A2 逐请求画像面不回退）。
+		add_action( 'admin_init', array( $this, 'heal_option_autoload' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 
@@ -286,6 +298,56 @@ final class Bootstrap {
 	private static function url_audit_worker(): UrlAuditWorker {
 		$stored = get_option( SettingsPage::OPTION_NAME, array() );
 		return new UrlAuditWorker( SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() ) );
+	}
+
+	/**
+	 * option autoload 漂移读路径一次性自愈（【AUDIT-FIX 2026-11-20·P1-9/S4-F1】admin_init 消费）。
+	 *
+	 * 缺口：激活 add_option(…, false) 正确，但此后全库无 autoload 再断言——option 行一旦
+	 * 删除（卸载/外部清理工具）后经保存链 update_option 重建即漂移 autoload=auto（WP 语义：
+	 * 行存在保留既有 autoload、行缺失按默认开重建）。漂移态=涉密/大 option（8 明文凭据）
+	 * 随每请求自动装载进内存+对象缓存（S4 批内实录 auto；stats 同族活体）。
+	 *
+	 * 幂等：现值 'off'（正常态）零写零 UPDATE——仅漂移态执行一次；行缺失（未安装/激活前）
+	 * 跳过——activation add_option(…, false) 重建面天然正确。WP 6.4+ 走规范件
+	 * wp_set_option_autoload；6.0-6.3 守卫回落等价直 UPDATE（wp_set_option_autoload 内部
+	 * 同款 SQL 形态；'off' 全版本合法取值）。
+	 *
+	 * 覆盖面：wink_gatekeeper_settings（密钥主 option）+ wink_gatekeeper_stats（同族活体——
+	 * P3 复位 eval-file 重建实录 autoload=auto）。其余插件 option 写点已全量带第三参 false
+	 * （本批 grep 补口 probe_log——S4-F2 确定性漂移口），漂移路径不再开放。
+	 *
+	 * 代价：每 admin 请求一次 SELECT（get_var——admin 低频面；前台零新增查询）。
+	 *
+	 * @return void
+	 */
+	public function heal_option_autoload(): void {
+		global $wpdb;
+		if ( isset( $this->autoload_healed ) && $this->autoload_healed ) {
+			return; // 同请求幂等（admin_init 重复触发防御）。
+		}
+		$this->autoload_healed = true;
+
+		foreach ( array( SettingsPage::OPTION_NAME, StatsCache::OPTION_NAME ) as $wink_option_name ) {
+			$current = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- autoload 列 get_option 不透出；低频管理面单行点查。
+				$wpdb->prepare( 'SELECT autoload FROM ' . $wpdb->options . ' WHERE option_name = %s', $wink_option_name ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- prepare 即在位。
+			);
+			if ( null === $current || 'off' === $current ) {
+				continue; // 行缺失（activation 重建面）或已关：零写。
+			}
+			if ( function_exists( 'wp_set_option_autoload' ) ) {
+				wp_set_option_autoload( $wink_option_name, false ); // WP 6.4+ 规范件（幂等，含缓存失效）。
+				continue;
+			}
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- 6.0-6.3 回落：仅漂移态单行 UPDATE（'off' 全版本合法取值）。
+				$wpdb->prepare(
+					'UPDATE ' . $wpdb->options . ' SET autoload = %s WHERE option_name = %s AND autoload <> %s',
+					'off',
+					$wink_option_name,
+					'off'
+				) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- prepare 即在位。
+			);
+		}
 	}
 
 	/**
@@ -456,13 +518,18 @@ final class Bootstrap {
 		}
 
 		/* 验证短缓存（M2 反馈2 T3，D+A-lite）：transient 存取闭包注入（键 wk_cv_*，TTL 由
-		 * captcha.verify_cache_minutes 决定，0=停用）；评论/登录两闸共享同一实例。 */
+		 * captcha.verify_cache_minutes 决定，0=停用）；评论/登录两闸共享同一实例。
+		 * 【AUDIT-FIX 2026-11-20·P1-2】删除闭包注入（窗内口令错误计次吊销面——
+		 * VerifyCache::record_password_failure 消费；缺省亦为 delete_transient，显式传与
+		 * 'get_transient' 对称）。 */
 		$verify_cache = new VerifyCache(
 			(int) ( $settings['captcha']['verify_cache_minutes'] ?? VerifyCache::DEFAULT_TTL_MINUTES ),
 			'get_transient',
 			static function ( string $key, $value, int $ttl ): void {
 				set_transient( $key, $value, $ttl ); // WP 边界。
-			}
+			},
+			null, // mac：wp_salt('auth') WP 边界默认。
+			'delete_transient' // 【P1-2】吊销面（窗内口令错误计次达阈删 wk_cv_ 键）。
 		);
 
 		/* IP 信誉三态服务（02 §2.3b/05 §3.0——【v1.7·M3-IP·定稿 §2 I2】enabled=false → Null
@@ -650,14 +717,15 @@ final class Bootstrap {
 				add_action( 'transition_comment_status', static function ( string $new_status, string $old_status, $comment ) use ( $comment_trust ): void {
 					unset( $new_status, $old_status ); // 超集清键：状态翻转即身份信用可能变化。
 					if ( $comment && property_exists( $comment, 'comment_author_email' ) ) {
-						$comment_trust->invalidate( (string) $comment->comment_author_email, (int) ( $comment->user_id ?? 0 ) );
+						// 【AUDIT-FIX 2026-11-20·S6-F2】游客键并入昵称维——失效面按 (email,author) 精确清键。
+						$comment_trust->invalidate( (string) $comment->comment_author_email, (int) ( $comment->user_id ?? 0 ), (string) ( $comment->comment_author ?? '' ) );
 					}
 				}, 10, 3 );
 				add_action( 'wp_insert_comment', static function ( int $comment_id, $comment ) use ( $comment_trust ): void {
 					unset( $comment_id );
 					if ( $comment && property_exists( $comment, 'comment_author_email' )
 						&& '1' === (string) $comment->comment_approved ) { // 直接已批路径（wp_insert_comment 直插/导入）。
-						$comment_trust->invalidate( (string) $comment->comment_author_email, (int) ( $comment->user_id ?? 0 ) );
+						$comment_trust->invalidate( (string) $comment->comment_author_email, (int) ( $comment->user_id ?? 0 ), (string) ( $comment->comment_author ?? '' ) );
 					}
 				}, 10, 2 );
 			}
@@ -795,6 +863,15 @@ final class Bootstrap {
 
 		if ( null === $this->comment_gate ) {
 			return; // 闸未启用：注册不入队（零前台足迹）。
+		}
+
+		/* 【AUDIT-FIX 2026-11-20·P1-8/A2-F2】评论区资产条件入队：仅可评论单体页（is_singular）
+		 * 且评论开放（comments_open）时入队——评论区不存在/评论关闭的页面零脚本零样式
+		 * （评论闸开启后每页 63-66KB 未压缩足迹收窄）。wp_enqueue_scripts 于 wp_head 期
+		 * 触发（主查询已就绪，条件判定可靠）；登录页三闸资产走 enqueue_login_assets
+		 * 独立注册入队（不经 wp_enqueue_scripts——本条件零牵连）。 */
+		if ( ! ( is_singular() && comments_open() ) ) {
+			return;
 		}
 
 		/* 预检门内联配置（【v1.4·R2】03 §2.1：nonce+端点+前端超时随页面注入；不含任何密钥——
@@ -1108,7 +1185,18 @@ final class Bootstrap {
 		}
 
 		// cron 存活（每日维护——events 表 90 天清理/滚动上限依赖；false = 丢失）。
+		// cron 存活（每日维护——events 表 90 天清理/滚动上限依赖；false = 丢失）。
 		$cron_alive = false !== wp_next_scheduled( EventsTable::HOOK_DAILY );
+
+		/* 【AUDIT-FIX 2026-11-20·P0-E1②】CDN 代理转发头 × ip_source=direct 冲突判定
+		 * （与 Tab④ 页顶黄条同一纯函数单一来源——IpResolver::proxy_header_conflict；
+		 * 判定结果供卡片顶部「站务提醒位」渲染，vendor 无关零网段知识）。 */
+		$network_mode = isset( $settings['network']['ip_source'] ) && is_string( $settings['network']['ip_source'] )
+			? $settings['network']['ip_source'] : IpResolver::MODE_DIRECT;
+		$proxy_header_conflict = IpResolver::proxy_header_conflict(
+			$network_mode,
+			isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array()
+		);
 
 		// 用量行人话名（registry_entry label 单一来源；abuseipdb 两键 M3 前手名——
 		// 未注册 id 经 DashboardDigest 回落原名，不虚构）。
@@ -1160,6 +1248,16 @@ final class Bootstrap {
 		);
 		?>
 		<div class="wk-widget">
+			<?php /* 【AUDIT-FIX 2026-11-20·P0-E1②】站务提醒位：CDN 代理转发头 × ip_source=direct
+			 * 冲突黄条（widget 族 is-alert 形态——ip_source 配置与请求形态不符=per-IP 防线可能
+			 * 整体失效的部署级告警；Tab④ 页顶同款黄条深链）。 */ ?>
+			<?php if ( $proxy_header_conflict ) : ?>
+				<p class="wk-widget-line is-alert" id="wk-widget-proxy-header-alert">
+					<span class="wk-widget-light is-warn" aria-hidden="true"></span>
+					<?php echo esc_html( __( '检测到代理转发头但 IP 来源=直连——per-IP 防线（限流/登录阈/信誉归因）可能整体失效；请在网络配置中选择与部署拓扑匹配的 IP 来源。', 'wink-gatekeeper' ) ); ?>
+					<a class="wk-widget-fix" href="<?php echo esc_url( admin_url( 'options-general.php?page=' . SettingsPage::PAGE_SLUG . '&tab=iprep' ) ); ?>"><?php echo esc_html( __( '前往检查', 'wink-gatekeeper' ) ); ?></a>
+				</p>
+			<?php endif; ?>
 			<?php /* 卡 1：系统健康——四闸状态点 + 验证码配置态 + 停转红警报 + cron 存活。 */ ?>
 			<div class="wk-widget-card" id="wk-widget-health">
 				<p class="wk-widget-card-title"><?php echo esc_html( __( '系统健康', 'wink-gatekeeper' ) ); ?></p>
