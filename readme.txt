@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.8.7
+Stable tag: 0.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,10 @@ Wink WP 保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.9.0 =
+
+i18n 全量英文化改造（波5，2026-11-20，批 I-1~I-4a 四批收口——**里程碑位进位 0.8.7→0.9.0**）。本版为 i18n 发行形态里程碑：**插件源码文案（source）全面英文化，并内置 zh_CN 翻译包发行**（languages/ 目录 pot/po/mo 三产物随插件入库——自托管开箱即用）。① **中文站点体验零变化**：WP locale=zh_CN 时经内置翻译包渲染中文，989+ 数据面调用点经逐字节等价自证（改造前后 zh 渲染 bin2hex 比对一致）——「测试凭据」状态、统计行、首启向导、拦截页等全部界面同前。② **en 及其他 locale 渲染英文**：英文站点与其他语言站点此前看到的是写死的中文，本版起渲染英文原文（其他语言可基于内置 pot 自行翻译）。③ **开发者面中文保留**（B 类 53 处豁免登记）：驱动注册校验异常、LLM 提示词与探测样本、error_log 专用串等开发者/机器接口面维持原样。④ **配套收口**：_n 复数形态化 39 处（zh 单复数语义不变）、JS 文案 L10N 注入通道化（admin-brand.js 69 处硬编码收编+34 处兜底翻转）、插件头 Plugin Name/Description 英文化（zh 后台插件列表显示不变）、admin-brand.js 注册行版本后缀随本版进位退役（0.8.7-i3a1→0.9.0 裸值一次击穿 CDN 缓存）。**行为零变化红线**：除版本号/changelog/文案渲染通道外零逻辑改动。**beta 注**：本版聚焦 i18n 形态收口无新功能面；B 机部署复验（批 I-4b：zh_CN 真机渲染逐字节比对+en locale 首验+翻译包加载核验）随后进行——升级路径零迁移零卸载面风险低，复验结论见后续部署报告。测试 2294→2309 / 断言 15050→15139 全绿（i18n 波5 四批增量只增不减零断言删除，双门禁 phpunit 12.5.43/12.5.44）。
 
 = 0.8.7 =
 

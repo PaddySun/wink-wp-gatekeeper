@@ -24,9 +24,14 @@
 	 * **-w3c1**（断言翻转非语义变化——「本文件内容变化必须伴随版本参数变化」纪律本体
 	 * 不变；0.8.5 进位一次击穿仍在批 D 收口）。
 	 *
-	 * 【W3-FIX 后缀翻转注记】本批 admin-brand.js 内容变化（测试凭据徽标全量回写共享件
-	 * wkProbeWriteBadges + 九个 probe log 闭集驱动探活接线——W3F2 手测缺陷①）→ 后缀
-	 * -w3c1 → **-i3a1**（断言翻转非语义变化——纪律本体不变；0.8.6 进位随本批一次击穿）。
+ * 【W3-FIX 后缀翻转注记】本批 admin-brand.js 内容变化（测试凭据徽标全量回写共享件
+ * wkProbeWriteBadges + 九个 probe log 闭集驱动探活接线——W3F2 手测缺陷①）→ 后缀
+ * -w3c1 → **-i3a1**（断言翻转非语义变化——纪律本体不变；0.8.6 进位随本批一次击穿）。
+ *
+ * 【i18n 批 I-4a 后缀退役注记】0.9.0 milestone 进位（0.8.7→0.9.0）——admin-brand.js
+ * 注册行版本参数 **-i3a1 后缀退役，收敛为裸 WINK_GATEKEEPER_VERSION**（0.9.0 一次
+ * 击穿 CDN 缓存；M5FIX 纪律本体不变：本文件内容再变化时须 bump 进位或重新加缀，
+ * 届时翻转本钉——「bump 时统一」先例=0.8.5 批 D CSS 收口同款）。
 	 *
 	 * @package WinkGatekeeper\Tests
 	 */
@@ -43,28 +48,28 @@
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 
-		// admin-brand.js 注册行：版本参数 = WINK_GATEKEEPER_VERSION . '-i3a1'
-		// （窗幅 1600 字节——M5FIX/M6B/W3A/W3B/W3C/W3FIX 击穿语义注记累加后注册行注释段加长）。
-		// 【W3-FIX 后缀翻转】-w3c1→-i3a1（非语义变化——徽标全量回写件注记，M5Fix 纪律批内递进）。
+		// admin-brand.js 注册行：版本参数 = 裸 WINK_GATEKEEPER_VERSION
+		// （【i18n 批 I-4a 后缀退役】0.9.0 milestone 进位一次击穿——0.8.7-i3a1 → 0.9.0；
+		// 窗幅 1600→2400：注册行注释段历史击穿语义注记+I-4a 退役注记累加后加长）。
 		self::assertMatchesRegularExpression(
-			"/wink-gatekeeper-admin-brand[\s\S]{0,1600}WINK_GATEKEEPER_VERSION \. '-i3a1'/",
+			"/wink-gatekeeper-admin-brand[\s\S]{0,2400}WINK_GATEKEEPER_VERSION,\s*true/s",
 			$src,
-			'admin-brand.js 注册行版本参数必须带 -i3a1 击穿后缀（【W3-FIX 后缀翻转】-w3c1→-i3a1）'
+			'admin-brand.js 注册行版本参数=裸 WINK_GATEKEEPER_VERSION（i18n 批 I-4a 版本进位 0.9.0——后缀退役一次击穿）'
 		);
 		// 【M5FIX】CDN 击穿语义注记在场（纪律传承——下次改 JS 必须再动版本参数）。
 		self::assertStringContainsString( 'M5FIX', $src, 'CDN 击穿语义注记' );
 	}
 
 	public function test_front_assets_version_untouched(): void {
-		// 击穿面最小化：front 注册行（gatekeeper.js / tencent.js）不带后缀——
-		// front 资产版本进位随版本号进位一次收口（0.8.5 批 D 收口在前；本批 front
-		// 资产零内容变化——0.8.6 进位仅自然击穿，无内联后缀需求）。
+		// 【i18n 批 I-4a 后缀退役】击穿面收敛：全文零「版本常量拼接后缀」形态
+		// （-i3a1 已随 0.9.0 进位退役；再需批内击穿时重新加缀并翻转本钉——
+		// M5FIX 纪律本体不变）。front 注册行（gatekeeper.js 等）照旧裸版本值。
 		$src = file_get_contents( __DIR__ . '/../includes/Bootstrap.php' );
 		self::assertIsString( $src );
 		self::assertSame(
-			1,
-			preg_match_all( "/WINK_GATEKEEPER_VERSION \. '-i3a1'/", $src ),
-			'-i3a1 全文恰出现一次（仅 admin-brand 注册行）'
+			0,
+			preg_match_all( "/WINK_GATEKEEPER_VERSION \\. '/", $src ),
+			'全文零版本常量后缀拼接（i3a1 后缀已随 0.9.0 进位退役——admin-brand 与 front 资产同收敛为裸版本值）'
 		);
 	}
 

@@ -228,6 +228,69 @@ final class I18nInfraTest extends TestCase {
 		return $out;
 	}
 
+	/* ---------- 【i18n 批 I-4a】0.9.0 版本进位收口钉（红先） ---------- */
+
+	/**
+	 * 批 I-4a：版本进位钉——插件头 Version / WINK_GATEKEEPER_VERSION 常量 / readme
+	 * Stable tag 三位 0.9.0（milestone 位：i18n 全量英文化改造波 5 收口）。
+	 */
+	public function test_i4a_version_bump_to_0_9_0(): void {
+		$plugin = self::src( 'wink-wp-gatekeeper.php' );
+		self::assertMatchesRegularExpression(
+			'/^ \* Version:\s+0\.9\.0$/m',
+			$plugin,
+			'批 I-4a 版本进位：插件头 Version 须为 0.9.0（milestone 位）'
+		);
+		self::assertStringContainsString(
+			"define( 'WINK_GATEKEEPER_VERSION', '0.9.0' )",
+			$plugin,
+			'批 I-4a 版本进位：版本常量须为 0.9.0'
+		);
+		$readme = self::src( 'readme.txt' );
+		self::assertMatchesRegularExpression(
+			'/^Stable tag: 0\.9\.0$/m',
+			$readme,
+			'批 I-4a 版本进位：readme Stable tag 须为 0.9.0'
+		);
+	}
+
+	/**
+	 * 批 I-4a：readme changelog 0.9.0 条目钉——倒序纪律（位于 0.8.7 之前）+
+	 * 条目要点在场（i18n 全量英文化 + zh_CN 内置翻译包零变化 + B 类开发者面保留）。
+	 */
+	public function test_i4a_readme_changelog_0_9_0_entry(): void {
+		$readme = self::src( 'readme.txt' );
+		self::assertStringContainsString( '= 0.9.0 =', $readme, '批 I-4a：readme changelog 须有 0.9.0 条目' );
+		$pos090  = (int) strpos( $readme, '= 0.9.0 =' );
+		$pos087  = (int) strpos( $readme, '= 0.8.7 =' );
+		self::assertLessThan( $pos087, $pos090, '批 I-4a：0.9.0 条目位次在 0.8.7 之前（Changelog 倒序纪律）' );
+		$entry   = substr( $readme, $pos090, $pos087 - $pos090 );
+		self::assertStringContainsString( '英文化', $entry, '0.9.0 条目要点：i18n 全量英文化改造' );
+		self::assertStringContainsString( 'zh_CN', $entry, '0.9.0 条目要点：内置 zh_CN 翻译包' );
+		self::assertStringContainsString( '零变化', $entry, '0.9.0 条目要点：中文站点体验零变化' );
+	}
+
+	/**
+	 * 批 I-4a：make-pot warning 状态注记钉（不 pin 动态数）——唯一 warning 源 =
+	 * Bootstrap admin_l10n stampDay 单空格分隔键（"string without translatable
+	 * content"），属 ⑤-补 跨节点量词形态口径：键值改动=触碰渲染结构（红线 1），
+	 * **登记处置不改码**（验收口径=零 warning 或逐条处置，本条走处置档）。
+	 * 在位钉=该键行与其 phpcs:ignore 处置注记同在生产源（处置档连续性）。
+	 */
+	public function test_i4a_pot_warning_disposition_registered(): void {
+		$bootstrap = self::src( 'includes/Bootstrap.php' );
+		self::assertMatchesRegularExpression(
+			"/'stampDay'\s*=>\s*__\( ' ', 'wink-wp-gatekeeper' \)/",
+			$bootstrap,
+			'批 I-4a warning 处置：stampDay 单空格分隔键在位（make-pot warning 1 条=登记处置——跨节点量词形态，改键=触碰渲染结构红线，不改码）'
+		);
+		self::assertMatchesRegularExpression(
+			'#stampDay.{0,80}phpcs:ignore WordPress\.WP\.I18n#s',
+			$bootstrap,
+			'批 I-4a warning 处置：stampDay 行 phpcs:ignore 处置注记同在（I-3 已裁定口径的连续性钉）'
+		);
+	}
+
 	/* ---------- ⑤ .gitignore 三产物全入库策略 pin ---------- */
 
 	public function test_gitignore_has_no_rule_ignoring_translation_artifacts(): void {

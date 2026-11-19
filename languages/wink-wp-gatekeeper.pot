@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Wink WP Guard 0.8.7\n"
+"Project-Id-Version: Wink WP Guard 0.9.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wink-wp-gatekeeper\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-19T21:05:16+00:00\n"
+"POT-Creation-Date: 2026-11-19T21:41:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wink-wp-gatekeeper\n"
@@ -111,7 +111,7 @@ msgstr ""
 #: includes/audit/ExistingAuditCli.php:138
 #: includes/settings/CaptchaTabSpec.php:120
 #: includes/settings/DriverConfigSpec.php:132
-#: includes/settings/SettingsPage.php:6872
+#: includes/settings/SettingsPage.php:6876
 #: includes/stats/Labels.php:393
 msgid "Not configured"
 msgstr ""
@@ -287,7 +287,7 @@ msgid "Testing…"
 msgstr ""
 
 #: includes/Bootstrap.php:1140
-#: includes/settings/SettingsPage.php:7472
+#: includes/settings/SettingsPage.php:7476
 msgid "Test failed."
 msgstr ""
 
@@ -469,7 +469,7 @@ msgstr ""
 msgid "Insufficient permissions."
 msgstr ""
 
-#: includes/Bootstrap.php:1517
+#: includes/Bootstrap.php:1520
 msgid "Wink captcha drill mode is active — site-wide human verification bypassed (auto-expires in 24h)"
 msgstr ""
 
@@ -801,7 +801,7 @@ msgstr ""
 #: includes/settings/SettingsPage.php:5035
 #: includes/settings/SettingsPage.php:6207
 #: includes/settings/SettingsPage.php:6296
-#: includes/settings/SettingsPage.php:6660
+#: includes/settings/SettingsPage.php:6664
 msgid "Event No."
 msgstr ""
 
@@ -828,7 +828,7 @@ msgstr ""
 #: includes/settings/SettingsPage.php:5037
 #: includes/settings/SettingsPage.php:6203
 #: includes/settings/SettingsPage.php:6295
-#: includes/settings/SettingsPage.php:6659
+#: includes/settings/SettingsPage.php:6663
 msgid "Time"
 msgstr ""
 
@@ -1859,8 +1859,8 @@ msgstr ""
 #: includes/settings/SettingsPage.php:5097
 #: includes/settings/SettingsPage.php:5144
 #: includes/settings/SettingsPage.php:5201
-#: includes/settings/SettingsPage.php:6708
-#: includes/settings/SettingsPage.php:7418
+#: includes/settings/SettingsPage.php:6712
+#: includes/settings/SettingsPage.php:7422
 msgid "Insufficient permissions: manage_options required."
 msgstr ""
 
@@ -2400,7 +2400,7 @@ msgid "Existing comment audit in progress (%1$d of %2$d processed)"
 msgstr ""
 
 #: includes/settings/SettingsPage.php:1786
-#: includes/settings/SettingsPage.php:6769
+#: includes/settings/SettingsPage.php:6773
 msgid "Pause"
 msgstr ""
 
@@ -2461,7 +2461,7 @@ msgstr ""
 #: includes/settings/SettingsPage.php:1844
 #: includes/settings/SettingsPage.php:1857
 #: includes/settings/SettingsPage.php:3320
-#: includes/settings/SettingsPage.php:6583
+#: includes/settings/SettingsPage.php:6587
 msgid "Configure"
 msgstr ""
 
@@ -2994,16 +2994,16 @@ msgid "Daily verification quota"
 msgstr ""
 
 #: includes/settings/SettingsPage.php:2797
-#: includes/settings/SettingsPage.php:7201
 #: includes/settings/SettingsPage.php:7205
 #: includes/settings/SettingsPage.php:7209
-#: includes/settings/SettingsPage.php:7249
-#: includes/settings/SettingsPage.php:7267
-#: includes/settings/SettingsPage.php:7272
-#: includes/settings/SettingsPage.php:7279
-#: includes/settings/SettingsPage.php:7284
-#: includes/settings/SettingsPage.php:7308
-#: includes/settings/SettingsPage.php:7313
+#: includes/settings/SettingsPage.php:7213
+#: includes/settings/SettingsPage.php:7253
+#: includes/settings/SettingsPage.php:7271
+#: includes/settings/SettingsPage.php:7276
+#: includes/settings/SettingsPage.php:7283
+#: includes/settings/SettingsPage.php:7288
+#: includes/settings/SettingsPage.php:7312
+#: includes/settings/SettingsPage.php:7317
 msgid "Planned · not yet built"
 msgstr ""
 
@@ -4538,7 +4538,7 @@ msgid "This plugin's block archive holds %1$s entries (threshold %2$s) — WP's 
 msgstr ""
 
 #: includes/settings/SettingsPage.php:5934
-#: includes/settings/SettingsPage.php:6694
+#: includes/settings/SettingsPage.php:6698
 msgid "View the Spam category"
 msgstr ""
 
@@ -4822,253 +4822,253 @@ msgstr ""
 msgid "Failed to open the export stream."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6652
+#: includes/settings/SettingsPage.php:6656
 msgid "Nicknames/emails are masked here; see the archive link for the originals. Bot probes (fake-submit detection) leave no comment and never enter this table."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6654
+#: includes/settings/SettingsPage.php:6658
 msgid "No comments blocked recently — that is a good state."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6661
+#: includes/settings/SettingsPage.php:6665
 msgid "Which line blocked it"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6662
+#: includes/settings/SettingsPage.php:6666
 msgid "Reason"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6663
+#: includes/settings/SettingsPage.php:6667
 msgid "Nickname"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6664
+#: includes/settings/SettingsPage.php:6668
 msgid "Email"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6665
+#: includes/settings/SettingsPage.php:6669
 msgid "What was said"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6666
+#: includes/settings/SettingsPage.php:6670
 msgid "Archive"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6681
+#: includes/settings/SettingsPage.php:6685
 msgid "View archive"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6683
+#: includes/settings/SettingsPage.php:6687
 msgid "(comment deleted)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6685
+#: includes/settings/SettingsPage.php:6689
 msgid "Not archived"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6713
+#: includes/settings/SettingsPage.php:6717
 msgid "Statistics reset."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6732
+#: includes/settings/SettingsPage.php:6736
 msgid "Moli System One"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6743
+#: includes/settings/SettingsPage.php:6747
 msgid "Existing comment audit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6760
+#: includes/settings/SettingsPage.php:6764
 msgid "Not configured (no provider configured — submissions cannot be sent for review)"
 msgstr ""
 
 #. translators: 1: processed 2: total 3: driver id
-#: includes/settings/SettingsPage.php:6764
+#: includes/settings/SettingsPage.php:6768
 #, php-format
 msgid "In progress (%1$d / %2$d) · current provider: %3$s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6771
+#: includes/settings/SettingsPage.php:6775
 msgid "— today's quota is used up; it auto-resumes tomorrow."
 msgstr ""
 
 #. translators: 1: processed 2: total
-#: includes/settings/SettingsPage.php:6776
+#: includes/settings/SettingsPage.php:6780
 #, php-format
 msgid "Paused (%1$d / %2$d)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6780
+#: includes/settings/SettingsPage.php:6784
 msgid "Resume"
 msgstr ""
 
 #. translators: 1: finished time
-#: includes/settings/SettingsPage.php:6784
+#: includes/settings/SettingsPage.php:6788
 #, php-format
 msgid "Last completed on %1$s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6787
-#: includes/settings/SettingsPage.php:6847
+#: includes/settings/SettingsPage.php:6791
+#: includes/settings/SettingsPage.php:6851
 msgid "Re-run audit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6789
+#: includes/settings/SettingsPage.php:6793
 msgid "No audit run yet"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6791
+#: includes/settings/SettingsPage.php:6795
 msgid "Start audit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6811
+#: includes/settings/SettingsPage.php:6815
 msgid "Cloud moderation is not configured yet — configure and enable a provider on Tab 3 first, then start the audit."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6823
+#: includes/settings/SettingsPage.php:6827
 msgid "Advanced notes (submission scope / handling)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6826
+#: includes/settings/SettingsPage.php:6830
 msgid "Hands all existing comments to the provider for another pass: violations go to Spam, unclear ones to pending review — both recoverable by hand; clean ones are left alone. The report appears just below this card."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6827
+#: includes/settings/SettingsPage.php:6831
 msgid "Red line: the audit submits “nickname + body” only — emails and URLs never enter the submission (email-exclusion discipline; the URL check is a separate line)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6837
+#: includes/settings/SettingsPage.php:6841
 msgid "Submissions go to the currently enabled provider and consume per-call quota — start now? Violations go to Spam, unclear ones to pending review (both recoverable by hand)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6839
-#: includes/settings/SettingsPage.php:6847
+#: includes/settings/SettingsPage.php:6843
+#: includes/settings/SettingsPage.php:6851
 msgid "Re-running the audit wipes the previous marks and starts over; processed results are voided — sure?"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6866
+#: includes/settings/SettingsPage.php:6870
 msgctxt "audit-running"
 msgid "In progress"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6867
+#: includes/settings/SettingsPage.php:6871
 msgid "Paused"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6868
+#: includes/settings/SettingsPage.php:6872
 msgid "Paused — today's quota is used up (auto-resumes tomorrow)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6869
+#: includes/settings/SettingsPage.php:6873
 msgid "Completed"
 msgstr ""
 
 #. translators: 1: 服务商 2: 发起时间 3: 状态词
-#: includes/settings/SettingsPage.php:6875
+#: includes/settings/SettingsPage.php:6879
 #, php-format
 msgid "Provider: %1$s · started: %2$s · %3$s"
 msgstr ""
 
 #. translators: %s: 完成时间
-#: includes/settings/SettingsPage.php:6883
+#: includes/settings/SettingsPage.php:6887
 #, php-format
 msgid "Completed: %s"
 msgstr ""
 
 #. translators: 1: processed 2: total
-#: includes/settings/SettingsPage.php:6889
+#: includes/settings/SettingsPage.php:6893
 #, php-format
 msgid "%1$d of %2$d comments audited"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6894
-#: includes/settings/SettingsPage.php:7130
+#: includes/settings/SettingsPage.php:6898
+#: includes/settings/SettingsPage.php:7134
 msgid "Violations go to Spam, unclear ones to pending review — both recoverable by hand."
 msgstr ""
 
 #. translators: 1: 评论已删条数 2: 出错条数
-#: includes/settings/SettingsPage.php:6898
+#: includes/settings/SettingsPage.php:6902
 #, php-format
 msgid "Also: %1$d comments deleted · %2$d errors."
 msgstr ""
 
 #. translators: 1: 原因 2: 条数 3: 去向
-#: includes/settings/SettingsPage.php:6910
+#: includes/settings/SettingsPage.php:6914
 #, php-format
 msgid "“%1$s” %2$d item → %3$s"
 msgid_plural "“%1$s” %2$d items → %3$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:6913
-#: includes/settings/SettingsPage.php:7164
+#: includes/settings/SettingsPage.php:6917
+#: includes/settings/SettingsPage.php:7168
 msgid "Spam"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6913
-#: includes/settings/SettingsPage.php:7164
+#: includes/settings/SettingsPage.php:6917
+#: includes/settings/SettingsPage.php:7168
 msgid "Pending review"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6919
-#: includes/settings/SettingsPage.php:7170
+#: includes/settings/SettingsPage.php:6923
+#: includes/settings/SettingsPage.php:7174
 msgid "No matches"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6924
+#: includes/settings/SettingsPage.php:6928
 msgid "Existing-comment audit report"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6926
+#: includes/settings/SettingsPage.php:6930
 msgid "No existing-comment audit yet — click “Start audit” above and the report will appear here."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6933
-#: includes/settings/SettingsPage.php:7099
+#: includes/settings/SettingsPage.php:6937
+#: includes/settings/SettingsPage.php:7103
 msgid "Clean (pass)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6934
-#: includes/settings/SettingsPage.php:6939
-#: includes/settings/SettingsPage.php:6944
-#: includes/settings/SettingsPage.php:7100
-#: includes/settings/SettingsPage.php:7105
-#: includes/settings/SettingsPage.php:7110
+#: includes/settings/SettingsPage.php:6938
+#: includes/settings/SettingsPage.php:6943
+#: includes/settings/SettingsPage.php:6948
+#: includes/settings/SettingsPage.php:7104
+#: includes/settings/SettingsPage.php:7109
+#: includes/settings/SettingsPage.php:7114
 #, php-format
 msgid "%s items"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6935
+#: includes/settings/SettingsPage.php:6939
 msgid "Verified clean — comment status unchanged"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6938
-#: includes/settings/SettingsPage.php:7104
+#: includes/settings/SettingsPage.php:6942
+#: includes/settings/SettingsPage.php:7108
 msgid "Pending review (could not tell, no verdict)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6940
-#: includes/settings/SettingsPage.php:7106
+#: includes/settings/SettingsPage.php:6944
+#: includes/settings/SettingsPage.php:7110
 msgid "Sitting in the pending queue for your review"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6943
-#: includes/settings/SettingsPage.php:7109
+#: includes/settings/SettingsPage.php:6947
+#: includes/settings/SettingsPage.php:7113
 msgid "Spam (verdict: violation)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6945
-#: includes/settings/SettingsPage.php:7111
+#: includes/settings/SettingsPage.php:6949
+#: includes/settings/SettingsPage.php:7115
 msgid "Moved to Spam"
 msgstr ""
 
 #. translators: %d: 待审核条数
-#: includes/settings/SettingsPage.php:6951
-#: includes/settings/SettingsPage.php:7118
+#: includes/settings/SettingsPage.php:6955
+#: includes/settings/SettingsPage.php:7122
 #, php-format
 msgid "Handle the pending queue (%d item) →"
 msgid_plural "Handle the pending queue (%d items) →"
@@ -5076,8 +5076,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: 垃圾箱条数
-#: includes/settings/SettingsPage.php:6957
-#: includes/settings/SettingsPage.php:7125
+#: includes/settings/SettingsPage.php:6961
+#: includes/settings/SettingsPage.php:7129
 #, php-format
 msgid "View Spam (%d item) →"
 msgid_plural "View Spam (%d items) →"
@@ -5085,376 +5085,376 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: 原因类数
-#: includes/settings/SettingsPage.php:6965
-#: includes/settings/SettingsPage.php:7149
+#: includes/settings/SettingsPage.php:6969
+#: includes/settings/SettingsPage.php:7153
 #, php-format
 msgid "Reason breakdown (%d kinds)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6988
+#: includes/settings/SettingsPage.php:6992
 msgid "Existing URL check"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6995
+#: includes/settings/SettingsPage.php:6999
 msgid "Existing URL check in progress… advances automatically within the daily quota (violations to Spam, unclear ones to pending review, both recoverable by hand); the report appears below when done."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7007
+#: includes/settings/SettingsPage.php:7011
 msgid "Advanced notes (daily advance quota / re-check policy)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7010
+#: includes/settings/SettingsPage.php:7014
 msgid "Hands every website URL in existing comments to the “URL check” for a full re-pass (open the page + AI verdict on whether the site is problematic). The everyday URL check only covers new comments — this button is for digging through history, with predictable cost."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7011
+#: includes/settings/SettingsPage.php:7015
 msgid "Pauses automatically when the daily quota runs out (continues the next day): violations to Spam, unclear ones to pending review, both recoverable by hand."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7024
+#: includes/settings/SettingsPage.php:7028
 msgid "The URL check is off — enable “URL check” on the “Cloud moderation” tab first, then come back to start the existing-URL check."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7033
+#: includes/settings/SettingsPage.php:7037
 msgid "(Once enabled, you can start the existing-URL check here.)"
 msgstr ""
 
 #. translators: %s: 待核查条数
-#: includes/settings/SettingsPage.php:7038
+#: includes/settings/SettingsPage.php:7042
 #, php-format
 msgid "%s URL queued for checking (advances automatically within the daily quota)."
 msgid_plural "%s URLs queued for checking (advances automatically within the daily quota)."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:7043
+#: includes/settings/SettingsPage.php:7047
 msgid "No existing URLs waiting — the button below re-queues every approved comment that carries a URL."
 msgstr ""
 
 #. translators: %s: 本次入队条数
-#: includes/settings/SettingsPage.php:7051
+#: includes/settings/SettingsPage.php:7055
 #, php-format
 msgid "%s URL queued · checking starts (advances automatically within the daily quota; you can leave this page)."
 msgid_plural "%s URLs queued · checking starts (advances automatically within the daily quota; you can leave this page)."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:7054
+#: includes/settings/SettingsPage.php:7058
 msgid "No newly found existing URLs to check — they may already be queued."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7061
+#: includes/settings/SettingsPage.php:7065
 msgid "Re-check everything? Historical results are ignored (site content may have changed), approved comments with URLs are re-queued, and checks proceed one by one within the daily quota (consuming quota). Violations go to Spam, unclear ones to pending review (both recoverable by hand)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7061
+#: includes/settings/SettingsPage.php:7065
 msgid "Start the existing URL check (re-check everything — historical results ignored, site content may have changed)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7073
+#: includes/settings/SettingsPage.php:7077
 msgid "Existing URL check report"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7075
+#: includes/settings/SettingsPage.php:7079
 msgid "No existing URL check has run yet — click “Start the existing URL check” above and the report will appear here."
 msgstr ""
 
 #. translators: 1: 发起时间 2: 已核查数 3: 共数 4: 队列残留数
-#: includes/settings/SettingsPage.php:7081
+#: includes/settings/SettingsPage.php:7085
 #, php-format
 msgid "Started: %1$s · in progress — %2$d of %3$d checked · %4$d left in queue (advances automatically within the daily quota)"
 msgstr ""
 
 #. translators: 1: 发起时间 2: 完成时间 3: 共数
-#: includes/settings/SettingsPage.php:7090
+#: includes/settings/SettingsPage.php:7094
 #, php-format
 msgid "Started: %1$s · completed: %2$s · %3$d checked in total (this round fully wrapped up)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:7101
+#: includes/settings/SettingsPage.php:7105
 msgid "Site verified clean — comment status unchanged"
 msgstr ""
 
 #. translators: %d: 评论已删条数
-#: includes/settings/SettingsPage.php:7134
+#: includes/settings/SettingsPage.php:7138
 #, php-format
 msgid "Also: %d comment deleted."
 msgid_plural "Also: %d comments deleted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:7157
+#: includes/settings/SettingsPage.php:7161
 msgid "URL would not open; judged from search clues"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7180
+#: includes/settings/SettingsPage.php:7184
 msgid "Grouped by site (URL check violations)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7182
+#: includes/settings/SettingsPage.php:7186
 msgid "Website"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7182
+#: includes/settings/SettingsPage.php:7186
 msgid "Comments hit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7182
+#: includes/settings/SettingsPage.php:7186
 msgid "Violation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7182
+#: includes/settings/SettingsPage.php:7186
 msgid "Suggestion"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7190
+#: includes/settings/SettingsPage.php:7194
 msgid "Clear this site's URL check cache and re-check it?"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7190
+#: includes/settings/SettingsPage.php:7194
 msgid "Re-check this site"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7201
+#: includes/settings/SettingsPage.php:7205
 msgid "Import/export settings"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7202
+#: includes/settings/SettingsPage.php:7206
 msgid "JSON export (keys excluded by default) / import validation (schema version check). Implemented in M4 (F27)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7205
+#: includes/settings/SettingsPage.php:7209
 msgid "Driver self-check and fallback drills"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7206
+#: includes/settings/SettingsPage.php:7210
 msgid "Key trial calls, front-end JS reachability probes, real-IP self-check (CIDR validation + parsing preview), fallback drills. Implemented in M3/M4 (F28/F33)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7209
+#: includes/settings/SettingsPage.php:7213
 msgid "System info"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7210
+#: includes/settings/SettingsPage.php:7214
 msgid "PHP/WP version requirement check card (following upstream baby_wp_check_requirements behavior)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7249
+#: includes/settings/SettingsPage.php:7253
 msgid "RSS protection"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7250
+#: includes/settings/SettingsPage.php:7254
 msgid "Feed request controls such as RSS/Atom feed rate limiting and excerpting feeds (full text → excerpt) — all off by default, effective only when enabled. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7254
+#: includes/settings/SettingsPage.php:7258
 msgid "XML-RPC controls"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7254
+#: includes/settings/SettingsPage.php:7258
 msgid "Current controls moved over and extended from the Tab 2 login protection card"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7262
+#: includes/settings/SettingsPage.php:7266
 msgid "Fully disable XML-RPC logins"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7262
+#: includes/settings/SettingsPage.php:7266
 msgid "Recommended hardening"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7263
+#: includes/settings/SettingsPage.php:7267
 msgid "Login-type XML-RPC methods (wp.getUsersBlogs, credentials carried by system.multicall, etc.) get an across-the-board 405; publishers using blog-client tools should untick and save to re-enable. Same switch as the Tab 2 “Login protection” card (saving in either place takes effect)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7267
+#: includes/settings/SettingsPage.php:7271
 msgid "Shut down XML-RPC entirely"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7268
+#: includes/settings/SettingsPage.php:7272
 msgid "An across-the-board 405 including pingback and every authenticated method — more thorough than disabling logins only, for sites that never use XML-RPC. Placeholder: zero controls and zero behavior today."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7272
+#: includes/settings/SettingsPage.php:7276
 msgid "Pingback off"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7272
+#: includes/settings/SettingsPage.php:7276
 msgid "Anti-reflection abuse"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7273
+#: includes/settings/SettingsPage.php:7277
 msgid "Turn pingback off to prevent reflection-attack abuse. Placeholder: zero controls and zero behavior today."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7279
+#: includes/settings/SettingsPage.php:7283
 msgid "REST API controls"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7280
+#: includes/settings/SettingsPage.php:7284
 msgid "Narrowing controls such as disabling unauthenticated user enumeration (/wp/v2/users) and counting REST attempts in the login gate's failure counter — trade-off statement: narrowing, not shutting down. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7284
+#: includes/settings/SettingsPage.php:7288
 msgid "UA / HTTP header rules"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7285
+#: includes/settings/SettingsPage.php:7289
 msgid "Custom allow/block rule rows by request headers (UA etc.) — division of labor with the Tab 4 IP reputation allowlist: these rules govern “what the request looks like”, that one governs “who the IP is”. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7289
+#: includes/settings/SettingsPage.php:7293
 msgid "Coexistence with other security plugins"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7289
+#: includes/settings/SettingsPage.php:7293
 msgid "Detect and yield · no fights"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7296
+#: includes/settings/SettingsPage.php:7300
 msgid "hCaptcha detected handling comments"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7296
-#: includes/settings/SettingsPage.php:7303
+#: includes/settings/SettingsPage.php:7300
+#: includes/settings/SettingsPage.php:7307
 msgid "Captcha yields"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7297
+#: includes/settings/SettingsPage.php:7301
 msgid "When the official hCaptcha plugin takes over comment captchas, this plugin's captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7303
+#: includes/settings/SettingsPage.php:7307
 msgid "hCaptcha detected handling logins"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7304
+#: includes/settings/SettingsPage.php:7308
 msgid "When the official hCaptcha plugin takes over the login captcha, this plugin's login captcha yields. On by default — independent of the comment-yield switch."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7308
+#: includes/settings/SettingsPage.php:7312
 msgid "Akismet detected"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7308
+#: includes/settings/SettingsPage.php:7312
 msgid "Keyword gate deduplication"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7309
+#: includes/settings/SettingsPage.php:7313
 msgid "When Akismet has already tossed the same spam into its queue, this plugin's built-in rules skip re-challenging (the decision is still fully logged to this plugin's event table). Planned row — audit notes in docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md, to be implemented after sign-off; detect and yield, never touching the other plugin's config."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7313
+#: includes/settings/SettingsPage.php:7317
 msgid "Wordfence detected"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7313
+#: includes/settings/SettingsPage.php:7317
 msgid "Login captcha exclusivity notice"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7314
+#: includes/settings/SettingsPage.php:7318
 msgid "With both plugins verifying logins, visitors may face two captchas in a row — the detection row notes “who guards the login captcha” with a recommendation (keep one, or let one yield). Planned row — informational only, never touching the other plugin's config."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7320
+#: includes/settings/SettingsPage.php:7324
 msgid "The comment “Website” field"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7321
+#: includes/settings/SettingsPage.php:7325
 msgid "Commenters may fill in their own website. Whatever the switches below say, the admin comments screen always shows this URL so you can identify visitors; stored URLs are never deleted."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7325
+#: includes/settings/SettingsPage.php:7329
 msgid "Collect the website field on new comments"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7330
+#: includes/settings/SettingsPage.php:7334
 msgid "A “Website” field appears on the comment form and new comments store the URL"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7332
+#: includes/settings/SettingsPage.php:7336
 msgid "Unticked (default): the field never appears and any submitted URL is discarded — keeping spam-submit bots from probing it. Published comments are unaffected."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7344
+#: includes/settings/SettingsPage.php:7348
 msgid "Website-field collection is off — the URL check auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7351
+#: includes/settings/SettingsPage.php:7355
 msgid "Keep commenter names clickable on the front end"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7356
+#: includes/settings/SettingsPage.php:7360
 msgid "Commenter names in front-end comment areas display as clickable links"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7358
+#: includes/settings/SettingsPage.php:7362
 msgid "Unticked (default): only the name itself is shown. Names are always clickable for you in the admin."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7365
+#: includes/settings/SettingsPage.php:7369
 msgid "Commenter avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7368
+#: includes/settings/SettingsPage.php:7372
 msgid "Avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7371
+#: includes/settings/SettingsPage.php:7375
 msgid "Not configured (WordPress official source)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7372
+#: includes/settings/SettingsPage.php:7376
 msgid "Cravatar (mainland mirror, officially compatible)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7373
+#: includes/settings/SettingsPage.php:7377
 msgid "WeAvatar (mainland mirror, multi-level matching)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7374
+#: includes/settings/SettingsPage.php:7378
 msgid "sep.cc (mainland mirror)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7375
-#: includes/settings/SettingsPage.php:7381
+#: includes/settings/SettingsPage.php:7379
+#: includes/settings/SettingsPage.php:7385
 msgid "Custom URL"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7377
+#: includes/settings/SettingsPage.php:7381
 msgid "The official source may load slowly or fail for mainland visitors; a mainland mirror speeds it up."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7384
+#: includes/settings/SettingsPage.php:7388
 msgid "Must start with https:// and end with /avatar/ — follow the mirror's instructions; an invalid address leaves the avatar source unchanged (official source used)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7388
+#: includes/settings/SettingsPage.php:7392
 msgid "After switching avatar sources, cached old avatars may take a while to refresh — not a malfunction."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7396
+#: includes/settings/SettingsPage.php:7400
 msgid "Test the current avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7432
+#: includes/settings/SettingsPage.php:7436
 msgid "Invalid custom URL: it must start with https:// and end with /avatar/."
 msgstr ""
 
 #. translators: %s: 响应耗时秒。
-#: includes/settings/SettingsPage.php:7459
+#: includes/settings/SettingsPage.php:7463
 #, php-format
 msgid "OK (%.1f s)"
 msgstr ""
 
 #. translators: %s: 响应耗时秒。
-#: includes/settings/SettingsPage.php:7464
+#: includes/settings/SettingsPage.php:7468
 #, php-format
 msgid "Works but slow (%.1f s)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7467
+#: includes/settings/SettingsPage.php:7471
 msgid "Cannot reach this mirror (or the response is not an image)."
 msgstr ""
 

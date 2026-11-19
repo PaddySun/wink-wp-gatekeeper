@@ -1472,7 +1472,10 @@ final class Bootstrap {
 			// 【W3-FIX】本批 JS 内容变化（测试凭据徽标全量回写共享件 wkProbeWriteBadges
 			// + 九个 probe log 闭集驱动探活接线——W3F2 手测缺陷①）→ -w3fix1。
 			// 【i18n 批 I-3】本批 JS 内容变化（admin-brand.js 全量文案 L10N 通道化）→ -i3a1。
-			WINK_GATEKEEPER_VERSION . '-i3a1',
+			// 【i18n 批 I-4a·后缀退役】0.9.0 milestone 进位（0.8.7-i3a1 → 0.9.0 裸值）——
+			// 版本号一次击穿 CDN 缓存，内联后缀退役归零；M5FIX 纪律本体不变（本文件
+			// 内容再变化时须 bump 进位或重新加缀，M5FixAssetVerTest 断言同步翻转）。
+			WINK_GATEKEEPER_VERSION,
 			true
 		);
 

@@ -180,13 +180,14 @@ final class Fix3Tab3ToggleContractTest extends TestCase {
 	/* ---------- ④ 版本钉随批次推进（当前 0.8.1=M6·批H4 修正五件（popup 自动开层+黄条卡顶+未开启黄条+复核块组标题+静态 logo）【0.8.0=M6·批E openai_custom 自定义 OpenAI 兼容端点驱动实装（设计=M6E-openaicustom-实装-设计草案-2026-11-17+开放问题裁定 R1/Q1-Q6——Q6 版本位进位 0.8.0）【0.7.4=M6·批H3 UI 小批四件（A 未配置 notice+B 运行中黄条+C 明细去向+D 复核块）【0.7.3=M6·批H2 抛光小批两件【0.7.2=M6·批I 扫尾三件（I-1 调用量卡行名人话化+I-2 数值 transient 计数器 string 回读排查修复+I-3 CI phpunit 版本钉 12.5.43）【0.7.1=M6·批H UI 与语义小批九件（施工图 §0 九条）【0.7.0=M6·批G 文档收口（P1-6 CLI 卸载+P1-7 wp-cron 加固文档面+六文档 v1.10 回写）【0.6.9=M6·批F-b P1-4 事件写放大封顶+容量闸+P1-5 同步链预算墙【0.6.8=批F-a 搜索兜底真接线；0.6.7=批E 处置统一「没看清→人工判定」；0.6.6=批D；0.6.5=批C；0.6.4=批B；0.6.3=批A】；F1 P0 契约面在 B1a/B1b；FIX-3 锚点历史保留） ---------- */
 
 	public function test_version_bumped_to_0_3_5_in_four_places(): void {
+		// 【i18n 批 I-4a 版本进位 0.8.7→0.9.0（milestone 位：i18n 全量英文化收口）】断言值翻转非语义变化。
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.7$/m', $entry, '插件头 Version 须为 0.8.7（版本断言随批次推进更新——当前契约面在 UiTab6StatsContractTest）' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.7' )", $entry, '版本常量须为 0.8.7' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.7$/m', $readme, 'readme Stable tag 须为 0.8.7' );
-		$this->assertStringContainsString( '= 0.8.7 =', $readme, 'Changelog 须有 0.8.7 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.0$/m', $entry, '插件头 Version 须为 0.9.0（版本断言随批次推进更新——当前契约面在 UiTab6StatsContractTest；i18n 批 I-4a 版本进位）' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.0' )", $entry, '版本常量须为 0.9.0（i18n 批 I-4a 版本进位）' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.0$/m', $readme, 'readme Stable tag 须为 0.9.0（i18n 批 I-4a 版本进位）' );
+		$this->assertStringContainsString( '= 0.9.0 =', $readme, 'Changelog 须有 0.9.0 条目（i18n 批 I-4a 版本进位）' );
 		$this->assertStringContainsString( 'FIX-3', $readme, 'Changelog 须含 FIX-3 锚点' );
 	}
 }

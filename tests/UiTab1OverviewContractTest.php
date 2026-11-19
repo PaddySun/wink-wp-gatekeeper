@@ -264,9 +264,9 @@ final class UiTab1OverviewContractTest extends TestCase {
 	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.8\.7$/m', $entry, '插件头 Version 0.8.7' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.8.7' )", $entry, '版本常量 0.8.7' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.8\.7$/m', $readme, 'readme Stable tag 0.8.7' );
-		$this->assertStringContainsString( '= 0.8.7 =', $readme, 'Changelog 0.8.7 条目' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.0$/m', $entry, '插件头 Version 0.9.0（i18n 批 I-4a 版本进位）' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.0' )", $entry, '版本常量 0.9.0（i18n 批 I-4a 版本进位）' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.0$/m', $readme, 'readme Stable tag 0.9.0（i18n 批 I-4a 版本进位）' );
+		$this->assertStringContainsString( '= 0.9.0 =', $readme, 'Changelog 0.9.0 条目（i18n 批 I-4a 版本进位）' );
 	}
 }
