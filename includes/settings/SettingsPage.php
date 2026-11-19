@@ -36,7 +36,10 @@ use WinkGatekeeper\Stats\Usage;
 
 final class SettingsPage {
 
-	const PAGE_SLUG    = 'wink-wp-gatekeeper';
+	// 【i18n 批 I-4c·PAGE_SLUG 复原】值回 'wink-gatekeeper'（v0.8.7 原值）——I-2b 域翻转
+	// 误伤 URL slug 面（B 机旧设置页 URL ?page=wink-gatekeeper 硬 403 实锤），back-compat
+	// 复通；text domain 仍为 wink-wp-gatekeeper（两域已分立，本行非 domain 面）。
+	const PAGE_SLUG    = 'wink-gatekeeper';
 	const OPTION_NAME  = 'wink_gatekeeper_settings';
 	const OPTION_GROUP = 'wink_gatekeeper';
 

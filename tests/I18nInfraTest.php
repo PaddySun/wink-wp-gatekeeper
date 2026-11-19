@@ -144,7 +144,9 @@ final class I18nInfraTest extends TestCase {
 		$po_src  = (string) file_get_contents( $base . '.po' );
 		$count   = preg_match_all( '/^msgid /m', $po_src );
 		self::assertIsInt( $count );
-		self::assertSame( 1347, $count, 'zh_CN po ^msgid === 1347（i18n 批 I-3：1346 翻译条 + 头部空 msgid；对账 i3-work 目录 1388 条 - 20 retired - 22 既有英文键）' );
+		// 【i18n 批 I-4c】po 补齐 16 键（10 retired 误标复活 + 6 catalog 漏收新增，B 机 4
+		// 热修键在内）→ 1346 + 16 = 1362 翻译条 + 头部空 msgid = 1363。
+		self::assertSame( 1363, $count, 'zh_CN po ^msgid === 1363（i18n 批 I-4c：1362 翻译条 + 头部空 msgid；i3-work 口径 1346 + 批 I-4c 16 键补齐）' );
 	}
 
 	/**
@@ -191,6 +193,9 @@ final class I18nInfraTest extends TestCase {
 	 * 批 I-2b：旧 text domain 串全库（生产+tests，排除 languages/）零残留钉。
 	 *
 	 * 豁免：\WP_CLI::add_command 行——wp-cli 命令名与旧 domain 同形，非 text domain。
+	 * 【i18n 批 I-4c 追加豁免】PAGE_SLUG 行——SettingsPage::PAGE_SLUG 常量值回旧
+	 * slug（wink-gatekeeper，菜单 slug / URL 面，back-compat 复通；I-2b 域翻转误伤
+	 * 修复），及测试锚引用行（W3TabRemodelTest slug 红线钉）——均非 text domain 面。
 	 */
 	public function test_old_text_domain_zero_residuals(): void {
 		$root     = dirname( __DIR__ );
@@ -203,12 +208,12 @@ final class I18nInfraTest extends TestCase {
 		foreach ( $files as $file ) {
 			$src = (string) file_get_contents( $file );
 			foreach ( preg_split( '/\r\n|\r|\n/', $src ) as $lineno => $line ) {
-				if ( str_contains( $line, "'wink-gatekeeper'" ) && ! str_contains( $line, 'add_command' ) ) {
+				if ( str_contains( $line, "'wink-gatekeeper'" ) && ! str_contains( $line, 'add_command' ) && ! str_contains( $line, 'PAGE_SLUG' ) ) {
 					$offenders[] = basename( $file ) . ':' . ( $lineno + 1 );
 				}
 			}
 		}
-		self::assertSame( array(), $offenders, '旧 text domain 串零残留（wp-cli add_command 命令名同形豁免）。违例：' . implode( ', ', $offenders ) );
+		self::assertSame( array(), $offenders, '旧 text domain 串零残留（wp-cli add_command 命令名 + 批 I-4c PAGE_SLUG slug 常量值同形豁免）。违例：' . implode( ', ', $offenders ) );
 	}
 
 	/**
@@ -233,24 +238,28 @@ final class I18nInfraTest extends TestCase {
 	/**
 	 * 批 I-4a：版本进位钉——插件头 Version / WINK_GATEKEEPER_VERSION 常量 / readme
 	 * Stable tag 三位 0.9.0（milestone 位：i18n 全量英文化改造波 5 收口）。
+	 *
+	 * 【i18n 批 I-4c 进位 0.9.0→0.9.1】三位现行位钉随批翻转为 0.9.1（终局修复批：
+	 * PAGE_SLUG 旧 URL 复通 + po 条件分支文案补齐 16 键）；方法名保留 0_9_0 历史语义
+	 * （W3FixW3F2Test 0_8_6 先例）。
 	 */
 	public function test_i4a_version_bump_to_0_9_0(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
 		self::assertMatchesRegularExpression(
-			'/^ \* Version:\s+0\.9\.0$/m',
+			'/^ \* Version:\s+0\.9\.1$/m',
 			$plugin,
-			'批 I-4a 版本进位：插件头 Version 须为 0.9.0（milestone 位）'
+			'批 I-4c 版本进位：插件头 Version 须为 0.9.1（0.9.0 收口在前）'
 		);
 		self::assertStringContainsString(
-			"define( 'WINK_GATEKEEPER_VERSION', '0.9.0' )",
+			"define( 'WINK_GATEKEEPER_VERSION', '0.9.1' )",
 			$plugin,
-			'批 I-4a 版本进位：版本常量须为 0.9.0'
+			'批 I-4c 版本进位：版本常量须为 0.9.1'
 		);
 		$readme = self::src( 'readme.txt' );
 		self::assertMatchesRegularExpression(
-			'/^Stable tag: 0\.9\.0$/m',
+			'/^Stable tag: 0\.9\.1$/m',
 			$readme,
-			'批 I-4a 版本进位：readme Stable tag 须为 0.9.0'
+			'批 I-4c 版本进位：readme Stable tag 须为 0.9.1'
 		);
 	}
 
@@ -289,6 +298,109 @@ final class I18nInfraTest extends TestCase {
 			$bootstrap,
 			'批 I-4a warning 处置：stampDay 行 phpcs:ignore 处置注记同在（I-3 已裁定口径的连续性钉）'
 		);
+	}
+
+	/* ---------- 【i18n 批 I-4c】终局修复钉（红先） ---------- */
+
+	/**
+	 * 批 I-4c 防再犯断言：pot 活键 ⊆ zh_CN po 键（翻译包完整性闭环）。
+	 *
+	 * 解析 pot 全部 msgid，排除头部空串与插件头 meta 条目（引用块仅指向主文件
+	 * wink-wp-gatekeeper.php 的条目 = Description/PluginURI/Author 元数据面；
+	 * Name 条目因兼具源码引用属活键、在 po 有翻译，不豁免），与 po msgid 集合
+	 * 比对：**pot 活键必须全部在 po 中**——缺条目=翻译包漏键（批 I-4b B 机部署
+	 * 复验揪出的 po 系统性缺口防再犯钉；红先记录：修复前红=16 键真实缺口
+	 * 〔10 retired 误标 + 6 catalog 漏收——I-4b 登记 80 键中 13 existing-english
+	 * + 51 对账脚本 PHP 单引号转义口径误报〕，修复后绿）。
+	 * 豁免：existing-english-key 13 唯一键（0.8.7 即英文键，po 按批 I-2b 口径
+	 * zh='' 不入=维持英文渲染，非缺陷——豁免表过期防护=豁免键必须在 pot 活键中）。
+	 */
+	public function test_i4c_pot_live_keys_subset_of_po(): void {
+		$pot = str_replace( array( "\r\n", "\r" ), "\n", (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper.pot' ) );
+		$po  = str_replace( array( "\r\n", "\r" ), "\n", (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper-zh_CN.po' ) );
+		self::assertNotSame( '', $pot, 'pot 可读非空' );
+		self::assertNotSame( '', $po, 'po 可读非空' );
+
+		// pot 活键：按空行分块取 msgid + 引用行；引用块全部仅指向主文件 = 插件头 meta，排除。
+		$pot_ids = array();
+		foreach ( preg_split( '/\n\n/', $pot ) as $block ) {
+			if ( ! preg_match( '/^msgid "((?:[^"\\\\]|\\\\.)*)"/m', $block, $m ) || '' === $m[1] ) {
+				continue;
+			}
+			preg_match_all( '/^#: (.+)$/m', $block, $r );
+			$refs    = array_map( 'trim', $r[1] );
+			$is_meta = array() !== $refs && array() === array_filter(
+				$refs,
+				static function ( $ref ) {
+					return 'wink-wp-gatekeeper.php' !== $ref;
+				}
+			);
+			if ( ! $is_meta ) {
+				$pot_ids[ $m[1] ] = true;
+			}
+		}
+
+		// po msgid 集合（msgctxt-agnostic：msgid 在场即可）。
+		preg_match_all( '/^msgid "((?:[^"\\\\]|\\\\.)*)"/m', $po, $pm );
+		$po_ids = array();
+		foreach ( $pm[1] as $id ) {
+			if ( '' !== $id ) {
+				$po_ids[ $id ] = true;
+			}
+		}
+
+		// existing-english-key 13 唯一键豁免（批 I-2b 口径：英文键不入 po）。
+		$exempt = array(
+			'%1$s · %2$s',
+			'%1$s、%2$s',
+			'API Key',
+			'AbuseIPDB API Key',
+			'AccessKeyId',
+			'AccessKeySecret',
+			'CaptchaAppId',
+			'REMOTE_ADDR',
+			'SceneId',
+			'Secret Key',
+			'SecretId（CAM）',
+			'SecretKey（CAM）',
+			'v%s',
+		);
+
+		$gap      = array_keys( array_diff_key( $pot_ids, $po_ids ) );
+		$real_gap = array_values(
+			array_filter(
+				$gap,
+				static function ( $k ) use ( $exempt ) {
+					return ! in_array( $k, $exempt, true );
+				}
+			)
+		);
+		self::assertSame(
+			array(),
+			$real_gap,
+			'pot 活键 ⊆ po 键（existing-english-key 13 键豁免）。总缺口 ' . count( $gap ) . ' 键 / 豁免后 ' . count( $real_gap ) . ' 键。豁免后缺口（前 20）：' . implode( ' | ', array_slice( $real_gap, 0, 20 ) )
+		);
+		// 豁免表过期防护：每个豁免键必须是 pot 活键（否则豁免表在掩盖真实缺口）。
+		self::assertSame(
+			array(),
+			array_values( array_diff( $exempt, array_keys( $pot_ids ) ) ),
+			'豁免表防过期：全部 13 豁免键须在 pot 活键集合中。失效键：' . implode( ' | ', array_diff( $exempt, array_keys( $pot_ids ) ) )
+		);
+	}
+
+	/**
+	 * 批 I-4c：readme changelog 0.9.1 条目钉——倒序纪律（位于 0.9.0 之前）+
+	 * 条目要点在场（旧设置页 URL 复通 + 翻译包条件分支文案补齐 16 键）。
+	 */
+	public function test_i4c_readme_changelog_0_9_1_entry(): void {
+		$readme = self::src( 'readme.txt' );
+		self::assertStringContainsString( '= 0.9.1 =', $readme, '批 I-4c：readme changelog 须有 0.9.1 条目' );
+		$pos091 = (int) strpos( $readme, '= 0.9.1 =' );
+		$pos090 = (int) strpos( $readme, '= 0.9.0 =' );
+		self::assertLessThan( $pos090, $pos091, '批 I-4c：0.9.1 条目位次在 0.9.0 之前（Changelog 倒序纪律）' );
+		$entry = substr( $readme, $pos091, $pos090 - $pos091 );
+		self::assertStringContainsString( 'wink-gatekeeper', $entry, '0.9.1 条目要点：旧设置页 URL ?page=wink-gatekeeper 复通（PAGE_SLUG 回滚）' );
+		self::assertStringContainsString( '16', $entry, '0.9.1 条目要点：翻译包补齐条件分支文案 16 键（含 B 机 4 热修键回收）' );
 	}
 
 	/* ---------- ⑤ .gitignore 三产物全入库策略 pin ---------- */

@@ -903,12 +903,12 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		public function test_version_four_spot_sync(): void {
-			// 【i18n 批 I-4a 版本进位 0.8.7→0.9.0（milestone 位：i18n 全量英文化收口）】断言值翻转非语义变化。
+			// 【i18n 批 I-4a 进位 0.8.7→0.9.0 + 批 I-4c 进位 0.9.0→0.9.1（终局修复：PAGE_SLUG 旧 URL 复通 + po 补齐 16 键）】断言值翻转非语义变化。
 		$entry = self::source( 'wink-wp-gatekeeper.php' );
-			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.0$/m', $entry, '插件头 Version 须为 0.9.0（i18n 批 I-4a 版本进位）' );
-			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.0' )", $entry, '版本常量须为 0.9.0（i18n 批 I-4a 版本进位）' );
+			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.1$/m', $entry, '插件头 Version 须为 0.9.1（i18n 批 I-4c 版本进位）' );
+			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.1' )", $entry, '版本常量须为 0.9.1（i18n 批 I-4c 版本进位）' );
 			$readme = self::source( 'readme.txt' );
-			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.0$/m', $readme, 'readme Stable tag 须为 0.9.0（i18n 批 I-4a 版本进位）' );
+			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.1$/m', $readme, 'readme Stable tag 须为 0.9.1（i18n 批 I-4c 版本进位）' );
 			self::assertStringContainsString( '= 0.8.0 =', $readme, 'Changelog 须有 0.8.0 条目' );
 		}
 	}

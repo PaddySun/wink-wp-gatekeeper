@@ -165,12 +165,14 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 
 	public function test_tech_layer_untouched_anti_pins(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
-		self::assertMatchesRegularExpression( "/Version:\s+[0-9]+\.[0-9]+\.[0-9]+/", $plugin, '插件头 Version 在场（0.9.0 在位——W3BatchDTest 钉四点 + W3FixW3F2Test 批内进位钉）' );
-		self::assertStringContainsString( '0.9.0', $plugin, '版本四点已 i18n 批 I-4a 进位 0.9.0（milestone：i18n 全量英文化收口；0.8.7 收口在前）' );
+		self::assertMatchesRegularExpression( "/Version:\s+[0-9]+\.[0-9]+\.[0-9]+/", $plugin, '插件头 Version 在场（0.9.1 在位——W3BatchDTest 钉四点 + W3FixW3F2Test 批内进位钉）' );
+		self::assertStringContainsString( '0.9.1', $plugin, '版本四点已 i18n 批 I-4c 进位 0.9.1（milestone：i18n 全量英文化收口；0.8.7 收口在前）' );
 
 		$sp = self::sp();
 		// slug / option 前缀 / 事件编号 / text domain / action 常量面原样。
-		self::assertStringContainsString( "const PAGE_SLUG    = 'wink-wp-gatekeeper';", $sp, 'slug 红线' );
+		// 【i18n 批 I-4c】PAGE_SLUG 常量值回 'wink-gatekeeper'（I-2b 域翻转误伤 URL slug 面，
+		// 旧设置页 URL ?page=wink-gatekeeper 复通——B 机 403 实锤修复；text domain 仍 wink-wp-gatekeeper）。
+		self::assertStringContainsString( "const PAGE_SLUG    = 'wink-gatekeeper';", $sp, 'slug 红线' );
 		self::assertStringContainsString( "const OPTION_NAME  = 'wink_gatekeeper_settings';", $sp, 'option 名红线' );
 		self::assertStringContainsString( 'WK-', $sp, '事件编号 WK- 前缀面在场' );
 		self::assertStringContainsString( "'wink-wp-gatekeeper'", $sp, 'text domain 字面原样' );

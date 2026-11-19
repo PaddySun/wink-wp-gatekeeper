@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.9.0
+Stable tag: 0.9.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,10 @@ Wink WP 保安是面向中文独立博客的 WordPress 门口保安：
 共存让位协议在 M4 实装（检测到官方插件接管评论验证时本插件自动让位）。
 
 == Changelog ==
+
+= 0.9.1 =
+
+终局修复批（2026-11-20，i18n 批 I-4c——0.9.0 部署复验两缺陷收口）。① **旧设置页 URL 复通**：修复 0.9.0 引入的设置页地址变化——设置页 URL 回归 `?page=wink-gatekeeper`（0.8.7 原地址），旧收藏夹/外部文档链接不再 403（根因=0.9.0 文本域批量翻转误伤菜单 slug 常量，站内功能与数据零影响）。② **中文翻译包补齐条件分支文案 16 键**：B 机部署复验发现的 zh_CN 翻译包缺口收口——含 4 处可见漏译（总览页外呼计数/服务商点名册/IP 信誉状态半句/报错复数计数）与 12 处条件分支潜在漏出面（配额耗尽提示、驱动降级说明、登录错误掩码、cron 档名、审核报告占位等，站态变化后才可能显现），中文体验零变化红线补全。en 站点零变化；升级零迁移零配置面。测试 2309→2311 / 断言 15139 起只增不减（新增防再犯断言：pot 活键 ⊆ zh_CN po 键持续钉）。
 
 = 0.9.0 =
 

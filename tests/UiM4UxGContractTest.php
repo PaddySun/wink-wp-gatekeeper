@@ -252,9 +252,9 @@ final class UiM4UxGContractTest extends TestCase {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.0$/m', $entry, '插件头 Version 0.9.0（i18n 批 I-4a 版本进位）' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.0' )", $entry, '版本常量 0.9.0（i18n 批 I-4a 版本进位）' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.0$/m', $readme, 'readme Stable tag 0.9.0（i18n 批 I-4a 版本进位）' );
-		$this->assertStringContainsString( '= 0.9.0 =', $readme, 'Changelog 0.9.0 条目（i18n 批 I-4a 版本进位）' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.1$/m', $entry, '插件头 Version 0.9.1（i18n 批 I-4c 版本进位）' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.1' )", $entry, '版本常量 0.9.1（i18n 批 I-4c 版本进位）' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.1$/m', $readme, 'readme Stable tag 0.9.1（i18n 批 I-4c 版本进位）' );
+		$this->assertStringContainsString( '= 0.9.1 =', $readme, 'Changelog 0.9.1 条目（i18n 批 I-4c 版本进位）' );
 	}
 }

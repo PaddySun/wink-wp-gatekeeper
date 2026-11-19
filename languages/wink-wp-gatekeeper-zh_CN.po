@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wink-wp-gatekeeper\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 21:42+0000\n"
-"PO-Revision-Date: 2026-11-19 21:42+0000\n"
+"POT-Creation-Date: 2026-11-19 22:51+0000\n"
+"PO-Revision-Date: 2026-11-19 22:51+0000\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
@@ -115,6 +115,9 @@ msgstr "%2$s「%1$s」%3$d 条 → %4$s"
 msgid "%d IP-reputation-enforced captchas (counted separately — not included in the manual-review figures above)."
 msgstr "IP 信誉强制验证码 %d 次（单列口径——不计入上方转人工复核数字）。"
 
+msgid "%d wrong passwords, stopped by a captcha"
+msgstr "密码输错 %d 次，出码拦下"
+
 msgid "%s URL queued for checking (advances automatically within the daily quota)."
 msgstr "已排队 %s 条待核查（按每日额度自动推进）。"
 
@@ -123,6 +126,9 @@ msgstr "已入队 %s 条·开始核查（按每日额度自动推进，可离开
 
 msgid "%s block message"
 msgstr "%s 拦截文案"
+
+msgid "%s items"
+msgstr "%s 条"
 
 msgid "%s page title"
 msgstr "%s 页面标题"
@@ -151,6 +157,9 @@ msgstr "（评论已删除）"
 msgid "(key rejected or service not enabled, paused for the day; fix the credentials and click “Test credentials” to clear)"
 msgstr "（密钥被拒或服务没开通，当日暂停；修正凭据后点「测试凭据」解除）"
 
+msgid "(last %d)"
+msgstr "（最近 %d 条）"
+
 msgid "(missing)"
 msgstr "（缺失）"
 
@@ -159,6 +168,9 @@ msgstr "（大概率 CaptchaAppId 与 AppSecretKey 不匹配——请到验证�
 
 msgid "(no category)"
 msgstr "(无类别)"
+
+msgid "(no reason given)"
+msgstr "（无原因说明）"
 
 msgid "(quota exceeded — check the app’s quota / payment status in the Baidu AI Cloud console)"
 msgstr "（配额超限——请到百度智能云控制台核对该应用的配额/付费状态）"
@@ -1078,6 +1090,9 @@ msgstr "现行控件自 Tab② 登录保护卡搬位扩展"
 msgid "Current moderation service"
 msgstr "当前审核服务"
 
+msgid "Currently %s:"
+msgstr "当前 %s 条："
+
 msgid "Currently in effect"
 msgstr "当前生效"
 
@@ -1176,6 +1191,9 @@ msgstr "抓取专用 DeepSeek Key"
 
 msgid "DeepSeek page fetching (pay-per-use ¥5/1,000)"
 msgstr "DeepSeek 网页抓取（按次计费 ¥5/1000 次）"
+
+msgid "DeepSeek page fetching has failed %d times in a row — URL check verdicts may not work properly; check credentials, balance, and endpoint status."
+msgstr "DeepSeek 网页抓取已连续 %d 次未成功——网址核查可能无法正常判定，请检查凭据、余额与端点状态。"
 
 msgid "DeepSeek web search (uses the LLM provider's credentials above — billed per success)"
 msgstr "DeepSeek 网页搜索（用上方 LLM提供商的凭证——按成功次计费）"
@@ -1306,6 +1324,9 @@ msgstr "腾讯云控制台开通「内容安全 · 文本审核」并购买/领�
 msgid "Enabled"
 msgstr "已开启"
 
+msgid "Enabled (AbuseIPDB)"
+msgstr "已启用（AbuseIPDB）"
+
 msgid "Enablement gate: real-IP self-check passed — reporting is ready to enable."
 msgstr "启用门禁：真实 IP 自检通过——上报具备启用条件。"
 
@@ -1345,6 +1366,12 @@ msgstr "出错 %d 次"
 msgid "Error history (things that went wrong with third-party providers)"
 msgstr "报错历史（和第三方服务商打交道时出的岔子）"
 
+msgid "Error: The reset email could not be sent just now — please double-check your input and try again."
+msgstr "错误：暂时无法发送重置邮件——请确认输入后重试。"
+
+msgid "Error: The username or password is incorrect."
+msgstr "错误：用户名或口令不正确。"
+
 msgid "Errors"
 msgstr "出错"
 
@@ -1356,6 +1383,9 @@ msgstr "没出错的也每天点名，一眼见分晓"
 
 msgid "Event No."
 msgstr "事件编号"
+
+msgid "Every 5 minutes (wink existing-audit worker)"
+msgstr "每 5 分钟（wink 存量审核 worker）"
 
 msgid "Every block, manual review, and error has a number (e.g. WK-20261112-0042). When a visitor reports a problem, the number pinpoints it."
 msgstr "每一条拦下、转人工复核、报错都有编号（如 WK-20261112-0042）。访客报障时报编号即可精确定位。"
@@ -1791,6 +1821,9 @@ msgstr "本地规则（四闸，上游迁移）"
 
 msgid "Local rules always stay first in the chain and cannot be disabled; a failing driver hands over to the next automatically, and when every cloud driver fails each one's “failure fallback” level applies (default: pending review)."
 msgstr "本地规则恒在链首且不可关闭；某驱动故障时自动接力下一驱动，云端全部故障时按各驱动「故障降级」档处理（默认入待审）。"
+
+msgid "Local rules four gates (upstream migration)"
+msgstr "本地规则四闸（上游迁移）"
 
 msgid "Login"
 msgstr "登录门"
@@ -2401,6 +2434,9 @@ msgstr "请先完成人机验证再提交"
 msgid "Please complete human verification first"
 msgstr "请先完成人机验证"
 
+msgid "Plus %d captcha challenges enforced by IP reputation (counted separately — not included in the figures above)"
+msgstr "另有 IP 信誉强制验证码 %d 次（单列口径——不计入上方数字）"
+
 msgid "Politics"
 msgstr "涉政"
 
@@ -2484,6 +2520,9 @@ msgstr "服务商拒绝了（查配置或欠费）"
 
 msgid "Provider returned an unreadable result"
 msgstr "服务商返回了看不懂的结果"
+
+msgid "Provider roster (%d)"
+msgstr "服务商点名册（%d 名）"
 
 msgid "Provider selection"
 msgstr "驱动选择"
@@ -3448,6 +3487,9 @@ msgstr "字数太少"
 msgid "Tools"
 msgstr "工具"
 
+msgid "Total site outbound calls: %d"
+msgstr "站点总外呼 %d 次"
+
 msgid "Treat suspicious visitors strictly based on their IP record (force human verification before letting them through) — shared by the comment and login gates; skipping it does not affect any protection above, and you can fine-tune later on the “4: IP reputation” tab (threshold / soft cap / daily quota all live under ⚙ Advanced there)."
 msgstr "按 IP 前科对可疑访客从严（强制先过人机验证再放行）——评论与登录两闸共用；不接也不影响上面任何防护，之后随时可在「④ IP 信誉」页细配（阈值/软顶/日配额都在该页 ⚙ 高级配置）。"
 
@@ -4052,7 +4094,15 @@ msgctxt "audit-running"
 msgid "In progress"
 msgstr "进行中"
 
+msgctxt "call-count"
+msgid "%d calls"
+msgstr "%d 次"
+
 msgctxt "drill-active"
 msgid "Active"
 msgstr "进行中"
+
+msgctxt "error-count"
+msgid "%d errors"
+msgstr "%d 次"
 
