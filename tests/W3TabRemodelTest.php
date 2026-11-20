@@ -166,7 +166,7 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 	public function test_tech_layer_untouched_anti_pins(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
 		self::assertMatchesRegularExpression( "/Version:\s+[0-9]+\.[0-9]+\.[0-9]+/", $plugin, '插件头 Version 在场（0.9.1 在位——W3BatchDTest 钉四点 + W3FixW3F2Test 批内进位钉）' );
-		self::assertStringContainsString( '0.9.2', $plugin, '版本四点已随批 R+1+2+3 链尾进位 0.9.2（0.9.1 收口在前）' );
+		self::assertStringContainsString( '0.9.3', $plugin, '版本四点已随批 T8+ST1+ST2 链尾进位 0.9.3（0.9.2 收口在前）' );
 
 		$sp = self::sp();
 		// slug / option 前缀 / 事件编号 / text domain / action 常量面原样。
