@@ -61,7 +61,7 @@ final class I18nInfraTest extends TestCase {
 		// （Text Domain 翻新为 wink-wp-gatekeeper 后 make-pot 纳入 Name/Description/
 		// PluginURI/Author）+ 1 头部空 msgid；msgctxt 4 条（call-count/error-count/
 		// drill-active/audit-running）各计一行 msgid。
-		self::assertSame( 1369, $count, 'pot ^msgid 行数 === 1369（i18n 批 I-3 数据面/JS/属性/_n 收编后：1368 唯一 msgid + 头部空 msgid；_n 18 处 msgid_plural 另计；插件头 4 元数据已英文化）' );
+		self::assertSame( 1370, $count, 'pot ^msgid 行数 === 1370（i18n 批 I-3 收编 1369 后【0.9.3 批 T8】-1 旧占位 +2 新串；1369 唯一 msgid + 头部空 msgid；_n 18 处 msgid_plural 另计；插件头 4 元数据已英文化）' );
 	}
 
 	public function test_pot_first_entry_is_empty_translation_template(): void {
@@ -146,7 +146,9 @@ final class I18nInfraTest extends TestCase {
 		self::assertIsInt( $count );
 		// 【i18n 批 I-4c】po 补齐 16 键（10 retired 误标复活 + 6 catalog 漏收新增，B 机 4
 		// 热修键在内）→ 1346 + 16 = 1362 翻译条 + 头部空 msgid = 1363。
-		self::assertSame( 1363, $count, 'zh_CN po ^msgid === 1363（i18n 批 I-4c：1362 翻译条 + 头部空 msgid；i3-work 口径 1346 + 批 I-4c 16 键补齐）' );
+		// 【0.9.3 批 T8】Tab⑧ pingback 行状态化：-1 旧占位 why 文案 +2 新串（徽标+状态
+		// 说明）→ 1362 - 1 + 2 = 1363 翻译条 + 头部空 msgid = 1364。
+		self::assertSame( 1364, $count, 'zh_CN po ^msgid === 1364（0.9.3 批 T8：1363 翻译条 + 头部空 msgid；I-4c 口径 1362 -1 旧占位 +2 新串）' );
 	}
 
 	/**

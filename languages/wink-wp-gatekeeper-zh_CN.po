@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wink-wp-gatekeeper\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 10:14+0000\n"
-"PO-Revision-Date: 2026-11-20 10:14+0000\n"
+"POT-Creation-Date: 2026-11-20 16:58+0000\n"
+"PO-Revision-Date: 2026-11-20 16:58+0000\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
@@ -1242,6 +1242,9 @@ msgstr "境内，数据不出境"
 
 msgid "Done"
 msgstr "完成"
+
+msgid "Done at plugin layer"
+msgstr "插件层已落地"
 
 msgid "Done: "
 msgstr "已完成："
@@ -3400,6 +3403,9 @@ msgstr "配好任意一家后本提示自动消失。"
 msgid "This panel shows the parsing of the current page request as it happened; the manual query below sends the entered IP to four providers (AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb) — results are shown for this request only, never stored, cached, or counted."
 msgstr "本面板展示「当前这次页面请求」的解析实况；下方手动查询会把所输 IP 发往四个服务商（AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb）——结果仅本次展示、不落库不缓存、不计调用次数。"
 
+msgid "This plugin removes the pingback.ping and pingback.extensions.getPingbacks XML-RPC methods unconditionally — pingback needs no authentication, so the login switch above does not cover it. Always on with no switch; the anonymous pingback reflection surface is closed at the plugin layer."
+msgstr "插件层已无条件摘除 XML-RPC 的 pingback.ping 与 pingback.extensions.getPingbacks 两方法——pingback 不经认证，上方「彻底关闭 XML-RPC 登录」开关覆盖不到它；恒开启、无开关，匿名 pingback 反射滥用面已在插件层收口。"
+
 msgid "This plugin shows them read-only and never changes their behavior; to adjust, go to "
 msgstr "本插件只读展示、不改这两个开关的行为；如需调整请到"
 
@@ -3522,9 +3528,6 @@ msgstr "现在去关闭"
 
 msgid "Turn on"
 msgstr "去开启"
-
-msgid "Turn pingback off to prevent reflection-attack abuse. Placeholder: zero controls and zero behavior today."
-msgstr "关闭 pingback 防反射攻击滥用。规划位：当前零控件零行为。"
 
 msgid "Two native WP switches (read-only display)"
 msgstr "WP 原生两开关（只读展示）"

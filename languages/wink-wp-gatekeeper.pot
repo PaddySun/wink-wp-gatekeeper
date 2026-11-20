@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-20T11:21:50+00:00\n"
+"POT-Creation-Date: 2026-11-20T16:58:45+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wink-wp-gatekeeper\n"
@@ -287,7 +287,7 @@ msgid "Testing…"
 msgstr ""
 
 #: includes/Bootstrap.php:1209
-#: includes/settings/SettingsPage.php:7483
+#: includes/settings/SettingsPage.php:7488
 msgid "Test failed."
 msgstr ""
 
@@ -1860,7 +1860,7 @@ msgstr ""
 #: includes/settings/SettingsPage.php:5151
 #: includes/settings/SettingsPage.php:5208
 #: includes/settings/SettingsPage.php:6719
-#: includes/settings/SettingsPage.php:7429
+#: includes/settings/SettingsPage.php:7434
 msgid "Insufficient permissions: manage_options required."
 msgstr ""
 
@@ -2999,11 +2999,10 @@ msgstr ""
 #: includes/settings/SettingsPage.php:7220
 #: includes/settings/SettingsPage.php:7260
 #: includes/settings/SettingsPage.php:7278
-#: includes/settings/SettingsPage.php:7283
-#: includes/settings/SettingsPage.php:7290
 #: includes/settings/SettingsPage.php:7295
-#: includes/settings/SettingsPage.php:7319
+#: includes/settings/SettingsPage.php:7300
 #: includes/settings/SettingsPage.php:7324
+#: includes/settings/SettingsPage.php:7329
 msgid "Planned · not yet built"
 msgstr ""
 
@@ -5276,185 +5275,189 @@ msgstr ""
 msgid "An across-the-board 405 including pingback and every authenticated method — more thorough than disabling logins only, for sites that never use XML-RPC. Placeholder: zero controls and zero behavior today."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7283
+#: includes/settings/SettingsPage.php:7288
 msgid "Pingback off"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7283
+#: includes/settings/SettingsPage.php:7288
 msgid "Anti-reflection abuse"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7284
-msgid "Turn pingback off to prevent reflection-attack abuse. Placeholder: zero controls and zero behavior today."
+#: includes/settings/SettingsPage.php:7288
+msgid "Done at plugin layer"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7290
-msgid "REST API controls"
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7291
-msgid "Narrowing controls such as disabling unauthenticated user enumeration (/wp/v2/users) and counting REST attempts in the login gate's failure counter — trade-off statement: narrowing, not shutting down. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
+#: includes/settings/SettingsPage.php:7289
+msgid "This plugin removes the pingback.ping and pingback.extensions.getPingbacks XML-RPC methods unconditionally — pingback needs no authentication, so the login switch above does not cover it. Always on with no switch; the anonymous pingback reflection surface is closed at the plugin layer."
 msgstr ""
 
 #: includes/settings/SettingsPage.php:7295
-msgid "UA / HTTP header rules"
+msgid "REST API controls"
 msgstr ""
 
 #: includes/settings/SettingsPage.php:7296
+msgid "Narrowing controls such as disabling unauthenticated user enumeration (/wp/v2/users) and counting REST attempts in the login gate's failure counter — trade-off statement: narrowing, not shutting down. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7300
+msgid "UA / HTTP header rules"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7301
 msgid "Custom allow/block rule rows by request headers (UA etc.) — division of labor with the Tab 4 IP reputation allowlist: these rules govern “what the request looks like”, that one governs “who the IP is”. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7300
+#: includes/settings/SettingsPage.php:7305
 msgid "Coexistence with other security plugins"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7300
+#: includes/settings/SettingsPage.php:7305
 msgid "Detect and yield · no fights"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7307
+#: includes/settings/SettingsPage.php:7312
 msgid "hCaptcha detected handling comments"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7307
-#: includes/settings/SettingsPage.php:7314
+#: includes/settings/SettingsPage.php:7312
+#: includes/settings/SettingsPage.php:7319
 msgid "Captcha yields"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7308
+#: includes/settings/SettingsPage.php:7313
 msgid "When the official hCaptcha plugin takes over comment captchas, this plugin's captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7314
+#: includes/settings/SettingsPage.php:7319
 msgid "hCaptcha detected handling logins"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7315
+#: includes/settings/SettingsPage.php:7320
 msgid "When the official hCaptcha plugin takes over the login captcha, this plugin's login captcha yields. On by default — independent of the comment-yield switch."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7319
+#: includes/settings/SettingsPage.php:7324
 msgid "Akismet detected"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7319
+#: includes/settings/SettingsPage.php:7324
 msgid "Keyword gate deduplication"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7320
+#: includes/settings/SettingsPage.php:7325
 msgid "When Akismet has already tossed the same spam into its queue, this plugin's built-in rules skip re-challenging (the decision is still fully logged to this plugin's event table). Planned row — audit notes in docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md, to be implemented after sign-off; detect and yield, never touching the other plugin's config."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7324
+#: includes/settings/SettingsPage.php:7329
 msgid "Wordfence detected"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7324
+#: includes/settings/SettingsPage.php:7329
 msgid "Login captcha exclusivity notice"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7325
+#: includes/settings/SettingsPage.php:7330
 msgid "With both plugins verifying logins, visitors may face two captchas in a row — the detection row notes “who guards the login captcha” with a recommendation (keep one, or let one yield). Planned row — informational only, never touching the other plugin's config."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7331
+#: includes/settings/SettingsPage.php:7336
 msgid "The comment “Website” field"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7332
+#: includes/settings/SettingsPage.php:7337
 msgid "Commenters may fill in their own website. Whatever the switches below say, the admin comments screen always shows this URL so you can identify visitors; stored URLs are never deleted."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7336
+#: includes/settings/SettingsPage.php:7341
 msgid "Collect the website field on new comments"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7341
+#: includes/settings/SettingsPage.php:7346
 msgid "A “Website” field appears on the comment form and new comments store the URL"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7343
+#: includes/settings/SettingsPage.php:7348
 msgid "Unticked (default): the field never appears and any submitted URL is discarded — keeping spam-submit bots from probing it. Published comments are unaffected."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7355
+#: includes/settings/SettingsPage.php:7360
 msgid "Website-field collection is off — the URL check auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7362
+#: includes/settings/SettingsPage.php:7367
 msgid "Keep commenter names clickable on the front end"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7367
+#: includes/settings/SettingsPage.php:7372
 msgid "Commenter names in front-end comment areas display as clickable links"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7369
+#: includes/settings/SettingsPage.php:7374
 msgid "Unticked (default): only the name itself is shown. Names are always clickable for you in the admin."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7376
+#: includes/settings/SettingsPage.php:7381
 msgid "Commenter avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7379
+#: includes/settings/SettingsPage.php:7384
 msgid "Avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7382
+#: includes/settings/SettingsPage.php:7387
 msgid "Not configured (WordPress official source)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7383
+#: includes/settings/SettingsPage.php:7388
 msgid "Cravatar (mainland mirror, officially compatible)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7384
+#: includes/settings/SettingsPage.php:7389
 msgid "WeAvatar (mainland mirror, multi-level matching)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7385
+#: includes/settings/SettingsPage.php:7390
 msgid "sep.cc (mainland mirror)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7386
-#: includes/settings/SettingsPage.php:7392
+#: includes/settings/SettingsPage.php:7391
+#: includes/settings/SettingsPage.php:7397
 msgid "Custom URL"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7388
+#: includes/settings/SettingsPage.php:7393
 msgid "The official source may load slowly or fail for mainland visitors; a mainland mirror speeds it up."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7395
+#: includes/settings/SettingsPage.php:7400
 msgid "Must start with https:// and end with /avatar/ — follow the mirror's instructions; an invalid address leaves the avatar source unchanged (official source used)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7399
+#: includes/settings/SettingsPage.php:7404
 msgid "After switching avatar sources, cached old avatars may take a while to refresh — not a malfunction."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7407
+#: includes/settings/SettingsPage.php:7412
 msgid "Test the current avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7443
+#: includes/settings/SettingsPage.php:7448
 msgid "Invalid custom URL: it must start with https:// and end with /avatar/."
-msgstr ""
-
-#. translators: %s: 响应耗时秒。
-#: includes/settings/SettingsPage.php:7470
-#, php-format
-msgid "OK (%.1f s)"
 msgstr ""
 
 #. translators: %s: 响应耗时秒。
 #: includes/settings/SettingsPage.php:7475
 #, php-format
+msgid "OK (%.1f s)"
+msgstr ""
+
+#. translators: %s: 响应耗时秒。
+#: includes/settings/SettingsPage.php:7480
+#, php-format
 msgid "Works but slow (%.1f s)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7478
+#: includes/settings/SettingsPage.php:7483
 msgid "Cannot reach this mirror (or the response is not an image)."
 msgstr ""
 

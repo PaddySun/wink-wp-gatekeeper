@@ -443,7 +443,13 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		self::assertStringContainsString( 'RSS protection', $enhance, 'RSS 卡（规划壳）' );
 		self::assertStringContainsString( 'REST API controls', $enhance, 'REST 卡（规划壳）' );
 		self::assertStringContainsString( 'UA / HTTP header rules', $enhance, 'UA 卡（规划壳）' );
-		self::assertSame( 7, substr_count( $enhance, 'wk-plan-tag' ), '规划徽标七件（三卡头 + xmlrpc 两扩展行 + coexist 两检测行——闭集核对）' );
+		self::assertSame( 6, substr_count( $enhance, 'wk-plan-tag' ), '规划徽标六件（三卡头 + xmlrpc 关总开关行 + coexist 两检测行——闭集核对；【0.9.3 批 T8】pingback 行退役规划徽标转状态行）' );
+
+		// 【0.9.3 批 T8】pingback 行状态化（S3-F6 已于 0.9.2 落地——占位文案失实退役）：
+		// 行文案改「插件层已无条件摘除两方法」状态行，徽标由 wk-plan-tag 换 badge b-ok。
+		self::assertStringContainsString( 'Done at plugin layer', $enhance, 'pingback 行徽标=插件层已落地（替代规划徽标）' );
+		self::assertStringContainsString( 'removes the pingback.ping and pingback.extensions.getPingbacks', $enhance, 'pingback 行状态文案=S3-F6 实装语义（无条件摘除两方法）' );
+		self::assertStringNotContainsString( 'Turn pingback off to prevent reflection-attack abuse', $enhance, '旧占位 why 文案零残留（0.9.2 起失实——pingback 已封堵非待施工）' );
 
 		// coexist 共存卡新接线（实键非规划——schema/sanitize 既有通道）。
 		self::assertStringContainsString( 'id="wk-coexist-card"', $enhance, '共存卡锚' );

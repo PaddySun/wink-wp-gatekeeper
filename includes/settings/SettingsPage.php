@@ -7279,9 +7279,14 @@ final class SettingsPage {
 					<span class="why"><?php esc_html_e( 'An across-the-board 405 including pingback and every authenticated method — more thorough than disabling logins only, for sites that never use XML-RPC. Placeholder: zero controls and zero behavior today.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
+			<?php /* 【0.9.3 批 T8】pingback 行状态化：S3-F6 已于 0.9.2 无条件摘除
+			 * pingback.ping / pingback.extensions.getPingbacks 两方法（Bootstrap.xmlrpc_methods
+			 * 过滤器）——「Planned · not yet built」占位文案自 0.9.2 起失实，转状态行
+			 * （badge b-ok + 状态 why 文案；无开关=恒开语义如实披露）。03 Tab⑧ 卡内说明
+			 * 可补注项兑现；0.9.2 changelog 披露不变。 */ ?>
 			<div class="switch-row">
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Pingback off', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Anti-reflection abuse', 'wink-wp-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( 'Turn pingback off to prevent reflection-attack abuse. Placeholder: zero controls and zero behavior today.', 'wink-wp-gatekeeper' ); ?></span>
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Pingback off', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Anti-reflection abuse', 'wink-wp-gatekeeper' ); ?></span><span class="badge b-ok"><?php esc_html_e( 'Done at plugin layer', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'This plugin removes the pingback.ping and pingback.extensions.getPingbacks XML-RPC methods unconditionally — pingback needs no authentication, so the login switch above does not cover it. Always on with no switch; the anonymous pingback reflection surface is closed at the plugin layer.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
 		</section>
