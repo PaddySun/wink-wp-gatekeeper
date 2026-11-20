@@ -17,7 +17,7 @@
  * Description:       It winks at real visitors and keeps its eyes open for bots — comment verification, login verification, and content filtering in one, with pluggable captcha and cloud moderation drivers.
  * Version:           0.9.2
  * Requires at least: 6.0
- * Requires PHP:      7.4
+ * Requires PHP:      8.0
  * Author:            Wink
  * Text Domain:       wink-wp-gatekeeper
  * Domain Path:       /languages

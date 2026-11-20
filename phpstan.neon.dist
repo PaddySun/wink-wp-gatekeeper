@@ -11,9 +11,18 @@
 # v2.6.0 钉 wordpress-stubs ^4.7||^5.0 与本项目 ^7.1 冲突，别名绕行不取，
 # 手写桩面=本插件实调五静态方法（ExistingAuditCli.php），签名按 WP-CLI 2.x
 # 公开 API，error() 刻意 void 防 catch 块内后续调用被误判不可达（详见桩文件头注）。
+# 批 ST2（2026-11-21，HANDOVER 20b deferred 项）：phpstan 1.x→2.x 升级——
+# ① deprecated 选项 checkGenericClassInNonGenericObjectType 清偿（2.x 已移除并入
+#   默认行为）；② Requires PHP 7.4→8.0 升位（2.x 实证运行时代码 0.5.x 起即含
+#   16 处 8.0 专属语法而声明从未成立，统筹代裁可翻案，readme Breaking note
+#   (since 0.9.3) 披露；PhpSyntaxCompatTest 锚新下限防越位）；③ 本地 vendor
+#   装 2.x 受阻实录：composer 下载流写 vendor/composer/tmp-*.zip 三连 Permission
+#   denied（目录可写/PHP 可写 .zip 均实证，根因未定疑 AV 流拦截）——lock 已锁
+#   2.3.7，本地门禁用独立 phar：php C:/Users/paddy/tools/phpstan-2.3.7.phar
+#   analyse --configuration phpstan.neon.dist --memory-limit=2G（vendor/bin/phpstan
+#   仍为 1.12.34 历史基线 101E，双引擎口径见 commit 记录）。
 parameters:
     level: 3
-    checkGenericClassInNonGenericObjectType: false
     paths:
         - includes
         - wink-wp-gatekeeper.php
