@@ -92,6 +92,12 @@ register_deactivation_hook(
 	__FILE__,
 	static function (): void {
 		\WinkGatekeeper\Stats\EventsTable::clear_cron();
+		// 【A1-F10】双 tick 停用期漏清收口（url_audit_tick boot 常驻排期 / audit_tick 存量审核条件排期——
+		// 批前停用仅清 daily，停用期间两 tick 空转条目残留）。
+		if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
+			wp_clear_scheduled_hook( 'wink_gatekeeper_url_audit_tick' );
+			wp_clear_scheduled_hook( 'wink_gatekeeper_audit_tick' );
+		}
 	}
 );
 

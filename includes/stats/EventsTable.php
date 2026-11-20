@@ -17,6 +17,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Stats;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 use WinkGatekeeper\EventId;
 use WinkGatekeeper\Verdict;
 
@@ -300,6 +304,19 @@ DDL;
 	 * @param string $table 完整表名。
 	 * @return bool true=已满拒写（insert 应返回 null）。
 	 */
+	/** @var bool 最近一次 insert 是否容量拒写（【S3-F7】记录器消费位；请求内单调）。 */
+	private static bool $capacity_refused_last = false;
+
+	/**
+	 * 最近一次 insert 是否被容量闸拒写（【S3-F7】读面——记录器据此跳过 stats；
+	 * should_record=false 的常规不落库路径不置位，stats 照计=现行语义）。
+	 *
+	 * @return bool
+	 */
+	public static function capacity_refused_last(): bool {
+		return self::$capacity_refused_last;
+	}
+
 	private static function capacity_full( $wpdb, string $table ): bool {
 		$threshold = self::capacity_threshold();
 		if ( $threshold <= 0 ) {
@@ -462,6 +479,8 @@ DDL;
 	public static function insert( string $gate, string $stage, string $driver, Verdict $verdict, array $meta = array(), string $ip_hash = '' ): ?string {
 		global $wpdb;
 
+		self::$capacity_refused_last = false; // 【S3-F7】拒写信号位复位（每 insert 单调语义）。
+
 		$table = self::table_name( $wpdb->prefix );
 
 		/* 【M6·批F-b P1-4】写路径容量检查恢复（轻量缓存版，见 capacity_full 头注）：
@@ -469,6 +488,7 @@ DDL;
 		 * 调用方 event_no 为空不引用）；每小时至多一条 error_log。拒绝洪水期表膨胀
 		 * 的第二道闸（第一道=stub/rate 事件采样封顶 EventSampling）。 */
 		if ( self::capacity_full( $wpdb, $table ) ) {
+			self::$capacity_refused_last = true; // 【S3-F7】容量拒写信号（记录器据此跳过 stats——统计与明细可对账）。
 			return null;
 		}
 

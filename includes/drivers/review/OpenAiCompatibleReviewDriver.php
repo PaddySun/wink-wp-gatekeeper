@@ -34,6 +34,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Drivers\Review;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 use WinkGatekeeper\Drivers\ReviewChainBudget;
 use WinkGatekeeper\Drivers\ReviewDriverInterface;
 use WinkGatekeeper\Http\RemoteClient;
@@ -98,13 +102,16 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 	/** @var int|null 链预算墙边界（【P1-7·A2-F1】meta 便车；null=无预算上下文=现行行为）。 */
 	protected ?int $chain_deadline = null;
 
+	/** @var array<string, mixed> stats 子树包装（【S4-F3】raw_snapshot_from_settings 桥数据源）。 */
+	protected array $stats_settings = array();
+
 	/**
 	 * @param array<string, mixed>    $config     配置（from_settings 派生）。
 	 * @param RemoteClient            $client     传输脊。
 	 * @param callable|null           $usage_sink K2 回写（null=默认 WP option 通道）。
 	 * @param callable|null           $clock      时钟（null=time）。
 	 */
-	public function __construct( array $config, RemoteClient $client, ?callable $usage_sink = null, ?callable $clock = null ) {
+	public function __construct( array $config, RemoteClient $client, ?callable $usage_sink = null, ?callable $clock = null, array $settings = array() ) {
 		$this->config     = $config;
 		$this->client     = $client;
 		$this->usage_sink = $usage_sink;
@@ -117,6 +124,9 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 		if ( defined( static::class . '::DRIVER_ID' ) ) {
 			$this->driver_id = static::DRIVER_ID;
 		}
+		// 【S4-F3】raw 快照桥注入（stats 子树包装形态与 Baidu/TMS/Aliyun 同构——桥读
+		// settings['stats']['raw_capture']/raw_max_bytes；缺省空数组=桥按默认 512 取=批前行为）。
+		$this->stats_settings = isset( $settings['stats'] ) && is_array( $settings['stats'] ) ? array( 'stats' => $settings['stats'] ) : array();
 	}
 
 	/**
@@ -253,7 +263,10 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 			$category = $result->category();
 			$this->last_meta['error_category'] = $category;
 			$this->last_meta['http_status']    = $result->status();
-			$this->last_meta['raw']            = $result->raw_snapshot( 512 );
+			$raw_bridge = RemoteResult::raw_snapshot_from_settings( $result, $this->stats_settings ); // 【S4-F3】走桥（尊重 raw_capture 开关+raw_max_bytes——同族驱动同参形态）。
+			if ( null !== $raw_bridge ) {
+				$this->last_meta['raw'] = $raw_bridge;
+			}
 			// transport=传输脊已退避穷尽；semantic=当日停转面（闸编排）；contract/parse=契约哨兵面。
 			$this->last_error_verdict = Verdict::error( $this->driver_id, $result->message() );
 			return null;

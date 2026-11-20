@@ -17,6 +17,12 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Settings;
 
+use WinkGatekeeper\Http\RemoteClient;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 use WinkGatekeeper\Http\RemoteResult;
 
 final class CredentialProbe {
@@ -73,10 +79,10 @@ final class CredentialProbe {
 				$missing           = self::parse_missing_params( isset( $error['Message'] ) && is_string( $error['Message'] ) ? $error['Message'] : '' );
 				$payload['state']  = 'yellow';
 				$payload['missing'] = $missing;
-				$payload['message'] = __( 'Required parameters missing: ', 'wink-wp-gatekeeper' ) . ( array() !== $missing ? implode( '、', $missing ) : (string) ( $error['Message'] ?? '' ) ) . __( ' — please fill in the corresponding fields above.', 'wink-wp-gatekeeper' );
+				$payload['message'] = __( 'Required parameters missing: ', 'wink-wp-gatekeeper' ) . ( array() !== $missing ? implode( '、', $missing ) : RemoteClient::redact( (string) ( $error['Message'] ?? '' ) ) ) . __( ' — please fill in the corresponding fields above.', 'wink-wp-gatekeeper' ); // 【S4-F5】厂商原文过 redact.
 				return $payload;
 			}
-			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $error['Code'] . '——' . (string) ( $error['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $error['Code'] . '——' . RemoteClient::redact( (string) ( $error['Message'] ?? '' ) ); // 【S4-F5】厂商原文过 redact（灰态/未知码分支——第三方网关错误体回显密钥形态防截图外流）。
 			return $payload;
 		}
 
@@ -104,7 +110,7 @@ final class CredentialProbe {
 			? __( '(most likely CaptchaAppId does not match AppSecretKey — check both values from the same page in the captcha console under “Verification Management → Basic Configuration”)', 'wink-wp-gatekeeper' )
 			: '';
 		$payload['code']    = 'CaptchaCode=' . $code;
-		$payload['message'] = __( 'Unexpected verification return (CaptchaCode=', 'wink-wp-gatekeeper' ) . $code . ( '' !== $msg ? '：' . $msg : '' ) . '）' . $hint . __( ' — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
+		$payload['message'] = __( 'Unexpected verification return (CaptchaCode=', 'wink-wp-gatekeeper' ) . $code . ( '' !== $msg ? '：' . RemoteClient::redact( $msg ) : '' ) . '）' . $hint . __( ' — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' ); // 【S4-F5】CaptchaMsg 原文过 redact。
 		return $payload;
 	}
 
@@ -149,7 +155,7 @@ final class CredentialProbe {
 				$missing            = self::parse_missing_params( isset( $error['Message'] ) && is_string( $error['Message'] ) ? $error['Message'] : '' );
 				$payload['state']   = 'yellow';
 				$payload['missing'] = $missing;
-				$payload['message'] = __( 'Required parameters missing: ', 'wink-wp-gatekeeper' ) . ( array() !== $missing ? implode( '、', $missing ) : (string) ( $error['Message'] ?? '' ) ) . __( ' — please check the configuration above.', 'wink-wp-gatekeeper' );
+				$payload['message'] = __( 'Required parameters missing: ', 'wink-wp-gatekeeper' ) . ( array() !== $missing ? implode( '、', $missing ) : RemoteClient::redact( (string) ( $error['Message'] ?? '' ) ) ) . __( ' — please check the configuration above.', 'wink-wp-gatekeeper' ); // 【S4-F5】厂商原文过 redact.
 				return $payload;
 			}
 			if ( 0 === strpos( $error['Code'], 'InvalidParameter' ) ) {
@@ -157,7 +163,7 @@ final class CredentialProbe {
 				$payload['message'] = __( 'Parameter error (', 'wink-wp-gatekeeper' ) . $error['Code'] . __( ') — please check the parameter values above (e.g. the BizType policy ID) and retry.', 'wink-wp-gatekeeper' );
 				return $payload;
 			}
-			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $error['Code'] . '——' . (string) ( $error['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $error['Code'] . '——' . RemoteClient::redact( (string) ( $error['Message'] ?? '' ) ); // 【S4-F5】厂商原文过 redact（灰态/未知码分支——第三方网关错误体回显密钥形态防截图外流）。
 			return $payload;
 		}
 
@@ -246,7 +252,7 @@ final class CredentialProbe {
 				return $payload;
 			}
 
-			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $code . '——' . (string) ( $decoded['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $code . '——' . RemoteClient::redact( (string) ( $decoded['Message'] ?? '' ) ); // 【S4-F5】厂商原文过 redact。
 			return $payload;
 		}
 
@@ -347,11 +353,11 @@ final class CredentialProbe {
 			// 黄：body 400 参数类（本地防呆提示——核对配置区取值；不用于绿态判定）。
 			if ( '400' === $code ) {
 				$payload['state']   = 'yellow';
-				$payload['message'] = __( 'Parameter error (Code=400', 'wink-wp-gatekeeper' ) . ( isset( $decoded['Message'] ) && is_string( $decoded['Message'] ) && '' !== $decoded['Message'] ? '：' . $decoded['Message'] : '' ) . __( ') — please check the values in the configuration area above and retry.', 'wink-wp-gatekeeper' );
+				$payload['message'] = __( 'Parameter error (Code=400', 'wink-wp-gatekeeper' ) . ( isset( $decoded['Message'] ) && is_string( $decoded['Message'] ) && '' !== $decoded['Message'] ? '：' . RemoteClient::redact( $decoded['Message'] ) : '' ) . __( ') — please check the values in the configuration area above and retry.', 'wink-wp-gatekeeper' ); // 【S4-F5】厂商原文过 redact。
 				return $payload;
 			}
 
-			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $code . '——' . (string) ( $decoded['Message'] ?? '' );
+			$payload['message'] = __( 'Server returned an error: ', 'wink-wp-gatekeeper' ) . $code . '——' . RemoteClient::redact( (string) ( $decoded['Message'] ?? '' ) ); // 【S4-F5】厂商原文过 redact。
 			return $payload;
 		}
 
@@ -442,13 +448,13 @@ final class CredentialProbe {
 			// 黄：参数错（本地防呆提示——核对配置区取值）。
 			if ( 100 === $code ) {
 				$payload['state']   = 'yellow';
-				$payload['message'] = __( 'Parameter error (error_code=100', 'wink-wp-gatekeeper' ) . ( '' !== $error_msg ? '：' . $error_msg : '' ) . __( ') — please check the values in the configuration area above and retry.', 'wink-wp-gatekeeper' );
+				$payload['message'] = __( 'Parameter error (error_code=100', 'wink-wp-gatekeeper' ) . ( '' !== $error_msg ? '：' . RemoteClient::redact( $error_msg ) : '' ) . __( ') — please check the values in the configuration area above and retry.', 'wink-wp-gatekeeper' ); // 【S4-F5】厂商原文过 redact。
 				return $payload;
 			}
 
 			// 灰：配额超限/其它未知码——给原文与排查方向。
 			$hint = ( 17 === $code || 19 === $code ) ? __( '(quota exceeded — check the app’s quota / payment status in the Baidu AI Cloud console)', 'wink-wp-gatekeeper' ) : '';
-			$payload['message'] = __( 'Server returned an error (error_code=', 'wink-wp-gatekeeper' ) . $code . '——' . $error_msg . '）' . $hint . __( ' — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' );
+			$payload['message'] = __( 'Server returned an error (error_code=', 'wink-wp-gatekeeper' ) . $code . '——' . RemoteClient::redact( $error_msg ) . '）' . $hint . __( ' — please screenshot this message for troubleshooting.', 'wink-wp-gatekeeper' ); // 【S4-F5】厂商原文过 redact。
 			return $payload;
 		}
 

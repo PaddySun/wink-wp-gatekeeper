@@ -151,6 +151,8 @@ $wink_guarded( static function () use ( $wpdb ): void {
 /* 3. 清每日维护 cron。 */
 $wink_guarded( static function (): void {
 	wp_clear_scheduled_hook( 'wink_gatekeeper_daily_maintenance' );
+	wp_clear_scheduled_hook( 'wink_gatekeeper_url_audit_tick' ); // 【A1-F10】双 tick 漏清收口（url_audit_tick boot 常驻排期——卸载瞬间必然在册；WP recurring 无 handler 也续排=孤儿空转条目）。
+	wp_clear_scheduled_hook( 'wink_gatekeeper_audit_tick' );     // 【A1-F10】存量审核 tick（存量审核启用期条件在册）。
 } );
 
 /* 4. 删 transient 前缀（wk_lf_ 登录计数 / wk_ip_ IP 查询缓存 / wk_rp_ 上报冷却 /
@@ -168,7 +170,7 @@ $wink_guarded( static function (): void {
  * 每前缀匹配两种键：主键 _transient_<prefix>_* 与过期时间键 _transient_timeout_<prefix>_*。
  * 【F3-1 谨慎性】逐前缀精确匹配（wink 自有前缀），禁止 %wink% 类宽匹配误伤同前缀他人数据。 */
 $wink_guarded( static function () use ( $wpdb ): void {
-	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_cai_', 'wk_cag_', 'wk_irb_', 'wk_ua_', 'wk_es_', 'wk_ec_log_', 'wk_baidu_token_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.【M6·F2】wk_es_/wk_ec_log_ 事件写放大封顶键.【AUDIT-FIX】wk_baidu_token_ 百度 token 缓存（P3-F5/A1-F9）.【批1·P1-4】wk_cai_/wk_cag_ 留档容量闸日桶.
+	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_cai_', 'wk_cag_', 'wk_dgd_', 'wk_dsr_', 'wk_irb_', 'wk_ua_', 'wk_es_', 'wk_ec_log_', 'wk_baidu_token_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.【M6·F2】wk_es_/wk_ec_log_ 事件写放大封顶键.【AUDIT-FIX】wk_baidu_token_ 百度 token 缓存（P3-F5/A1-F9）.【批1·P1-4】wk_cai_/wk_cag_ 留档容量闸日桶.【批3】wk_dgd_/wk_dsr_ 降级放行两桶（DegradedPassLimiter——修复批新发现补录）.
 		$wink_transient_keys = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options}

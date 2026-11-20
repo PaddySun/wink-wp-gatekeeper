@@ -63,6 +63,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Gates;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 use WinkGatekeeper\Drivers\CaptchaDriverInterface;
 use WinkGatekeeper\Intercept\Stub;
 use WinkGatekeeper\Ip\IpResolver;
@@ -528,7 +532,7 @@ final class LoginGate extends AccountFormGate {
 			// 主信号有则用规范 user_login；丢失回落 sanitize_user($username) 提交串（02 §3.2 表）。
 			$user_dim = ( null !== $captured_user_login && '' !== $captured_user_login )
 				? $captured_user_login
-				: $submitted_username;
+				: strtolower( $submitted_username ); // 【S3-F5】回落键材小写归一（sanitize_user 大小写敏感——形态变体摊薄面收口）。
 		}
 		$this->counters->record_failure( $ip, $user_dim );
 

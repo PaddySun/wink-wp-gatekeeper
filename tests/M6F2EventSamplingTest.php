@@ -71,7 +71,7 @@ final class M6F2EventSamplingTest extends TestCase {
 
 	/* ---------- 纯决策：stage 采样域 ---------- */
 
-	public function test_sampled_stage_covers_stub_and_rate_only(): void {
+	public function test_sampled_stage_covers_stub_rate_precheck(): void {
 		$this->assertTrue( EventSampling::sampled_stage( 'stub' ), 'stub 事件在采样封顶域' );
 		$this->assertTrue( EventSampling::sampled_stage( 'rate' ), 'rate 事件在采样封顶域' );
 		// 真实闸链路径不受影响（有票拒、云端拒等 stage 不受采样限制）。
@@ -79,7 +79,7 @@ final class M6F2EventSamplingTest extends TestCase {
 		$this->assertFalse( EventSampling::sampled_stage( 'captcha' ), 'captcha 阶段不在采样域' );
 		$this->assertFalse( EventSampling::sampled_stage( 'review' ), 'review 阶段（云端拒/待审收口）不在采样域' );
 		$this->assertFalse( EventSampling::sampled_stage( 'core' ), 'core 阶段不在采样域' );
-		$this->assertFalse( EventSampling::sampled_stage( 'precheck' ), 'precheck 阶段不在采样域' );
+		$this->assertTrue( EventSampling::sampled_stage( 'precheck' ), 'precheck 阶段在采样封顶域（【批3·S3-F4】白名单扩域——预检四闸拒逐发落库面收口；批前不在域钉翻转）' );
 		$this->assertFalse( EventSampling::sampled_stage( 'url_audit' ), 'url_audit 阶段不在采样域' );
 		$this->assertFalse( EventSampling::sampled_stage( '' ), '未知/空 stage 不在采样域' );
 	}

@@ -28,6 +28,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Http;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 final class RemoteClient {
 
 	/**
@@ -273,6 +277,15 @@ final class RemoteClient {
 			return "local hostname refused: {$host}";
 		}
 
+		/* 【S5-F2】非点分 IP 字面量形态拒（纯十进制 / 0x 十六进制 / 短式 / 前导零八进制——
+		 * glibc inet_aton 语义可归一私网，批前防线单点依赖 WP 核心层=纵深缺口；这些形态
+		 * 对插件出站面永非合法目标（厂商端点/站长域名均为正常 FQDN 或标准点分）——
+		 * fail-closed 拒。标准点分四段（\d{1,3} 三点）不受影响，走下方私网判定。 */
+		if ( preg_match( '/^\d+$/', $host ) || preg_match( '/^0[xX][0-9a-fA-F]+$/', $host )
+			|| preg_match( '/^\d{1,3}(\.\d{1,3}){0,2}$/', $host ) || preg_match( '/^0\d+(\.\d+)*$/', $host ) ) {
+			return "non-standard IP literal refused: {$host}";
+		}
+
 		$literal = trim( $host, '[]' ); // URL 形态的 v6 字面量带方括号。
 		$packed  = @inet_pton( $literal );
 		if ( false !== $packed ) {
@@ -304,6 +317,20 @@ final class RemoteClient {
 		// 分隔符两侧各允许一个引号（JSON 形态 "key":"value"）；字符类以 \x27/\x5D 表示单引号/闭括号，规避转义歧义。
 		$text = preg_replace(
 			'/(?i)((?:api[_-]?key|app[_-]?secret[_-]?key|access[_-]?key[_-]?secret|secret[_-]?id|secret[_-]?key|client[_-]?secret|token)\x22?\s*[=:]\s*\x22?)[^\s,;"\x27}\x5D]+/',
+			'$1[REDACTED]',
+			$text
+		);
+
+		// 4)【S4-F4】漏网形态补：裸 Key: 头（AbuseIPDB 专用头——不在 Authorization/键名集）+
+		// client_id（百度 token 端点形态 client_id=API Key 真值）。当前结构性不可达（raw 只读
+		// 响应侧），防御纵深加固。
+		$text = preg_replace(
+			'/(?i)(\bKey\x22?\s*[:=]\s*\x22?)[^\s,;"\x27}\x5D]+/',
+			'$1[REDACTED]',
+			$text
+		);
+		$text = preg_replace(
+			'/(?i)((?:\bclient[_-]?id\b)\x22?\s*[=:]\s*\x22?)[^\s,;"\x27}\x5D]+/',
 			'$1[REDACTED]',
 			$text
 		);

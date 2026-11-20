@@ -22,6 +22,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\UrlAudit;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Http\RemoteResult;
 
@@ -332,6 +336,11 @@ final class UrlFetcher {
 	public static function absolutize( string $location, string $base ): ?string {
 		$location = trim( $location );
 		if ( '' === $location ) {
+			return null;
+		}
+		/* 【S5-F3】scheme 前缀 Location 且非 http(s) → 拒（批前 gopher/file/data/javascript
+		 * 走下方相对路径拼接=docblock 与行为不符；协议相对 //host 形态无 scheme 前缀不受影响）。 */
+		if ( preg_match( '#^[a-zA-Z][a-zA-Z0-9+.\-]*://#', $location ) && ! preg_match( '#^https?://#i', $location ) ) {
 			return null;
 		}
 		// 相对路径解析（容错式——判定目标不需要 RFC 全量）。

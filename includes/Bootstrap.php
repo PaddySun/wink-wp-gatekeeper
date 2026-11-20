@@ -16,6 +16,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
 use WinkGatekeeper\Drivers\DriverRegistry;
@@ -491,7 +495,10 @@ final class Bootstrap {
 					// K2 LlmUsage 回写走默认 WP option 通道（驱动内）。
 					$deepseek_driver = new DeepSeekReviewDriver(
 						DeepSeekReviewDriver::config_from_settings( $settings ),
-						$client
+						$client,
+						null, // usage_sink：默认（K1 计量）。
+						null, // clock：默认 time()。
+						$settings // 【S4-F3】stats 子树入桥（raw_capture/raw_max_bytes 面对齐同族驱动）。
 					);
 					if ( $deepseek_driver->is_configured() ) {
 						$cloud_chain['deepseek'] = $deepseek_driver;
@@ -503,7 +510,10 @@ final class Bootstrap {
 					// 静默剔除不空烧日配额。
 					$openai_custom_driver = new OpenAiCustomReviewDriver(
 						OpenAiCustomReviewDriver::config_from_settings( $settings ),
-						$client
+						$client,
+						null, // usage_sink：默认（K1 计量）。
+						null, // clock：默认 time()。
+						$settings // 【S4-F3】stats 子树入桥（同上）。
 					);
 					if ( $openai_custom_driver->is_configured() ) {
 						$cloud_chain['openai_custom'] = $openai_custom_driver;
@@ -708,12 +718,21 @@ final class Bootstrap {
 
 				/* 预检事件记录器（与评论闸默认记录器同形态：写入矩阵 should_record 收口 + 统计计数）。 */
 				$precheck_recorder = static function ( string $stage, Verdict $verdict, array $meta ) use ( $settings ): ?string {
+					/* 【S3-F4】precheck 入采样域（10 行/IP/h 封顶同族——超额丢事件行且跳过 stats，
+					 * 与评论闸写放大双源同封口径）；【S3-F7】容量拒写信号消费（stats 跳过——
+					 * 统计与明细可对账）。 */
+					$pre_ip_hash = CommentGate::ip_hash( (string) ( $meta['client_ip'] ?? '' ) );
+					if ( ! EventSampling::allow( $stage, $pre_ip_hash ) ) {
+						return null;
+					}
 					$driver_id = ( '' !== $verdict->driver_id() ) ? $verdict->driver_id() : 'local_rules';
 					$event_no  = null;
 					if ( EventsTable::should_record( $stage, $verdict, $settings ) ) {
-						$event_no = EventsTable::insert( 'comment', $stage, $driver_id, $verdict, $meta, CommentGate::ip_hash( (string) ( $meta['client_ip'] ?? '' ) ) );
+						$event_no = EventsTable::insert( 'comment', $stage, $driver_id, $verdict, $meta, $pre_ip_hash );
 					}
-					StatsCache::record( 'comment', $driver_id, $verdict->verdict() );
+					if ( ! EventsTable::capacity_refused_last() ) {
+						StatsCache::record( 'comment', $driver_id, $verdict->verdict() );
+					}
 					return $event_no;
 				};
 
@@ -829,6 +848,17 @@ final class Bootstrap {
 		if ( null !== $this->login_gate || null !== $this->register_gate || null !== $this->lostpassword_gate ) {
 			add_action( 'login_enqueue_scripts', array( $this, 'enqueue_login_assets' ) );
 		}
+
+		/* 【S3-F6】pingback.ping 插件层封堵（xmlrpc_enabled 过滤器只拦认证方法面——pingback
+		 * 不经认证；无 WAF 站点的匿名 pingback 反射/试探面收口，核心基础防线之上的一层）。
+		 * 0.9.2 changelog 披露。 */
+		add_filter(
+			'xmlrpc_methods',
+			static function ( array $methods ): array {
+				unset( $methods['pingback.ping'], $methods['pingback.extensions.getPingbacks'] );
+				return $methods;
+			}
+		);
 
 		/* ---------- XML-RPC 登录一键关闭（03 Tab②「高级」；独立加固开关，闸关不剥夺） ---------- */
 		add_filter(

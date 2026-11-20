@@ -20,6 +20,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Http;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 final class RemoteResult {
 
 	public const TRANSPORT = 'transport';
@@ -116,7 +120,13 @@ final class RemoteResult {
 	 */
 	public static function classify( $raw, array $opts = array() ): self {
 		if ( ! is_array( $raw ) ) {
-			// 连接失败/超时/WP_Error：非数组即传输失败（WP_Error 为对象，同样落此分支）。
+			/* 【S5-F4】validate 拒绝语义归位：WP_Error('http_request_url_failed')=SEMANTIC
+			 * 不可重试（批前误分类 transport → fetch_class 误报 timeout + 每被拒 URL 白转
+			 * 2 次重试 ~1.2s；零出站同前，预算墙不再被拒向量消耗）。 */
+			if ( is_object( $raw ) && method_exists( $raw, 'get_error_code' ) && 'http_request_url_failed' === $raw->get_error_code() ) {
+				return new self( false, self::SEMANTIC, 0, '', null, 'outbound_blocked: url validation refused', array(), null );
+			}
+			// 连接失败/超时/其余 WP_Error：非数组即传输失败。
 			return new self( false, self::TRANSPORT, 0, '', null, 'transport_failed: connection/timeout', array(), null );
 		}
 

@@ -16,6 +16,12 @@ declare( strict_types=1 );
 
 namespace /* 全局：autoload 装配 */ {
 
+	// 【S2-F1】ABSPATH 测试语境定义（插件类文件带纵深守卫——autoload 装载需语境；G5
+	// 不变式不破：仍不加载插件入口文件，仅定义 WP 根路径常量供守卫面通过）。
+	if ( ! defined( 'ABSPATH' ) ) {
+		define( 'ABSPATH', dirname( __DIR__ ) . '/' );
+	}
+
 	require_once dirname( __DIR__ ) . '/includes/Autoloader.php';
 
 	\WinkGatekeeper\Autoloader::register( dirname( __DIR__ ) . '/includes' );

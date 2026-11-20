@@ -25,6 +25,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Stats;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 use WinkGatekeeper\Gates\AtomicCounter;
 
 final class EventSampling {
@@ -47,7 +51,7 @@ final class EventSampling {
 	/**
 	 * 采样域 stage 闭集（开放枚举白名单——闸阶段名新增默认不进采样域，如实反映）。
 	 */
-	private const SAMPLED_STAGES = array( 'stub', 'rate' );
+	private const SAMPLED_STAGES = array( 'stub', 'rate', 'precheck' ); // 【S3-F4】precheck 入采样域（批前白名单遗漏——预检四闸拒逐发落库，B 机实测 5 发=5 行；10 行/IP/h 封顶同族）。
 
 	/**
 	 * @var callable|null 读取 fn(string $key): mixed（null = get_transient WP 边界默认）。

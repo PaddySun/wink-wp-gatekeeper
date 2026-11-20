@@ -41,6 +41,11 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\UrlAudit;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
+use WinkGatekeeper\Gates\AtomicCounter;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Stats\LlmUsage;
 use WinkGatekeeper\Stats\Usage;
@@ -436,7 +441,7 @@ final class UrlAuditWorker {
 				$search_provider = is_array( $engine ) ? ( $engine['bocha'] ?? null ) : null;
 				$host = (string) ( parse_url( $url, PHP_URL_HOST ) ?? '' );
 				$signal = null;
-				if ( $search_provider instanceof UrlSearchProvider && $search_provider->is_configured() && '' !== $host ) {
+				if ( $search_provider instanceof UrlSearchProvider && $search_provider->is_configured() && '' !== $host && self::search_daily_allowed() ) { // 【S3-F8】独立日闸（fetch 高失败率时搜索调用随 job 增长面收口）。
 					// query=域名本体（搜索源语法择优：DeepSeek tools/search 契约 query 为
 					// 纯文本 1-128 字、site: 算子无文档背书；域名本体在两源皆可用——报告落档）。
 					$signal = $search_provider->search_site( $host );
@@ -1450,5 +1455,31 @@ final class UrlAuditWorker {
 	 */
 	private function default_client(): RemoteClient {
 		return new RemoteClient( null, array( Usage::class, 'bump_option' ) );
+	}
+
+	/**
+	 * 搜索回退独立日闸（【S3-F8】：批前仅计量无闸——url_audit 开+fetch 高失败率时搜索
+	 * 调用随 job 增长）。帽默认 100/日，filter wink_gatekeeper_url_audit_search_daily_cap
+	 * 可调，0=关=现行行为。原子计数优先（无持久对象缓存回落 transient 桶——纯单测环境
+	 * 两路皆守卫）；键 wk_usd_<Ymd> 2 日 TTL 自然回收（卸载面无需清扫）。
+	 *
+	 * @return bool
+	 */
+	private static function search_daily_allowed(): bool {
+		$cap = function_exists( 'apply_filters' ) ? (int) apply_filters( 'wink_gatekeeper_url_audit_search_daily_cap', 100 ) : 100;
+		if ( $cap <= 0 ) {
+			return true;
+		}
+		$key = 'wk_usd_' . gmdate( 'Ymd' );
+		$n   = AtomicCounter::incr( $key, 172800 );
+		if ( ! is_numeric( $n ) || (int) $n <= 0 ) {
+			$n = function_exists( 'get_transient' ) ? get_transient( $key ) : false;
+			$n = is_numeric( $n ) ? ( (int) $n + 1 ) : 1;
+			if ( function_exists( 'set_transient' ) ) {
+				set_transient( $key, $n, 172800 );
+			}
+			return (int) $n <= $cap;
+		}
+		return (int) $n <= $cap;
 	}
 }

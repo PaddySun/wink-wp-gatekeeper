@@ -71,6 +71,11 @@ use WinkGatekeeper\Verdict;
 final class CommentGate extends AbstractGate {
 
 	/**
+	 * 【S3-F9】存根单票复用帽（audit 建议值 50 次/票 TTL 窗 86400s）。
+	 */
+	public const STUB_REUSE_CAP = 50;
+
+	/**
 	 * 【P1-4·S3-F2】拦截留档 per-IP 日帽默认（schema intercept.archive_daily_ip_cap 同源）。
 	 */
 	public const ARCHIVE_IP_CAP_DEFAULT = 10;
@@ -322,13 +327,15 @@ final class CommentGate extends AbstractGate {
 				}
 				// 待审收口留痕行（hold_moderation / cloud_all_failed——v1.4·R1 G1）只入事件表：
 				// 驱动判定事件已逐条计数，收口行再计会使 by_gate/by_driver 双计同一评论。
-				if ( ! in_array( $verdict->reason(), array( 'hold_moderation', 'cloud_all_failed' ), true ) ) {
+				/* 【S3-F7】容量闸拒写期 stats 跳过（拒写信号透传——统计与明细可对账）。 */
+				$capacity_refused = EventsTable::capacity_refused_last();
+				if ( ! $capacity_refused && ! in_array( $verdict->reason(), array( 'hold_moderation', 'cloud_all_failed' ), true ) ) {
 					StatsCache::record( 'comment', $driver_id, $verdict->verdict() );
 				}
 				// 【O3 §三卡 2】容灾放行计数特例（meta.disaster_pass 语境 → 独立键
 				// disaster_pass 落 by_gate/by_driver 双树）——仪表盘卡片读 option 计数器，
 				// 不 COUNT 事件明细（DashboardDigest 类头注不变式）；pass 维照常 bump 不变。
-				if ( ! empty( $meta['disaster_pass'] ) ) {
+				if ( ! $capacity_refused && ! empty( $meta['disaster_pass'] ) ) {
 					StatsCache::record( 'comment', $driver_id, 'disaster_pass' );
 				}
 				return $event_no;
@@ -455,6 +462,19 @@ final class CommentGate extends AbstractGate {
 				return $this->reject(
 					'stub',
 					Verdict::reject( '', 'bad-signature', array( 'bad-signature' ) ),
+					'captcha_missing',
+					array(),
+					array( 'ip_src' => $resolved['ip_src'], 'client_ip' => $resolved['ip'], 'post_id' => $this->post_id( $commentdata, $request ) )
+				);
+			}
+
+			/* 【S3-F9】存根单票复用帽（批前 24h 无限复用——限流失效形态下放大洪水面）：
+			 * 有效存根在册计数（AtomicCounter 原子优先；无持久对象缓存主机计数不可用=帽
+			 * 不生效=现行行为，如实登记）。超帽 → 同 bad-signature 口径拒（stage=stub 不留档）。 */
+			if ( '' !== $stub_raw && self::stub_replay_exceeded( $stub_raw ) ) {
+				return $this->reject(
+					'stub',
+					Verdict::reject( '', 'stub_replayed', array( 'stub_replayed' ) ),
 					'captcha_missing',
 					array(),
 					array( 'ip_src' => $resolved['ip_src'], 'client_ip' => $resolved['ip'], 'post_id' => $this->post_id( $commentdata, $request ) )
@@ -1642,6 +1662,32 @@ final class CommentGate extends AbstractGate {
 		}
 		$comment_id = call_user_func( $this->archiver, self::archive_comment_payload( $reject_env ) );
 		return ( is_int( $comment_id ) && $comment_id > 0 ) ? $comment_id : null;
+	}
+
+	/**
+	 * 存根单票复用帽判定（【S3-F9】）：有效存根在册自增（wk_sru_ + HMAC16(stub) 原子计数，
+	 * TTL=存根同窗 86400s）；无持久对象缓存主机 AtomicCounter 恒 false=帽不生效=现行行为
+	 * （如实登记）；纯单测环境 salt 走 function_exists 守卫回落（EventSampling 同款）。
+	 *
+	 * @param string $stub_raw 原始存根串。
+	 * @return bool true=超帽（拒）。
+	 */
+	private static function stub_replay_exceeded( string $stub_raw ): bool {
+		$salt = function_exists( 'wp_salt' ) ? wp_salt( 'auth' ) : 'wink-stub-replay-test'; // WP 边界（纯单测环境守卫）。
+		$key  = 'wk_sru_' . substr( hash_hmac( 'sha256', $stub_raw, $salt ), 0, 16 );
+		$n    = AtomicCounter::incr( $key, 86400 );
+		return self::stub_replay_over( is_numeric( $n ) ? (int) $n : null );
+	}
+
+	/**
+	 * 复用帽纯判定（单测面）：null=无计数上下文（帽不生效）；恰满帽不拒；+1 超帽拒。
+	 *
+	 * @param int|null $count 在册计数值（含本次）。
+	 * @param int      $cap   帽值。
+	 * @return bool
+	 */
+	public static function stub_replay_over( ?int $count, int $cap = self::STUB_REUSE_CAP ): bool {
+		return null !== $count && $count > $cap;
 	}
 
 	/**

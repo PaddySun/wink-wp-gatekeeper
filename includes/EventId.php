@@ -15,6 +15,10 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
+}
+
 final class EventId {
 
 	/**
