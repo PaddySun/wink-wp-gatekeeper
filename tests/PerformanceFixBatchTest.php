@@ -284,6 +284,14 @@ final class PerformanceFixBatchTest extends TestCase {
 		$src = (string) file_get_contents( dirname( __DIR__ ) . '/includes/Bootstrap.php' );
 		$this->assertStringContainsString( 'SCRIPT_DEBUG', $src, 'SCRIPT_DEBUG 分支在场' );
 		$this->assertGreaterThanOrEqual( 2, substr_count( $src, 'front-gate$suffix.css' ), 'front 与 login 两注册块均走 suffix 形态（front-gate$suffix.css 字面量≥2）' );
+		/* 【0.9.2 部署实锤修复】插值引号契约：单引号 PHP 不插值——B 机实机页面曾渲染字面量
+		 * gatekeeper$suffix.js（资产 404）。钉死双引号形态在场+单引号形态零残留。 */
+		$this->assertSame( 2, substr_count( $src, '"assets/css/front-gate$suffix.css"' ), 'css 路径双引号形态恰两处（插值生效）' );
+		$this->assertSame( 2, substr_count( $src, '"assets/js/gatekeeper$suffix.js"' ), 'js 路径双引号形态恰两处' );
+		$this->assertSame( 2, substr_count( $src, '"assets/js/drivers/tencent$suffix.js"' ), 'tencent 路径双引号形态恰两处' );
+		$this->assertSame( 2, substr_count( $src, '"assets/js/drivers/aliyun$suffix.js"' ), 'aliyun 路径双引号形态恰两处' );
+		$this->assertSame( 0, substr_count( $src, chr(39) . 'assets/css/front-gate$suffix.css' . chr(39) ), 'css 路径单引号形态零残留（不插值）' );
+		$this->assertSame( 0, substr_count( $src, chr(39) . 'assets/js/gatekeeper$suffix.js' . chr(39) ), 'js 路径单引号形态零残留' );
 		// 源路径字面量退役（后缀变量化——两处硬编码路径不再在场）。
 		$this->assertSame( 0, substr_count( $src, "'assets/css/front-gate.css'" ), 'front-gate.css 硬编码路径退役（suffix 变量化）' );
 		$this->assertSame( 0, substr_count( $src, "'assets/js/gatekeeper.js'" ), 'gatekeeper.js 硬编码路径退役（suffix 变量化）' );

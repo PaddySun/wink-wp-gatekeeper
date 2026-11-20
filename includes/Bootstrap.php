@@ -901,27 +901,27 @@ final class Bootstrap {
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 		wp_register_style(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/css/front-gate$suffix.css',
+			$this->base_url . "assets/css/front-gate$suffix.css",
 			array(),
 			WINK_GATEKEEPER_VERSION
 		);
 		wp_register_script(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/js/gatekeeper$suffix.js',
+			$this->base_url . "assets/js/gatekeeper$suffix.js",
 			array(),
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-tencent',
-			$this->base_url . 'assets/js/drivers/tencent$suffix.js',
+			$this->base_url . "assets/js/drivers/tencent$suffix.js",
 			array( 'wink-gatekeeper-front' ), // 适配器依赖调度器先就位（注册表事件竞态收口）。
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-aliyun',
-			$this->base_url . 'assets/js/drivers/aliyun$suffix.js',
+			$this->base_url . "assets/js/drivers/aliyun$suffix.js",
 			array( 'wink-gatekeeper-front' ),
 			WINK_GATEKEEPER_VERSION,
 			true
@@ -1098,27 +1098,27 @@ final class Bootstrap {
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 		wp_register_style(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/css/front-gate$suffix.css',
+			$this->base_url . "assets/css/front-gate$suffix.css",
 			array(),
 			WINK_GATEKEEPER_VERSION
 		);
 		wp_register_script(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/js/gatekeeper$suffix.js',
+			$this->base_url . "assets/js/gatekeeper$suffix.js",
 			array(),
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-tencent',
-			$this->base_url . 'assets/js/drivers/tencent$suffix.js',
+			$this->base_url . "assets/js/drivers/tencent$suffix.js",
 			array( 'wink-gatekeeper-front' ),
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-aliyun',
-			$this->base_url . 'assets/js/drivers/aliyun$suffix.js',
+			$this->base_url . "assets/js/drivers/aliyun$suffix.js",
 			array( 'wink-gatekeeper-front' ),
 			WINK_GATEKEEPER_VERSION,
 			true
