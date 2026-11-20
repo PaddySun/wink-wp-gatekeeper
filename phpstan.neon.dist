@@ -6,6 +6,11 @@
 # 替代 szepeviktor/phpstan-wordpress）：下方 scanFiles 扫描其声明文件补齐 WP
 # 函数/类/常量 stub——仅静态扫描零运行时加载，szepeviktor/phpstan-wordpress
 # 可日后按需叠加。
+# 批 ST1（2026-11-21，HANDOVER 20b deferred 项）：WP_CLI 族 14 条由本仓手写桩
+# tests/phpstan-stubs/wp-cli-stubs.php 清除——上游 php-stubs/wp-cli-stubs 最高
+# v2.6.0 钉 wordpress-stubs ^4.7||^5.0 与本项目 ^7.1 冲突，别名绕行不取，
+# 手写桩面=本插件实调五静态方法（ExistingAuditCli.php），签名按 WP-CLI 2.x
+# 公开 API，error() 刻意 void 防 catch 块内后续调用被误判不可达（详见桩文件头注）。
 parameters:
     level: 3
     checkGenericClassInNonGenericObjectType: false
@@ -18,3 +23,4 @@ parameters:
         - tools
     scanFiles:
         - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+        - tests/phpstan-stubs/wp-cli-stubs.php
