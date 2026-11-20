@@ -383,9 +383,9 @@ namespace WinkGatekeeper\Tests {
 			// 【AUDIT-FIX 2026-11-20 批】四点随批进位 0.8.6→0.8.7（十件轻量修复批——0.8.6 收口在前；
 			// 本测试名保留 0_8_6 历史锚——断言值翻转非语义变化，M5FixAssetVerTest -w3fix1 翻转先例）。
 			// 【i18n 批 I-4a→I-4c】四点随批进位 0.8.7→0.9.0→0.9.1（I-4c 终局修复：PAGE_SLUG 旧 URL 复通 + po 补齐 16 键）。
-			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.1$/m', $entry, '四点①插件头 Version 0.9.1（i18n 批 I-4c 版本进位）' );
-			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.1' )", $entry, '四点②版本常量 0.9.1（i18n 批 I-4c 版本进位）' );
-			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.1$/m', $readme, '四点③readme Stable tag 0.9.1（i18n 批 I-4c 版本进位）' );
+			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.2$/m', $entry, '四点①插件头 Version 0.9.2（i18n 批 I-4c 版本进位）' );
+			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.2' )", $entry, '四点②版本常量 0.9.2（i18n 批 I-4c 版本进位）' );
+			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.2$/m', $readme, '四点③readme Stable tag 0.9.2（i18n 批 I-4c 版本进位）' );
 			self::assertStringContainsString( '= 0.9.1 =', $readme, '四点④changelog 当前条目 0.9.1（i18n 批 I-4c 版本进位——AUDIT-FIX 十件收口在前）' );
 
 			// 0.8.5/0.8.6 条目还原保留（历史条目不删——readme changelog 只增不删纪律）。
