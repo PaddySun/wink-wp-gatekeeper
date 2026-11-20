@@ -404,14 +404,14 @@ namespace WinkGatekeeper\Tests {
 
 			// 0.8.6 条目两缺陷要点在场（人话——手测档案缺陷①②；历史条目内容不随进位变化）。
 			$entry086 = self::block_between( $readme, '= 0.8.6 =', '= 0.8.5 =' );
-			self::assertStringContainsString( '向导', $entry086, '0.8.6 条目要点：向导出口链修复' );
-			self::assertStringContainsString( '测试凭据', $entry086, '0.8.6 条目要点：测试凭据徽标回写修复（readme zh 锚）' );
+			self::assertStringContainsString( 'wizard', $entry086, '0.8.6 条目要点：向导出口链修复（i18n 批 I-5b 翻转：readme 整篇英文化，用户拍板 2026-11-20 项③）' );
+			self::assertStringContainsString( 'Test credentials', $entry086, '0.8.6 条目要点：测试凭据徽标回写修复（i18n 批 I-5b 翻转）' );
 
 			// 0.8.7 条目十件要点在场（人话——独立审计轻量批口径）。
 			$entry087 = self::block_between( $readme, '= 0.8.7 =', '= 0.8.6 =' );
-			self::assertStringContainsString( '审计', $entry087, '0.8.7 条目要点：独立审计修复批' );
-			self::assertStringContainsString( '黄条', $entry087, '0.8.7 条目要点：CDN 代理头告警' );
-			self::assertStringContainsString( '无 breaking', $entry087, '0.8.7 条目要点：breaking 注（纵深加固+行为收紧两处如实注明）' );
+			self::assertStringContainsString( 'Independent-audit', $entry087, '0.8.7 条目要点：独立审计修复批（i18n 批 I-5b 翻转）' );
+			self::assertStringContainsString( 'proxy-header alert banner', $entry087, '0.8.7 条目要点：CDN 代理头告警（i18n 批 I-5b 翻转）' );
+			self::assertStringContainsString( 'No breaking', $entry087, '0.8.7 条目要点：breaking 注（纵深加固+行为收紧两处如实注明；i18n 批 I-5b 翻转）' );
 		}
 
 		/**

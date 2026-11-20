@@ -140,8 +140,8 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		$readme = self::src( 'readme.txt' );
 		self::assertStringNotContainsString( 'Wink 门口保安', $readme, 'readme 品牌名「Wink 门口保安」零残留（6 处全改）' );
 		self::assertStringNotContainsString( 'wink 门口保安', $readme, 'readme 品牌名「wink 门口保安」零残留' );
-		self::assertSame( 2, substr_count( $readme, '门口保安' ), 'readme 门口保安 残留恰两处=品类泛称白名单+breaking 注④改名条目历史性提及（批 D 翻转）' );
-		self::assertStringContainsString( 'Wink WP 保安', $readme, 'readme 新名在场（i18n I-3：readme 显示层不改，zh 锚保留）' );
+		self::assertSame( 0, substr_count( $readme, '门口保安' ), 'readme 门口保安 零残留（i18n 批 I-5b 翻转：readme 整篇英文化——zh 旧名白名单 2 处随英文化退役，用户拍板 2026-11-20 项③）' );
+		self::assertStringContainsString( 'Wink WP Guard', $readme, 'readme 新名在场（i18n 批 I-5b 翻转：readme 全英文，新名即英文品牌名）' );
 
 		// 白名单恰六处：五个 CSS/JS/主文件文件头注释 + Bootstrap docblock（注释层）。
 		sort( $hits );

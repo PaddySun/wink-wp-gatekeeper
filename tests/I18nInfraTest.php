@@ -274,9 +274,9 @@ final class I18nInfraTest extends TestCase {
 		$pos087  = (int) strpos( $readme, '= 0.8.7 =' );
 		self::assertLessThan( $pos087, $pos090, '批 I-4a：0.9.0 条目位次在 0.8.7 之前（Changelog 倒序纪律）' );
 		$entry   = substr( $readme, $pos090, $pos087 - $pos090 );
-		self::assertStringContainsString( '英文化', $entry, '0.9.0 条目要点：i18n 全量英文化改造' );
+		self::assertStringContainsString( 'full-English refactor', $entry, '0.9.0 entry essence: the i18n full-English refactor（i18n 批 I-5b 翻转：readme 整篇英文化，用户拍板 2026-11-20 项③）' );
 		self::assertStringContainsString( 'zh_CN', $entry, '0.9.0 条目要点：内置 zh_CN 翻译包' );
-		self::assertStringContainsString( '零变化', $entry, '0.9.0 条目要点：中文站点体验零变化' );
+		self::assertStringContainsString( 'Zero change', $entry, '0.9.0 entry essence: zero change for Chinese sites（i18n 批 I-5b 翻转同上）' );
 	}
 
 	/**

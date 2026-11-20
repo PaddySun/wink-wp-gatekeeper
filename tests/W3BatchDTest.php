@@ -415,16 +415,16 @@ namespace WinkGatekeeper\Tests {
 
 			// breaking 注收口：batch C 占位的「开发中」措辞随发版退役。
 			self::assertStringNotContainsString( '0.8.5 起·开发中，随下一版本发布', $readme, 'breaking 注「开发中」占位措辞退役（0.8.5 已发版）' );
-			self::assertStringContainsString( 'breaking 注（0.8.5 起）', $readme, 'breaking 注 0.8.5 正式落位' );
+			self::assertStringContainsString( 'Breaking note (since 0.8.5)', $readme, 'breaking note 0.8.5 landed（i18n 批 I-5b 翻转：readme 整篇英文化，用户拍板 2026-11-20 项③）' );
 
 			// 0.8.5 changelog 正文四批要点在场（人话总结——任务口径）。
 			$entry085 = self::block_between( $readme, '= 0.8.5 =', '= 0.8.4 =' );
-			self::assertStringContainsString( '后台', $entry085, '批 A/B 后台重设计要点' );
-			self::assertStringContainsString( '配色', $entry085, '批 A token 双组跟随 WP 配色要点' );
-			self::assertStringContainsString( 'Wink WP 保安', $entry085, '批 B 改名要点（i18n I-3：readme 历史条目 zh 锚保留）' );
-			self::assertStringContainsString( '向导', $entry085, '批 C 首启向导要点' );
-			self::assertStringContainsString( '导出', $entry085, '批 D CSV 导出要点' );
-			self::assertStringContainsString( '测试 2139→', $entry085, '四批测试数轨迹（2139 起点如实）' );
+			self::assertStringContainsString( 'Full admin redesign', $entry085, '批 A/B 后台重设计要点（i18n 批 I-5b 翻转）' );
+			self::assertStringContainsString( 'light/dark scheme', $entry085, '批 A token 双组跟随 WP 配色要点（i18n 批 I-5b 翻转）' );
+			self::assertStringContainsString( 'Wink WP Guard', $entry085, '批 B 改名要点（i18n 批 I-5b 翻转：readme 全英文，新名即英文品牌名）' );
+			self::assertStringContainsString( 'wizard', $entry085, '批 C 首启向导要点（i18n 批 I-5b 翻转）' );
+			self::assertStringContainsString( 'Export CSV', $entry085, '批 D CSV 导出要点（i18n 批 I-5b 翻转）' );
+			self::assertStringContainsString( 'Tests 2139 →', $entry085, '四批测试数轨迹（2139 起点如实；i18n 批 I-5b 翻转）' );
 		}
 
 		/* ================================================================
