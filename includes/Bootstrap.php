@@ -1166,8 +1166,8 @@ final class Bootstrap {
 	 */
 	public function register_menu(): void {
 		$this->settings_page_hook = add_options_page(
-			__( 'Wink WP Guard', 'wink-wp-gatekeeper' ),
-			__( 'Wink WP Guard', 'wink-wp-gatekeeper' ),
+			__( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' ),
+			__( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' ),
 			'manage_options',
 			SettingsPage::PAGE_SLUG,
 			array( SettingsPage::class, 'render' )
@@ -1207,7 +1207,7 @@ final class Bootstrap {
 		);
 		wp_add_dashboard_widget(
 			'wink_gatekeeper_dashboard_widget',
-			__( 'Wink WP Guard · Today\'s status', 'wink-wp-gatekeeper' ),
+			__( 'Wink WP Gatekeeper · Today\'s status', 'wink-wp-gatekeeper' ),
 			array( $this, 'render_dashboard_widget' )
 		);
 	}

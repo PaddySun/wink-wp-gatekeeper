@@ -253,7 +253,7 @@ final class UiTab1OverviewContractTest extends TestCase {
 			. self::body( 'render_overview_roster' )
 			. self::body( 'render_overview_incidents' )
 			. self::body( 'render_overview_footer' );
-		$this->assertStringNotContainsString( 'Wink WP Guard', $bodies, '点名册不用保安比喻（统筹裁决 1）' );
+		$this->assertStringNotContainsString( 'Wink WP Gatekeeper', $bodies, '点名册不用保安比喻（统筹裁决 1；批 R 翻转=现行 EN 名 Wink WP Gatekeeper）' );
 		$this->assertStringNotContainsString( 'Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented.', $bodies, '停转黑话退役（对照表 B-4）' );
 		$this->assertStringNotContainsString( '未装配', $bodies, '未装配黑话退役（对照表 B-5）' );
 		$this->assertStringNotContainsString( '本地规则无外部故障面', $bodies, '恒正常黑话退役（对照表 B-7）' );

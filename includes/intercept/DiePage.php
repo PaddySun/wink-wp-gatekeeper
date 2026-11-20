@@ -53,7 +53,7 @@ final class DiePage {
 		$logo = '';
 		if ( '' !== $logo_url ) {
 			// 【W3·批B·改名⑧】alt 改名（原 alt="wink"——显示层改名 8 处之一，§1.5 R3 清单）。
-			$logo = '<img class="wk-logo" src="' . $e( $logo_url ) . '" alt="' . esc_attr__( 'Wink WP Guard', 'wink-wp-gatekeeper' ) . '" width="40" height="45" decoding="async">';
+			$logo = '<img class="wk-logo" src="' . $e( $logo_url ) . '" alt="' . esc_attr__( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' ) . '" width="40" height="45" decoding="async">';
 		}
 
 		return '<!DOCTYPE html><html lang="' . $e( $lang ) . '"><head><meta charset="utf-8">'
@@ -95,7 +95,7 @@ final class DiePage {
 			. $evidence_rows
 			. '<a class="wk-back" href="javascript:history.back()">&larr; ' . esc_html__( 'Back to the previous page', 'wink-wp-gatekeeper' ) . '</a>'
 			. $contact
-			. '<p class="wk-sign">' . esc_html__( 'Wink WP Guard', 'wink-wp-gatekeeper' ) . '</p>'
+			. '<p class="wk-sign">' . esc_html__( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' ) . '</p>'
 			. '</div></body></html>';
 	}
 

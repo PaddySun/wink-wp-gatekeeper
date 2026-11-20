@@ -1,4 +1,4 @@
-=== Wink WP Guard ===
+=== Wink WP Gatekeeper ===
 Contributors: wink
 Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
@@ -12,7 +12,7 @@ It winks at real visitors and keeps its eyes open for bots — comment verificat
 
 == Description ==
 
-Wink WP Guard is a WordPress gatekeeper built for independent, self-hosted blogs:
+Wink WP Gatekeeper is a WordPress gatekeeper built for independent, self-hosted blogs:
 
 * **Three gates in one**: comment verification, login verification, and content filtering under unified orchestration (gates = orchestrators, drivers = executors).
 * **Pluggable drivers**: captcha (Tencent Tianyu 2.0 first), cloud moderation (DeepSeek first), and IP reputation (AbuseIPDB) all plug in through a driver registry — switching drivers takes zero code changes.
@@ -20,11 +20,11 @@ Wink WP Guard is a WordPress gatekeeper built for independent, self-hosted blogs
 * **Zero composer dependencies**: shipped G5-style; the core logic is pure PHP.
 * **CC defense line**: per-IP rate limiting on comment submissions (default 30/h/IP, `wk_cm_` hourly buckets) and XML-RPC multicall collapsed to once per request (zero sleep and zero events after the first rejection + a 20-attempts-per-request cap).
 
-> **Breaking note (since 0.4.5)**: XML-RPC login is disabled by default on fresh installs — site owners using XML-RPC publishing tools (blog clients) need to enable it manually under Settings → Wink WP Guard, Tab② (Captcha) → Advanced; upgraded sites are unaffected (settings already enabled before the upgrade are preserved as-is).
+> **Breaking note (since 0.4.5)**: XML-RPC login is disabled by default on fresh installs — site owners using XML-RPC publishing tools (blog clients) need to enable it manually under Settings → Wink WP Gatekeeper, Tab② (Captcha) → Advanced; upgraded sites are unaffected (settings already enabled before the upgrade are preserved as-is).
 
 > **Breaking note (since 0.7.1)**: ① the login gate's "same-IP failure threshold" factory default changed 10 → **3** — on upgraded sites, the untouched factory value 10 is automatically shifted to the new default 3 (any value the owner set manually is preserved as-is); ② the default captcha driver on fresh installs changed tencent → **aliyun** (Aliyun Captcha is free to enable with pay-as-you-go billing; Tencent Tianyu's free tier requires a ¥300 plan) — upgraded sites with Tianyu credentials configured keep them, and sites that picked another driver are unaffected.
 
-> **Breaking note (since 0.8.4)**: the frontend submit trigger switches by default to "**no-button mode**" (all at once — upgraded sites switch immediately, zero migration code): the standalone "Complete human verification" button is no longer rendered; visitors click native submit buttons like "Post Comment / Log In" to trigger human verification, and the submission goes through automatically once the captcha is passed. To keep the original shape, go to "Settings → Wink WP Guard", Tab② (Captcha) → "Submit trigger mode" and pick "Dedicated verify button (classic)" for a one-click fallback.
+> **Breaking note (since 0.8.4)**: the frontend submit trigger switches by default to "**no-button mode**" (all at once — upgraded sites switch immediately, zero migration code): the standalone "Complete human verification" button is no longer rendered; visitors click native submit buttons like "Post Comment / Log In" to trigger human verification, and the submission goes through automatically once the captcha is passed. To keep the original shape, go to "Settings → Wink WP Gatekeeper", Tab② (Captcha) → "Submit trigger mode" and pick "Dedicated verify button (classic)" for a one-click fallback.
 
 > **Breaking note (since 0.8.5)**: ① Aliyun Captcha's "frontend mode" factory default changed embed → **popup** (floating layer, zero footprint) — upgraded sites with Aliyun credentials configured keep their explicit embed choice; sites without credentials follow the new popup default; go to Tab② (Captcha) → "Frontend mode", pick "Embed trigger bar" and save for a one-click fallback (after falling back it will not shift again). ② AbuseIPDB's two quota gates changed factory defaults soft_quota 3000 → **900** and daily_quota 4750 → **950** (unified free-tier caliber of 1000/day each with ~5% headroom) — other values the owner set explicitly are unaffected; sites that had manually set the soft cap back to 3000 (or the daily quota to 4750) will be shifted once on upgrade — please re-save after upgrading (inherent behavior of sentinel-value collisions, disclosed as-is). ③ Aliyun Captcha gains an explicit "service region" choice (cn default / sgp overseas) — the sgp endpoint is static inference (not machine-verified); if live re-verification fails at release, the sgp option is disabled while the cn main path is unaffected. ④ The plugin display name was renamed to "**Wink WP Guard**" (previously the doorman branding — a display-layer rename only: the plugin name, admin menu, dashboard card, and frontend block-page signature change; technical identifiers (directory, options, event IDs, hook names) are unchanged, and configuration and data are unaffected).
 
@@ -34,13 +34,13 @@ The current milestone is the **M1 comment-verification MVP** (0.1.0): on top of 
 
 1. Upload the `wink-wp-gatekeeper` directory to `/wp-content/plugins/`;
 2. Activate it in the "Plugins" menu — activation creates the events table and writes the default settings automatically;
-3. Go to "Settings → Wink WP Guard": on Tab② (Captcha) choose the captcha driver (defaulting to "Aliyun Captcha 2.0" on fresh installs since 0.7.1) and configure the credentials for the chosen vendor; the verification component then appears on the comment form.
+3. Go to "Settings → Wink WP Gatekeeper": on Tab② (Captcha) choose the captcha driver (defaulting to "Aliyun Captcha 2.0" on fresh installs since 0.7.1) and configure the credentials for the chosen vendor; the verification component then appears on the comment form.
 
 == Frequently Asked Questions ==
 
 = Can't post from an XML-RPC blog client after upgrading to 0.4.5? =
 
-Since 0.4.5, **fresh installs** disable XML-RPC login by default (breaking: the schema default changed true → false). Upgraded sites are unaffected — a setting already enabled before the upgrade (stored value true) is preserved as-is, and migrate does not touch existing settings. Only very early sites that never stored this key fall back to the new default (off); in that case, go to "Settings → Wink WP Guard", Tab② (Captcha) → Advanced and untick "Disable XML-RPC login".
+Since 0.4.5, **fresh installs** disable XML-RPC login by default (breaking: the schema default changed true → false). Upgraded sites are unaffected — a setting already enabled before the upgrade (stored value true) is preserved as-is, and migrate does not touch existing settings. Only very early sites that never stored this key fall back to the new default (off); in that case, go to "Settings → Wink WP Gatekeeper", Tab② (Captcha) → Advanced and untick "Disable XML-RPC login".
 
 = Does uninstalling delete my data? =
 
@@ -172,7 +172,7 @@ U3·M5 existing-audit foundation batch (the "existing comment audit", 2026-11-14
 
 = 0.5.7 =
 
-U1U2·M5 site enhancement batch (the Tab⑧ new tab "Site enhancement", 2026-11-14 — TDD red-first). **U1's "Website" field, two independent switches** (fully independent, unrelated): the A collection switch (off by default = the comment form shows no "Website" field and submitted URLs are dropped — a hidden form + submit-side double insurance, closing the curl-forgery surface; existing URLs are never deleted, and the admin comment list always shows them so the owner can identify visitors) / the B frontend link switch (off by default = commenter names render as plain text without links on the frontend; admin links stay clickable). **U2 domestic avatar mirror**: the avatar source, five choices (official / Cravatar / WeAvatar / sep.cc / custom URL), defaulting to Cravatar (re-verified reachable in the reference machine's four-source L0 comparison; the official source loads slowly / fails in-country, and mirrors speed it up); when a mirror is unreachable or a custom URL is invalid it falls back to the official source automatically (fail-safe unchanged); the card's "test current avatar source" button has three states (normal / works but slow / unreachable). A privacy positive: domesticating avatar requests retracts the Gravatar cross-border surface. Note: both A/B default to off (= no collection + frontend link stripping); after upgrading, re-enable the corresponding switches under "Settings → Wink WP Guard → ⑧ Site enhancement" to restore the original behavior. Tests 1569 → 1613 / assertions 10449 → 10602 all green (M5U1SiteFieldTest + M5U2AvatarTest + UiM5Tab8ContractTest's new 44).
+U1U2·M5 site enhancement batch (the Tab⑧ new tab "Site enhancement", 2026-11-14 — TDD red-first). **U1's "Website" field, two independent switches** (fully independent, unrelated): the A collection switch (off by default = the comment form shows no "Website" field and submitted URLs are dropped — a hidden form + submit-side double insurance, closing the curl-forgery surface; existing URLs are never deleted, and the admin comment list always shows them so the owner can identify visitors) / the B frontend link switch (off by default = commenter names render as plain text without links on the frontend; admin links stay clickable). **U2 domestic avatar mirror**: the avatar source, five choices (official / Cravatar / WeAvatar / sep.cc / custom URL), defaulting to Cravatar (re-verified reachable in the reference machine's four-source L0 comparison; the official source loads slowly / fails in-country, and mirrors speed it up); when a mirror is unreachable or a custom URL is invalid it falls back to the official source automatically (fail-safe unchanged); the card's "test current avatar source" button has three states (normal / works but slow / unreachable). A privacy positive: domesticating avatar requests retracts the Gravatar cross-border surface. Note: both A/B default to off (= no collection + frontend link stripping); after upgrading, re-enable the corresponding switches under "Settings → Wink WP Gatekeeper → ⑧ Site enhancement" to restore the original behavior. Tests 1569 → 1613 / assertions 10449 → 10602 all green (M5U1SiteFieldTest + M5U2AvatarTest + UiM5Tab8ContractTest's new 44).
 
 = 0.5.6 =
 

@@ -12,7 +12,7 @@
  * @package WinkGatekeeper
  *
  * @wordpress-plugin
- * Plugin Name:       Wink WP Guard
+ * Plugin Name:       Wink WP Gatekeeper
  * Plugin URI:        https://github.com/wink/wink-wp-gatekeeper
  * Description:       It winks at real visitors and keeps its eyes open for bots — comment verification, login verification, and content filtering in one, with pluggable captcha and cloud moderation drivers.
  * Version:           0.9.1

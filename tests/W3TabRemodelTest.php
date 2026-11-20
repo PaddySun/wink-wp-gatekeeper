@@ -79,7 +79,7 @@ final class W3TabRemodelTest extends TestCase {
 	}
 
 	/* ================================================================
-	 * ① 改名「Wink WP 保安」显示层 8 处 + 注释层豁免白名单
+	 * ① 改名「Wink WP 保安」显示层 8 处 + 注释层豁免白名单（批 R 改名回归：EN 名回归 Wink WP Gatekeeper 与 GitHub 仓库一致；zh po=Wink WP 保安 不变）
 	 * ================================================================ */
 
 	/**
@@ -89,22 +89,22 @@ final class W3TabRemodelTest extends TestCase {
 	 */
 	public function test_rename_eight_display_spots(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
-		self::assertStringContainsString( 'Plugin Name:       Wink WP Guard', $plugin, '改名①：插件头 Plugin Name（i18n 批 I-3 头英文化，zh 走 po msgstr）' );
+		self::assertStringContainsString( 'Plugin Name:       Wink WP Gatekeeper', $plugin, '改名①：插件头 Plugin Name（i18n 批 I-3 头英文化，zh 走 po msgstr）' );
 
 		$bootstrap = self::src( 'includes/Bootstrap.php' );
-		self::assertStringContainsString( "__( 'Wink WP Guard', 'wink-wp-gatekeeper' )", $bootstrap, '改名②③：菜单 page_title/menu_title 双题' );
-		self::assertSame( 2, substr_count( $bootstrap, "__( 'Wink WP Guard', 'wink-wp-gatekeeper' )," ), '菜单双题恰两处' );
-		self::assertStringContainsString( "__( 'Wink WP Guard · Today\'s status', 'wink-wp-gatekeeper' )", $bootstrap, '改名④：Widget 标题' );
+		self::assertStringContainsString( "__( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' )", $bootstrap, '改名②③：菜单 page_title/menu_title 双题' );
+		self::assertSame( 2, substr_count( $bootstrap, "__( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' )," ), '菜单双题恰两处' );
+		self::assertStringContainsString( "__( 'Wink WP Gatekeeper · Today\'s status', 'wink-wp-gatekeeper' )", $bootstrap, '改名④：Widget 标题' );
 
 		$sp = self::sp();
-		self::assertStringContainsString( "esc_attr_e( 'Wink WP Guard', 'wink-wp-gatekeeper' )", $sp, '改名⑤：页头 logo alt' );
-self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( \'Guard\', \'wink-wp-gatekeeper\' ); ?></span>', $sp, '改名⑥：wordmark（Q1=WP 金高亮 <em> 形态；i18n 批 I-3 尾词键化，zh msgstr=保安）' );
-		self::assertStringContainsString( "esc_attr_e( 'Wink WP Guard settings sections', 'wink-wp-gatekeeper' )", $sp, '改名⑦：nav aria-label' );
+		self::assertStringContainsString( "esc_attr_e( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' )", $sp, '改名⑤：页头 logo alt' );
+self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( \'Gatekeeper\', \'wink-wp-gatekeeper\' ); ?></span>', $sp, '改名⑥：wordmark（Q1=WP 金高亮 <em> 形态；i18n 批 I-3 尾词键化，zh msgstr=保安）' );
+		self::assertStringContainsString( "esc_attr_e( 'Wink WP Gatekeeper settings sections', 'wink-wp-gatekeeper' )", $sp, '改名⑦：nav aria-label' );
 
 		$die = self::src( 'includes/intercept/DiePage.php' );
-		self::assertStringContainsString( "alt=\"' . esc_attr__( 'Wink WP Guard', 'wink-wp-gatekeeper' ) . '\"", $die, '改名⑧a：拦截页 logo alt 改名（i18n 批 I-3 esc_attr__ 键化）' );
+		self::assertStringContainsString( "alt=\"' . esc_attr__( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' ) . '\"", $die, '改名⑧a：拦截页 logo alt 改名（i18n 批 I-3 esc_attr__ 键化）' );
 		self::assertStringContainsString( 'wk-sign', $die, '改名⑧b：正文末常驻品牌署名行（R3·Q6——前台页补署名）' );
-		self::assertStringContainsString( 'Wink WP Guard', $die, '署名行文案=新名（i18n 批 I-3 键化渲染）' );
+		self::assertStringContainsString( 'Wink WP Gatekeeper', $die, '署名行文案=新名（i18n 批 I-3 键化渲染）' );
 	}
 
 	/**
@@ -141,7 +141,7 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		self::assertStringNotContainsString( 'Wink 门口保安', $readme, 'readme 品牌名「Wink 门口保安」零残留（6 处全改）' );
 		self::assertStringNotContainsString( 'wink 门口保安', $readme, 'readme 品牌名「wink 门口保安」零残留' );
 		self::assertSame( 0, substr_count( $readme, '门口保安' ), 'readme 门口保安 零残留（i18n 批 I-5b 翻转：readme 整篇英文化——zh 旧名白名单 2 处随英文化退役，用户拍板 2026-11-20 项③）' );
-		self::assertStringContainsString( 'Wink WP Guard', $readme, 'readme 新名在场（i18n 批 I-5b 翻转：readme 全英文，新名即英文品牌名）' );
+		self::assertStringContainsString( 'Wink WP Gatekeeper', $readme, 'readme 新名在场（i18n 批 I-5b 翻转：readme 全英文，新名即英文品牌名）' );
 
 		// 白名单恰六处：五个 CSS/JS/主文件文件头注释 + Bootstrap docblock（注释层）。
 		sort( $hits );
@@ -383,7 +383,7 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		$copy = self::body( 'render_tab_copy' );
 		self::assertStringNotContainsString( '<details class="wk-guide" id="wk-copy-advanced">', $copy, '文案折叠壳迁 advanced_fold（批 B 目标形态）' );
 		self::assertStringContainsString( 'wk-copy-advanced', $copy, '文案折叠 id 锚原位保留' );
-		self::assertStringContainsString( 'A permanent brand signature line “Wink WP Guard” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B).', $copy, '拦截页卡加「正文末品牌署名行」预览对应注记（R3）' );
+		self::assertStringContainsString( 'A permanent brand signature line “Wink WP Gatekeeper” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B).', $copy, '拦截页卡加「正文末品牌署名行」预览对应注记（R3）' );
 
 		// DiePage::build 署名行实装（前台单页——本批落位）。
 		$die = self::src( 'includes/intercept/DiePage.php' );

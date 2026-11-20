@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wink-wp-gatekeeper\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 22:51+0000\n"
-"PO-Revision-Date: 2026-11-19 22:51+0000\n"
+"POT-Creation-Date: 2026-11-20 10:14+0000\n"
+"PO-Revision-Date: 2026-11-20 10:14+0000\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
@@ -409,7 +409,7 @@ msgstr "WordPress 原生审核开关已开启"
 msgid "A blank note sends that trigger surface's default English phrase (already echoed in each input's placeholder). The [wink-wp-gatekeeper] prefix is added automatically on send (not removable), and over-length notes are truncated (255 characters)."
 msgstr "备注留空=发送该触发面的默认英文短语（已回显在各输入框 placeholder）。发送时自动加前缀 [wink-wp-gatekeeper]（不可去除），超长自动截断（255 字符）。"
 
-msgid "A permanent brand signature line “Wink WP Guard” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B)."
+msgid "A permanent brand signature line “Wink WP Gatekeeper” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B)."
 msgstr "正文末常驻品牌署名行「Wink WP 保安」——点「查看效果」即可在实渲染预览中看到（W3 批 B 落位）。"
 
 msgid "A quiet day"
@@ -1531,6 +1531,9 @@ msgstr "哪张门"
 msgid "Gate switches"
 msgstr "闸开关"
 
+msgid "Gatekeeper"
+msgstr "保安"
+
 msgid "Geolocation"
 msgstr "归属地"
 
@@ -1557,9 +1560,6 @@ msgstr "好选择——站内规矩始终在岗，零成本零外呼。总览页
 
 msgid "Grouped by site (URL check violations)"
 msgstr "按网站归堆（网址核查判违规）"
-
-msgid "Guard"
-msgstr "保安"
 
 msgid "HTTP 200 but the response is not valid JSON (contract mismatch — possibly hijacked by a middle layer / returned HTML) — please screenshot this message for troubleshooting."
 msgstr "HTTP 200 但响应不是合法 JSON（契约不符——可能被中间层劫持/返回了 HTML）——请截图此信息联系排查。"
@@ -3835,16 +3835,16 @@ msgstr "为什么拦"
 msgid "Why it is the default recommendation = lowest barrier to entry: Baidu AI Cloud is free to enable, pay-as-you-go, and connects directly within the mainland — with both keys in hand you are ready to go. After pasting, click “Test credentials” (a real call with a benign sample): green = credentials work, yellow = required fields missing (listed per field), red = key rejected."
 msgstr "选它当默认推荐的理由＝开通门槛最低：百度智能云免费开通、按量计费、境内直连不出境，两把钥匙拿到就能用。粘贴后点「测试凭据」（良性样本真调用）：绿 = 凭据通，黄 = 必填缺（逐字段列出），红 = 密钥被拒。"
 
-msgid "Wink WP Guard"
+msgid "Wink WP Gatekeeper"
 msgstr "Wink WP 保安"
 
-msgid "Wink WP Guard settings sections"
+msgid "Wink WP Gatekeeper settings sections"
 msgstr "Wink WP 保安设置分区"
 
-msgid "Wink WP Guard stands at your blog's door: it blocks spam comments, stops credential-stuffing logins, and routes suspicious content to manual review. This wizard walks you through the two most important keys — you can skip any step and come back later; skipped parts keep fallback protection, so you are never left exposed."
+msgid "Wink WP Gatekeeper stands at your blog's door: it blocks spam comments, stops credential-stuffing logins, and routes suspicious content to manual review. This wizard walks you through the two most important keys — you can skip any step and come back later; skipped parts keep fallback protection, so you are never left exposed."
 msgstr "Wink WP 保安是站在你的博客门口的保安：拦垃圾评论、防撞库登录、可疑内容转人工。接下来带你配好两把最关键的钥匙——配到哪一步都可以随时跳过，跳过的部分会有兜底防护，不会裸奔。"
 
-msgid "Wink WP Guard · Today's status"
+msgid "Wink WP Gatekeeper · Today's status"
 msgstr "Wink WP 保安 · 今日态势"
 
 msgid "Wink captcha drill mode is active — site-wide human verification bypassed (auto-expires in 24h)"

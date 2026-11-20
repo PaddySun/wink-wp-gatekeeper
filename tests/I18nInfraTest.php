@@ -178,9 +178,9 @@ final class I18nInfraTest extends TestCase {
 	 */
 	public function test_i3_plugin_header_english_meta(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
-		self::assertStringContainsString( 'Plugin Name:       Wink WP Guard', $plugin, '批 I-3：插件头 Plugin Name 英文化（zh=Wink WP 保安 走 po）' );
+		self::assertStringContainsString( 'Plugin Name:       Wink WP Gatekeeper', $plugin, '批 I-3 英文化 + 批 R 改名回归：插件头 EN=Gatekeeper（用户 2026-11-20 二裁：与 GitHub 仓库一致；zh=Wink WP 保安 走 po 不变）' );
 		self::assertStringContainsString( 'Plugin Name of the plugin', (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper.pot' ), 'pot 插件头 meta 提取形态在场' );
-		self::assertStringContainsString( 'msgid "Wink WP Guard"', (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper.pot' ), '批 I-3：pot meta msgid 已英文化（原中文 meta msgid 消失属预期对账项）' );
+		self::assertStringContainsString( 'msgid "Wink WP Gatekeeper"', (string) file_get_contents( dirname( __DIR__ ) . '/languages/wink-wp-gatekeeper.pot' ), '批 I-3：pot meta msgid 已英文化（原中文 meta msgid 消失属预期对账项）' );
 	}
 
 	public function test_zh_cn_po_header_locale_pins(): void {

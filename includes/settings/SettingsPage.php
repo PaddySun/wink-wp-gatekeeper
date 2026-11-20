@@ -623,10 +623,10 @@ final class SettingsPage {
 						id="wk-brand-logo"
 						class="wk-logo"
 						src="<?php echo esc_url( WINK_GATEKEEPER_URL . 'assets/brand/logo-wink.svg' ); ?>"
-						alt="<?php esc_attr_e( 'Wink WP Guard', 'wink-wp-gatekeeper' ); ?>"
+						alt="<?php esc_attr_e( 'Wink WP Gatekeeper', 'wink-wp-gatekeeper' ); ?>"
 						width="40" height="45" decoding="async"
 					/>
-					<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( 'Guard', 'wink-wp-gatekeeper' ); ?></span>
+					<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( 'Gatekeeper', 'wink-wp-gatekeeper' ); ?></span>
 					<span class="wk-tagline"><?php esc_html_e( 'It winks at real visitors and keeps its eyes open for bots.', 'wink-wp-gatekeeper' ); ?></span>
 				</div>
 				<div class="wk-header-meta">
@@ -638,7 +638,7 @@ final class SettingsPage {
 			<?php if ( self::wizard_mode_active() ) : ?>
 				<?php self::render_wizard(); // 【W3·批C·R5】向导模式：四步全屏面板替代 Tab 面（pending 自动 / wizard=1 手动）。 ?>
 			<?php else : ?>
-			<nav class="nav-tab-wrapper wk-tabs" aria-label="<?php esc_attr_e( 'Wink WP Guard settings sections', 'wink-wp-gatekeeper' ); ?>">
+			<nav class="nav-tab-wrapper wk-tabs" aria-label="<?php esc_attr_e( 'Wink WP Gatekeeper settings sections', 'wink-wp-gatekeeper' ); ?>">
 				<?php foreach ( self::TABS as $tab_key => $tab_def ) : ?>
 					<a
 						href="<?php echo esc_url( self::tab_url( $tab_key ) ); ?>"
@@ -1300,7 +1300,7 @@ final class SettingsPage {
 		?>
 		<div class="wk-wizard" id="wk-wizard" data-wk-current="<?php echo esc_attr( (string) $step ); ?>">
 			<p class="wizard-head">
-				<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( 'Guard', 'wink-wp-gatekeeper' ); ?></span>
+				<span class="wk-wordmark">Wink <em>WP</em> <?php esc_html_e( 'Gatekeeper', 'wink-wp-gatekeeper' ); ?></span>
 				<span class="wk-muted">· <?php esc_html_e( 'First day on duty', 'wink-wp-gatekeeper' ); ?></span>
 			</p>
 
@@ -1318,7 +1318,7 @@ final class SettingsPage {
 				<?php /* ---------- 步 1 · 欢迎（零字段——纯引导+跳过承诺） ---------- */ ?>
 				<section class="wk-step-panel" data-wk-step="1"<?php echo 1 !== $step ? ' hidden' : ''; ?>>
 					<h2><?php esc_html_e( 'On duty in three steps, five minutes', 'wink-wp-gatekeeper' ); ?></h2>
-					<p class="wk-muted"><?php esc_html_e( 'Wink WP Guard stands at your blog\'s door: it blocks spam comments, stops credential-stuffing logins, and routes suspicious content to manual review. This wizard walks you through the two most important keys — you can skip any step and come back later; skipped parts keep fallback protection, so you are never left exposed.', 'wink-wp-gatekeeper' ); ?></p>
+					<p class="wk-muted"><?php esc_html_e( 'Wink WP Gatekeeper stands at your blog\'s door: it blocks spam comments, stops credential-stuffing logins, and routes suspicious content to manual review. This wizard walks you through the two most important keys — you can skip any step and come back later; skipped parts keep fallback protection, so you are never left exposed.', 'wink-wp-gatekeeper' ); ?></p>
 					<ul class="wk-checklist">
 						<li><?php esc_html_e( 'STEP 1 Human verification — pick a captcha provider to keep bots out. Real visitors barely notice it.', 'wink-wp-gatekeeper' ); ?></li>
 						<li><?php esc_html_e( 'STEP 2 Content moderation — the built-in rules are free and already on duty; add a cloud moderation provider so machine-crafted wording cannot slip through either.', 'wink-wp-gatekeeper' ); ?></li>
@@ -5771,7 +5771,7 @@ final class SettingsPage {
 				esc_html_e( 'Applies to the title and body of the branded full-page block page (shared by all scenarios). Blank = each scenario\'s default copy. Placeholders: {event_no} {rule} {time} {contact_email} — {rule} shows the rule key only.', 'wink-wp-gatekeeper' );
 				?>
 			</p>
-			<p class="description"><?php esc_html_e( 'A permanent brand signature line “Wink WP Guard” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B).', 'wink-wp-gatekeeper' ); ?></p>
+			<p class="description"><?php esc_html_e( 'A permanent brand signature line “Wink WP Gatekeeper” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B).', 'wink-wp-gatekeeper' ); ?></p>
 			<p>
 				<!-- 【M4UX G3】「查看效果」——新标签页打开拦截页实渲染预览（admin action
 				 * wink_gatekeeper_die_preview：manage_options+nonce 双闸，零落库零事件零统计）。 -->
