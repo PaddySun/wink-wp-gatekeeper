@@ -106,7 +106,7 @@ final class AliyunFrontendJsContractTest extends TestCase {
 	public function test_bootstrap_registers_adapter_handle(): void {
 		$src = self::bootstrap();
 		$this->assertStringContainsString( 'wink-gatekeeper-driver-aliyun', $src, '适配器 handle 注册' );
-		$this->assertStringContainsString( 'assets/js/drivers/aliyun.js', $src, '适配器脚本路径' );
+		$this->assertStringContainsString( 'assets/js/drivers/aliyun$suffix.js', $src, '适配器脚本路径（【批2·P1-8】suffix 变量化——非 SCRIPT_DEBUG 入队 .min）' );
 	}
 
 	public function test_driver_php_enqueue_matches_handle(): void {

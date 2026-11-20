@@ -34,6 +34,7 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Drivers\Review;
 
+use WinkGatekeeper\Drivers\ReviewChainBudget;
 use WinkGatekeeper\Drivers\ReviewDriverInterface;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Http\RemoteResult;
@@ -94,6 +95,9 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 	 */
 	protected $last_meta = array();
 
+	/** @var int|null 链预算墙边界（【P1-7·A2-F1】meta 便车；null=无预算上下文=现行行为）。 */
+	protected ?int $chain_deadline = null;
+
 	/**
 	 * @param array<string, mixed>    $config     配置（from_settings 派生）。
 	 * @param RemoteClient            $client     传输脊。
@@ -141,6 +145,12 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 	 * @return Verdict
 	 */
 	public function check( string $content, array $meta ): Verdict {
+		$this->chain_deadline = ReviewChainBudget::from_meta( $meta );
+		/* 【P1-7·A2-F1】链预算墙（meta 便车）：耗尽=error 零外呼（与闸侧墙语义一致——
+		 * 未耗尽的传输超时钳制见 call() remote-args）。 */
+		if ( ReviewChainBudget::expired( $this->chain_deadline ) ) {
+			return Verdict::error( $this->driver_id, 'chain_budget_exceeded', array( 'chain_budget_exceeded' ) );
+		}
 		$r1 = $this->call( (string) ( $this->config['model'] ?? '' ), $content );
 
 		// ①②③④ 传输/截断/过滤/解析五件套（第一段）。
@@ -215,7 +225,7 @@ class OpenAiCompatibleReviewDriver implements ReviewDriverInterface {
 				'Content-Type'  => 'application/json',
 			),
 			'body'      => (string) json_encode( $payload, JSON_UNESCAPED_UNICODE ),
-			'timeout'   => (int) ( $this->config['timeout'] ?? 8 ),
+			'timeout'   => ReviewChainBudget::clamp( (int) ( $this->config['timeout'] ?? 8 ), $this->chain_deadline ),
 			'usage_key' => $this->driver_id, // K1 按次（含失败——传输脊口径）。
 		) );
 	}

@@ -59,6 +59,7 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Drivers\Review;
 
+use WinkGatekeeper\Drivers\ReviewChainBudget;
 use WinkGatekeeper\Drivers\ReviewDriverInterface;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Http\RemoteResult;
@@ -148,6 +149,9 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 	 *      hits/截断标注/错误类别）。
 	 */
 	private $last_meta = array();
+
+	/** @var int|null 链预算墙边界（【P1-7·A2-F1】meta 便车；null=无预算上下文=现行行为）。 */
+	private ?int $chain_deadline = null;
 
 	/**
 	 * @param array<string, mixed> $settings  完整设置树（读 review.cloud.baidu 子树）。
@@ -240,6 +244,12 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 	 */
 	public function check( string $content, array $meta ): Verdict {
 		$this->last_meta = array();
+		$this->chain_deadline = ReviewChainBudget::from_meta( $meta );
+		/* 【P1-7·A2-F1】链预算墙（meta 便车）：耗尽=error 零外呼（token 取用/探测调用
+		 * 不受墙钳——仅审核调用面钳制，见 remote-args）。 */
+		if ( ReviewChainBudget::expired( $this->chain_deadline ) ) {
+			return Verdict::error( self::DRIVER_ID, 'chain_budget_exceeded', array( 'chain_budget_exceeded' ) );
+		}
 
 		if ( ! $this->is_configured() ) {
 			// 未配置不应入链（Bootstrap 构造期过滤）；防御兜底 = error，闸按云端全故障收口。
@@ -278,7 +288,7 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 		$result = $this->client->post( self::ENDPOINT . '?access_token=' . rawurlencode( $token['token'] ), array(
 			'headers'   => array( 'content-type' => 'application/x-www-form-urlencoded' ),
 			'body'      => self::build_censor_payload( $truncated['content'] ),
-			'timeout'   => $this->config['timeout'],
+			'timeout'   => ReviewChainBudget::clamp( (int) $this->config['timeout'], $this->chain_deadline ),
 			'usage_key' => self::DRIVER_ID, // 计量：审核调用计入 usage（04 §6；token 获取不计）。
 			'required'  => array( 'conclusion', 'conclusionType' ), // 缺失 → contract_mismatch 哨兵。
 			'probe'     => array( self::class, 'inspect_body' ),   // body error_code 归四类（error_map）。
@@ -346,7 +356,7 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 		return $this->client->post( self::ENDPOINT . '?access_token=' . rawurlencode( $token['token'] ), array(
 			'headers'   => array( 'content-type' => 'application/x-www-form-urlencoded' ),
 			'body'      => self::build_censor_payload( $truncated['content'] ),
-			'timeout'   => $this->config['timeout'],
+			'timeout'   => ReviewChainBudget::clamp( (int) $this->config['timeout'], $this->chain_deadline ),
 			'usage_key' => '', // 探测调用不计 usage（Tab③ 现场诊断）。
 		) );
 	}
@@ -540,7 +550,7 @@ final class BaiduTextModerationDriver implements ReviewDriverInterface {
 		$result = $this->client->post( $url, array(
 			'headers'   => array( 'content-type' => 'application/x-www-form-urlencoded' ),
 			'body'      => '',
-			'timeout'   => $this->config['timeout'],
+			'timeout'   => ReviewChainBudget::clamp( (int) $this->config['timeout'], $this->chain_deadline ),
 			'usage_key' => '', // token 获取不计审核 usage（04 §6 审核口径）。
 			'required'  => array( 'access_token', 'expires_in' ), // 缺失 → contract 哨兵。
 		) );

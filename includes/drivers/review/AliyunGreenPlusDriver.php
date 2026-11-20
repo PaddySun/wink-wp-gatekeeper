@@ -47,6 +47,7 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Drivers\Review;
 
+use WinkGatekeeper\Drivers\ReviewChainBudget;
 use WinkGatekeeper\Drivers\ReviewDriverInterface;
 use WinkGatekeeper\Http\AliyunV3Signer;
 use WinkGatekeeper\Http\RemoteClient;
@@ -99,6 +100,9 @@ final class AliyunGreenPlusDriver implements ReviewDriverInterface {
 	 * @var array<string, mixed> 最近一次 check() 的事件 meta（双通道 RiskLevel/labels/截断/错误类别）。
 	 */
 	private $last_meta = array();
+
+	/** @var int|null 链预算墙边界（【P1-7·A2-F1】meta 便车；null=无预算上下文=现行行为）。 */
+	private ?int $chain_deadline = null;
 
 	/**
 	 * @param array<string, mixed> $settings 完整设置树（读 review.cloud.aliyun_green 子树）。
@@ -194,6 +198,11 @@ final class AliyunGreenPlusDriver implements ReviewDriverInterface {
 		$this->last_meta = array(
 			'dispatch' => $this->dispatch_mode() ? 'dual' : 'single',
 		);
+		$this->chain_deadline = ReviewChainBudget::from_meta( $meta );
+		/* 【P1-7·A2-F1】链预算墙（meta 便车）：耗尽=error 零外呼。 */
+		if ( ReviewChainBudget::expired( $this->chain_deadline ) ) {
+			return Verdict::error( self::DRIVER_ID, 'chain_budget_exceeded', array( 'chain_budget_exceeded' ) );
+		}
 
 		if ( ! $this->is_configured() ) {
 			// 未配置不应入链（Bootstrap 构造期过滤）；防御兜底 = error，闸按云端全故障收口。
@@ -467,7 +476,7 @@ final class AliyunGreenPlusDriver implements ReviewDriverInterface {
 		return $this->client->post( self::ENDPOINT, array(
 			'headers'   => $signed['headers'],
 			'body'      => $payload,
-			'timeout'   => $this->config['timeout'],
+			'timeout'   => ReviewChainBudget::clamp( (int) $this->config['timeout'], $this->chain_deadline ),
 			'usage_key' => $usage_key, // 双通道两调均计量（成本 ×2 如实，04 §6）。
 			'required'  => array( 'Data.RiskLevel', 'Data.Result' ), // 缺失 → contract_mismatch 哨兵。
 			'probe'     => array( self::class, 'inspect_body' ),     // body Code 归四类（error_map）。

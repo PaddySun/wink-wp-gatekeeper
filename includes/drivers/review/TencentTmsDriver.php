@@ -39,6 +39,7 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Drivers\Review;
 
+use WinkGatekeeper\Drivers\ReviewChainBudget;
 use WinkGatekeeper\Drivers\ReviewDriverInterface;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Http\RemoteResult;
@@ -88,6 +89,9 @@ final class TencentTmsDriver implements ReviewDriverInterface {
 	 * @var array<string, mixed> 最近一次 check() 的事件 meta（Suggestion/Label/Score/截断标注/错误类别）。
 	 */
 	private $last_meta = array();
+
+	/** @var int|null 链预算墙边界（【P1-7·A2-F1】meta 便车；null=无预算上下文=现行行为）。 */
+	private ?int $chain_deadline = null;
 
 	/**
 	 * @param array<string, mixed> $settings 完整设置树（读 review.cloud.tencent_tms 子树）。
@@ -173,6 +177,12 @@ final class TencentTmsDriver implements ReviewDriverInterface {
 	 */
 	public function check( string $content, array $meta ): Verdict {
 		$this->last_meta = array();
+		$this->chain_deadline = ReviewChainBudget::from_meta( $meta );
+		/* 【P1-7·A2-F1】链预算墙（meta 便车）：耗尽=error 零外呼（探测调用不受墙钳——
+		 * 无 deadline 上下文=恒等返回）。 */
+		if ( ReviewChainBudget::expired( $this->chain_deadline ) ) {
+			return Verdict::error( self::DRIVER_ID, 'chain_budget_exceeded', array( 'chain_budget_exceeded' ) );
+		}
 
 		if ( ! $this->is_configured() ) {
 			// 未配置不应入链（Bootstrap 构造期过滤）；防御兜底 = error，闸按云端全故障收口。
@@ -202,7 +212,7 @@ final class TencentTmsDriver implements ReviewDriverInterface {
 		$result = $this->client->post( self::ENDPOINT, array(
 			'headers'   => $headers,
 			'body'      => $payload,
-			'timeout'   => $this->config['timeout'],
+			'timeout'   => ReviewChainBudget::clamp( (int) $this->config['timeout'], $this->chain_deadline ),
 			'usage_key' => self::DRIVER_ID, // 计量：审核调用计入 usage（04 §6；配额停转在闸编排判定）。
 			'required'  => array( 'Response.Suggestion', 'Response.Label' ), // 缺失 → contract_mismatch 哨兵。
 			'probe'     => array( self::class, 'inspect_body' ), // body 错误码归四类（error_map）。
@@ -247,7 +257,7 @@ final class TencentTmsDriver implements ReviewDriverInterface {
 		return $this->client->post( self::ENDPOINT, array(
 			'headers'   => $headers,
 			'body'      => $payload,
-			'timeout'   => $this->config['timeout'],
+			'timeout'   => ReviewChainBudget::clamp( (int) $this->config['timeout'], $this->chain_deadline ),
 			'usage_key' => '', // 探测调用不计 usage（Tab③ 现场诊断）。
 		) );
 	}

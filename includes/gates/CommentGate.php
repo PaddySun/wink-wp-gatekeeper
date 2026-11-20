@@ -48,6 +48,7 @@ namespace WinkGatekeeper\Gates;
 
 use WinkGatekeeper\Drivers\CaptchaDriverInterface;
 use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
+use WinkGatekeeper\Drivers\ReviewChainBudget;
 use WinkGatekeeper\Drivers\ReviewDriverInterface;
 use WinkGatekeeper\Http\RemoteClient;
 use WinkGatekeeper\Http\RemoteResult;
@@ -771,6 +772,13 @@ final class CommentGate extends AbstractGate {
 		$chain_budget  = $this->chain_budget_seconds();          // 【P1-5】墙值（0=关）。
 		$budget_deadline = $t0 + $chain_budget;                  // 墙边界（t0+budget）。
 		$chain_budget_exceeded = false;                          // 超墙标记（收口事件 meta 消费）。
+		/* 【P1-7·A2-F1】deadline-aware：链预算墙随调用下发（chain_deadline meta 便车——
+		 * ReviewDriverInterface 开放键集按需消费、非厂商线材），各云审驱动把剩余预算作本次
+		 * 传输超时上限（DeepSeekFetchAdapter 先例同法）；预算耗尽=驱动侧 error 零外呼。
+		 * 禁预算（chain_budget=0）不注入=现行行为零变化。 */
+		if ( $chain_budget > 0 ) {
+			$review_meta[ ReviewChainBudget::META_KEY ] = $budget_deadline;
+		}
 		foreach ( $cloud_ids as $cloud_id ) {
 			$cloud_driver = $this->cloud_chain[ $cloud_id ];
 

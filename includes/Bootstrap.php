@@ -865,29 +865,33 @@ final class Bootstrap {
 	 * @return void
 	 */
 	public function enqueue_front_assets(): void {
+		/* 【P1-8·A2-F2】.min 构建（修复批2 性能批）：非 SCRIPT_DEBUG 环境入队压缩产物
+		 * （tools/build-min.sh esbuild 固定版本生成并入仓）；SCRIPT_DEBUG=true 开发态走源
+		 * 文件。前台足迹 gatekeeper 37KB→10.9KB 级收敛。 */
+		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 		wp_register_style(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/css/front-gate.css',
+			$this->base_url . 'assets/css/front-gate$suffix.css',
 			array(),
 			WINK_GATEKEEPER_VERSION
 		);
 		wp_register_script(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/js/gatekeeper.js',
+			$this->base_url . 'assets/js/gatekeeper$suffix.js',
 			array(),
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-tencent',
-			$this->base_url . 'assets/js/drivers/tencent.js',
+			$this->base_url . 'assets/js/drivers/tencent$suffix.js',
 			array( 'wink-gatekeeper-front' ), // 适配器依赖调度器先就位（注册表事件竞态收口）。
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-aliyun',
-			$this->base_url . 'assets/js/drivers/aliyun.js',
+			$this->base_url . 'assets/js/drivers/aliyun$suffix.js',
 			array( 'wink-gatekeeper-front' ),
 			WINK_GATEKEEPER_VERSION,
 			true
@@ -1060,30 +1064,31 @@ final class Bootstrap {
 		}
 
 		// 与 enqueue_front_assets 相同 handle 集注册（login_enqueue_scripts 不经 wp_enqueue_scripts，
-		// 需在此注册后入队；wp_register_* 幂等）。
+		// 需在此注册后入队；wp_register_* 幂等）。【P1-8·A2-F2】suffix 同 front 块。
+		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 		wp_register_style(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/css/front-gate.css',
+			$this->base_url . 'assets/css/front-gate$suffix.css',
 			array(),
 			WINK_GATEKEEPER_VERSION
 		);
 		wp_register_script(
 			'wink-gatekeeper-front',
-			$this->base_url . 'assets/js/gatekeeper.js',
+			$this->base_url . 'assets/js/gatekeeper$suffix.js',
 			array(),
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-tencent',
-			$this->base_url . 'assets/js/drivers/tencent.js',
+			$this->base_url . 'assets/js/drivers/tencent$suffix.js',
 			array( 'wink-gatekeeper-front' ),
 			WINK_GATEKEEPER_VERSION,
 			true
 		);
 		wp_register_script(
 			'wink-gatekeeper-driver-aliyun',
-			$this->base_url . 'assets/js/drivers/aliyun.js',
+			$this->base_url . 'assets/js/drivers/aliyun$suffix.js',
 			array( 'wink-gatekeeper-front' ),
 			WINK_GATEKEEPER_VERSION,
 			true
