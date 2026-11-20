@@ -91,7 +91,7 @@ final class SettingsSchemaTest extends TestCase {
 			array( array( 'iprep', 'driver' ), 'abuseipdb' ),
 			// 【v1.4·R3】负缓存；【澄清A】驱动级超时键；fail_mode 作废删除。
 			// 【v1.7·M3-IP 定稿 §3.3】两 TTL 默认平移（60→1440 / 10→60）+ soft_quota 新键 3000。
-			array( array( 'iprep', 'negative_cache_minutes' ), 60 ),
+			array( array( 'iprep', 'negative_cache_minutes' ), 360 ), // 【批1·P1-5】60→360 上移（S3-F3 配额代烧面收敛）.
 			array( array( 'iprep', 'abuseipdb', 'suspect_score' ), 60 ),
 			array( array( 'iprep', 'abuseipdb', 'malicious_score' ), 85 ),
 			array( array( 'iprep', 'abuseipdb', 'cache_minutes' ), 1440 ),
@@ -350,12 +350,13 @@ final class SettingsSchemaTest extends TestCase {
 		$this->assertSame( 1440, $merged['iprep']['abuseipdb']['cache_minutes'] );
 	}
 
-	public function test_migrate_shifts_default_negative_cache_minutes_10_to_60(): void {
-		// 旧默认特征值 10（iprep 顶层实况键名——O5-P1-2）→ 平移新默认 60（1h）。
+	public function test_migrate_shifts_default_negative_cache_minutes_10_to_current(): void {
+		// 旧默认特征值 10（iprep 顶层实况键名——O5-P1-2）→ 平移当前默认 360（【批1·P1-5】
+		// 60→360 上移后——批前 60 特征值同族平移，AuditFixBatch2Test 另有专钉）。
 		$merged = SettingsSchema::merge_defaults( array(
 			'iprep' => array( 'enabled' => true, 'negative_cache_minutes' => 10 ),
 		) );
-		$this->assertSame( 60, $merged['iprep']['negative_cache_minutes'] );
+		$this->assertSame( 360, $merged['iprep']['negative_cache_minutes'] );
 	}
 
 	public function test_migrate_preserves_custom_ttl_values(): void {
@@ -397,7 +398,7 @@ final class SettingsSchemaTest extends TestCase {
 		) );
 		$this->assertSame( 900, $merged['iprep']['abuseipdb']['soft_quota'] );
 		$this->assertSame( 1440, $merged['iprep']['abuseipdb']['cache_minutes'] );
-		$this->assertSame( 60, $merged['iprep']['negative_cache_minutes'] );
+		$this->assertSame( 360, $merged['iprep']['negative_cache_minutes'], '【批1·P1-5】默认 360（S3-F3）' );
 		$this->assertSame( 950, $merged['iprep']['abuseipdb']['daily_quota'], '软顶 900 < 硬停转 950——两道额度闸' );
 	}
 

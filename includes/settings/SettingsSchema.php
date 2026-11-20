@@ -279,6 +279,11 @@ final class SettingsSchema {
 			// 误拦可追溯；false = 回到「直接拦不入库」形态。
 			'intercept'              => array(
 				'archive_spam' => true,
+				// 【P1-4·S3-F2】拦截留档容量闸（Bootstrap 装配 per-IP 日桶 wk_cai_ / 全局日桶
+				// wk_cag_；0=对应桶不装配=不限量现行语义）。只封「无界落库」——拦截行为/
+				// 事件面语义不变（事件面另有采样+容量闸独立收口）。
+				'archive_daily_ip_cap'    => 10,
+				'archive_daily_total_cap' => 200,
 			),
 
 			// 【M5·U1 定稿 §1/§0.1】「网站」字段两独立开关（Tab⑧ 站点增强）——完全独立、
@@ -368,7 +373,9 @@ final class SettingsSchema {
 				// 默认 10→**60**（migrate 平移存量——恶意 IP 可复查降级+防同 IP 重复外呼；
 				// 键在 iprep 顶层非 abuseipdb 子树——实况键名，O5-P1-2「保实况键名」原则）。
 				// 缓存归一后由 AbuseIpdbService 统一消费（定稿 §2——LoginIpRep 退役缓存职能）。
-				'negative_cache_minutes' => 60,
+				// 【P1-5·S3-F3】默认 60→**360**（migrate 平移批前 60 特征值——轮换边缘低成本
+				// 磨穿配额面收敛；站长显式值原样保留，平移语义同 ③b 先例）。
+				'negative_cache_minutes' => 360,
 				// 【I5·定稿 §7 判定层】站长手动白名单（Tab④ 分区① textarea，每行一个 IP 或
 				// CIDR；空=无白名单——probe 步 0 与 report 前置共用判定源，命中者永不查信誉、
 				// 永不上报）。与 network.trusted_proxies 是两个东西：受信网段管解析信任链、
@@ -572,7 +579,9 @@ final class SettingsSchema {
 		}
 		if ( isset( $existing['iprep'] ) && is_array( $existing['iprep'] )
 			&& array_key_exists( 'negative_cache_minutes', $existing['iprep'] )
-			&& 10 === (int) $existing['iprep']['negative_cache_minutes'] ) {
+			&& in_array( (int) $existing['iprep']['negative_cache_minutes'], array( 10, 60 ), true ) ) {
+			// 【P1-5·S3-F3】特征值族 10（v1.4 批前默认）/60（v1.7 批前默认）→ 移除重填 360；
+			// 站长显式其他值原样保留（③b 平移先例同法）。
 			unset( $existing['iprep']['negative_cache_minutes'] );
 		}
 

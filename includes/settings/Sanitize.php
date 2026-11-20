@@ -201,6 +201,10 @@ final class Sanitize {
 			// 拦截留档（F37/D15，04 §2 v1.3）。
 			'intercept.archive_spam'                    => 'bool',
 
+			// 【P1-4·S3-F2】拦截留档容量日帽（0=不装配=不限量现行语义）。
+			'intercept.archive_daily_ip_cap'            => 'absint',
+			'intercept.archive_daily_total_cap'         => 'absint',
+
 			// 【M5·U1】「网站」字段两独立开关（Tab⑧ 卡一；定稿 §1/§0.1——完全独立语义）。
 			'comments.site_field.enabled'               => 'bool',
 			'comments.site_link.enabled'                => 'bool',

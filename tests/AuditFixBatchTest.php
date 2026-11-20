@@ -495,14 +495,16 @@ namespace WinkGatekeeper\Tests {
 				"'wk_pk_'",
 				"'wk_tc_'",
 				"'wk_cm_'",
+				"'wk_cai_'",
+				"'wk_cag_'",
 				"'wk_irb_'",
 				"'wk_ua_'",
 				"'wk_es_'",
 				"'wk_ec_log_'",
 				"'wk_baidu_token_'",
 			);
-			$this->assertCount( 12, $entries, '前缀清单 11→12（A1-F9 修复口径）' );
-			$this->assertSame( array_values( $expected ), array_values( $entries ), '前缀闭集全等（12 前缀，逐项精确——禁宽匹配纪律保持）' );
+			$this->assertCount( 14, $entries, '前缀清单 12→14（批1·P1-4 留档容量闸日桶 wk_cai_/wk_cag_ 补录口径）' );
+			$this->assertSame( array_values( $expected ), array_values( $entries ), '前缀闭集全等（14 前缀，逐项精确——禁宽匹配纪律保持）' );
 		}
 
 		public function test_p4_uninstall_header_documents_thirteen_options(): void {

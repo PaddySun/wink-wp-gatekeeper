@@ -100,6 +100,18 @@ final class LoginCounters {
 	private $now;
 
 	/**
+	 * @var callable|null 原子自增 fn(string $key, int $ttl): int|false（【P1-3·S3-F1】；
+	 *                    null = WP 边界默认 AtomicCounter::incr——无持久对象缓存恒 false）。
+	 */
+	private $incr;
+
+	/**
+	 * @var callable 原子层纯读 fn(string $key): ?int（【P1-3】WP 边界默认 AtomicCounter::read；
+	 *               null=键缺席/无持久对象缓存 → legacy 读不受影响）。
+	 */
+	private $incr_read;
+
+	/**
 	 * @param array<string, mixed> $settings captcha.login_adaptive 子树（缺键按默认；调用方
 	 *                                        LoginGate 传 settings['captcha']['login_adaptive']）。
 	 * @param callable|null        $get      存储读（null = WP transient 边界闭包）。
@@ -107,6 +119,10 @@ final class LoginCounters {
 	 * @param callable|null        $del      存储删。
 	 * @param callable|null        $hmac     定键 HMAC（16 hex）。
 	 * @param callable|null        $now      时钟。
+	 * @param callable|null        $incr      原子自增（【P1-3·S3-F1】null = WP 边界默认
+	 *                                         AtomicCounter::incr——legacy 桶路零变化兜底）。
+	 * @param callable|null        $incr_read 原子层纯读（【P1-3】null = WP 边界默认
+	 *                                         AtomicCounter::read——饱和读面同层一致）。
 	 */
 	public function __construct(
 		array $settings = array(),
@@ -114,7 +130,9 @@ final class LoginCounters {
 		?callable $set = null,
 		?callable $del = null,
 		?callable $hmac = null,
-		?callable $now = null
+		?callable $now = null,
+		?callable $incr = null,
+		?callable $incr_read = null
 	) {
 		// 【v1.4·R4-G】threshold 已迁移为 user_threshold（读取兼容旧键——迁移前的 option 直读场景）。
 		$this->user_threshold = max( 1, (int) ( $settings['user_threshold'] ?? $settings['threshold'] ?? 3 ) );
@@ -138,6 +156,8 @@ final class LoginCounters {
 		$this->now  = $now ?? static function (): int {
 			return time(); // WP 边界。
 		};
+		$this->incr      = $incr ?? array( AtomicCounter::class, 'incr' ); // WP 边界默认（P1-3）。
+		$this->incr_read = $incr_read ?? array( AtomicCounter::class, 'read' ); // WP 边界默认（P1-3）。
 	}
 
 	/* -------------------------------------------------------------------
@@ -340,6 +360,14 @@ final class LoginCounters {
 	 * @return bool
 	 */
 	private function bump( string $key, int $threshold, int $now ): bool {
+		/* 【P1-3·S3-F1】原子路：INCR 计数已含本次（固定窗口——首击定 TTL 不续期，桶内 exp
+		 * 语义同构）；返回 false/非数值（后端拒绝/值损坏——INCR 对非整型报错）落回 legacy
+		 * 桶矩阵路（下方的损坏 fail-safe 饱和重写等语义全保留）。 */
+		$n = call_user_func( $this->incr, $key, $this->window + self::TTL_MARGIN );
+		if ( is_numeric( $n ) && (int) $n > 0 ) {
+			return (int) $n >= $threshold;
+		}
+
 		$raw = call_user_func( $this->get, $key );
 
 		/* 【M6·批I·I-2】数值判定 is_int → is_numeric + (int) 规范化（F-b 坑同型推广——
@@ -374,6 +402,14 @@ final class LoginCounters {
 	 * @return bool
 	 */
 	private function bucket_saturated( string $key, int $threshold, int $now ): bool {
+		/* 【P1-3·S3-F1】原子层读（写走 AtomicCounter INCR 时桶在专用组——键在场即窗口内，
+		 * TTL 到期整键回收=legacy 桶内 exp 语义同构；无持久对象缓存/单测环境 read 恒 null
+		 * → legacy 桶矩阵读不受影响）。 */
+		$atomic = call_user_func( $this->incr_read, $key );
+		if ( is_numeric( $atomic ) ) {
+			return (int) $atomic >= $threshold;
+		}
+
 		$raw = call_user_func( $this->get, $key );
 
 		if ( null === $raw || false === $raw ) {

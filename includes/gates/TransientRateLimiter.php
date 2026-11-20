@@ -71,15 +71,22 @@ final class TransientRateLimiter {
 	private $prefix;
 
 	/**
+	 * @var callable|null 原子自增 fn(string $key, int $ttl): int|false（【P1-3·S3-F1】
+	 *                    null = legacy get/put 桶路——生产=AtomicCounter::incr，单测注入假件）。
+	 */
+	private $store_incr;
+
+	/**
 	 * @param int           $limit     限额（0 = 桶语义恒拒——「不限流」开关语义由消费方
 	 *                                 承载：Bootstrap 对 ≤0 不装配本件，闸侧 null=跳过）。
 	 * @param int           $window    窗口秒。
 	 * @param callable      $store_get 读取回调。
 	 * @param callable      $store_put 写入回调。
 	 * @param callable|null $mac       键 HMAC（null = wp_salt('auth') WP 边界默认）。
-	 * @param string        $prefix    键前缀（消费方自定义桶名；评论提交=wk_cm_）。
+	 * @param string        $prefix     键前缀（消费方自定义桶名；评论提交=wk_cm_）。
+	 * @param callable|null $store_incr 原子自增回调（【P1-3·S3-F1】fn(key,ttl):int|false；null=legacy）。
 	 */
-	public function __construct( int $limit, int $window, callable $store_get, callable $store_put, ?callable $mac = null, string $prefix = self::PREFIX ) {
+	public function __construct( int $limit, int $window, callable $store_get, callable $store_put, ?callable $mac = null, string $prefix = self::PREFIX, ?callable $store_incr = null ) {
 		$this->limit     = max( 0, $limit );
 		$this->window    = max( 1, $window );
 		$this->store_get = $store_get;
@@ -89,6 +96,7 @@ final class TransientRateLimiter {
 				return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // WP 边界。
 			};
 		$this->prefix    = $prefix;
+		$this->store_incr = $store_incr;
 	}
 
 	/**
@@ -103,6 +111,16 @@ final class TransientRateLimiter {
 	public function allow( string $ip ): bool {
 		$key = self::key( $ip, $this->mac, $this->prefix );
 		$now = time();
+
+		/* 【P1-3·S3-F1】原子路：INCR 计数已含本次——check-then-inc 竞态窗消除（并发下
+		 * 有效上限不再 ≈limit×并发波数）。后端拒绝/不可用（false/非数值）落回 legacy
+		 * get/put 桶路（现行语义，无持久对象缓存主机零变化）。 */
+		if ( null !== $this->store_incr ) {
+			$n = call_user_func( $this->store_incr, $key, $this->window + 60 );
+			if ( is_numeric( $n ) && (int) $n > 0 ) {
+				return (int) $n <= $this->limit;
+			}
+		}
 
 		$bucket = call_user_func( $this->store_get, $key );
 		if ( ! is_array( $bucket ) || ! isset( $bucket['reset'], $bucket['count'] ) || $now >= (int) $bucket['reset'] ) {

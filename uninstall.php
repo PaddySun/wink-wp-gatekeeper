@@ -168,7 +168,7 @@ $wink_guarded( static function (): void {
  * 每前缀匹配两种键：主键 _transient_<prefix>_* 与过期时间键 _transient_timeout_<prefix>_*。
  * 【F3-1 谨慎性】逐前缀精确匹配（wink 自有前缀），禁止 %wink% 类宽匹配误伤同前缀他人数据。 */
 $wink_guarded( static function () use ( $wpdb ): void {
-	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_irb_', 'wk_ua_', 'wk_es_', 'wk_ec_log_', 'wk_baidu_token_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.【M6·F2】wk_es_/wk_ec_log_ 事件写放大封顶键.【AUDIT-FIX】wk_baidu_token_ 百度 token 缓存（P3-F5/A1-F9）.
+	foreach ( array( 'wk_lf_', 'wk_ip_', 'wk_rp_', 'wk_cv_', 'wk_pk_', 'wk_tc_', 'wk_cm_', 'wk_cai_', 'wk_cag_', 'wk_irb_', 'wk_ua_', 'wk_es_', 'wk_ec_log_', 'wk_baidu_token_' ) as $wink_transient_prefix ) { // 【M5·U5】wk_ua_ 网址核查判定缓存.【M6·F2】wk_es_/wk_ec_log_ 事件写放大封顶键.【AUDIT-FIX】wk_baidu_token_ 百度 token 缓存（P3-F5/A1-F9）.【批1·P1-4】wk_cai_/wk_cag_ 留档容量闸日桶.
 		$wink_transient_keys = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options}

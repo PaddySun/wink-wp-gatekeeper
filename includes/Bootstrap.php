@@ -387,6 +387,10 @@ final class Bootstrap {
 		);
 		$degraded_allow = array( $degraded_allow, 'allow' );
 
+		/* 【P1-3·S3-F1】原子自增路（AtomicCounter——wp_cache_incr+首击定 TTL；无持久对象
+		 * 缓存/后端拒绝恒 false=消费方落回 legacy transient 桶路，语义零变化）。 */
+		$atomic_incr = 'WinkGatekeeper\Gates\AtomicCounter::incr';
+
 		/* 评论提交限流器（P0-A，M3-IP 定稿 §8.1——AUDIT-CC §2.1 P0-A 修复）：wk_cm_ per-IP
 		 * 小时桶（TransientRateLimiter 参数化共享件，后续消费方=check/report 面/P1-C 送审帽）。
 		 * gates.comment.submit_rate_limit 默认 30 次/h/IP；0=不限流（不装配=闸侧 null 跳过=
@@ -403,9 +407,36 @@ final class Bootstrap {
 				},
 				static function ( string $data ): string {
 					return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // 与 VerifyCache/事件 ip_hash 同盐同源。
-				}
+				},
+				$atomic_incr // 【P1-3·S3-F1】原子自增路（check-then-inc 竞态窗消除——并发上限不再稀释）。
 			);
 			$submit_allow = array( $submit_limiter, 'allow' );
+		}
+
+		/* 【P1-4·S3-F2】拦截留档容量闸：per-IP 日桶 wk_cai_（默认 10）+ 全局日桶 wk_cag_
+		 * （默认 200），0=对应桶不装配（不限量现行语义）。只封「无界落库」——拦截行为/
+		 * 事件面语义不变（事件面另有 EventSampling 采样+事件表容量闸独立收口）。 */
+		$archive_ip_limit    = max( 0, (int) ( $settings['intercept']['archive_daily_ip_cap'] ?? CommentGate::ARCHIVE_IP_CAP_DEFAULT ) );
+		$archive_total_limit = max( 0, (int) ( $settings['intercept']['archive_daily_total_cap'] ?? CommentGate::ARCHIVE_TOTAL_CAP_DEFAULT ) );
+		$archive_quota = null;
+		if ( $archive_ip_limit > 0 || $archive_total_limit > 0 ) {
+			$archive_put = static function ( string $key, $value, int $ttl ): void {
+				set_transient( $key, $value, $ttl ); // WP 边界。
+			};
+			$archive_mac = static function ( string $data ): string {
+				return hash_hmac( 'sha256', $data, wp_salt( 'auth' ) ); // 与提交限流同盐同源。
+			};
+			$archive_ip_limiter    = $archive_ip_limit > 0 ? new TransientRateLimiter( $archive_ip_limit, CommentGate::ARCHIVE_DAY_WINDOW, 'get_transient', $archive_put, $archive_mac, 'wk_cai_', $atomic_incr ) : null;
+			$archive_total_limiter = $archive_total_limit > 0 ? new TransientRateLimiter( $archive_total_limit, CommentGate::ARCHIVE_DAY_WINDOW, 'get_transient', $archive_put, $archive_mac, 'wk_cag_', $atomic_incr ) : null;
+			$archive_quota = static function ( string $ip ) use ( $archive_ip_limiter, $archive_total_limiter ): bool {
+				if ( '' !== $ip && null !== $archive_ip_limiter && ! $archive_ip_limiter->allow( $ip ) ) {
+					return false; // per-IP 日帽拒（全局桶不计数——单 IP 洪水不烧全局额度）。
+				}
+				if ( null !== $archive_total_limiter && ! $archive_total_limiter->allow( 'global' ) ) {
+					return false; // 全局日帽拒。
+				}
+				return true;
+			};
 		}
 
 		// 驱动注册表（05 §4 六维元数据；新驱动 = 新文件 + 注册一行）。
@@ -600,7 +631,10 @@ final class Bootstrap {
 					$degraded_allow,
 					// 【P0-A】评论提交限流器（M3-IP 定稿 §8.1——wk_cm_ 桶；submit_rate_limit=0 时
 					// null=不限流现行行为）。
-					$submit_allow
+					$submit_allow,
+					// 【P1-4·S3-F2】拦截留档容量判定位（per-IP 日桶 wk_cai_ + 全局日桶 wk_cag_；
+					// null=未装配=批前留档语义）。
+					$archive_quota
 				);
 
 			// 验证钩子按闸声明装配（preprocess_comment @ -PHP_INT_MAX——A3：比一切评论插件早）。

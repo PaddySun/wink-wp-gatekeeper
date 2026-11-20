@@ -69,6 +69,21 @@ use WinkGatekeeper\Verdict;
 
 final class CommentGate extends AbstractGate {
 
+	/**
+	 * 【P1-4·S3-F2】拦截留档 per-IP 日帽默认（schema intercept.archive_daily_ip_cap 同源）。
+	 */
+	public const ARCHIVE_IP_CAP_DEFAULT = 10;
+
+	/**
+	 * 【P1-4·S3-F2】拦截留档全局日帽默认（schema intercept.archive_daily_total_cap 同源）。
+	 */
+	public const ARCHIVE_TOTAL_CAP_DEFAULT = 200;
+
+	/**
+	 * 【P1-4·S3-F2】留档容量日桶窗口（秒）。
+	 */
+	public const ARCHIVE_DAY_WINDOW = 86400;
+
 	protected $id = 'comment';
 
 	public const CONTEXT_POST_FIELD = 'comment_post_ID';
@@ -196,6 +211,10 @@ final class CommentGate extends AbstractGate {
 	 */
 	private $submit_limiter;
 
+	/** @var callable|null 留档容量判定位 fn(string $ip): bool（【P1-4·S3-F2】true=额度内并计数；
+	 *                    false=免落库——拦截行为不变；null=未装配=批前留档语义）。 */
+	private $archive_quota;
+
 	/**
 	 * @var bool 本次请求编排产出 review 判定（评论应入待审）——pre_comment_approved
 	 *           filter 消费（C4 真机发现：WP 7.x wp_new_comment 在 preprocess_comment 之后
@@ -271,7 +290,8 @@ final class CommentGate extends AbstractGate {
 		?callable $driver_meta = null,
 		?callable $require_gate = null,
 		?callable $degraded_limiter = null,
-		?callable $submit_limiter = null
+		?callable $submit_limiter = null,
+		?callable $archive_quota = null
 	) {
 		$this->settings = $settings;
 		$this->captcha  = $captcha;
@@ -343,6 +363,7 @@ final class CommentGate extends AbstractGate {
 			};
 		$this->degraded_limiter = $degraded_limiter;
 		$this->submit_limiter   = $submit_limiter; // P0-A：null = 未装配（现行行为零变化）。
+		$this->archive_quota    = $archive_quota; // 【P1-4·S3-F2】：null = 未装配（批前留档语义零变化）。
 	}
 
 	public function render_hooks(): array {
@@ -1601,6 +1622,15 @@ final class CommentGate extends AbstractGate {
 		}
 		if ( null === $this->archiver || ! $this->archive_spam_enabled() ) {
 			return null; // 留档器未装配（单测默认）或 intercept.archive_spam=false（直接拦不入库形态）。
+		}
+		/* 【P1-4·S3-F2】留档容量闸（Bootstrap 装配 per-IP 日桶 wk_cai_ + 全局日桶 wk_cag_）：
+		 * 拒 = 拦截行为不变、仅免落库——wp_comments 无界膨胀面收口（事件面另有采样+容量闸
+		 * 独立收口；stats 单 option 有界）。无 IP 归因形态交由装配侧闭包裁量。 */
+		if ( null !== $this->archive_quota ) {
+			$ip = isset( $reject_env['ip'] ) && is_string( $reject_env['ip'] ) ? $reject_env['ip'] : '';
+			if ( '' !== $ip && ! (bool) call_user_func( $this->archive_quota, $ip ) ) {
+				return null;
+			}
 		}
 		$comment_id = call_user_func( $this->archiver, self::archive_comment_payload( $reject_env ) );
 		return ( is_int( $comment_id ) && $comment_id > 0 ) ? $comment_id : null;

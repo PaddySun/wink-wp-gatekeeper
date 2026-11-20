@@ -99,6 +99,12 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	public const CACHE_PREFIX = 'wk_ip_';
 
 	/**
+	 * /24 聚合缓存键前缀（【P1-5·S3-F3】wk_ip24_<driver>_<HMAC16(/24)>——仅负向 verdict
+	 * 入层；exact 优先、命中带 aggregated meta 证据标注；pass 不聚合不放大信任面）。
+	 */
+	public const CACHE24_PREFIX = 'wk_ip24_';
+
+	/**
 	 * 全局退避键前缀（定稿 §3.1 步 2【O5 回写·P2-1】wk_ 前缀惯例；uninstall 清单已补录）。
 	 */
 	public const BACKOFF_PREFIX = 'wk_irb_';
@@ -177,9 +183,11 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	public const RULE_USAGE_SPIKE = 'usage_spike';
 
 	/**
-	 * 默认负缓存 TTL 分钟（iprep.negative_cache_minutes 平移后默认 60）。
+	 * 默认负缓存 TTL 分钟（iprep.negative_cache_minutes 平移后默认 360——【P1-5·S3-F3】
+	 * 60→360 上移：轮换边缘低成本磨穿配额的降级攻击面收敛，REPORT §10-3「fail 态负缓存
+	 * 延长」；批前 60 特征值随 SettingsSchema::migrate 平移到新默认，站长显式值原样保留）。
 	 */
-	private const DEFAULT_NEGATIVE_TTL = 60;
+	private const DEFAULT_NEGATIVE_TTL = 360;
 
 	/**
 	 * 默认 pass 缓存 TTL 分钟（iprep.abuseipdb.cache_minutes 平移后默认 1440）。
@@ -673,6 +681,56 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	}
 
 	/**
+	 * /24 网段提取（【P1-5·S3-F3】IPv4 专属——前三段；IPv6 无 /24 形态不聚合，如实登记）。
+	 *
+	 * @param string $normalized 规范形 IP。
+	 * @return string|null 网段形（'a.b.c'）或 null（非 IPv4 点分形态）。
+	 */
+	private function cache24_net( string $normalized ): ?string {
+		if ( preg_match( '/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/', $normalized, $m ) ) {
+			return $m[1] . '.' . $m[2] . '.' . $m[3];
+		}
+		return null;
+	}
+
+	/**
+	 * /24 聚合缓存键（同 cache_key 形态：前缀+driver+HMAC16(网段)——同盐同派生）。
+	 *
+	 * @param string $net 网段形（cache24_net 产物）。
+	 * @return string
+	 */
+	private function cache24_key( string $net ): string {
+		return self::CACHE24_PREFIX . $this->driver_id() . '_' . (string) call_user_func( $this->hmac, $net );
+	}
+
+	/**
+	 * /24 聚合层读（【P1-5·S3-F3】exact 未命中 → 同 /24 负判定直出——轮换边缘配额代烧
+	 * 面收敛）。仅负向 verdict 入该层（write 侧约束）；命中带 aggregated meta 证据标注；
+	 * 损坏/未知形态 = null miss（聚合是配额保护优化层，损坏不从严 corrupt_fail——外呼
+	 * 真实判定照常可达，与 exact 层「损坏=strict_fail」不同层不同语义，类内注释分界）。
+	 *
+	 * @param string $normalized 规范形 IP。
+	 * @return Verdict|null
+	 */
+	private function read_cache_24( string $normalized ): ?Verdict {
+		$net = $this->cache24_net( $normalized );
+		if ( null === $net ) {
+			return null; // IPv6 等无 /24 形态不聚合。
+		}
+		$raw = call_user_func( $this->cache_get, $this->cache24_key( $net ) );
+		if ( ! is_array( $raw ) || ! isset( $raw['v'] ) || ! is_string( $raw['v'] ) || ! in_array( $raw['v'], array( Verdict::PASS, Verdict::REVIEW, Verdict::REJECT ), true ) ) {
+			return null; // 损坏/未知形态 = miss（优化层不从严）。
+		}
+		$score  = isset( $raw['s'] ) && is_numeric( $raw['s'] ) ? (int) $raw['s'] : null;
+		$meta   = array( 'cached' => true, 'aggregated' => true );
+		$reason = null !== $score ? 'score ' . $score . ' (cached/24)' : 'cached';
+		if ( null !== $score ) {
+			$meta['score'] = $score;
+		}
+		return $this->verdict_by_state( $raw['v'], $reason )->with_meta( $meta );
+	}
+
+	/**
 	 * 缓存读（命中返回重建 verdict+cached meta；损坏值 fail 从严；未命中 null）。
 	 *
 	 * @param string $normalized 规范形 IP。
@@ -681,7 +739,7 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 	private function read_cache( string $normalized ): ?Verdict {
 		$raw = call_user_func( $this->cache_get, $this->cache_key( $normalized ) );
 		if ( null === $raw || false === $raw ) {
-			return null;
+			return $this->read_cache_24( $normalized ); // 【P1-5·S3-F3】exact 未命中 → /24 聚合层。
 		}
 		if ( is_array( $raw ) && isset( $raw['v'] ) && is_string( $raw['v'] ) && in_array( $raw['v'], array( Verdict::PASS, Verdict::REVIEW, Verdict::REJECT ), true ) ) {
 			$score = isset( $raw['s'] ) && is_numeric( $raw['s'] ) ? (int) $raw['s'] : null;
@@ -715,6 +773,20 @@ final class AbuseIpdbService implements IpReputationProbe, SupportsReportingInte
 			array( 'v' => $verdict->verdict(), 's' => $score ),
 			$minutes * 60
 		);
+		/* 【P1-5·S3-F3】负向 verdict 同写 /24 聚合键（TTL=负缓存同源分钟）——同 /24 轮换
+		 * 邻居命中负判定直出零外呼（S3-F3 实测 18 发 10 外呼病灶收敛）；pass 不聚合
+		 * （防邻居 trust_pass 信任面放大）。 */
+		if ( ! $is_pass ) {
+			$net = $this->cache24_net( $normalized );
+			if ( null !== $net ) {
+				call_user_func(
+					$this->cache_set,
+					$this->cache24_key( $net ),
+					array( 'v' => $verdict->verdict(), 's' => $score ),
+					$minutes * 60
+				);
+			}
+		}
 	}
 
 	/* -------------------------------------------------------------------

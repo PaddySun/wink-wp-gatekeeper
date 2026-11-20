@@ -62,7 +62,7 @@ final class SettingsSchemaV14Test extends TestCase {
 		// iprep：负缓存 + 驱动级超时（R2/R3 超时键合并裁决——一键三消费）；fail_mode 不再出现。
 		// 【v1.7·M3-IP 定稿 §3.3】负缓存默认 10→60 平移（v1.4 原默认 10 的键位保留）。
 		// 【P0-9·F1 批注记】超时默认 1→3（M4UX 定稿 §2——出厂值平移；本测试钉的键位不变）。
-		$this->assertSame( 60, $defaults['iprep']['negative_cache_minutes'] );
+		$this->assertSame( 360, $defaults['iprep']['negative_cache_minutes'] ); // 【批1·P1-5】60→360 上移.
 		$this->assertSame( 3, $defaults['iprep']['abuseipdb']['timeout'] );
 		$this->assertArrayNotHasKey( 'fail_mode', $defaults['iprep']['abuseipdb'] );
 
@@ -132,8 +132,9 @@ final class SettingsSchemaV14Test extends TestCase {
 		$this->assertSame( array( 'enabled' => true, 'render_mode' => 'always' ), $migrated['gates']['lostpassword'] );
 		$this->assertSame( true, $migrated['stats']['raw_capture'] );
 		$this->assertSame( 512, $migrated['stats']['raw_max_bytes'] );
-		// 【v1.7·M3-IP】旧默认特征值 10 → 平移新默认 60（cache_minutes 60→1440 同批）。
-		$this->assertSame( 60, $migrated['iprep']['negative_cache_minutes'] );
+		// 【v1.7·M3-IP】旧默认特征值 10 → 平移当前默认（【批1·P1-5】60→360 上移后=360；
+		// cache_minutes 60→1440 同批先例）。
+		$this->assertSame( 360, $migrated['iprep']['negative_cache_minutes'] );
 	}
 
 	public function test_migrate_is_idempotent(): void {

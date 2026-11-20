@@ -25,6 +25,8 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Stats;
 
+use WinkGatekeeper\Gates\AtomicCounter;
+
 final class EventSampling {
 
 	/**
@@ -62,6 +64,9 @@ final class EventSampling {
 	 */
 	private static $clock;
 
+	/** @var callable|null 原子自增路（【P1-3·S3-F1】null = WP 边界默认 AtomicCounter::incr——单测注入假件）。 */
+	private static $store_incr;
+
 	/**
 	 * 注入存取回调（单测内存假件；传 null 还原 WP 边界默认——测试隔离桥）。
 	 *
@@ -82,6 +87,17 @@ final class EventSampling {
 	 * @param string $stage 阶段名。
 	 * @return bool
 	 */
+	/**
+	 * 注入原子自增路（【P1-3·S3-F1】；null = WP 边界默认 AtomicCounter::incr——无持久对象
+	 * 缓存恒 false=legacy 桶路零变化）。
+	 *
+	 * @param callable|null $store_incr fn(string $key, int $ttl): int|false。
+	 * @return void
+	 */
+	public static function use_store_incr( ?callable $store_incr ): void {
+		self::$store_incr = $store_incr;
+	}
+
 	public static function sampled_stage( string $stage ): bool {
 		return in_array( $stage, self::SAMPLED_STAGES, true );
 	}
@@ -113,6 +129,14 @@ final class EventSampling {
 
 		$ts  = null !== self::$clock ? (int) call_user_func( self::$clock ) : time();
 		$key = self::bucket_key( $ip_hash, gmdate( 'YmdH', $ts ) );
+
+		/* 【P1-3·S3-F1】原子路：INCR 计数已含本次；false/非数值（后端拒绝/无持久对象缓存）
+		 * 落回 legacy get/put 桶路（现行语义零变化）。 */
+		$incr = self::$store_incr ?? array( AtomicCounter::class, 'incr' );
+		$n    = call_user_func( $incr, $key, self::TTL_SECONDS );
+		if ( is_numeric( $n ) && (int) $n > 0 ) {
+			return (int) $n <= self::HOURLY_CAP;
+		}
 
 		$get = self::$store_get
 			?? static function ( string $k ) {
