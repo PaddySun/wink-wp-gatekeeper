@@ -47,6 +47,23 @@ final class EventsTable {
 	public const RETENTION_DAYS = 90;
 
 	/**
+	 * 拦截留档 meta 键（【W6-C·C-7】）：Bootstrap 留档器写入位与 uninstall.php 清理
+	 * 清单同键——本类单点常量防漂移（uninstall 在 WP 卸载语境无 autoloader，保持字面量）。
+	 */
+	public const ARCHIVE_META_KEY = 'wink_gatekeeper_archive';
+
+	/**
+	 * 拦截留档默认留存天数（【W6-C·C-7】用户 2026-11-21 拍板 N=30——对齐 Akismet
+	 * 建议下限 15 并留翻案余量；filter wk_archive_retention_days 可调，0=关闭豁免）。
+	 */
+	public const ARCHIVE_RETENTION_DAYS = 30;
+
+	/**
+	 * 留档清理每批扫描条数（LIMIT 口径——存量积压分批收敛，Akismet 批量删先例）。
+	 */
+	public const ARCHIVE_PURGE_BATCH = 100;
+
+	/**
 	 * 事件编号并发冲突自增重试次数（04 §3：UNIQUE KEY event_no 兜底）。
 	 */
 	public const INSERT_RETRIES = 3;
@@ -964,7 +981,9 @@ DDL;
 	}
 
 	/**
-	 * 每日维护任务（04 §3 清理策略）：删 RETENTION_DAYS 天前记录 → 超过 MAX_ROWS 行按 id 溢出删除。
+	 * 每日维护任务（04 §3 清理策略）：删 RETENTION_DAYS 天前记录 → 超过 MAX_ROWS 行按 id
+	 * 溢出删除 →【W6-C·C-7】拦截留档过期清理段（spam + wink_gatekeeper_archive meta
+	 * 超 N 天逐条彻底删；执行时限护栏见 purge_expired_archives 内注释）。
 	 *
 	 * @return void
 	 */
@@ -982,6 +1001,118 @@ DDL;
 		);
 
 		self::trim_overflow();
+
+		self::purge_expired_archives();
+	}
+
+	/* -------------------------------------------------------------------
+	 * 【W6-C·C-7】拦截留档过期清理（R-AK §C C-7）：留档 spam 直插（02 §3.1 F37/D15）
+	 * 此前只进不出——0.9.2 批 1 P1-4 容量闸只封事件表写入面。daily cron 追加一段：
+	 * comment_approved='spam' + commentmeta wink_gatekeeper_archive 在场 + 超 N 天
+	 * （N=30 常量+filter 可调，0=关闭豁免）→ 逐条 meta 摘除 + wp_delete_comment 彻底删
+	 * （不进回收站——回收站会二次堆积）。翻案窗口缩短已由用户拍板接受（W6 草案 §4）。
+	 * Tab⑥ 黄条口径（StatsCache::archived_spam_count 只读黄条）自然随事件流演进：
+	 * 计数源是活查询（spam JOIN meta），留档删除即出数，零额外同步面。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 留存窗口钳制（纯决策）：正值透传，0/负值钳 0（关闭豁免——capacity_threshold_clamped
+	 * 同款惯例：不虚构负窗口）。
+	 *
+	 * @param int $filtered wk_archive_retention_days filter 结果。
+	 * @return int
+	 */
+	public static function archive_retention_days_clamped( int $filtered ): int {
+		return $filtered > 0 ? $filtered : 0;
+	}
+
+	/**
+	 * 留存窗口读取（WP 边界）：wk_archive_retention_days filter（默认
+	 * ARCHIVE_RETENTION_DAYS=30）+ 钳制；0=关闭豁免。
+	 *
+	 * @return int
+	 */
+	public static function archive_retention_days(): int {
+		$filtered = self::ARCHIVE_RETENTION_DAYS;
+		if ( function_exists( 'apply_filters' ) ) {
+			$filtered = (int) apply_filters( 'wk_archive_retention_days', self::ARCHIVE_RETENTION_DAYS ); // WP 边界。
+		}
+		return self::archive_retention_days_clamped( $filtered );
+	}
+
+	/**
+	 * 过期分界时刻（纯决策）：now − N 天的 GMT 串（wp_comments.comment_date_gmt 比对面——
+	 * 站时区无关，DST 安全；now 参数注入供单测）。
+	 *
+	 * @param int $days 留存天数（≤0 时调用方应在更早处短路豁免）。
+	 * @param int $now  当前 Unix 秒。
+	 * @return string 'Y-m-d H:i:s' GMT。
+	 */
+	public static function expired_archive_cutoff( int $days, int $now ): string {
+		// 86400=DAY_IN_SECONDS 字面量（wp-stubs 无此常量声明——phpstan 93E 零新增纪律；
+		// HOUR_IN_SECONDS 同族 not-found 为基线既存误报，此处不再扩面）。
+		return gmdate( 'Y-m-d H:i:s', $now - $days * 86400 );
+	}
+
+	/**
+	 * 过期留档 id 扫描 SQL（纯决策，表名插值同今日查询惯例；值走 %s/%d 占位由调用方
+	 * prepare——cutoff/批量不入本构建器）。索引面：comment_approved_date_gmt 最左前缀
+	 * （approved='spam' 等值 + date_gmt 范围）命中后 JOIN meta 键过滤。
+	 *
+	 * @param string $comments wp_comments 完整表名。
+	 * @param string $meta     wp_commentmeta 完整表名。
+	 * @return string
+	 */
+	public static function expired_archive_ids_sql( string $comments, string $meta ): string {
+		return 'SELECT c.comment_ID FROM ' . $comments . ' AS c INNER JOIN ' . $meta . ' AS m ON m.comment_id = c.comment_ID'
+			. " WHERE c.comment_approved = 'spam' AND m.meta_key = '" . self::ARCHIVE_META_KEY . "'"
+			. ' AND c.comment_date_gmt < %s LIMIT %d';
+	}
+
+	/**
+	 * 留档过期清理（$wpdb + WP 边界；daily_maintenance 消费——增量收敛：每轮清到
+	 * 收敛或中止谓词命中，下轮 cron 续清）。
+	 *
+	 * 批内逐条：delete_comment_meta 先摘（uninstall.php 清理清单同键逐键纪律——
+	 * 不依赖核心 wp_delete_comment 的 meta 语义面）→ wp_delete_comment($id, true)
+	 * 彻底删（true=跳过回收站，回收站会二次堆积）。
+	 *
+	 * @param callable|null $stop 中止谓词 fn(): bool（返回 true 停本轮——C-5 执行时限
+	 *                            护栏注入点；null=清到收敛）。
+	 * @return int 本轮删除条数。
+	 */
+	public static function purge_expired_archives( ?callable $stop = null ): int {
+		global $wpdb;
+
+		$days = self::archive_retention_days();
+		if ( $days <= 0 ) {
+			return 0; // 0=关闭豁免（时间窗计算/扫描零发生）。
+		}
+
+		$comments = $wpdb->prefix . 'comments';
+		$meta     = $wpdb->prefix . 'commentmeta';
+		$cutoff   = self::expired_archive_cutoff( $days, time() );
+		$sql      = self::expired_archive_ids_sql( $comments, $meta );
+
+		$deleted = 0;
+		while ( true ) {
+			if ( null !== $stop && $stop() ) {
+				break; // 本轮到此——下轮 cron 续清（增量收敛）。
+			}
+			$ids = $wpdb->get_col( $wpdb->prepare( $sql, $cutoff, self::ARCHIVE_PURGE_BATCH ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			if ( ! is_array( $ids ) || array() === $ids ) {
+				break;
+			}
+			foreach ( $ids as $id ) {
+				delete_comment_meta( (int) $id, self::ARCHIVE_META_KEY ); // WP 边界。
+				wp_delete_comment( (int) $id, true ); // WP 边界：彻底删不进回收站。
+				$deleted++;
+			}
+			if ( count( $ids ) < self::ARCHIVE_PURGE_BATCH ) {
+				break; // 尾批不满=扫描面已尽。
+			}
+		}
+		return $deleted;
 	}
 
 	/**
