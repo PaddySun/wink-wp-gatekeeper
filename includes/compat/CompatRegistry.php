@@ -26,10 +26,12 @@ final class CompatRegistry {
 	/**
 	 * 注册闭集（W6-A 固定四目标；新增目标=新模块文件+此处一行）。
 	 *
-	 * 消费方（闭集核对）：
-	 *   - SettingsPage::compat_detection_rows()（Tab⑧ 共存卡检测行渲染——呈现面消费方）；
-	 *   - self::mount_behaviors()（【W6-A2】行为腿统一挂载——生命周期消费方）；
-	 *   - tests/CompatLayerTest.php（闭集/契约/红线钉）。
+ * 消费方（闭集核对）：
+ *   - SettingsPage::compat_detection_rows()（Tab⑧ 共存卡检测行渲染——呈现面消费方）；
+ *   - self::mount_behaviors()（【W6-A2】行为腿统一挂载——生命周期消费方）；
+ *   - self::stub_degrade_active()（【W6-A3】存根降级复合查询——gate 经注入缝默认闭包
+ *     消费，判定链零模块字面量）；
+ *   - tests/CompatLayerTest.php（闭集/契约/红线钉）。
 	 *
 	 * @return array<int, CompatModule> 模块实例集（每次现造——模块无状态零缓存）。
 	 */
@@ -84,5 +86,33 @@ final class CompatRegistry {
 				add_filter( $hook, $callback, $priority, $arguments );
 			}
 		}
+	}
+
+	/**
+	 * 存根降级复合查询（【W6-A3】——统一层第二行为件的单点收口，定稿 §16）。
+	 *
+	 * 遍历注册闭集：模块 stub_degrade() 真（能力声明——接口第八方法）+ detect() 真
+	 * （目标在场）+ request_in_pipeline() 真（当前请求正经由其提交管道——接口第九
+	 * 方法请求参数级只读判据）三者全命中 → 返回该模块 key；否则 ''（空串=无降级）。
+	 *
+	 * 返回形状为何是 key 而非 bool：闸侧要把「谁降级」记进事件旁证 meta
+	 * （compat_stub_degraded=<模块 key>）——key 经本查询运行时单点来源，闸内零模块
+	 * 字面量（R5 gate 面：CommentGate 零 FC 字面量）。非空串即真（bool 超集语义）。
+	 *
+	 * 消费方：CommentGate 存根阶段（挑战段降级判定——注入缝默认闭包，WP 边界）；
+	 * CompatLayerTest（复合判定矩阵钉）。判据零写入零外呼零存储（R2/R3——请求级
+	 * 现算现判，探测原语纪律同 detect()）。首命中即返回（闭集序=渲染序，多模块
+	 * 同时命中时取序首——现闭集仅 FluentComments 声明降级能力，序首语义为将来
+	 * 多管道模块预留）。
+	 *
+	 * @return string 降级模块 key（如 'fluentcomments'）；''=无降级（挑战语义零变化）。
+	 */
+	public static function stub_degrade_active(): string {
+		foreach ( self::all() as $module ) {
+			if ( $module->stub_degrade() && $module->detect() && $module->request_in_pipeline() ) {
+				return $module->key();
+			}
+		}
+		return '';
 	}
 }

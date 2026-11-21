@@ -91,4 +91,38 @@ interface CompatModule {
 	 * @return array<int, array<string, mixed>>
 	 */
 	public function behaviors(): array;
+
+	/**
+	 * 存根降级声明（【W6-A3】接口第八方法——统一层第二行为件，定稿 §16）。
+	 *
+	 * true = 本模块宿主**接管了评论提交管道**且该管道**无法呈现挑战 UI**（其自绘表单
+	 * 永无本插件的 wk_stub 存根字段）——经该管道的提交，闸的挑战段（存根三态+验票）
+	 * 降级放行至后续判定链（限流/IP 信誉/本地四闸/云审照常全跑）。false = 纯呈现模块
+	 * （无管道接管，挑战语义零涉入）。
+	 *
+	 * 真机依据（W64 终验）：FluentComments 表单永远没有 wk_stub 存根字段（挑战在其
+	 * UI 无法呈现）→ 闸存根三态对 FC 访客提交恒 false → bad-signature 拦死全部提交。
+	 * 用户拍板 2026-11-21「AJAX 分支降级为存根」。安全取舍（用户裁决接受）：针对该
+	 * 管道端点的定向提交可绕过挑战层，由内容闸+IP 信誉+限流兜底——设计定稿 §16 明示。
+	 *
+	 * 本方法=静态能力声明（零请求读取）；「当前请求是否正经由该管道」由
+	 * request_in_pipeline()（第九方法）承载，复合判定在 CompatRegistry::stub_degrade_active()
+	 * 单点收口（模块声明 真+detect 真+请求判据 真）。
+	 *
+	 * @return bool
+	 */
+	public function stub_degrade(): bool;
+
+	/**
+	 * 管道判据（【W6-A3】接口第九方法——请求参数级只读判据声明面，定稿 §16）。
+	 *
+	 * 当前请求是否正经由本模块宿主的提交管道（只读判据面：$_SERVER/$_POST 参数级，
+	 * 零写入零外呼零存储——R2/R3 口径同 detect()）。无自有管道的模块恒 false
+	 * （三呈现模块零超全局读取面）。判据字面量（如第三方 action 名）单点登记在
+	 * 模块文件内（R5 扩展钉——散点判据=设计失败）；全限定 \defined 守卫纪律同模块
+	 * 探测原语（非全限定 defined() 在测试语境可被命名空间桩遮蔽——§13 桩族）。
+	 *
+	 * @return bool
+	 */
+	public function request_in_pipeline(): bool;
 }

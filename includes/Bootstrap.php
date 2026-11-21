@@ -594,10 +594,15 @@ final class Bootstrap {
 					// 【P0-A】评论提交限流器（M3-IP 定稿 §8.1——wk_cm_ 桶；submit_rate_limit=0 时
 					// null=不限流现行行为）。
 					$submit_allow,
-					// 【P1-4·S3-F2】拦截留档容量判定位（per-IP 日桶 wk_cai_ + 全局日桶 wk_cag_；
-					// null=未装配=批前留档语义）。
-					$archive_quota
-				);
+				// 【P1-4·S3-F2】拦截留档容量判定位（per-IP 日桶 wk_cai_ + 全局日桶 wk_cag_；
+				// null=未装配=批前留档语义）。
+				$archive_quota,
+				// 【W6-A3】存根降级查询：null=闸内 WP 边界默认闭包（统一兼容层声明面单点查询，
+				// 层引用在闸内默认闭包非本装配——R1 钉「本装配零层引用」不破坏；详见闸
+				// $stub_degrade 属性 docblock 与设计定稿 §16）。⚠️ 此 null 占位不可省——装配实参数
+				// 由 BootstrapAssemblyContractTest 钉死（B2 事故形态防错位）。
+				null
+			);
 
 			// 验证钩子按闸声明装配（preprocess_comment @ -PHP_INT_MAX——A3：比一切评论插件早）。
 			foreach ( $this->comment_gate->verify_hooks() as $hook => $priority ) {

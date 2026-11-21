@@ -61,4 +61,12 @@ final class WpArmour implements CompatModule {
 	public function behaviors(): array {
 		return array(); // 纯呈现模块（【W6-A2】行为腿契约——定稿 §15.2）。
 	}
+
+	public function stub_degrade(): bool {
+		return false; // 无管道接管（呈现级模块——【W6-A3】存根降级契约，定稿 §16）。
+	}
+
+	public function request_in_pipeline(): bool {
+		return false; // 无自有提交管道（判据面仅管道接管模块承载——【W6-A3】）。
+	}
 }

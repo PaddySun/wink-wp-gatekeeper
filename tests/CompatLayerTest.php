@@ -29,14 +29,27 @@ namespace WinkGatekeeper\Tests;
 use PHPUnit\Framework\TestCase;
 use WinkGatekeeper\Compat\CompatModule;
 use WinkGatekeeper\Compat\CompatRegistry;
+use WinkGatekeeper\Stats\EventsTable;
+use WinkGatekeeper\Verdict;
 
 final class CompatLayerTest extends TestCase {
 
+	/** @var array<string, mixed> $_POST 备份（管道判据测试播种/还原——隔离纪律）。 */
+	private static $post_backup = array();
+
+	/** @var array<string, mixed> $_SERVER 备份（SCRIPT_NAME 播种/还原——隔离纪律）。 */
+	private static $server_backup = array();
+
 	protected function setUp(): void {
 		CompatProbeStub::reset();
+		self::$post_backup   = isset( $_POST ) && is_array( $_POST ) ? $_POST : array();
+		self::$server_backup = isset( $_SERVER ) && is_array( $_SERVER ) ? $_SERVER : array();
+		$_POST               = array(); // 管道判据面从干净请求态出发（逐测播种）。
 	}
 
 	protected function tearDown(): void {
+		$_POST   = self::$post_backup;
+		$_SERVER = self::$server_backup;
 		CompatProbeStub::reset();
 	}
 
@@ -512,6 +525,9 @@ final class CompatLayerTest extends TestCase {
 			'FLUENT_COMMENTS_VERSION'  => 'FluentComments.php',
 			'wpa_check_is_spam'        => 'WpArmour.php',
 			'wpa_load_scripts'         => 'WpArmour.php',
+			// 【W6-A3】存根降级管道判据字面量：FC AJAX 提交 action 名全库（includes/）仅
+			// FluentComments.php 单点（CommentsHandler.php:20-21 注册锚——散点判据=设计失败）。
+			'fluent_comment_post'      => 'FluentComments.php',
 		);
 
 		$dir   = new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( dirname( __DIR__ ) . '/includes' ) );
@@ -542,5 +558,325 @@ final class CompatLayerTest extends TestCase {
 				"R5：探测判据字面量 {$literal} 全库仅 {$module_file} 单点登记（命中 " . count( $hits ) . ' 文件）'
 			);
 		}
+	}
+
+	/* ================================================================
+	 * ⑨ 存根降级腿（【W6-A3】设计定稿 §16——统一层第二行为件：FluentComments AJAX
+	 *    管道挑战段降级放行。真机遗留（W64 终验）：FC 表单永无 wk_stub 存根字段→闸
+	 *    步骤 1 存根三态拦死全部 FC 访客提交（bad-signature）→ compose 语义不可用；
+	 *    用户拍板 2026-11-21「AJAX 分支降级为存根」。契约面：接口第八/九方法
+	 *    stub_degrade()/request_in_pipeline()（模块声明面）+ registry 单点查询
+	 *    stub_degrade_active()（gate 零模块字面量）+ gate 挑战段降级（存根三态+验票
+	 *    整体跳过，限流/IP 信誉/本地四闸/云审照常全跑）+ 事件旁证 meta
+	 *    compat_stub_degraded（审计足迹通道——trust_pass 先例同法）。
+	 * ================================================================ */
+
+	/**
+	 * 降级声明契约：接口 declares 第八/九方法；三呈现模块双面恒 false（纯呈现零管道）；
+	 * FluentComments 声明降级能力（capability 声明面——请求判据另测）。
+	 */
+	public function test_stub_degrade_contract_declaration_matrix(): void {
+		$iface = self::src( 'includes/compat/CompatModule.php' );
+		self::assertStringContainsString( 'public function stub_degrade(): bool;', $iface, '接口第八方法 stub_degrade 在场（false=纯呈现模块）' );
+		self::assertStringContainsString( 'public function request_in_pipeline(): bool;', $iface, '接口第九方法 request_in_pipeline 在场（请求级只读判据声明面）' );
+
+		foreach ( CompatRegistry::all() as $module ) {
+			if ( 'fluentcomments' === $module->key() ) {
+				continue;
+			}
+			self::assertFalse( $module->stub_degrade(), "{$module->key()} 纯呈现模块=无降级声明" );
+			self::assertFalse( $module->request_in_pipeline(), "{$module->key()} 无自有提交管道=判据恒假（零超全局读取面）" );
+		}
+
+		$fc = new \WinkGatekeeper\Compat\FluentComments();
+		self::assertTrue( $fc->stub_degrade(), 'FluentComments 声明存根降级能力（W64 真机遗留+用户拍板 2026-11-21）' );
+	}
+
+	/**
+	 * FluentComments 管道判据（请求参数级只读——$_SERVER 文件面 + $_POST action 面）：
+	 * ① admin-ajax + action=fluent_comment_post → true（含子目录安装）；
+	 * ② 原生 wp-comments-post（WooCommerce 定义 DOING_AJAX 的污染形态一并排除）→ false；
+	 * ③ 其列表/会话 action → false；④ action 缺失/非标量 → false；⑤ SCRIPT_NAME 缺失 → false。
+	 *
+	 * 源码锚：flc/app/Hooks/Handlers/CommentsHandler.php:20-21（wp_ajax(_nopriv)_fluent_comment_post
+	 * 注册）/:173（数据面 $_POST）；dist/js/app.js:2（前端 ar('fluent_comment_post',…)+i.set('action',e)）；
+	 * flc/app/Services/Frontend.php:328（ajax_url=admin-ajax.php）。零 REST route（全源码 grep）。
+	 */
+	public function test_fluentcomments_request_in_pipeline_criterion(): void {
+		$fc = new \WinkGatekeeper\Compat\FluentComments();
+
+		$_SERVER['SCRIPT_NAME'] = '/wp-admin/admin-ajax.php';
+		$_POST['action']        = 'fluent_comment_post';
+		self::assertTrue( $fc->request_in_pipeline(), 'admin-ajax + 提交 action=管道命中' );
+
+		$_SERVER['SCRIPT_NAME'] = '/blog/wp-admin/admin-ajax.php';
+		self::assertTrue( $fc->request_in_pipeline(), '子目录安装同形命中（basename 归一）' );
+
+		$_SERVER['SCRIPT_NAME'] = '/wp-comments-post.php';
+		self::assertFalse( $fc->request_in_pipeline(), '原生表单注入 action 参数不误判（管道文件面压过参数面——ResponseDispatcher native 优先同款教训）' );
+
+		$_SERVER['SCRIPT_NAME'] = '/wp-admin/admin-ajax.php';
+		$_POST['action']        = 'fluent_comment_session';
+		self::assertFalse( $fc->request_in_pipeline(), '其会话/列表 action 不误判（判据字面全等语义）' );
+
+		$_POST['action'] = 'fluent_comment_list';
+		self::assertFalse( $fc->request_in_pipeline(), '其列表 action 不误判' );
+
+		unset( $_POST['action'] );
+		self::assertFalse( $fc->request_in_pipeline(), 'action 缺失=非提交请求' );
+
+		$_POST['action'] = array( 'fluent_comment_post' );
+		self::assertFalse( $fc->request_in_pipeline(), '非标量 action（伪造数组）判假（is_scalar 防御）' );
+
+		$_POST['action'] = 'fluent_comment_post';
+		unset( $_SERVER['SCRIPT_NAME'] );
+		self::assertFalse( $fc->request_in_pipeline(), 'SCRIPT_NAME 缺失=fail-closed（退回批前挑战语义，零安全损失）' );
+	}
+
+	/**
+	 * registry 单点查询 stub_degrade_active()：复合判定=模块声明 真+探测 真+请求判据 真；
+	 * 返回降级模块 key（''=无降级——gate 据此记 meta，零模块字面量进 gate）。
+	 */
+	public function test_stub_degrade_active_registry_composite_query(): void {
+		// 全命中：FC 在场 + 管道请求 → 'fluentcomments'。
+		CompatProbeStub::$constants = array( 'FLUENT_COMMENTS_VERSION' );
+		$_SERVER['SCRIPT_NAME']     = '/wp-admin/admin-ajax.php';
+		$_POST['action']            = 'fluent_comment_post';
+		self::assertSame( 'fluentcomments', CompatRegistry::stub_degrade_active(), '三条件全命中=返回降级模块 key' );
+
+		// 探测在场 + 非管道请求（原生文件面）→ ''。
+		$_SERVER['SCRIPT_NAME'] = '/wp-comments-post.php';
+		self::assertSame( '', CompatRegistry::stub_degrade_active(), '非管道请求=零降级（原生表单存根语义零变化）' );
+
+		// 探测在场 + 管道请求但 action 缺失 → ''。
+		$_SERVER['SCRIPT_NAME'] = '/wp-admin/admin-ajax.php';
+		unset( $_POST['action'] );
+		self::assertSame( '', CompatRegistry::stub_degrade_active(), '非提交请求=零降级' );
+
+		// FC 未装（空桩）+ 管道请求形态 → ''（全路径零变化）。
+		CompatProbeStub::reset();
+		$_POST['action'] = 'fluent_comment_post';
+		self::assertSame( '', CompatRegistry::stub_degrade_active(), 'FC 未装=零降级（闸全路径零变化）' );
+
+		// 呈现模块在场（WP Armour）+ 管道请求形态 → ''（无声明零降级——声明面闭集）。
+		CompatProbeStub::$functions = array( 'wpa_check_is_spam' );
+		self::assertSame( '', CompatRegistry::stub_degrade_active(), '纯呈现模块即使在场亦零降级' );
+	}
+
+	/**
+	 * 降级三态矩阵 ①：FC 管道命中（provider 返回 key）→ 存根阶段不再 bad-signature 拦死，
+	 * 干净评论降级放行入库（decision=allow）；旁证事件一行（stage=stub、verdict=pass、
+	 * rule_hit=compat_stub_degraded、meta.compat_stub_degraded=<key>）；挑战段整体跳过
+	 * （零验票调用）；限流/IP 信誉照常装配面不变。
+	 */
+	public function test_degrade_matrix_pipeline_stub_released_clean_comment_allowed(): void {
+		$log     = array();
+		$captcha = $this->fake_captcha();
+		$gate    = $this->degrade_gate( $captcha, $log, static function (): string {
+			return 'fluentcomments';
+		} );
+
+		$request = array(
+			'comment_post_ID' => '42',
+			'comment_content' => '这是一条正常的中文评论',
+			'action'          => 'fluent_comment_post', // FC 管道请求面（判据经 provider 模拟——语义同 $_POST）。
+		);
+
+		$result = $gate->orchestrate(
+			array( 'comment_post_ID' => '42', 'comment_content' => '这是一条正常的中文评论', 'comment_author' => '张三', 'comment_author_email' => 'z@example.com' ),
+			$request,
+			array( 'REMOTE_ADDR' => '203.0.113.7' )
+		);
+
+		self::assertSame( 'allow', $result['decision'], '存根降级：缺存根不再 bad-signature，干净评论放行入库' );
+		self::assertCount( 1, $log, '降级路径恰一行旁证事件' );
+		self::assertSame( 'stub', $log[0]['stage'], '旁证事件 stage=stub（存根阶段决策点；EventSampling 采样域内——写放大封顶同族）' );
+		self::assertSame( 'pass', $log[0]['verdict'], '旁证 verdict=pass（降级放行——trust_pass 审计足迹先例同法）' );
+		self::assertSame( 'compat_stub_degraded', $log[0]['rule'], 'rule_hit=compat_stub_degraded（should_record hits 特例通道标签）' );
+		self::assertSame( 'fluentcomments', $log[0]['meta']['compat_stub_degraded'], 'meta 旁证=降级模块 key（provider 单点来源——gate 零模块字面量）' );
+		self::assertSame( 0, $captcha->verify_calls, '挑战段整体跳过：零验票调用（缺票不再 captcha_missing——挑战 UI 在其管道无法呈现）' );
+	}
+
+	/**
+	 * 降级三态矩阵 ①b：FC 管道命中 + 垃圾内容 → 本地四闸照跑（LocalRules reject 先行），
+	 * 内容闸仍生效（兜底防线在场）；旁证事件与内容拒绝事件两行并存。
+	 */
+	public function test_degrade_matrix_pipeline_content_gate_still_intercepts(): void {
+		$log     = array();
+		$gate    = $this->degrade_gate( $this->fake_captcha(), $log, static function (): string {
+			return 'fluentcomments';
+		} );
+
+		$result = $gate->orchestrate(
+			array( 'comment_post_ID' => '42', 'comment_content' => 'hi', 'comment_author' => '张三', 'comment_author_email' => 'z@example.com' ),
+			array( 'comment_post_ID' => '42', 'comment_content' => 'hi', 'action' => 'fluent_comment_post' ),
+			array( 'REMOTE_ADDR' => '203.0.113.7' )
+		);
+
+		self::assertSame( 'reject', $result['decision'], '垃圾内容仍被内容闸拦（四闸照跑——降级不豁免内容判定）' );
+		self::assertCount( 2, $log, '降级旁证行 + 内容拒绝行并存' );
+		self::assertSame( 'stub', $log[0]['stage'], '第一行=存根降级旁证' );
+		self::assertSame( 'compat_stub_degraded', $log[0]['rule'] );
+		self::assertSame( 'review', $log[1]['stage'], '第二行=本地四闸拒绝（stage=review）' );
+		self::assertSame( 'local_rules', $log[1]['driver'], '内容闸归因 local_rules' );
+		self::assertSame( 'reject', $log[1]['verdict'] );
+	}
+
+	/**
+	 * 降级三态矩阵 ②：非管道请求（provider 空=registry 未命中形态）→ 存根语义零变化，
+	 * 缺存根照拦 bad-signature；零 compat meta。
+	 */
+	public function test_degrade_matrix_non_pipeline_bad_signature_unchanged(): void {
+		$log  = array();
+		$gate = $this->degrade_gate( $this->fake_captcha(), $log, static function (): string {
+			return '';
+		} );
+
+		$result = $gate->orchestrate(
+			array( 'comment_post_ID' => '42', 'comment_content' => '这是一条正常的中文评论' ),
+			array( 'comment_post_ID' => '42', 'comment_content' => '这是一条正常的中文评论' ),
+			array( 'REMOTE_ADDR' => '203.0.113.7' )
+		);
+
+		self::assertSame( 'reject', $result['decision'], '非管道请求：缺存根照拦（bad-signature 语义零变化）' );
+		self::assertCount( 1, $log );
+		self::assertSame( 'stub', $log[0]['stage'] );
+		self::assertSame( 'reject', $log[0]['verdict'], '存根三态 false=拒' );
+		self::assertSame( 'bad-signature', $log[0]['rule'], '拦截码=bad-signature（批前语义原样）' );
+		self::assertArrayNotHasKey( 'compat_stub_degraded', $log[0]['meta'], '非管道路径零 compat meta' );
+	}
+
+	/**
+	 * gate 零模块字面量（R5 gate 面）+ compat 单点消费缝：CommentGate 内 compat 引用
+	 * 恰二（use 导入 + stub_degrade_active 唯一查询调用）；FC 专名/钩子/action 名零命中。
+	 */
+	public function test_gate_consumes_registry_only_zero_module_literals(): void {
+		$gate_src = self::src( 'includes/gates/CommentGate.php' );
+		self::assertSame( 1, substr_count( $gate_src, 'CompatRegistry::stub_degrade_active()' ), 'gate 内层查询调用恰一处（运行时唯一调用=层消费单点缝）' );
+		self::assertSame( 1, substr_count( $gate_src, 'use WinkGatekeeper\\Compat\\CompatRegistry;' ), 'use 导入恰一行（导入面单点）' );
+		self::assertStringNotContainsString( 'FluentComments', $gate_src, 'gate 零模块类名（R5——模块字面量仅在层模块文件）' );
+		self::assertStringNotContainsString( 'fluent_comment', $gate_src, 'gate 零 FC 钩子/action 字面量' );
+		self::assertStringNotContainsString( 'fluentcomments', $gate_src, 'gate 零模块 key 字面量（meta 值经 provider 运行时单点来源）' );
+	}
+
+	/**
+	 * 降级旁证行=审计足迹通道（should_record pass 特例 hits 闭集扩展——verify_cache_hit/
+	 * trust_pass/test_mode_pass/disaster_pass/report_sent 先例同法）：无此扩展则 pass 行
+	 * 默认不落库、meta 旁证不可见。
+	 */
+	public function test_degrade_pass_row_is_audit_footprint_recorded(): void {
+		$settings = array( 'stats' => array( 'enabled' => true, 'pass_sampling' => false ) );
+		$verdict  = Verdict::pass( 'gate', 'compat_stub_degraded', array( 'compat_stub_degraded' ) );
+		self::assertTrue(
+			EventsTable::should_record( 'stub', $verdict, $settings ),
+			'降级旁证 pass 行落库（hits 携带 compat_stub_degraded 特例——04 §3 写入矩阵 pass 特例通道）'
+		);
+		self::assertFalse(
+			EventsTable::should_record( 'stub', Verdict::pass(), $settings ),
+			'无标签 pass 默认仍不落库（现行口径零变化）'
+		);
+	}
+
+	/* -----------------------------------------------------------------
+	 * ⑨ 降级矩阵 harness（CommentGateTest 同款零件最小面）
+	 * ----------------------------------------------------------------- */
+
+	/**
+	 * 可编程假验证码驱动（is_configured=true 使挑战段激活；verify 计调用数——降级路径
+	 * 零调用、非降级缺票路径亦零调用，bad-signature 先行短路）。
+	 */
+	private function fake_captcha(): object {
+		return new class() implements \WinkGatekeeper\Drivers\CaptchaDriverInterface {
+			/** @var int */
+			public $verify_calls = 0;
+			public function render( array $args ): string {
+				return '<p class="wk-gate" data-gate="comment" data-driver="fake"></p>';
+			}
+			public function verify( array $context ): ?string {
+				$this->verify_calls++;
+				return null;
+			}
+			public function is_configured(): bool {
+				return true;
+			}
+			public function enqueue_assets(): void {
+			}
+			public function id(): string {
+				return 'fake-captcha';
+			}
+			public function label(): string {
+				return '假验证码';
+			}
+			public function credentialFields(): array {
+				return array( 'wk_captcha_ticket', 'wk_captcha_randstr' );
+			}
+			public function failurePolicy(): array {
+				return array();
+			}
+			public function disasterPolicy(): string {
+				return 'none';
+			}
+			public function verify_tri( array $context ): array {
+				return \WinkGatekeeper\Gates\CaptchaTriInterpreter::legacy_to_tri( $this->verify( $context ), array() );
+			}
+			public function errorPolicy(): string {
+				return 'block';
+			}
+		};
+	}
+
+	private static function degrade_settings(): array {
+		return array(
+			'gates'  => array( 'comment' => array( 'enabled' => true, 'render_mode' => 'always' ) ),
+			'review' => array( 'local' => array(
+				'min_length'          => 10,
+				'max_length'          => 1800,
+				'require_chinese'     => 1,
+				'custom_banned_words' => '',
+				'use_wp_keywords'     => 1,
+			) ),
+			'copy'   => array( 'messages' => array(
+				'captcha_missing' => '还差一个眨眼——完成上方的验证再点提交。',
+				'too_short'       => '再写几个字吧。',
+			) ),
+			'stats'  => array( 'enabled' => true, 'pass_sampling' => false ),
+		);
+	}
+
+	private function degrade_recorder( array &$log ): callable {
+		return static function ( string $stage, Verdict $verdict, array $meta ) use ( &$log ): string {
+			$log[] = array(
+				'stage'   => $stage,
+				'verdict' => $verdict->verdict(),
+				'driver'  => $verdict->driver_id(),
+				'rule'    => $verdict->reason(),
+				'meta'    => $meta,
+			);
+			return 'WK-20261121-0001';
+		};
+	}
+
+	/**
+	 * 降级矩阵专用闸（构造尾位 $stub_degrade 注入——provider 返回模块 key/''）。
+	 */
+	private function degrade_gate( ?object $captcha, array &$log, ?callable $stub_degrade ): \WinkGatekeeper\Gates\CommentGate {
+		return new \WinkGatekeeper\Gates\CommentGate(
+			self::degrade_settings(),
+			$captcha,
+			null, // review 缺省 → 闸内自建 LocalRules（degrade_settings review.local）。
+			$this->degrade_recorder( $log ),
+			new \WinkGatekeeper\Ip\IpResolver( array( 'ip_source' => 'direct' ) ),
+			static function ( string $data ): string {
+				return 'h_' . hash_hmac( 'sha256', $data, 'w6a3-key' );
+			},
+			static function (): int {
+				return 1731168000;
+			},
+			null,           // context_provider。
+			null,           // archiver（矩阵不留档面）。
+			array(),        // cloud_chain 空（云端段收口不受扰动）。
+			null, null, null, null, null, null, null, null, null, null,
+			$stub_degrade
+		);
 	}
 }

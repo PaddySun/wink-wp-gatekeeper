@@ -153,9 +153,13 @@ DDL;
 			// 【O3 §三卡 2】容灾放行审计足迹（disaster_pass——CaptchaCode=21/trerror 票据
 			// allow 档放行，CommentGate meta.disaster_pass 语境；hits 携带标签同法放行）落库；
 			// 【I3·定稿 §4】上报送达审计足迹（report_sent——stage=report、meta.score=上报后
-			// 新分值）落库；其余 pass 默认不记，pass_sampling 开启才采样。
+			// 新分值）落库；
+			// 【W6-A3】存根降级旁证足迹（compat_stub_degraded——compat 层声明面命中、挑战段
+			// 降级放行，CommentGate meta.compat_stub_degraded=<模块 key> 语境；hits 携带标签
+			// 同法放行——定稿 §16；stage=stub 行在 EventSampling 采样域内写放大封顶同族）
+			// 落库；其余 pass 默认不记，pass_sampling 开启才采样。
 			foreach ( $verdict->hits() as $hit ) {
-				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit || 'test_mode_pass' === $hit || 'disaster_pass' === $hit || 'report_sent' === $hit ) ) {
+				if ( is_string( $hit ) && ( 'verify_cache_hit' === $hit || 'trust_pass' === $hit || 'test_mode_pass' === $hit || 'disaster_pass' === $hit || 'report_sent' === $hit || 'compat_stub_degraded' === $hit ) ) {
 					return true;
 				}
 			}

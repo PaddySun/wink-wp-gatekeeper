@@ -21,7 +21,18 @@
  * 提交期间不再被剥。挂载由 CompatRegistry::mount_behaviors() 统一执行（detect()
  * 为真才挂）；本模块文件零 add_filter 调用（声明面非挂载面——R5 扩展钉）。
  *
- * detect() 只读原语零存储零外呼。
+ * 【W6-A3】存根降级腿（统一层第二行为件，定稿 §16）：回注腿生效后闸在其 AJAX
+ * 管道内存活，但 FC 表单永远没有 wk_stub 存根字段（挑战在其 UI 无法呈现）→ 闸
+ * 步骤 1 存根三态拦死全部 FC 访客提交（bad-signature）→ compose 语义不可用。
+ * 用户拍板 2026-11-21「AJAX 分支降级为存根」：本模块 stub_degrade() 声明降级
+ * 能力 + request_in_pipeline() 承载管道识别（admin-ajax 文件面 × 提交 action
+ * 参数面 AND——判据锚见方法 docblock），CompatRegistry::stub_degrade_active()
+ * 单点复合查询，CommentGate 挑战段（存根三态+验票）对管道内提交降级放行，
+ * 限流/IP 信誉/本地四闸/云审照常全跑；非管道请求存根语义零变化。安全取舍
+ * （用户裁决接受）：针对 FC 端点的定向提交可绕过挑战层，由内容闸+IP 信誉+限流
+ * 兜底——定稿 §16 取舍声明明示。
+ *
+ * detect()/request_in_pipeline() 只读原语零存储零外呼。
  *
  * @package WinkGatekeeper\Compat
  */
@@ -74,6 +85,55 @@ final class FluentComments implements CompatModule {
 				'accepted_args' => 1,
 			),
 		);
+	}
+
+	/**
+	 * 存根降级声明（【W6-A3】接口第八方法——统一层第二行为件，定稿 §16）。
+	 *
+	 * 真机依据（W64 终验）：本插件闸经白名单回注（behaviors() 腿）在其 AJAX 插入期
+	 * 存活，但 FC 表单**永远没有 wk_stub 存根字段**（挑战在其自绘 Svelte UI 无法呈现）
+	 * → 闸步骤 1 存根三态对 FC 访客提交恒 false（Intercept/Stub.php:56-58 缺哈希段
+	 * 即 false）→ bad-signature 拦死全部 FC 访客提交 → compose 语义不可用。用户拍板
+	 * 2026-11-21「AJAX 分支降级为存根」：经本模块管道的提交，闸挑战段（存根三态+验票）
+	 * 降级放行至后续判定链（限流/IP 信誉/本地四闸/云审照常全跑）。安全取舍（用户裁决
+	 * 接受，定稿 §16 明示）：针对该管道端点的定向提交可绕过挑战层，由内容闸+IP 信誉+
+	 * 限流兜底。
+	 *
+	 * @return bool
+	 */
+	public function stub_degrade(): bool {
+		return true;
+	}
+
+	/**
+	 * 管道判据（【W6-A3】接口第九方法——请求参数级只读判据，两路 AND 防误判）：
+	 *
+	 *   ① 管道文件面：$_SERVER['SCRIPT_NAME'] basename='admin-ajax.php'——本插件评论提交
+	 *      的唯一接管入口（flc/app/Services/Frontend.php:328 ajax_url=admin_url('admin-ajax.php')
+	 *      + dist/js/app.js:2 前端 ar('fluent_comment_post',O) POST）。原生 wp-comments-post.php
+	 *      等 basename 不合 → false——「WooCommerce 在原生请求也定义 DOING_AJAX」污染形态
+	 *      一并排除（ResponseDispatcher native 优先同款教训——tests/ResponseDispatcherTest.php:8-9 头注）。
+	 *      fail-closed：SCRIPT_NAME 缺失/异常 = false = 退回批前挑战语义（零安全损失，
+	 *      最坏=W64 拦死形态在该主机延续）。
+	 *   ② 提交 action 面：$_POST['action'] 全等 'fluent_comment_post'——服务端注册
+	 *      wp_ajax(_nopriv)_fluent_comment_post（flc/app/Hooks/Handlers/CommentsHandler.php:20-21）
+	 *      + 数据面 $_POST（:173 wp_unslash($_POST)；isPostRequest :312-314 限 POST）。
+	 *      其列表/会话 action（fluent_comment_list/_session，:23-24/:26-27）不合 → false。
+	 *
+	 * 判据字面量 'fluent_comment_post' 单点登记在本文件（R5 扩展钉——CompatLayerTest
+	 * 全库单点断言）。判据面零写入零外呼零存储（R2/R3 同 detect()）。REST 语境天然排除：
+	 * CommentGate::hook_rest_preprocess_comment 编排期临时清空 $_POST（REST 隔离手法）→
+	 * ② 恒假（REST 无存根必拦语义零变化）。
+	 *
+	 * @return bool
+	 */
+	public function request_in_pipeline(): bool {
+		$script = isset( $_SERVER['SCRIPT_NAME'] ) && is_scalar( $_SERVER['SCRIPT_NAME'] ) ? (string) $_SERVER['SCRIPT_NAME'] : '';
+		if ( '' === $script || 'admin-ajax.php' !== basename( $script ) ) {
+			return false; // ① 管道文件面不合（原生表单/REST/wp-cli/其他插件端点）。
+		}
+		$action = isset( $_POST['action'] ) && is_scalar( $_POST['action'] ) ? (string) $_POST['action'] : '';
+		return 'fluent_comment_post' === $action; // ② 提交 action 面（字面量=服务端注册锚）。
 	}
 
 	/**

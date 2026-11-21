@@ -46,6 +46,7 @@ declare( strict_types=1 );
 
 namespace WinkGatekeeper\Gates;
 
+use WinkGatekeeper\Compat\CompatRegistry;
 use WinkGatekeeper\Drivers\CaptchaDriverInterface;
 use WinkGatekeeper\Drivers\Review\LocalRulesDriver;
 use WinkGatekeeper\Drivers\ReviewChainBudget;
@@ -222,6 +223,14 @@ final class CommentGate extends AbstractGate {
 	private $archive_quota;
 
 	/**
+	 * @var callable 存根降级查询 fn(): string（【W6-A3】compat 层声明面单点消费缝，定稿 §16
+	 *               ——非空串=当前请求经第三方管道且该管道挑战 UI 无法呈现，挑战段降级放行；
+	 *               ''=零降级。生产 = compat 层注册表单点查询默认闭包（构造器装配，WP 边界）；
+	 *               gate 零模块字面量——模块 key 由该查询运行时单点返回，R5 gate 面）。
+	 */
+	private $stub_degrade;
+
+	/**
 	 * @var bool 本次请求编排产出 review 判定（评论应入待审）——pre_comment_approved
 	 *           filter 消费（C4 真机发现：WP 7.x wp_new_comment 在 preprocess_comment 之后
 	 *           经 wp_allow_comment 重算 comment_approved，直接改 commentdata 会被覆盖；
@@ -276,6 +285,9 @@ final class CommentGate extends AbstractGate {
 	 * @param callable|null               $require_gate 豁免过滤器（【v1.5·C1/B5】null = WP 边界默认）。
 	 * @param callable|null               $degraded_limiter pass_limited 降级限流器（null = fail-closed）。
 	 * @param callable|null               $submit_limiter 评论提交限流器（P0-A §8.1；null = 未装配）。
+	 * @param callable|null               $stub_degrade 存根降级查询 fn(): string（【W6-A3】null = WP 边界
+	 *                                    默认闭包（compat 层 stub_degrade_active 单点查询——声明面
+	 *                                    收口，gate 零模块字面量；''=零降级批前语义）。
 	 */
 	public function __construct(
 		array $settings,
@@ -297,7 +309,8 @@ final class CommentGate extends AbstractGate {
 		?callable $require_gate = null,
 		?callable $degraded_limiter = null,
 		?callable $submit_limiter = null,
-		?callable $archive_quota = null
+		?callable $archive_quota = null,
+		?callable $stub_degrade = null
 	) {
 		$this->settings = $settings;
 		$this->captcha  = $captcha;
@@ -372,6 +385,13 @@ final class CommentGate extends AbstractGate {
 		$this->degraded_limiter = $degraded_limiter;
 		$this->submit_limiter   = $submit_limiter; // P0-A：null = 未装配（现行行为零变化）。
 		$this->archive_quota    = $archive_quota; // 【P1-4·S3-F2】：null = 未装配（批前留档语义零变化）。
+		/* 【W6-A3】存根降级查询：默认 WP 边界闭包（compat 层声明面单点——stub_degrade_active
+		 * 遍历闭集复合判定：模块声明 真+detect 真+请求参数级判据 真）。'' = 零降级=批前
+		 * 语义零变化（兼容层未命中/目标未装/非管道请求）。 */
+		$this->stub_degrade = $stub_degrade
+			?? static function (): string {
+				return CompatRegistry::stub_degrade_active(); // WP 边界（请求参数级只读判据——层内）。
+			};
 	}
 
 	public function render_hooks(): array {
@@ -448,10 +468,37 @@ final class CommentGate extends AbstractGate {
 			$captcha_active = false;
 		}
 
+		/* 【W6-A3】存根降级判定（compat 层声明面单点查询——gate 零模块字面量，定稿 §16）：
+		 * 第三方接管提交管道且挑战 UI 无法呈现（模块 stub_degrade 真）+探测在场（detect 真）
+		 * +请求正经由其管道（request_in_pipeline 参数级判据真）→ 命中模块 key。语义（用户
+		 * 拍板 2026-11-21「AJAX 分支降级为存根」，真机遗留 W64：FC 表单永无 wk_stub 存根
+		 * 字段，存根三态拦死全部其访客提交）：挑战段（步骤 1 存根三态+步骤 3 验票）对该
+		 * 请求**整体降级放行**——不再 bad-signature 拦死、不再 captcha_missing 拦缺票；
+		 * 步骤 1.5 限流/步骤 2 IP 信誉/步骤 2.5 本地四闸/步骤 4 云审**照常全跑**（垃圾内容
+		 * 仍被内容闸拦、干净评论可入库）。安全取舍（用户裁决接受，定稿 §16 明示）：针对
+		 * 该管道端点的定向提交可绕过挑战层，由内容闸+IP 信誉+限流兜底。旁证：降级命中落
+		 * 一行 stage=stub pass 事件（meta.compat_stub_degraded=<模块 key>——审计足迹特例
+		 * 通道，trust_pass 先例同法；stage=stub 在 EventSampling 采样域内写放大封顶）。
+		 * 非管道请求（原生表单/REST/wp-cli/其他插件）→ '' → 存根语义零变化。 */
+		$degrade_key = '';
+		if ( $captcha_active ) {
+			$degrade_key = (string) call_user_func( $this->stub_degrade );
+		}
+		$challenge_active = $captcha_active && '' === $degrade_key;
+		if ( '' !== $degrade_key ) {
+			call_user_func( $this->recorder, 'stub', Verdict::pass( 'gate', 'compat_stub_degraded', array( 'compat_stub_degraded' ) ), array(
+				'ip_src'               => $resolved['ip_src'],
+				'client_ip'            => $resolved['ip'],
+				'compat_stub_degraded' => $degrade_key,
+			) );
+		}
+
 		/* 步骤 1：签名存根三态（stage=stub）。
 		 * 未配置驱动 = captcha 阶段整体跳过（02 §2.1：等同存根 true 语义，不渲染组件
-		 * 不验证——渲染期未签发存根，提交期不得反向要求）。 */
-		if ( $captcha_active ) {
+		 * 不验证——渲染期未签发存根，提交期不得反向要求）。
+		 * 【W6-A3】降级命中时本段整体跳过（$challenge_active 假——存根三态/复用帽零执行，
+		 * FC 管道请求无存根字段，三态恒 false 的拦死形态由本跳过解除）。 */
+		if ( $challenge_active ) {
 			$context_id = $this->context_id( $commentdata, $request );
 			$stub_raw   = isset( $request['wk_stub'] ) && is_scalar( $request['wk_stub'] ) ? (string) $request['wk_stub'] : '';
 			$state      = Stub::verify( $stub_raw, $this->id, $context_id, (int) call_user_func( $this->now ), $this->stub_hash );
@@ -585,8 +632,11 @@ final class CommentGate extends AbstractGate {
 
 		/* 步骤 3：Stage:captcha（【v1.4·R2】免验票三来源按序短路：① TrustStub（零 I/O 纯哈希）
 		 * → ② VerifyCache（现行）→ ③ 真验票——02 §2.1/§3.3a；pass 事件 meta.pass_source
-		 * 统一三来源口径；强制标志下不存在免验通道（新鲜判定压过凭证——§3.3a 校验表末行）。 */
-		if ( $captcha_active ) {
+		 * 统一三来源口径；强制标志下不存在免验通道（新鲜判定压过凭证——§3.3a 校验表末行）。
+		 * 【W6-A3】降级命中时本段整体跳过（$challenge_active 假——存根降级=挑战段整体放行：
+		 * FC 管道请求永无票据，缺票 captcha_missing 拦截与降级语义互斥；强制验证码标志在其
+		 * 管道内同样无执行面——事件已在步骤 2 如实落库）。 */
+		if ( $challenge_active ) {
 			/* 强制验证码标志优先于存根 true（02 §3.1 v1.2 安全审核 #2 条款；v1.4 起标志含
 			 * 步骤 2 ip 阶段 fail 档置位，检点移至四闸之后）：存根 true（免验证通道）且强制
 			 * 标志置位 → 按 captcha_missing 拦截——访客手里没有 ticket，放行等于给干净存根
