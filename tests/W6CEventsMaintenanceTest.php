@@ -157,6 +157,28 @@ namespace WinkGatekeeper\Tests {
 		}
 
 		/**
+		 * query 记录（daily 大 DELETE/滚动 DELETE 面——假件无执行语义）。
+		 *
+		 * @param string $sql 查询。
+		 * @return int|false
+		 */
+		public function query( $sql ) {
+			$this->prepared[] = array( (string) $sql, array() );
+			return 1;
+		}
+
+		/**
+		 * get_var（trim_overflow COUNT 面——0 行=零溢出删除，滚动段零 DELETE）。
+		 *
+		 * @param string $sql 查询。
+		 * @return int
+		 */
+		public function get_var( $sql ) {
+			unset( $sql );
+			return 0;
+		}
+
+		/**
 		 * get_col 按批出队（空批=循环收敛面）。
 		 *
 		 * @param string $sql 查询（记录用）。
@@ -316,6 +338,112 @@ namespace WinkGatekeeper\Tests {
 		public function test_c7_uninstall_and_writer_share_the_meta_key(): void {
 			$this->assertStringContainsString( "'wink_gatekeeper_archive'", self::src( 'uninstall.php' ), 'uninstall 清理清单同键（对齐事实钉）' );
 			$this->assertStringContainsString( 'wink_gatekeeper_archive', self::src( 'includes/Bootstrap.php' ), '留档写入位同键（对齐事实钉）' );
+		}
+
+		/* ===============================================================
+		 * 件2 · C-5 daily 维护执行时限护栏
+		 * =============================================================== */
+
+		public function test_c5_budget_seconds_threshold_semantics(): void {
+			$this->assertSame( 25, EventsTable::maintenance_time_budget_seconds( 30 ), 'max_execution_time − 5（Akismet 947-984 同式）' );
+			$this->assertSame( 1, EventsTable::maintenance_time_budget_seconds( 6 ), '小 ini 下限 1（预算不归零——归零即护栏永不放行一轮）' );
+			$this->assertSame( 1, EventsTable::maintenance_time_budget_seconds( 5 ), '≤5 的 ini 同样钳 1' );
+			$this->assertSame( PHP_INT_MAX, EventsTable::maintenance_time_budget_seconds( 0 ), '0=无时限（CLI）→护栏不触发' );
+			$this->assertSame( PHP_INT_MAX, EventsTable::maintenance_time_budget_seconds( -1 ), '负读数同无时限' );
+		}
+
+		public function test_c5_budget_exhausted_semantics(): void {
+			$this->assertFalse( EventsTable::maintenance_time_budget_exhausted( 100, 124, 30 ), 'elapsed 24 < 25 未耗尽' );
+			$this->assertTrue( EventsTable::maintenance_time_budget_exhausted( 100, 125, 30 ), 'elapsed 25 ≥ 25 = 耗尽（≥ 语义：预算用满即停本轮）' );
+			$this->assertTrue( EventsTable::maintenance_time_budget_exhausted( 100, 200, 30 ), '超预算必停' );
+			$this->assertFalse( EventsTable::maintenance_time_budget_exhausted( 0, 99999999, 0 ), '无时限（ini 0）永不耗尽' );
+		}
+
+		public function test_c5_clock_seam_drives_purge_cutoff(): void {
+			$clock_hits = 0;
+			EventsTable::use_clock( static function () use ( &$clock_hits ): int {
+				$clock_hits++;
+				return 1800000000;
+			} );
+			$GLOBALS['wpdb'] = new W6CFakeWpdb( array( array( '9' ) ) );
+
+			EventsTable::purge_expired_archives();
+
+			$this->assertSame( 1, $clock_hits, 'purge 内部时间读数走注入时钟（EventSampling use_store 惯例同款）' );
+			$this->assertSame(
+				array( gmdate( 'Y-m-d H:i:s', 1800000000 - 30 * DAY_IN_SECONDS ), EventsTable::ARCHIVE_PURGE_BATCH ),
+				$GLOBALS['wpdb']->prepared[0][1],
+				'cutoff（GMT 串）/批量以注入时刻计算（prepare 实参钉）'
+			);
+
+			EventsTable::use_clock( null ); // 还原默认（time() 透传——测试隔离桥）。
+		}
+
+		public function test_c5_daily_maintenance_stops_purge_when_budget_exhausted(): void {
+			// 时钟队列：start 读数 0 → 首个 loop-top 护栏读数已超预算 → 零批次（下轮 cron 续清）。
+			$times  = array( 0, 1000 );
+			$cursor = 0;
+			EventsTable::use_clock( static function () use ( &$times, &$cursor ): int {
+				$t = $times[ $cursor ] ?? $times[ count( $times ) - 1 ];
+				$cursor++;
+				return $t;
+			} );
+			$GLOBALS['wk_w6c_ini'] = 30; // 预算 25s。
+			$GLOBALS['wpdb'] = new W6CFakeWpdb( array( array( '1', '2', '3' ) ) );
+
+			EventsTable::daily_maintenance();
+
+			$this->assertSame( 0, $GLOBALS['wpdb']->batch_index, '预算已尽=本轮零扫描（90 天删+滚动已完成，留档段整段让位）' );
+			$this->assertSame( array(), $GLOBALS['wk_w6c_calls']['seq'], '零删除' );
+
+			EventsTable::use_clock( null );
+		}
+
+		public function test_c5_daily_maintenance_purges_within_budget(): void {
+			// 时钟读序：start=0 → purge 内 cutoff=0 → 护栏读 10（未尽）→ 满批1 → 护栏读 20
+			// （未尽）→ 满批2 → 护栏读 30（尽）=停（elapsed 与 start=0 同基线）。
+			$times  = array( 0, 0, 10, 20, 30 );
+			$cursor = 0;
+			EventsTable::use_clock( static function () use ( &$times, &$cursor ): int {
+				$t = $times[ $cursor ] ?? $times[ count( $times ) - 1 ];
+				$cursor++;
+				return $t;
+			} );
+			$GLOBALS['wk_w6c_ini'] = 30; // 预算 25s。
+			$GLOBALS['wpdb'] = new W6CFakeWpdb( array(
+				array_map( 'strval', range( 1, 100 ) ),
+				array_map( 'strval', range( 101, 200 ) ),
+				array(),
+			) );
+
+			EventsTable::daily_maintenance();
+
+			$this->assertSame( 2, $GLOBALS['wpdb']->batch_index, '两满批后 loop-top 读数超预算=停（200 条本轮已删，余量下轮续清）' );
+			$comment_deletes = array_filter(
+				$GLOBALS['wk_w6c_calls']['seq'],
+				static function ( array $entry ): bool {
+					return 'comment' === $entry[0];
+				}
+			);
+			$this->assertCount( 200, $comment_deletes, '200 条删除（seq 含 meta+comment 双记录）' );
+
+			EventsTable::use_clock( null );
+		}
+
+		public function test_c5_daily_maintenance_source_pins(): void {
+			$src = self::src( 'includes/stats/EventsTable.php' );
+
+			$daily = self::methodBody( $src, 'daily_maintenance' );
+			$this->assertStringContainsString( '$start', $daily, 'start 时刻捕获在场' );
+			$this->assertStringContainsString( 'maintenance_time_budget_exhausted', $daily, '护栏谓词在场（C-5 契约钉）' );
+			$this->assertStringContainsString( 'purge_expired_archives', $daily, '留档清理段消费护栏（C-7 段带护栏续清）' );
+
+			$purge = self::methodBody( $src, 'purge_expired_archives' );
+			$this->assertStringContainsString( 'null !== $stop && $stop()', $purge, 'loop-top 中止谓词消费位（件1 seam 接线兑现）' );
+
+			$now = self::methodBody( $src, 'now' );
+			$this->assertStringContainsString( 'call_user_func( self::$clock )', $now, '时钟注入消费（EventSampling 同惯例）' );
+			$this->assertStringContainsString( 'time()', $now, '默认回落 time()' );
 		}
 	}
 }

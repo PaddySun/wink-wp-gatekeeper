@@ -84,6 +84,12 @@ final class EventsTable {
 	public const CAPACITY_LOG_PREFIX = 'wk_ec_log_';
 
 	/**
+	 * @var callable|null 时钟 fn(): int（null = time()；单测注入固定/可推进时钟——
+	 * EventSampling use_store 同款惯例）。
+	 */
+	private static $clock;
+
+	/**
 	 * @var array{0: int, 1: int}|null 容量 COUNT 静态缓存 [checked_at, rows]
 	 *                                 （进程内 60s 复用——长驻进程/CLI 循环受益）。
 	 */
@@ -102,6 +108,25 @@ final class EventsTable {
 	 */
 	public static function table_name( string $prefix ): string {
 		return $prefix . self::TABLE_SUFFIX;
+	}
+
+	/**
+	 * 注入时钟（测试缝；null 还原 time() 默认——测试隔离桥）。
+	 *
+	 * @param callable|null $clock 时钟回调 fn(): int。
+	 * @return void
+	 */
+	public static function use_clock( ?callable $clock = null ): void {
+		self::$clock = $clock;
+	}
+
+	/**
+	 * 当前 Unix 秒（WP/PHP 边界：注入时钟优先，默认 time()）。
+	 *
+	 * @return int
+	 */
+	private static function now(): int {
+		return null !== self::$clock ? (int) call_user_func( self::$clock ) : time();
 	}
 
 	/**
@@ -1002,7 +1027,16 @@ DDL;
 
 		self::trim_overflow();
 
-		self::purge_expired_archives();
+		/* 【W6-C·C-5】执行时限护栏（Akismet 批量清理同式：max_execution_time − 5，
+		 * akismet/class.akismet.php:947-984）：start 自本轮首查询前捕获——90 天大 DELETE/
+		 * 滚动吃掉预算时留档段整段让位；loop-top 谓词命中即停本轮，下轮 cron 续清
+		 * （留档清理天然增量收敛）。 */
+		$start = self::now();
+		self::purge_expired_archives(
+			static function () use ( $start ): bool {
+				return self::maintenance_time_budget_exhausted( $start, self::now() );
+			}
+		);
 	}
 
 	/* -------------------------------------------------------------------
@@ -1069,6 +1103,41 @@ DDL;
 			. ' AND c.comment_date_gmt < %s LIMIT %d';
 	}
 
+	/* -------------------------------------------------------------------
+	 * 【W6-C·C-5】daily 维护执行时限护栏（R-AK §C C-5；Akismet 先例
+	 * akismet/class.akismet.php:947-984）：批量清理循环限 max_execution_time − 5——
+	 * 超预算停本轮（下轮 cron 续清，留档清理天然增量收敛），大表清理不超时。
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * 执行时限预算秒数（纯决策面，ini 实参注入供单测）：max_execution_time − 5
+	 * （留 5s 请求收尾余量）；ini ≤ 0（CLI/无时限）= PHP_INT_MAX（护栏不触发）；
+	 * 下限 1（预算不归零——归零即护栏永不放行一轮）。
+	 *
+	 * @param int|null $ini_limit max_execution_time 读数（null = ini_get WP/PHP 边界）。
+	 * @return int 预算秒。
+	 */
+	public static function maintenance_time_budget_seconds( ?int $ini_limit = null ): int {
+		$limit = null !== $ini_limit ? $ini_limit : (int) ini_get( 'max_execution_time' ); // WP/PHP 边界。
+		if ( $limit <= 0 ) {
+			return PHP_INT_MAX;
+		}
+		$budget = $limit - 5;
+		return $budget >= 1 ? $budget : 1;
+	}
+
+	/**
+	 * 本轮时限是否耗尽（纯决策面）：elapsed ≥ 预算即停（预算用满即停本轮）。
+	 *
+	 * @param int      $start     本轮开始 Unix 秒。
+	 * @param int      $now       当前 Unix 秒。
+	 * @param int|null $ini_limit max_execution_time 读数（null = ini_get）。
+	 * @return bool true=停本轮（下轮 cron 续清）。
+	 */
+	public static function maintenance_time_budget_exhausted( int $start, int $now, ?int $ini_limit = null ): bool {
+		return ( $now - $start ) >= self::maintenance_time_budget_seconds( $ini_limit );
+	}
+
 	/**
 	 * 留档过期清理（$wpdb + WP 边界；daily_maintenance 消费——增量收敛：每轮清到
 	 * 收敛或中止谓词命中，下轮 cron 续清）。
@@ -1091,7 +1160,7 @@ DDL;
 
 		$comments = $wpdb->prefix . 'comments';
 		$meta     = $wpdb->prefix . 'commentmeta';
-		$cutoff   = self::expired_archive_cutoff( $days, time() );
+		$cutoff   = self::expired_archive_cutoff( $days, self::now() );
 		$sql      = self::expired_archive_ids_sql( $comments, $meta );
 
 		$deleted = 0;
