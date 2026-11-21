@@ -52,6 +52,20 @@ final class I18nInfraTest extends TestCase {
 		self::assertGreaterThan( 0, (int) filesize( $path ), 'pot 必须非空（wp-cli i18n make-pot 首跑成功）' );
 	}
 
+	/**
+	 * 【0.9.4 W6-A2 验收轮·H4 三犯封堵】$-anchor 版本钉宿主文件零 CR 字节——
+	 * 工作树一旦被 CRLF 化（H4 事故=python 缺 newline=''；A2 验收实录=子 Agent
+	 * git stash 循环在 autocrlf=true 下 re-smudge 触碰文件），本批全部 $-anchor
+	 * 版本钉（/^ \* Version:...$/m 等）静默齐断。本钉=机制性报警位：宿主文件
+	 * 出现单个 CR 即转红，修复=按 git ls-files --eol 精准归一（w/crlf→LF）。
+	 */
+	public function test_no_cr_in_anchor_pinned_sources(): void {
+		foreach ( array( 'wink-wp-gatekeeper.php', 'readme.txt', 'languages/wink-wp-gatekeeper.pot', 'languages/wink-wp-gatekeeper-zh_CN.po' ) as $rel ) {
+			$raw = (string) file_get_contents( dirname( __DIR__ ) . '/' . $rel );
+			self::assertStringNotContainsString( "\r", $raw, $rel . ' 零 CR 字节（$-anchor 钉宿主；CRLF 化=工作树行尾事故，非内容变更——按 git ls-files --eol 归一修复）' );
+		}
+	}
+
 	public function test_pot_msgid_line_count(): void {
 		$src   = self::src( 'languages/wink-wp-gatekeeper.pot' );
 		$count = preg_match_all( '/^msgid /m', $src );
