@@ -802,6 +802,23 @@ final class CommentGate extends AbstractGate {
 		foreach ( $cloud_ids as $cloud_id ) {
 			$cloud_driver = $this->cloud_chain[ $cloud_id ];
 
+			/* 【S6-F4】test_mode 云审隔离（安全门五件套「零厂商计费」承诺面补全——旁路此前只
+			 * 覆盖验证码链 3c 真验票位，步骤 4 云审链照常外呼烧配额——S6 drill 实测 baidu +1）：
+			 * 演练期云审链强制零外呼——每驱动调用前置短路，跳过调用计为 error（对齐 halt_check
+			 * 「零外呼计 error」语义：事件 verdict=error、rule=test_mode_isolated、error 不参与
+			 * 定级；meta.drill/test_mode 标注与 3b' 旁路行同族——drill 行不进统计）；收口走既有
+			 * 云端全故障 fail 口径（fail-review→待审兜底 / fail-open→放行，与传输故障同形零特判）。
+			 * 验证码链五件套语义（3b' 旁路 pass）不动——只隔离云审计费面。 */
+			if ( $this->test_mode_active() ) {
+				$this->record_cloud_event(
+					$cloud_id,
+					Verdict::error( $cloud_id, 'test_mode_isolated', array( 'test_mode_isolated' ) ),
+					$resolved,
+					array( 'drill' => true, 'test_mode' => true )
+				);
+				continue;
+			}
+
 			/* 【M6·批F-b P1-5】链级预算墙：每驱动调用前查剩余——t0+budget 之内才发起
 			 * 下一次外呼。超墙 → 跳过剩余云审驱动（首个被挡驱动记一条 error 事件
 			 * meta.chain_budget_exceeded=true——报错历史可见防静默截断；其后 break 零
