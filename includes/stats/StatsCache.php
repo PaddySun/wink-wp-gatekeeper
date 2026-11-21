@@ -307,7 +307,9 @@ final class StatsCache {
 	 */
 	public static function truncate(): void {
 		global $wpdb;
-		$table = self::table_name( $wpdb->prefix );
+		/* 【0.9.6 FIX-W67】self::table_name（本类不存在——出生即 fatal，w67 取证 4/4
+		 * 复现）→ 委托 EventsTable::table_name 单一来源；StatsCacheResetContractTest 钉。 */
+		$table = \WinkGatekeeper\Stats\EventsTable::table_name( $wpdb->prefix );
 		$wpdb->query( "TRUNCATE TABLE {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
