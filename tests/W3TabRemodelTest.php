@@ -469,8 +469,11 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		self::assertSame( 4, substr_count( self::sp(), "'gates', 'login', 'xmlrpc_login'" ), 'xmlrpc_login 同键双入口（Tab② 登录保护卡 + Tab⑧ 管控卡——各带 hidden+checkbox 两处渲染，保存通道天然合并）' );
 		$pos_coexist = strpos( $enhance, 'id="wk-coexist-card"' );
 		$pos_site    = strpos( $enhance, 'id="wk-site-fields-card"' );
+		$pos_avatar  = strpos( $enhance, 'id="wk-avatar-card"' );
 		self::assertGreaterThan( 0, $pos_coexist, '共存卡在场' );
-		self::assertGreaterThan( $pos_coexist, $pos_site, '原型位次：coexist 卡在网站字段卡之前（卡5→卡6）' );
+		self::assertGreaterThan( 0, $pos_site, '网站字段卡在场' );
+		self::assertGreaterThan( $pos_site, $pos_avatar, '位次：头像来源卡在网站字段卡之后' );
+		self::assertGreaterThan( $pos_avatar, $pos_coexist, '【0.9.4 批 P】coexist 卡殿后=Tab⑧ 最后一栏（RSS/XML-RPC/REST/UA/网站字段/头像来源/共存——用户手测卡 W6 拍板 2026-11-21）' );
 	}
 
 	/** advanced_fold 壳翻转批 B 目标形态（details.adv + ⚙ CSS 前缀）+ 默认收起态。 */

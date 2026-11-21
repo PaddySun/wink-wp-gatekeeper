@@ -7302,33 +7302,6 @@ final class SettingsPage {
 			<p class="wk-muted"><?php esc_html_e( 'Custom allow/block rule rows by request headers (UA etc.) — division of labor with the Tab 4 IP reputation allowlist: these rules govern “what the request looks like”, that one governs “who the IP is”. Placeholder: zero controls and zero behavior today; becomes a live card once implemented.', 'wink-wp-gatekeeper' ); ?></p>
 		</section>
 
-		<section class="wk-card" id="wk-coexist-card">
-			<h2><?php esc_html_e( 'Coexistence with other security plugins', 'wink-wp-gatekeeper' ); ?> <span class="badge b-ok"><?php esc_html_e( 'Detect and yield · no fights', 'wink-wp-gatekeeper' ); ?></span></h2>
-			<?php /* 【W3·批B】coexist 共存卡新接线：hCaptcha 两 yield 开关=实键（coexist 子树
-			 * schema/sanitize 既有通道此前无渲染面——同键登记型新接线，默认开=现行行为一致：
-			 * 闸侧 02 §3.4 让位逻辑已在场，本卡只补显隐口径）。 */ ?>
-			<div class="switch-row">
-				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_comment' ) ) ); ?>" value="0" />
-				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_comment' ) ) ); ?>" value="1" <?php checked( ! isset( $settings['coexist']['hcaptcha_yield_comment'] ) || ! empty( $settings['coexist']['hcaptcha_yield_comment'] ) ); ?> />
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'hCaptcha detected handling comments', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Captcha yields', 'wink-wp-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( 'When the official hCaptcha plugin takes over comment captchas, this plugin\'s captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default.', 'wink-wp-gatekeeper' ); ?></span>
-				</span>
-			</div>
-			<div class="switch-row">
-				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_login' ) ) ); ?>" value="0" />
-				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_login' ) ) ); ?>" value="1" <?php checked( ! isset( $settings['coexist']['hcaptcha_yield_login'] ) || ! empty( $settings['coexist']['hcaptcha_yield_login'] ) ); ?> />
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'hCaptcha detected handling logins', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Captcha yields', 'wink-wp-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( 'When the official hCaptcha plugin takes over the login captcha, this plugin\'s login captcha yields. On by default — independent of the comment-yield switch.', 'wink-wp-gatekeeper' ); ?></span>
-				</span>
-			</div>
-			<?php /* 【W6-A】两灰字规划行退役→统一兼容层驱动渲染（docs/W6A-统一兼容层设计定稿-2026-11-21.md
-			 * §10）：registry 单点闭集四目标行（Akismet/Wordfence/FluentComments/WP Armour）——探测到
-			 * =badge b-ok「已检测 · 共存」+status 文案，未探测=badge b-dim「未安装」+absent 文案（不冒
-			 * 充实装）；探测=渲染期现算现显（零缓存零落库——甲档 R3）；hCaptcha 两 yield 行为实键不进
-			 * 层（定稿 §9 不迁移——DOM 锚原样）。 */ ?>
-			<?php self::compat_detection_rows(); ?>
-		</section>
-
 		<section class="wk-card" id="wk-site-fields-card">
 			<h2><?php esc_html_e( 'The comment “Website” field', 'wink-wp-gatekeeper' ); ?></h2>
 			<p id="wk-site-fields-constant-note" class="wk-muted"><?php esc_html_e( 'Commenters may fill in their own website. Whatever the switches below say, the admin comments screen always shows this URL so you can identify visitors; stored URLs are never deleted.', 'wink-wp-gatekeeper' ); ?></p>
@@ -7410,6 +7383,34 @@ final class SettingsPage {
 				'avatar'
 			);
 			?>
+		</section>
+		<?php /* 【0.9.4 批 P】coexist 卡殿后=Tab⑧ 最后一栏（用户手测卡 W6 拍板 2026-11-21——
+		 * 共存收尾；此前位次=卡5 在网站字段卡之前，W3TabRemodelTest 位次钉随批翻转）。 */ ?>
+		<section class="wk-card" id="wk-coexist-card">
+			<h2><?php esc_html_e( 'Coexistence with other security plugins', 'wink-wp-gatekeeper' ); ?> <span class="badge b-ok"><?php esc_html_e( 'Detect and yield · no fights', 'wink-wp-gatekeeper' ); ?></span></h2>
+			<?php /* 【W3·批B】coexist 共存卡新接线：hCaptcha 两 yield 开关=实键（coexist 子树
+			 * schema/sanitize 既有通道此前无渲染面——同键登记型新接线，默认开=现行行为一致：
+			 * 闸侧 02 §3.4 让位逻辑已在场，本卡只补显隐口径）。 */ ?>
+			<div class="switch-row">
+				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_comment' ) ) ); ?>" value="0" />
+				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_comment' ) ) ); ?>" value="1" <?php checked( ! isset( $settings['coexist']['hcaptcha_yield_comment'] ) || ! empty( $settings['coexist']['hcaptcha_yield_comment'] ) ); ?> />
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'hCaptcha detected handling comments', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Captcha yields', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'When the official hCaptcha plugin takes over comment captchas, this plugin\'s captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default.', 'wink-wp-gatekeeper' ); ?></span>
+				</span>
+			</div>
+			<div class="switch-row">
+				<input type="hidden" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_login' ) ) ); ?>" value="0" />
+				<input type="checkbox" class="sw" name="<?php echo esc_attr( self::field_name( array( 'coexist', 'hcaptcha_yield_login' ) ) ); ?>" value="1" <?php checked( ! isset( $settings['coexist']['hcaptcha_yield_login'] ) || ! empty( $settings['coexist']['hcaptcha_yield_login'] ) ); ?> />
+				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'hCaptcha detected handling logins', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Captcha yields', 'wink-wp-gatekeeper' ); ?></span></span>
+					<span class="why"><?php esc_html_e( 'When the official hCaptcha plugin takes over the login captcha, this plugin\'s login captcha yields. On by default — independent of the comment-yield switch.', 'wink-wp-gatekeeper' ); ?></span>
+				</span>
+			</div>
+			<?php /* 【W6-A】两灰字规划行退役→统一兼容层驱动渲染（docs/W6A-统一兼容层设计定稿-2026-11-21.md
+			 * §10）：registry 单点闭集四目标行（Akismet/Wordfence/FluentComments/WP Armour）——探测到
+			 * =badge b-ok「已检测 · 共存」+status 文案，未探测=badge b-dim「未安装」+absent 文案（不冒
+			 * 充实装）；探测=渲染期现算现显（零缓存零落库——甲档 R3）；hCaptcha 两 yield 行为实键不进
+			 * 层（定稿 §9 不迁移——DOM 锚原样）。 */ ?>
+			<?php self::compat_detection_rows(); ?>
 		</section>
 		<?php
 	}
