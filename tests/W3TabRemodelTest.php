@@ -166,7 +166,7 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 	public function test_tech_layer_untouched_anti_pins(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
 		self::assertMatchesRegularExpression( "/Version:\s+[0-9]+\.[0-9]+\.[0-9]+/", $plugin, '插件头 Version 在场（0.9.1 在位——W3BatchDTest 钉四点 + W3FixW3F2Test 批内进位钉）' );
-		self::assertStringContainsString( '0.9.4', $plugin, '版本四点已随批 W6-A/W6-A2 链尾进位 0.9.4（0.9.3 收口在前）' );
+		self::assertStringContainsString( '0.9.5', $plugin, '版本四点已随批 P+W6-A3/审计尾批 链尾进位 0.9.5（0.9.4 收口在前）' );
 
 		$sp = self::sp();
 		// slug / option 前缀 / 事件编号 / text domain / action 常量面原样。
@@ -443,9 +443,9 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		self::assertStringContainsString( 'RSS protection', $enhance, 'RSS 卡（规划壳）' );
 		self::assertStringContainsString( 'REST API controls', $enhance, 'REST 卡（规划壳）' );
 		self::assertStringContainsString( 'UA / HTTP header rules', $enhance, 'UA 卡（规划壳）' );
-		self::assertSame( 4, substr_count( $enhance, 'wk-plan-tag' ), '规划徽标四件（RSS/REST/UA 三卡头 + xmlrpc 关总开关行——闭集核对；【0.9.4 批 T8】pingback 行退役规划徽标转状态行；【W6-A】coexist 两灰字规划行退役→统一兼容层驱动检测行=badge 形态，docs/W6A-统一兼容层设计定稿-2026-11-21.md §10）' );
+		self::assertSame( 4, substr_count( $enhance, 'wk-plan-tag' ), '规划徽标四件（RSS/REST/UA 三卡头 + xmlrpc 关总开关行——闭集核对；【0.9.5 批 T8】pingback 行退役规划徽标转状态行；【W6-A】coexist 两灰字规划行退役→统一兼容层驱动检测行=badge 形态，docs/W6A-统一兼容层设计定稿-2026-11-21.md §10）' );
 
-		// 【0.9.4 批 T8】pingback 行状态化（S3-F6 已于 0.9.2 落地——占位文案失实退役）：
+		// 【0.9.5 批 T8】pingback 行状态化（S3-F6 已于 0.9.2 落地——占位文案失实退役）：
 		// 行文案改「插件层已无条件摘除两方法」状态行，徽标由 wk-plan-tag 换 badge b-ok。
 		self::assertStringContainsString( 'Done at plugin layer', $enhance, 'pingback 行徽标=插件层已落地（替代规划徽标）' );
 		self::assertStringContainsString( 'removes the pingback.ping and pingback.extensions.getPingbacks', $enhance, 'pingback 行状态文案=S3-F6 实装语义（无条件摘除两方法）' );
@@ -473,7 +473,7 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		self::assertGreaterThan( 0, $pos_coexist, '共存卡在场' );
 		self::assertGreaterThan( 0, $pos_site, '网站字段卡在场' );
 		self::assertGreaterThan( $pos_site, $pos_avatar, '位次：头像来源卡在网站字段卡之后' );
-		self::assertGreaterThan( $pos_avatar, $pos_coexist, '【0.9.4 批 P】coexist 卡殿后=Tab⑧ 最后一栏（RSS/XML-RPC/REST/UA/网站字段/头像来源/共存——用户手测卡 W6 拍板 2026-11-21）' );
+		self::assertGreaterThan( $pos_avatar, $pos_coexist, '【0.9.5 批 P】coexist 卡殿后=Tab⑧ 最后一栏（RSS/XML-RPC/REST/UA/网站字段/头像来源/共存——用户手测卡 W6 拍板 2026-11-21）' );
 	}
 
 	/** advanced_fold 壳翻转批 B 目标形态（details.adv + ⚙ CSS 前缀）+ 默认收起态。 */

@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.9.4
+Stable tag: 0.9.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ The plugin's heavy paths (paid cloud-moderation / URL-check calls, event writes)
 The coexistence yield protocol landed in M4 (when the official plugin takes over comment verification, this plugin yields automatically).
 
 == Changelog ==
+
+= 0.9.5 =
+
+Audit-tail fixes + compat-layer behavior legs (2026-11-21; independent-agent batches per the user's schedule ruling "audit defects first"; reports IMPL-AUDIT-TAIL / IMPL-W6A3). ① **Driver factory convergence (P1-6)**: the four hand-written if/elseif driver factories collapse into a single DriverFactory reading the registry — the full-set matrix pin (every registered driver id × every factory site) permanently retires the two historic silent-breakage spots (M5·C2 deepseek / M6·H4 openai_custom). ② **test_mode cloud isolation (S6-F4)**: while test_mode is active the cloud-review chain emits zero-cost error verdicts per driver (zero paid calls during drills; captcha-chain semantics untouched). ③ **Dormant credential keys (S4-F7/A1-F8)**: sanitize now rejects new values for dormant-driver subtrees (hcaptcha/turnstile/geetest/moli) with stored values preserved losslessly; url_audit provider .env key names documented. ④ **FluentComments stub-degrade leg (user ruling "AJAX branch degrades to stub")**: inside FluentComments' AJAX pipeline (admin-ajax action=fluent_comment_post, two-leg AND match) the challenge stage is waived and submissions proceed to the full content-gate chain — compose works again; every degraded submission leaves a stage=stub pass evidence event; non-pipeline requests keep strict stub semantics; the security trade-off (challenge layer bypassable by targeting that endpoint, content gates + IP reputation + rate limits as backstop) is documented in the design doc. ⑤ **Six S-grade hygiene items**: request-level settings cache for the dashboard (A2-F3), per-instance wordlist cache (A2-F7), conditional UrlAuditWorker construction (A2-F12), uninstall failure logging (A1-F13), wk_bad_signature event classification (A1-F14), badge CSS single vocabulary (A1-F16). ⑥ Tab⑧ layout: the coexistence card moves to last position on the Site Enhancements tab (user manual-card ruling). S2-F2 (wp-cron anonymous early-drive) registered as no-fix with mechanism-level reasons. Tests 2381 → 2416 / assertions 15549 → 15770 all green (double gate phpunit 12.5.43/12.5.44); phpstan 99E → 93E dual-engine, zero new findings.
 
 = 0.9.4 =
 

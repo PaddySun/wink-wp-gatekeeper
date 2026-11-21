@@ -911,10 +911,10 @@ namespace WinkGatekeeper\Tests {
 		public function test_version_four_spot_sync(): void {
 			// 【i18n 批 I-4a 进位 0.8.7→0.9.0 + 批 I-4c 进位 0.9.0→0.9.1（终局修复：PAGE_SLUG 旧 URL 复通 + po 补齐 16 键）】断言值翻转非语义变化。
 		$entry = self::source( 'wink-wp-gatekeeper.php' );
-			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.4$/m', $entry, '插件头 Version 须为 0.9.4（批 W6-A/W6-A2 链尾进位——0.9.3 收口在前）' );
-			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.4' )", $entry, '版本常量须为 0.9.4（批 W6-A/W6-A2 链尾进位——0.9.3 收口在前）' );
+			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.5$/m', $entry, '插件头 Version 须为 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.4 收口在前）' );
+			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.5' )", $entry, '版本常量须为 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.4 收口在前）' );
 			$readme = self::source( 'readme.txt' );
-			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.4$/m', $readme, 'readme Stable tag 须为 0.9.4（批 W6-A/W6-A2 链尾进位——0.9.3 收口在前）' );
+			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.5$/m', $readme, 'readme Stable tag 须为 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.4 收口在前）' );
 			self::assertStringContainsString( '= 0.8.0 =', $readme, 'Changelog 须有 0.8.0 条目' );
 		}
 	}
