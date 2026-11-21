@@ -381,6 +381,68 @@ namespace WinkGatekeeper\Settings {
 		}
 	}
 
+	/* 【W6-A】统一兼容层探测桩族（docs/W6A-统一兼容层设计定稿-2026-11-21.md §13.1）：
+	 * WinkGatekeeper\Compat 命名空间内 defined/class_exists/function_exists/__ 四桩——
+	 * 模块 detect() 内探测原语为**非全限定**调用 → 测试语境命中本桩（可编程 store），
+	 * 生产语境命名空间回退 PHP 全局内建=生产语义零变化（遮蔽/穿透两态已在 PHP 8.3.36
+	 * 施工前置探针实测）。W3 批 C WpOptionStub 桩族先例同款机制（先于全部测试文件载入
+	 * =单进程全局缝；function_exists 守卫=不破坏既有定义）。CompatLayerTest 经
+	 * CompatProbeStub 静态面播种/清空，逐测自清理（setUp/tearDown 纪律）。 */
+	namespace WinkGatekeeper\Compat {
+
+		if ( ! function_exists( 'WinkGatekeeper\Compat\defined' ) ) {
+			/**
+			 * defined 命名空间桩（可编程 store 读取——CompatProbeStub::$constants 播种）。
+			 *
+			 * @param string $name 常量名。
+			 * @return bool
+			 */
+			function defined( string $name ): bool {
+				return in_array( $name, \WinkGatekeeper\Tests\CompatProbeStub::$constants, true );
+			}
+		}
+
+		if ( ! function_exists( 'WinkGatekeeper\Compat\class_exists' ) ) {
+			/**
+			 * class_exists 命名空间桩（可编程 store 读取——CompatProbeStub::$classes 播种）。
+			 *
+			 * @param string $class    类名。
+			 * @param bool   $autoload 生产语义参数（桩忽略——store 全等判定）。
+			 * @return bool
+			 */
+			function class_exists( string $class, bool $autoload = true ): bool {
+				unset( $autoload );
+				return in_array( $class, \WinkGatekeeper\Tests\CompatProbeStub::$classes, true );
+			}
+		}
+
+		if ( ! function_exists( 'WinkGatekeeper\Compat\function_exists' ) ) {
+			/**
+			 * function_exists 命名空间桩（可编程 store 读取——CompatProbeStub::$functions 播种）。
+			 *
+			 * @param string $function 函数名。
+			 * @return bool
+			 */
+			function function_exists( string $function ): bool {
+				return in_array( $function, \WinkGatekeeper\Tests\CompatProbeStub::$functions, true );
+			}
+		}
+
+		if ( ! function_exists( 'WinkGatekeeper\Compat\__' ) ) {
+			/**
+			 * __ 命名空间桩（identity——模块文案四件直返译文语义，桩回原文）。
+			 *
+			 * @param string $text   原文（译文基线即默认译文）。
+			 * @param string $domain 文本域（桩忽略）。
+			 * @return string
+			 */
+			function __( string $text, string $domain = 'wink-wp-gatekeeper' ): string {
+				unset( $domain );
+				return $text;
+			}
+		}
+	}
+
 	namespace WinkGatekeeper\Tests {
 
 	/**
@@ -433,15 +495,49 @@ namespace WinkGatekeeper\Settings {
 			return date( $format, $ts ); // 格式词直出（桩无本地化语义）。
 		}
 
-		/**
-		 * 逐测自清理。
-		 *
-		 * @return void
-		 */
+	/**
+	 * 逐测自清理。
+	 *
+	 * @return void
+	 */
 	public static function reset(): void {
 		self::$options            = array();
 		self::$now                = 0;
 		self::$deleted_transients = array();
 	}
+	}
+
+	/**
+	 * 统一兼容层探测可编程 store（【W6-A】定稿 §13.1——detect() 桩态可控承载面）。
+	 * 三个集合语义：在场=探测命中（数组含该名字面量），空=未探测态；逐测自清理
+	 * （CompatLayerTest setUp/tearDown reset——WpOptionStub 纪律同款）。
+	 */
+	final class CompatProbeStub {
+
+		/**
+		 * @var string[] 已播种的「已定义常量」名集合（模块 defined() 桩消费）。
+		 */
+		public static array $constants = array();
+
+		/**
+		 * @var string[] 已播种的「已存在类」名集合（模块 class_exists() 桩消费）。
+		 */
+		public static array $classes = array();
+
+		/**
+		 * @var string[] 已播种的「已存在函数」名集合（模块 function_exists() 桩消费）。
+		 */
+		public static array $functions = array();
+
+		/**
+		 * 逐测自清理。
+		 *
+		 * @return void
+		 */
+		public static function reset(): void {
+			self::$constants = array();
+			self::$classes   = array();
+			self::$functions = array();
+		}
 	}
 }

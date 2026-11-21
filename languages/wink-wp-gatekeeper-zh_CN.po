@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wink-wp-gatekeeper\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 16:58+0000\n"
-"PO-Revision-Date: 2026-11-20 16:58+0000\n"
+"POT-Creation-Date: 2026-11-21 01:23+0000\n"
+"PO-Revision-Date: 2026-11-21 01:23+0000\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
@@ -424,6 +424,9 @@ msgstr "任务已在运行（"
 msgid "A “Website” field appears on the comment form and new comments store the URL"
 msgstr "评论表单出现「网站」一栏，新评论保存网址"
 
+msgid "AJAX comment form"
+msgstr "AJAX 评论表单"
+
 msgid "API Key (DeepSeek platform)"
 msgstr "API Key（DeepSeek 开放平台）"
 
@@ -529,8 +532,11 @@ msgstr "同 IP 换用户名喷洒的聚合阈值：无论用户名怎么换，�
 msgid "Aggressive — even not-so-sure cases are auto-spammed, unclear ones go to pending review; for emergencies during spam floods, switch back afterwards"
 msgstr "激进——拿不太准的也自动进垃圾箱，没看清的进待审；垃圾评论洪水期应急用，用完建议切回来"
 
-msgid "Akismet detected"
-msgstr "检测到 Akismet 在场"
+msgid "Akismet"
+msgstr "Akismet"
+
+msgid "Akismet is active and screens comment spam on its own hook behind this plugin's gate — this plugin's comment gate runs first, ahead of every comment plugin. Layered cooperation (skipping the built-in rules for submissions Akismet has already caught) is planned, not yet built; this row never touches Akismet's config."
+msgstr "Akismet 已在场并在自己的钩子上跑评论反垃圾——排在本插件闸之后（本插件评论闸先行，比一切评论插件都早）。分层协作（Akismet 已拦下的提交本插件内置规则不再重复出题）属规划项、尚未实装；本行绝不改动 Akismet 的配置。"
 
 msgid "Aliyun Captcha 2.0"
 msgstr "阿里云验证码 2.0"
@@ -904,6 +910,9 @@ msgstr "评论防护"
 msgid "Comment protection · trusted-visitor waiver (pre-check without a captcha)"
 msgstr "评论保护·信用免验（预检免验证码）"
 
+msgid "Comment spam screening"
+msgstr "评论反垃圾"
+
 msgid "Commenter avatar source"
 msgstr "评论者头像来源"
 
@@ -1204,6 +1213,9 @@ msgstr "防线"
 msgid "Detect and yield · no fights"
 msgstr "检测即让位 · 不打架"
 
+msgid "Detected · coexists"
+msgstr "已检测 · 共存"
+
 msgid "Detection unsuccessful (HTTP "
 msgstr "探测未成功（HTTP "
 
@@ -1489,6 +1501,12 @@ msgstr "首次上岗"
 msgid "Fixed window for failure counting: counts reset naturally once the window passes (a successful login resets immediately)."
 msgstr "失败计数的固定窗口：窗口过后计数自然清零（成功登录立即清零）。"
 
+msgid "FluentComments"
+msgstr "FluentComments"
+
+msgid "FluentComments replaces the native comment form with its own AJAX form and, while inserting a submission, strips third-party callbacks off the comment preprocessing hooks (Akismet is on its allow list; this plugin is not). This row is detection only in this release — whether the comment gate should take part in AJAX submissions is a separately signed-off decision."
+msgstr "FluentComments 会用自家 AJAX 表单整替原生评论表单，且在插入评论期间把评论预处理钩子上的第三方回调剥掉（Akismet 在它的白名单里，本插件不在）。本次发布本行只做检测登记——评论闸要不要参与 AJAX 提交，属另行拍板的决策。"
+
 msgid "Follow (default): when cloud moderation is DeepSeek, both verdicts and page fetching use DeepSeek (one set of credentials); with another driver, verdicts use its configuration and page fetching does not auto-enable (unconfigured — pick one manually under “Fetch provider” below). Separate: the URL check uses its own DeepSeek credentials (independent of comment cloud moderation; only needed for a different account/quota)."
 msgstr "跟随（默认）：云端审核为 DeepSeek 时，判定与网页抓取都用 DeepSeek（同一份凭证）；云端审核是其他驱动时，判定走其配置、网页抓取不会自动启用（抓取未配置——需要抓取请在下方「网页抓取服务商」手动选择）。独立：网址核查用单独的 DeepSeek 凭证（与评论云端审核互不影响，想用不同的账号/额度时才需要选独立）。"
 
@@ -1590,6 +1608,9 @@ msgstr "健康状态"
 
 msgid "Hinduism-related"
 msgstr "涉印度教"
+
+msgid "Honeypot anti-spam"
+msgstr "蜜罐反垃圾"
 
 msgid "Honor the site's robots disallow rules (off by default — honoring them means more “could not tell” cases)"
 msgstr "遵守网站的 robots 禁爬声明（默认关——开了会多「没看清」）"
@@ -1780,9 +1801,6 @@ msgstr "关键词黑名单"
 msgid "Keyword blacklist hit"
 msgstr "命中关键词黑名单"
 
-msgid "Keyword gate deduplication"
-msgstr "关键词闸去重"
-
 msgid "LLM provider"
 msgstr "LLM提供商"
 
@@ -1831,8 +1849,8 @@ msgstr "本地规则四闸（上游迁移）"
 msgid "Login"
 msgstr "登录门"
 
-msgid "Login captcha exclusivity notice"
-msgstr "登录出码互斥提示"
+msgid "Login captcha overlap"
+msgstr "登录验证码重叠"
 
 msgid "Login failures from one IP reach the existing threshold (10/IP — reusing the login gate's own counter, no separate threshold). Off by default."
 msgstr "同一 IP 登录失败达到既有阈值（10 次/IP——沿登录闸现成计数，不单设阈值）。默认关。"
@@ -2059,6 +2077,18 @@ msgstr "没有待核查的存量网址——点下方按钮可把带网址的已
 msgid "No existing-comment audit yet — click “Start audit” above and the report will appear here."
 msgstr "还没体检过历史评论——点上方「开始体检」发起，报告会展示在这里。"
 
+msgid "No interaction. If Akismet is added later, this row turns into the coexistence note automatically — detection runs live on each settings page render, nothing is stored."
+msgstr "无交互。日后若加装 Akismet，本行会自动转为共存说明——探测在每次设置页渲染时现算，不落任何存储。"
+
+msgid "No interaction. If FluentComments is added later, this row turns into the AJAX-form coexistence note automatically — detection runs live, nothing is stored."
+msgstr "无交互。日后若加装 FluentComments，本行会自动转为 AJAX 表单共存说明——探测现算，不落任何存储。"
+
+msgid "No interaction. If WP Armour is added later, this row turns into the honeypot composition note automatically — detection runs live, nothing is stored."
+msgstr "无交互。日后若加装 WP Armour，本行会自动转为蜜罐合成说明——探测现算，不落任何存储。"
+
+msgid "No interaction. If Wordfence is added later, this row turns into the login-captcha overlap note automatically — detection runs live, nothing is stored."
+msgstr "无交互。日后若加装 Wordfence，本行会自动转为登录验证码重叠说明——探测现算，不落任何存储。"
+
 msgid "No login attempts blocked recently — that is a good state."
 msgstr "最近没拦过任何登录尝试——这是好状态。"
 
@@ -2148,6 +2178,9 @@ msgstr "未启用——配置后这里会出现它的数字"
 
 msgid "Not in a trusted range"
 msgstr "不在受信网段"
+
+msgid "Not installed"
+msgstr "未安装"
 
 msgid "Not now"
 msgstr "暂不配置"
@@ -3718,6 +3751,12 @@ msgstr "访客 IP、验证 token"
 msgid "Visitors (same nickname + email) or logged-in users with N approved comments are waived; the comparable WP core precedent is 1, and because a captcha waiver is stronger, the default is tightened to 3."
 msgstr "游客（同昵称+邮箱）或登录用户已有 N 条通过审核的评论即免验；WP 核心同类先例为 1，验证码豁免更强故默认收紧至 3。"
 
+msgid "WP Armour"
+msgstr "WP Armour"
+
+msgid "WP Armour's honeypot guards comment submissions: bots that fill its hidden field are caught with no challenge shown, humans pass it without noticing. Its check rides the same preprocessing hook this plugin's gate uses, behind it — the two compose harmlessly. No config is touched either way."
+msgstr "WP Armour 用蜜罐守评论提交：填了隐藏字段的机器人直接被拦、看不到任何出题，真人无感通过。它的检查与本插件闸同挂一条预处理钩子、排在其后——两层合成无冲突。双方配置都不动。"
+
 msgid "We have seen this string before — how about plain human words instead?"
 msgstr "这串字符我们眼熟——换句人话再试试？"
 
@@ -3762,9 +3801,6 @@ msgstr "出了什么岔子"
 
 msgid "Whatever you finished counts — below is your current protection checklist; missing items can be added later on the settings page."
 msgstr "配好几步算几步——下面是你当前的防护清单，缺的项随时可在设置页补。"
-
-msgid "When Akismet has already tossed the same spam into its queue, this plugin's built-in rules skip re-challenging (the decision is still fully logged to this plugin's event table). Planned row — audit notes in docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md, to be implemented after sign-off; detect and yield, never touching the other plugin's config."
-msgstr "Akismet 已把同名垃圾扔进其队列时，本插件站内规矩不再重复出码拦截（判定留痕仍全量落本插件事件表）。规划行——审计底稿 docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md，施工拍板后实装；检测即让位、不代改对方配置。"
 
 msgid "When IP reputation is disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail and a captcha is shown outright) — configuring IP reputation is recommended for stronger protection."
 msgstr "未启用 IP 信誉时，信任链跳过该项，不影响免验资格与登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（按不通过处理，直接展示验证码）——建议配置 IP 信誉以提升防护。"
@@ -3856,17 +3892,17 @@ msgstr "wink 验证码演练模式启用中——全站人机验证旁路（24h 
 msgid "With DeepSeek fetching, your server no longer opens commenters' URLs itself — DeepSeek fetches the content instead (a much better success rate on blocked / anti-scraping sites, e.g. certain adult or heavily protected sites), billed per success. Direct opening is free but exposes your origin IP and often “cannot tell” on anti-scraping sites — it is never auto-enabled; select it here manually."
 msgstr "选 DeepSeek 抓取时，本站服务器不再直接打开评论者的网址——由 DeepSeek 代为抓取正文（对打不开/反爬的站点成功率高很多，如某些成人站、强反爬站），按成功次数计费。本站直接打开不花钱但会暴露源站 IP，且遇到反爬站容易「没看清」——默认不自动启用，需在此手动选择。"
 
-msgid "With both plugins verifying logins, visitors may face two captchas in a row — the detection row notes “who guards the login captcha” with a recommendation (keep one, or let one yield). Planned row — informational only, never touching the other plugin's config."
-msgstr "两家都开登录验证时访客可能连过两道码——检测行提示「登录出码由谁把守」并给出建议（留一家，或一家让位）。规划行——提示性，不代改对方配置。"
-
 msgid "With no captcha provider configured, nothing renders and nothing blocks; if “Settings → General” disallows registration, the signup form is unreachable (an idle switch is harmless); multisite signups go through wp-signup.php, which this gate does not cover."
 msgstr "未配置验证码驱动时自动不渲染不拦截；「设置 → 常规」关闭任何人可注册后注册表单不可达（开关空转无害）；多站点注册走 wp-signup.php，本闸不覆盖。"
 
 msgid "Without IP reputation the trust chain skips it and login counts are unaffected; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (a captcha is shown outright)."
 msgstr "未启用 IP 信誉时信任链跳过该项，不影响登录计数；启用后若配置异常/超时/报错/超阈值，将从严判定（直接展示验证码）。"
 
-msgid "Wordfence detected"
-msgstr "检测到 Wordfence 在场"
+msgid "Wordfence"
+msgstr "Wordfence"
+
+msgid "Wordfence is active. With both plugins verifying logins, visitors may face two captchas in a row — who guards the login captcha (keep one, or let one yield) is a decision for a later batch. Informational only; neither plugin's config is touched."
+msgstr "Wordfence 已在场。两家都在校验登录时，访客可能连过两道验证码——登录验证码由谁守（留一家，还是让一家让位）留待后续批次拍板。本行只做知情呈现，任何一方的配置都不动。"
 
 msgid "Works but slow (%.1f s)"
 msgstr "能用但慢（%.1f 秒）"

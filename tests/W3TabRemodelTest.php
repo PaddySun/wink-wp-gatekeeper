@@ -443,7 +443,7 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 		self::assertStringContainsString( 'RSS protection', $enhance, 'RSS 卡（规划壳）' );
 		self::assertStringContainsString( 'REST API controls', $enhance, 'REST 卡（规划壳）' );
 		self::assertStringContainsString( 'UA / HTTP header rules', $enhance, 'UA 卡（规划壳）' );
-		self::assertSame( 6, substr_count( $enhance, 'wk-plan-tag' ), '规划徽标六件（三卡头 + xmlrpc 关总开关行 + coexist 两检测行——闭集核对；【0.9.3 批 T8】pingback 行退役规划徽标转状态行）' );
+		self::assertSame( 4, substr_count( $enhance, 'wk-plan-tag' ), '规划徽标四件（RSS/REST/UA 三卡头 + xmlrpc 关总开关行——闭集核对；【0.9.3 批 T8】pingback 行退役规划徽标转状态行；【W6-A】coexist 两灰字规划行退役→统一兼容层驱动检测行=badge 形态，docs/W6A-统一兼容层设计定稿-2026-11-21.md §10）' );
 
 		// 【0.9.3 批 T8】pingback 行状态化（S3-F6 已于 0.9.2 落地——占位文案失实退役）：
 		// 行文案改「插件层已无条件摘除两方法」状态行，徽标由 wk-plan-tag 换 badge b-ok。
@@ -460,8 +460,9 @@ self::assertStringContainsString( '<span class="wk-wordmark">Wink <em>WP</em> <?
 			$pair = self::block_between( $enhance, "array( 'coexist', '{$leaf}' )", 'class="sw-label"' );
 			self::assertStringContainsString( 'value="0"', $pair, "coexist {$leaf} hidden-0 伴随域在 checkbox 之前（M5Fix 契约族同款紧邻形态）" );
 		}
-		self::assertStringContainsString( 'Akismet detected', $enhance, 'Akismet 规划检测行（灰字不冒充实装）' );
-		self::assertStringContainsString( 'Wordfence detected', $enhance, 'Wordfence 规划检测行' );
+		// 【W6-A】两灰字规划行退役→统一兼容层驱动渲染（docs/W6A-统一兼容层设计定稿-2026-11-21.md §10）。
+		self::assertStringContainsString( 'self::compat_detection_rows()', $enhance, '兼容检测行=统一兼容层驱动装配（registry 单点闭集——散点探测=设计失败）' );
+		self::assertStringContainsString( '\WinkGatekeeper\Compat\CompatRegistry::all()', self::functionBody( self::sp(), 'compat_detection_rows' ), '层消费针（渲染循环只读 registry 闭集）' );
 
 		// XML-RPC 管控卡=真实控件搬位（Q4 代裁：Tab② 登录保护卡保留原行 + Tab⑧ 同键副本）。
 		self::assertStringContainsString( 'id="wk-xmlrpc-control-card"', $enhance, 'XML-RPC 管控卡锚（搬位卡）' );

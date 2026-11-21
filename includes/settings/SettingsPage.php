@@ -7253,8 +7253,9 @@ final class SettingsPage {
 		 * 管控（真实控件搬位——gates.login.xmlrpc_login 同键副本，Q4 代裁：双入口同键，保存
 		 * 通道天然合并）/ 卡3 REST（规划壳）/ 卡4 UA·HTTP 头规则（规划壳）/ 卡5 coexist
 		 * 共存（hCaptcha 两 yield 开关=实键新接线——schema SettingsSchema.php:433–436 +
-		 * Sanitize.php:242–243 既有通道无渲染面；Akismet/Wordfence 两行=规划检测行灰字不冒
-		 * 充实装）/ 卡6 网站字段 / 卡7 头像来源（原两卡零重排——DOM 锚全保）。 */ ?>
+		 * Sanitize.php:242–243 既有通道无渲染面；【W6-A】Akismet/Wordfence 两灰字规划行退役
+		 * →统一兼容层 registry 闭集四目标驱动渲染）/ 卡6 网站字段 / 卡7 头像来源（原两卡
+		 * 零重排——DOM 锚全保）。 */ ?>
 
 		<section class="wk-card wk-card--ghost">
 			<h2><?php esc_html_e( 'RSS protection', 'wink-wp-gatekeeper' ); ?> <span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></h2>
@@ -7320,16 +7321,12 @@ final class SettingsPage {
 					<span class="why"><?php esc_html_e( 'When the official hCaptcha plugin takes over the login captcha, this plugin\'s login captcha yields. On by default — independent of the comment-yield switch.', 'wink-wp-gatekeeper' ); ?></span>
 				</span>
 			</div>
-			<div class="switch-row">
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Akismet detected', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Keyword gate deduplication', 'wink-wp-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( 'When Akismet has already tossed the same spam into its queue, this plugin\'s built-in rules skip re-challenging (the decision is still fully logged to this plugin\'s event table). Planned row — audit notes in docs/reports/DESIGN-AKISMET-AUDIT-2026-11-13.md, to be implemented after sign-off; detect and yield, never touching the other plugin\'s config.', 'wink-wp-gatekeeper' ); ?></span>
-				</span>
-			</div>
-			<div class="switch-row">
-				<span class="sw-label"><span class="sw-hd"><b><?php esc_html_e( 'Wordfence detected', 'wink-wp-gatekeeper' ); ?></b><span class="sw-tag"><?php esc_html_e( 'Login captcha exclusivity notice', 'wink-wp-gatekeeper' ); ?></span><span class="wk-plan-tag"><?php esc_html_e( 'Planned · not yet built', 'wink-wp-gatekeeper' ); ?></span></span>
-					<span class="why"><?php esc_html_e( 'With both plugins verifying logins, visitors may face two captchas in a row — the detection row notes “who guards the login captcha” with a recommendation (keep one, or let one yield). Planned row — informational only, never touching the other plugin\'s config.', 'wink-wp-gatekeeper' ); ?></span>
-				</span>
-			</div>
+			<?php /* 【W6-A】两灰字规划行退役→统一兼容层驱动渲染（docs/W6A-统一兼容层设计定稿-2026-11-21.md
+			 * §10）：registry 单点闭集四目标行（Akismet/Wordfence/FluentComments/WP Armour）——探测到
+			 * =badge b-ok「已检测 · 共存」+status 文案，未探测=badge b-dim「未安装」+absent 文案（不冒
+			 * 充实装）；探测=渲染期现算现显（零缓存零落库——甲档 R3）；hCaptcha 两 yield 行为实键不进
+			 * 层（定稿 §9 不迁移——DOM 锚原样）。 */ ?>
+			<?php self::compat_detection_rows(); ?>
 		</section>
 
 		<section class="wk-card" id="wk-site-fields-card">
@@ -7415,6 +7412,30 @@ final class SettingsPage {
 			?>
 		</section>
 		<?php
+	}
+
+	/**
+	 * Tab⑧ 共存卡「统一兼容层」检测行渲染（【W6-A】）。
+	 *
+	 * 消费 \WinkGatekeeper\Compat\CompatRegistry 闭集（registry 单点登记——施工图
+	 * docs/W6A-统一兼容层设计定稿-2026-11-21.md §3/§10；散点探测=设计失败）。
+	 * 探测=渲染期现算现显（零缓存零落库——定稿 §4 R3）；探测到=badge b-ok
+	 * 「已检测 · 共存」+status 文案，未探测=badge b-dim「未安装」+absent 文案
+	 * （不冒充实装——R6）。hCaptcha 两 yield 行为实键不在此循环（定稿 §9 不迁移）。
+	 *
+	 * @return void
+	 */
+	private static function compat_detection_rows(): void {
+		foreach ( \WinkGatekeeper\Compat\CompatRegistry::all() as $module ) {
+			$detected = $module->detect();
+			?>
+			<div class="switch-row">
+				<span class="sw-label"><span class="sw-hd"><b><?php echo esc_html( $module->label() ); ?></b><span class="sw-tag"><?php echo esc_html( $module->tag() ); ?></span><span class="<?php echo esc_attr( $detected ? 'badge b-ok' : 'badge b-dim' ); ?>"><?php echo esc_html( $detected ? __( 'Detected · coexists', 'wink-wp-gatekeeper' ) : __( 'Not installed', 'wink-wp-gatekeeper' ) ); ?></span></span>
+					<span class="why"><?php echo esc_html( $detected ? $module->status_copy() : $module->absent_copy() ); ?></span>
+				</span>
+			</div>
+			<?php
+		}
 	}
 
 	/**
