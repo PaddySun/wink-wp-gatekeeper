@@ -1289,19 +1289,6 @@ details.adv .gsteps {
 	height: auto;
 }
 
-.wk-flow-demo .wk-flow-list {
-	margin: 0;
-	padding: 0.5rem 0.8rem 0.7rem;
-	list-style: none;
-	font-size: 13px;
-	color: var(--text-2);
-}
-
-.wk-flow-demo .wk-flow-list li {
-	margin: 0.25rem 0;
-	line-height: 1.5;
-}
-
 /* ---------- 向导步面支持样式（【W3·批C】radio-card/骨架类族的消费配套——批 D 0.8.5
  * 进位一次击穿，本批不 bump） ----------
  * radio-card 原生 radio 视觉隐藏（rc-dot 承载视觉——label 包裹保键盘可切换，
@@ -1347,6 +1334,3 @@ details.adv .gsteps {
 	text-align: right;
 }
 
-.wk-wizard .wk-flow-note {
-	margin: 0.4rem 0.8rem 0.6rem;
-}

@@ -1495,12 +1495,6 @@ final class SettingsPage {
 								src="<?php echo esc_url( WINK_GATEKEEPER_URL . 'assets/img/demo-trigger-nobutton.gif' ); ?>"
 								alt="<?php echo esc_attr( __( 'No-button mode (current default)', 'wink-wp-gatekeeper' ) ); ?>"
 								loading="lazy" width="968" height="888" />
-							<ul class="wk-flow-list">
-								<li><?php esc_html_e( '① Submit — the visitor clicks “Post Comment” (no-button mode: the submission is intercepted and the verification popup opens automatically)', 'wink-wp-gatekeeper' ); ?></li>
-								<li><?php esc_html_e( '② Verify — the slider / smart check completes inside the popup', 'wink-wp-gatekeeper' ); ?></li>
-								<li><?php esc_html_e( '③ Auto-resubmit — no second click needed; toast “Running checks”', 'wink-wp-gatekeeper' ); ?></li>
-								<li><?php esc_html_e( '④ Landing — the comment enters the built-in rules → cloud moderation → IP reputation chain', 'wink-wp-gatekeeper' ); ?></li>
-							</ul>
 						</figure>
 						<figure class="wk-flow-card<?php echo 'button' === $submit_flow ? ' on' : ''; ?>" data-wk-flow-demo="button">
 							<figcaption class="wk-flow-cap"><?php esc_html_e( 'Classic button mode', 'wink-wp-gatekeeper' ); ?></figcaption>
@@ -1509,7 +1503,6 @@ final class SettingsPage {
 								alt="<?php echo esc_attr( __( 'Classic button mode', 'wink-wp-gatekeeper' ) ); ?>"
 								loading="lazy" width="980" height="738" />
 						</figure>
-						<p class="description wk-flow-note" id="wk-flow-note"><?php esc_html_e( 'Real screen recordings (captured on v0.9.1) — both loop automatically; the card matching the selection above is highlighted.', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 					<script>
 						/* 【W6-C】radio（captcha.submit_flow）↔ 实录卡联动——纯视觉 class 切换，

@@ -101,23 +101,25 @@ final class W6CWizardRecordingTest extends TestCase {
 	public function test_wizard_real_recording_note_and_intro(): void {
 		$wiz = self::body( 'render_wizard' );
 
-		$this->assertStringContainsString( 'Real screen recordings (captured on v0.9.1) — both loop automatically; the card matching the selection above is highlighted.', $wiz, '说明行=实录语义新键' );
-		$this->assertStringContainsString( 'How visitors get challenged — two flows, compared in the two recordings below (real captures from v0.9.1).', $wiz, '引言行=实录措辞新键' );
+		// 【0.9.6 批 N1】说明行整体退役（用户 2026-11-21：「不用文字描述了，gif 已经够
+		// 说明问题了」）——引言行（两句导览）保留，仅去 wk-flow-note 说明行。
+		$this->assertStringNotContainsString( 'Real screen recordings (captured on v0.9.1)', $wiz, '说明行退役零残留（批 N1 用户拍板 GIF 自明）' );
+		$this->assertStringContainsString( 'How visitors get challenged — two flows, compared in the two recordings below (real captures from v0.9.1).', $wiz, '引言行=实录措辞新键（保留）' );
 
 		$this->assertStringNotContainsString( 'illustrative, not a live recording', $wiz, '旧「示意图非实录」措辞退役' );
 		$this->assertStringNotContainsString( 'Looped demo:', $wiz, '旧循环演示说明行退役' );
 	}
 
-	public function test_wizard_four_step_list_kept_under_nobutton_card(): void {
-		// 信息密度裁决：四步文字保留为无按钮卡下说明列表（③自动续提语义/④链路顺序
-		// 为 GIF 画面不承载的独立信息——i18n 零退役，键原样搬迁）。
+	public function test_wizard_four_step_list_retired(): void {
+		// 【0.9.6 批 N1】四步文字列表整体退役（用户拍板：GIF 自明无需文字描述）——
+		// 五键（四步+说明行）catalog 退役形态，i18n 计数随批 -5。
 		$wiz = self::body( 'render_wizard' );
 
-		$this->assertStringContainsString( '① Submit — the visitor clicks “Post Comment”', $wiz, '步① 原键保留' );
-		$this->assertStringContainsString( '② Verify — the slider / smart check completes inside the popup', $wiz, '步② 原键保留' );
-		$this->assertStringContainsString( '③ Auto-resubmit — no second click needed', $wiz, '步③ 原键保留（自动续提语义）' );
-		$this->assertStringContainsString( '④ Landing — the comment enters the built-in rules', $wiz, '步④ 原键保留（链路顺序）' );
-		$this->assertStringContainsString( 'wk-flow-list', $wiz, '说明列表容器（搬迁形态）' );
+		$this->assertStringNotContainsString( '① Submit — the visitor clicks “Post Comment”', $wiz, '步① 退役零残留' );
+		$this->assertStringNotContainsString( '② Verify — the slider / smart check completes', $wiz, '步② 退役零残留' );
+		$this->assertStringNotContainsString( '③ Auto-resubmit — no second click needed', $wiz, '步③ 退役零残留' );
+		$this->assertStringNotContainsString( '④ Landing — the comment enters the built-in rules', $wiz, '步④ 退役零残留' );
+		$this->assertStringNotContainsString( 'wk-flow-list', $wiz, '说明列表容器退役零残留' );
 	}
 
 	/* ===============================================================

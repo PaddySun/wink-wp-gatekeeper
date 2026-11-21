@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wink-wp-gatekeeper\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 10:05+0000\n"
-"PO-Revision-Date: 2026-11-21 10:05+0000\n"
+"POT-Creation-Date: 2026-11-21 10:48+0000\n"
+"PO-Revision-Date: 2026-11-21 10:48+0000\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
@@ -2626,9 +2626,6 @@ msgstr "重新激活"
 msgid "Real IP source"
 msgstr "真实 IP 来源"
 
-msgid "Real screen recordings (captured on v0.9.1) — both loop automatically; the card matching the selection above is highlighted."
-msgstr "真实录屏（v0.9.1 实录）——两段自动循环；上方选中形态的卡片会高亮。"
-
 msgid "Real-IP retrieval method"
 msgstr "真实 IP 获取方式"
 
@@ -4122,18 +4119,6 @@ msgstr "→ 去配置 IP 信誉（Tab④）"
 
 msgid "→ View details"
 msgstr "→ 查看详情"
-
-msgid "① Submit — the visitor clicks “Post Comment” (no-button mode: the submission is intercepted and the verification popup opens automatically)"
-msgstr "① 点提交——访客点「发表评论」（无按钮模式：提交被截住，验证弹层自动弹出）"
-
-msgid "② Verify — the slider / smart check completes inside the popup"
-msgstr "② 过码——滑块/智能验证在弹层内完成"
-
-msgid "③ Auto-resubmit — no second click needed; toast “Running checks”"
-msgstr "③ 自动续提——过码后无需再点一次，Toast「正在接收检查」"
-
-msgid "④ Landing — the comment enters the built-in rules → cloud moderation → IP reputation chain"
-msgstr "④ 落地——评论进入站内规矩 → 云审 → IP 信誉链路"
 
 msgctxt "audit-running"
 msgid "In progress"
