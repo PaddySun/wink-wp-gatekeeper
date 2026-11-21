@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.9.3
+Stable tag: 0.9.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ The plugin's heavy paths (paid cloud-moderation / URL-check calls, event writes)
 The coexistence yield protocol landed in M4 (when the official plugin takes over comment verification, this plugin yields automatically).
 
 == Changelog ==
+
+= 0.9.4 =
+
+Wave-6 compatibility: pluggable unified compat layer (2026-11-21; independent-agent batches W6-A/W6-A2 per user rulings; design doc + report IMPL-W6A/IMPL-W6A2). ① **Unified Compat Layer**: new includes/compat/ registry with one module per target (Akismet / Wordfence / FluentComments / WP Armour) — each module owns its detection criteria (multi-leg, source-anchored) and presentation copy; the Tab⑧ Coexistence card's two gray placeholder rows are retired in favor of four registry-driven detection rows (detected = live "Detected · coexists" badge + composition facts; absent = honest dim "Not installed"); detection is read-only, computed at render time, zero writes / zero remote calls / zero gate-behavior change; adding a future compat target = one module file + one registry line (scattered probing is contract-pinned out). ② **FluentComments response leg — the layer's first behavior contract**: FluentComments' AJAX pipeline strips third-party preprocess_comment callbacks (its allow-list defaults to Akismet only), which live-machine testing confirmed fully bypasses this plugin's comment gate (no captcha challenge, blockable content landed unverified, zero gate events); when FluentComments is detected the layer now re-registers this plugin's gate leg through their official fluent_comments/allowed_comment_hooks filter (our callback is a nameable instance-method pair — verified against their callbackName() normalization; zero action while FluentComments is absent). ③ **Theme matrix (live)**: Astra and GeneratePress both verified end-to-end (guest captcha popup → slider → pending landing); WP Armour's honeypot coexists with zero conflict. Paddy Newsprint is deliberately deferred (its own comment-UX overhaul is planned). Tests 2356 → 2381 / assertions 15339 → 15547 all green (increase-only; double gate phpunit 12.5.43/12.5.44; phpstan 99E dual-engine).
 
 = 0.9.3 =
 

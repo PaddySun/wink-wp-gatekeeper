@@ -65,9 +65,9 @@ final class B1aContractTest extends TestCase {
 		$entry = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
 
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.3$/m', $entry, '插件头 Version 须为 0.9.3（批 T8+ST1+ST2 链尾进位——0.9.2 收口在前）' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.3' )", $entry, '版本常量须为 0.9.3（批 T8+ST1+ST2 链尾进位——0.9.2 收口在前）' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.3$/m', $readme, 'readme Stable tag 须为 0.9.3（批 T8+ST1+ST2 链尾进位——0.9.2 收口在前）' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.4$/m', $entry, '插件头 Version 须为 0.9.4（批 W6-A/W6-A2 链尾进位——0.9.3 收口在前）' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.4' )", $entry, '版本常量须为 0.9.4（批 W6-A/W6-A2 链尾进位——0.9.3 收口在前）' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.4$/m', $readme, 'readme Stable tag 须为 0.9.4（批 W6-A/W6-A2 链尾进位——0.9.3 收口在前）' );
 		$this->assertStringContainsString( '819 tests / 3657 assertions', $readme, 'Changelog 须含测试数（R1 G7 纪律）' );
 		$this->assertStringContainsString( 'F4-1', $readme, 'Changelog 须含设计锚点' );
 		$this->assertStringContainsString( 'F4-3', $readme, 'Changelog 须含设计锚点' );
