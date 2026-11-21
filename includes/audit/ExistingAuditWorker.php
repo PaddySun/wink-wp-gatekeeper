@@ -32,6 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // 禁止直接访问（S2-F1 纵深加固——类文件直访零执行，守卫为纵深面）。
 }
 
+use WinkGatekeeper\Drivers\DriverFactory;
 use WinkGatekeeper\Drivers\ReviewDriverInterface;
 
 final class ExistingAuditWorker {
@@ -422,42 +423,23 @@ final class ExistingAuditWorker {
 	/**
 	 * 默认驱动工厂：首个已配置云审驱动（chain 顺序；定稿 §3「按当前启用的服务商送审」）。
 	 *
+	 * 【P1-6】构造收敛单一 DriverFactory（registry class 名派生构造形态）——本方法
+	 * 历史为手写 if/elseif 工厂且两犯静默失效：M5·C2（deepseek 漏登记，chain 恒解析
+	 * null）+ M6·H4（openai_custom 二犯同型）。手写分支退役后新驱动漏配面由工厂+
+	 * tests/DriverFactoryTest.php 全集矩阵钉永绝。stats_bridge=false=原分支形态
+	 * （LLM 族不传 stats 子树第 5 参——raw 快照桥缺省空数组=批前行为逐位照抄）。
+	 *
 	 * @return array{driver: ReviewDriverInterface, id: string}|null
 	 */
 	public function default_driver_factory(): ?array {
 		if ( empty( $this->settings['review']['cloud']['enabled'] ) ) {
 			return null;
 		}
-		$chain = is_array( $this->settings['review']['cloud']['chain'] ?? null ) ? $this->settings['review']['cloud']['chain'] : array();
-		$client = null;
-			foreach ( $chain as $chain_id ) {
-				$driver = null;
-				if ( 'tencent_tms' === $chain_id ) {
-					$driver = new \WinkGatekeeper\Drivers\Review\TencentTmsDriver( $this->settings, $this->default_client() );
-				} elseif ( 'aliyun_green' === $chain_id ) {
-					$driver = new \WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver( $this->settings, $this->default_client() );
-				} elseif ( 'baidu' === $chain_id ) {
-					$driver = new \WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver( $this->settings, $this->default_client() );
-			} elseif ( 'deepseek' === $chain_id ) {
-				// 【M5 修复批·C2】DeepSeek LLM 驱动补口（M5·U4 实装后 U3 工厂漏登记——
-				// chain=['deepseek'] 时恒解析 null，start/run 全瘫）。形态对照
-				// Bootstrap.php 同名分支：config_from_settings 派生（含 review.cloud
-				// 顶层 two_stage/upgrade_model）+ default_client 传输脊。
-				$driver = new \WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver(
-					\WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver::config_from_settings( $this->settings ),
-					$this->default_client()
-				);
-			} elseif ( 'openai_custom' === $chain_id ) {
-				/* 【M6·批H4·补钉】openai_custom 补口（E 批漏配面——同型二犯对照 M5·C2：实装
-				 * 驱动未登记体检工厂，chain=['openai_custom'] 恒解析 null → has_driver false
-				 * → Tab⑦ 误报「云端审核还没配置」+无开始钮。手测二轮实测抓获。形态对照
-				 * Bootstrap E 批同名分支：config_from_settings 8 键派生+default_client 传输脊。 */
-				$driver = new \WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver(
-					\WinkGatekeeper\Drivers\Review\OpenAiCustomReviewDriver::config_from_settings( $this->settings ),
-					$this->default_client()
-				);
-			}
-			if ( null !== $driver && $driver->is_configured() ) {
+		$chain    = is_array( $this->settings['review']['cloud']['chain'] ?? null ) ? $this->settings['review']['cloud']['chain'] : array();
+		$registry = DriverFactory::default_registry();
+		foreach ( $chain as $chain_id ) {
+			$driver = DriverFactory::build_review( $registry, (string) $chain_id, $this->settings, $this->default_client(), false );
+			if ( null !== $driver && DriverFactory::is_configured( $driver ) ) {
 				return array( 'driver' => $driver, 'id' => (string) $chain_id );
 			}
 		}

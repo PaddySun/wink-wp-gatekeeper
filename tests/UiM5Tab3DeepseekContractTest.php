@@ -129,10 +129,15 @@ final class UiM5Tab3DeepseekContractTest extends TestCase {
 	 * =================================================================== */
 
 	public function test_bootstrap_assembles_deepseek_chain_branch(): void {
+		/* 【P1-6 契约翻转】手写 deepseek 分支退役（AUDIT-INDEP-2026-11 P1-6 驱动工厂收敛）。
+		 * deepseek 装配面改由单一 DriverFactory 承载：registry 注册清单单源 + 全集矩阵钉
+		 * （tests/DriverFactoryTest.php——漏登记工厂位=红，M5·C2 一犯位永绝）。 */
 		$body = self::functionBody( self::source( 'includes/Bootstrap.php' ), 'assemble_gates' );
-		self::assertStringContainsString( "'deepseek' === \$chain_id", $body, '云审链 deepseek 分支' );
-		self::assertStringContainsString( 'DeepSeekReviewDriver', $body, '驱动构造' );
-		self::assertStringContainsString( 'DeepSeekReviewDriver::registry_entry', $body, 'registry 登记（脱离占位段的对偶面）' );
+		self::assertStringContainsString( 'DriverFactory::build_review', $body, '云审链装配走单一工厂（手写分支退役）' );
+		self::assertStringContainsString( 'DriverFactory::default_registry', $body, 'registry 注册清单单一来源（deepseek 条目随清单）' );
+		$factory_src = self::source( 'includes/drivers/DriverFactory.php' );
+		self::assertStringContainsString( 'DeepSeekReviewDriver::registry_entry', $factory_src, 'registry 登记（deepseek 条目在厂）' );
+		self::assertStringContainsString( 'config_from_settings', $factory_src, '配置派生 from_settings（LLM 协议族「差异仅配置」）' );
 	}
 
 	/* ===================================================================

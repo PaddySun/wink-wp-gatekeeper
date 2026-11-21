@@ -652,11 +652,17 @@ namespace WinkGatekeeper\Tests {
 		 * =============================================================== */
 
 		public function test_bootstrap_registers_and_assembles_openai_custom(): void {
+			/* 【P1-6 契约翻转】手写 if/elseif 分支退役（AUDIT-INDEP-2026-11 P1-6 驱动工厂收敛
+			 * ——openai_custom 分支形态随四散工厂退役）。openai_custom 装配面改由单一
+			 * DriverFactory 承载：registry 注册清单单源 + 全集矩阵钉（tests/DriverFactoryTest.php
+			 * ——漏登记工厂位=红，M6·H4 二犯位永绝）；is_configured 守卫入链（未配置静默剔除）
+			 * 语义分置在 Bootstrap 装配循环（键=chain_id 动态派生，不再逐驱动字面）。 */
 			$body = self::functionBody( self::source( 'includes/Bootstrap.php' ), 'assemble_gates' );
-			self::assertStringContainsString( 'OpenAiCustomReviewDriver::registry_entry', $body, 'registry 注册一行（registry 第 10 条目）' );
-			self::assertStringContainsString( "'openai_custom' === \$chain_id", $body, '云审链 openai_custom 分支' );
-			self::assertStringContainsString( 'OpenAiCustomReviewDriver::config_from_settings', $body, '配置派生 from_settings（含顶层 two_stage/upgrade_model）' );
-			self::assertStringContainsString( "cloud_chain['openai_custom']", $body, 'is_configured 守卫入链（未配置静默剔除）' );
+			self::assertStringContainsString( 'DriverFactory::build_review', $body, '云审链装配走单一工厂（手写分支退役）' );
+			self::assertStringContainsString( 'DriverFactory::default_registry', $body, 'registry 注册清单单一来源（openai_custom 条目随清单）' );
+			self::assertStringContainsString( 'is_configured', $body, 'is_configured 守卫入链（未配置静默剔除语义在位）' );
+			$factory_src = self::source( 'includes/drivers/DriverFactory.php' );
+			self::assertStringContainsString( 'OpenAiCustomReviewDriver::registry_entry', $factory_src, 'registry 登记（openai_custom 条目在厂）' );
 		}
 
 		public function test_bootstrap_widget_labels_static_line(): void {

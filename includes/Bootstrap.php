@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use WinkGatekeeper\Drivers\captcha\AliyunCaptchaDriver;
 use WinkGatekeeper\Drivers\captcha\TencentCaptchaDriver;
-use WinkGatekeeper\Drivers\DriverRegistry;
+use WinkGatekeeper\Drivers\DriverFactory;
 use WinkGatekeeper\Drivers\Review\AliyunGreenPlusDriver;
 use WinkGatekeeper\Drivers\Review\BaiduTextModerationDriver;
 use WinkGatekeeper\Drivers\Review\DeepSeekReviewDriver;
@@ -443,20 +443,9 @@ final class Bootstrap {
 			};
 		}
 
-		// 驱动注册表（05 §4 六维元数据；新驱动 = 新文件 + 注册一行）。
-		$registry = new DriverRegistry();
-		$registry->register( TencentCaptchaDriver::registry_entry() );
-		$registry->register( AliyunCaptchaDriver::registry_entry() ); // B3：阿里云验证码 2.0（05 §1.2）。
-		$registry->register( LocalRulesDriver::registry_entry() );
-		$registry->register( TencentTmsDriver::registry_entry() ); // C4：腾讯 TMS 文本审核。
-		$registry->register( AliyunGreenPlusDriver::registry_entry() ); // B5：阿里文本审核增强版 PLUS（05 §2.5）。
-		$registry->register( BaiduTextModerationDriver::registry_entry() ); // B6：百度文本审核（05 §2.4——token 30 天缓存复用）。
-		$registry->register( DeepSeekReviewDriver::registry_entry() ); // 【M5·U4】DeepSeek LLM（05 §2.2 协议族+M5 定稿 §4 五件套）。
-		$registry->register( OpenAiCustomReviewDriver::registry_entry() ); // 【M6·批E】自定义 OpenAI 兼容端点（registry 第 10 条目——纯配置子类，四件套全继承基类）。
-		/* 【v1.7·M3-IP·定稿 §2 I2】abuseipdb 注册（type='ip'/billing='free_quota'/frontend=[]/
-		 * supports_report=true——O5-P3-3 三字段占位）：by_type('ip') 非空后 Tab① 点名册卡/
-		 * Tab⑥ IP 单列行/review_split 折减/Labels「信誉查询」自动生效（渲染侧既有逻辑零改动）。 */
-		$registry->register( AbuseIpdbService::registry_entry() );
+		// 驱动注册表（05 §4 六维元数据）——【P1-6】注册清单单一来源 DriverFactory::default_registry()
+		// （工厂与注册表同源；新驱动 = 新文件 + DriverFactory 一行注册，全库唯一登记点）。
+		$registry = DriverFactory::default_registry();
 		SettingsPage::set_driver_registry( $registry );
 
 		// 传输脊（全库唯一 HTTP 出口；计量钩子接用量计数——04 §6）。
@@ -464,60 +453,17 @@ final class Bootstrap {
 
 		/* 云端审核链装配（C4，02 §2.2 串联语义）：启用 + chain 内已配置的驱动才构造；
 		 * LocalRules 恒首不入此链（评论闸内自建）。未配置/未实装的 chain 条目静默剔除
-		 * （默认 deepseek 为 M3 驱动——不构成「云端全故障」收口判定面）。 */
+		 * （默认 deepseek 为 M3 驱动——不构成「云端全故障」收口判定面）。
+		 * 【P1-6】构造收敛单一 DriverFactory（registry class 名派生构造形态，手写
+		 * if/elseif 分支退役——历史两犯 M5·C2/M6·H4 的漏配面由工厂+全集矩阵钉永绝）；
+		 * stats_bridge=true=【S4-F3】LLM 族 stats 子树入桥（原分支逐位照抄）。 */
 		$cloud_chain = array();
 		if ( ! empty( $settings['review']['cloud']['enabled'] ) ) {
 			$chain = is_array( $settings['review']['cloud']['chain'] ?? null ) ? $settings['review']['cloud']['chain'] : array();
 			foreach ( $chain as $chain_id ) {
-				if ( 'tencent_tms' === $chain_id ) {
-					$tms_driver = new TencentTmsDriver( $settings, $client );
-					if ( $tms_driver->is_configured() ) {
-						$cloud_chain['tencent_tms'] = $tms_driver;
-					}
-				} elseif ( 'aliyun_green' === $chain_id ) {
-					// B5：阿里文本审核增强版 PLUS（05 §2.5）——双 Service 分送在驱动内消费
-					// （02 §2.2 例外条款：闸仍传拼接串+meta 原值，分送是驱动内策略）。
-					$green_driver = new AliyunGreenPlusDriver( $settings, $client );
-					if ( $green_driver->is_configured() ) {
-						$cloud_chain['aliyun_green'] = $green_driver;
-					}
-				} elseif ( 'baidu' === $chain_id ) {
-					// B6：百度文本审核（05 §2.4）——拼接串口径含邮箱（百度无阿里 pt_to_contact
-					// 邮箱误杀问题，与 TMS/LLM 驱动同口径）；token 30 天 transient 缓存复用
-					// （WP 边界闭包注入，键含凭据指纹）。
-					$baidu_driver = new BaiduTextModerationDriver( $settings, $client );
-					if ( $baidu_driver->is_configured() ) {
-						$cloud_chain['baidu'] = $baidu_driver;
-					}
-				} elseif ( 'deepseek' === $chain_id ) {
-					// 【M5·U4】DeepSeek LLM 驱动（05 §2.2 协议族+M5 定稿 §4 五件套）——
-					// 配置派生 from_settings（含 review.cloud 顶层 two_stage/upgrade_model）；
-					// K2 LlmUsage 回写走默认 WP option 通道（驱动内）。
-					$deepseek_driver = new DeepSeekReviewDriver(
-						DeepSeekReviewDriver::config_from_settings( $settings ),
-						$client,
-						null, // usage_sink：默认（K1 计量）。
-						null, // clock：默认 time()。
-						$settings // 【S4-F3】stats 子树入桥（raw_capture/raw_max_bytes 面对齐同族驱动）。
-					);
-					if ( $deepseek_driver->is_configured() ) {
-						$cloud_chain['deepseek'] = $deepseek_driver;
-					}
-				} elseif ( 'openai_custom' === $chain_id ) {
-					// 【M6·批E】自定义 OpenAI 兼容端点（deepseek 分支形态照抄）：配置派生
-					// from_settings（8 键子树+顶层 two_stage/upgrade_model 透传——留空短路
-					// 两段式）；is_configured 覆写查三键（api_key+base_url+model），半配置
-					// 静默剔除不空烧日配额。
-					$openai_custom_driver = new OpenAiCustomReviewDriver(
-						OpenAiCustomReviewDriver::config_from_settings( $settings ),
-						$client,
-						null, // usage_sink：默认（K1 计量）。
-						null, // clock：默认 time()。
-						$settings // 【S4-F3】stats 子树入桥（同上）。
-					);
-					if ( $openai_custom_driver->is_configured() ) {
-						$cloud_chain['openai_custom'] = $openai_custom_driver;
-					}
+				$chain_driver = DriverFactory::build_review( $registry, (string) $chain_id, $settings, $client, true );
+				if ( null !== $chain_driver && DriverFactory::is_configured( $chain_driver ) ) {
+					$cloud_chain[ (string) $chain_id ] = $chain_driver;
 				}
 			}
 		}
@@ -543,19 +489,18 @@ final class Bootstrap {
 		};
 
 		// 验证码驱动：选中且配置齐全才装配（02 §2.1 未配置行为：闸整体跳过 captcha 阶段）。
-		$captcha = null;
-		if ( 'tencent' === ( $settings['captcha']['driver'] ?? null ) ) {
-			// 容灾限速器注入（C1：每 IP 每小时 N=5 次容灾放行，transient 计数桶）。
-			$tencent = new TencentCaptchaDriver( $settings, $client, array( TencentCaptchaDriver::class, 'wp_disaster_limiter' ) );
-			if ( $tencent->is_configured() ) {
-				$captcha = $tencent;
-			}
-		} elseif ( 'aliyun' === ( $settings['captcha']['driver'] ?? null ) ) {
-			// B3：阿里云验证码 2.0（05 §1.2）——无容灾限速面（disasterPolicy 恒 none）。
-			$aliyun = new AliyunCaptchaDriver( $settings, $client );
-			if ( $aliyun->is_configured() ) {
-				$captcha = $aliyun;
-			}
+		// 【P1-6】构造收敛单一 DriverFactory；容灾限速器注入（C1：每 IP 每小时 N=5 次容灾
+		// 放行，transient 计数桶）仅构造器声明该形参的驱动消费（tencent）——B3 阿里无容灾
+		// 限速面（disasterPolicy 恒 none），形参不存在时工厂忽略。
+		$captcha = DriverFactory::build_captcha(
+			$registry,
+			(string) ( $settings['captcha']['driver'] ?? '' ),
+			$settings,
+			$client,
+			array( TencentCaptchaDriver::class, 'wp_disaster_limiter' )
+		);
+		if ( null !== $captcha && ! $captcha->is_configured() ) {
+			$captcha = null;
 		}
 
 		/* 验证短缓存（M2 反馈2 T3，D+A-lite）：transient 存取闭包注入（键 wk_cv_*，TTL 由
@@ -1299,18 +1244,16 @@ final class Bootstrap {
 		// 验证码驱动配置态：真实驱动 is_configured 判定（纯逻辑层不复制凭据规则——单点真相；
 		// 传输脊空壳构造不发起任何网络调用——is_configured 只读凭据字段）。
 		// 【M6·批H·H-3】防御回落随新出厂默认 aliyun。
+		// 【P1-6】构造收敛单一 DriverFactory（仪表盘体检位：零容灾限速器、空壳传输脊——
+		// 原两分支构造参数逐位照抄；registry miss=未实装 id 回落原「不进分支」语义）。
 		$captcha_driver = is_string( $settings['captcha']['driver'] ?? null ) && '' !== $settings['captcha']['driver']
 			? $settings['captcha']['driver'] : 'aliyun';
 		$captcha_configured = false;
 		$captcha_label      = $captcha_driver;
-		if ( 'tencent' === $captcha_driver ) {
-			$tencent = new TencentCaptchaDriver( $settings, new RemoteClient() );
-			$captcha_configured = $tencent->is_configured();
-			$captcha_label      = $tencent->label();
-		} elseif ( 'aliyun' === $captcha_driver ) {
-			$aliyun = new AliyunCaptchaDriver( $settings, new RemoteClient() );
-			$captcha_configured = $aliyun->is_configured();
-			$captcha_label      = $aliyun->label();
+		$captcha_probe      = DriverFactory::build_captcha( DriverFactory::default_registry(), $captcha_driver, $settings, new RemoteClient() );
+		if ( null !== $captcha_probe ) {
+			$captcha_configured = $captcha_probe->is_configured();
+			$captcha_label      = $captcha_probe->label();
 		}
 
 		// cron 存活（每日维护——events 表 90 天清理/滚动上限依赖；false = 丢失）。
