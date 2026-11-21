@@ -55,6 +55,14 @@ final class LocalRulesDriver implements ReviewDriverInterface {
 	 */
 	private $notes = array();
 
+	/** @var string[]|null 自定义词表拆分缓存（【A2-F7】首 check 惰性填充——每 check
+	 * preg_split 重建退役；实例=每请求装配一役〔闸/预检共用同实例〕，实例级缓存即
+	 * 请求级语义；词表内容实例内恒定）。 */
+	private $lines_custom_cache = null;
+
+	/** @var string[]|null 取词回调结果缓存（【A2-F7】同上——回调每实例只消费一次）。 */
+	private $lines_wp_cache = null;
+
 	/**
 	 * @param array<string, mixed> $settings    review.local 子树（04 §2 键名沿上游）。
 	 * @param callable|null        $wp_keywords WP 讨论设置关键词取词回调。
@@ -159,13 +167,18 @@ final class LocalRulesDriver implements ReviewDriverInterface {
 		$lines = array();
 		$custom = $this->settings['custom_banned_words'] ?? '';
 		if ( is_string( $custom ) && '' !== $custom ) {
-			$lines = array_merge( $lines, preg_split( '/\r\n|\r|\n/', $custom ) );
+			// 【A2-F7】词表拆分实例级缓存（首 check 惰性——判定语义零变化，重建收敛）。
+			if ( null === $this->lines_custom_cache ) {
+				$this->lines_custom_cache = preg_split( '/\r\n|\r|\n/', $custom );
+			}
+			$lines = array_merge( $lines, $this->lines_custom_cache );
 		}
 		if ( ! empty( $this->settings['use_wp_keywords'] ) && null !== $this->wp_keywords ) {
-			$wp_words = call_user_func( $this->wp_keywords );
-			if ( is_array( $wp_words ) ) {
-				$lines = array_merge( $lines, array_values( array_filter( $wp_words, 'is_string' ) ) );
+			if ( null === $this->lines_wp_cache ) {
+				$wp_words = call_user_func( $this->wp_keywords );
+				$this->lines_wp_cache = is_array( $wp_words ) ? array_values( array_filter( $wp_words, 'is_string' ) ) : array();
 			}
+			$lines = array_merge( $lines, $this->lines_wp_cache );
 		}
 
 		$hits = array();

@@ -77,12 +77,14 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 global $wpdb;
 
-/* 失败安全包装：单步异常只吞不抛——卸载步骤彼此独立（宁可残留，不可误删/中断）。 */
+/* 失败安全包装：单步异常只吞不抛——卸载步骤彼此独立（宁可残留，不可误删/中断）。
+ * 【A1-F13】吞异常补观测：error_log 单行留痕（卸载语境写日志安全——半失败可诊断，
+ * 站长无需手工核库才发现残留；宁可残留语义不动）。 */
 $wink_guarded = static function ( callable $wink_step ): void {
 	try {
 		$wink_step();
 	} catch ( Throwable $wink_step_failure ) { // phpcs:ignore SlevomatCodingStandard.Exceptions.Reference.ThrownExceptions -- 失败安全兜底。
-		unset( $wink_step_failure ); // 宁可残留：异常不上抛、不中断后续步骤。
+		error_log( '[wink-gatekeeper] uninstall step failed (kept as-is): ' . $wink_step_failure->getMessage() );
 	}
 };
 

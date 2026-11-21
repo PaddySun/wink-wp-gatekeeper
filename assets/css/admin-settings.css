@@ -501,28 +501,21 @@
 	overflow-wrap: anywhere;
 }
 
-/* 测试凭据三态结果（绿/红/黄/灰；结果只缓存在按钮旁，不落库——N1 持久化批 C 接线）。 */
+/* 测试凭据即时结果位（探活消息文本态；结果只缓存在按钮旁，不落库——N1 持久化批 C 接线）。
+ * 【A1-F16】徽标词汇表 CSS 归一（纯呈现）：chip 徽标=.badge .b-*（服务端 probe_state_badge
+ * 与 JS wkProbeWriteBadges 回写已单词汇表——W3-FIX 0.8.6）；本族=aria-live 结果位消息文本态，
+ * 色板与 .b-* 徽标族共用 design-system 令牌，状态↔色映射单点在本分组（注释对照）——
+ * 色板改版单点编辑，徽标 chip 与即时结果位不会刷新前后跳色。 */
 .wk-probe {
 	display: inline-block;
 	margin-left: 0.5rem;
 	font-weight: 600;
 }
 
-.wk-probe--green {
-	color: var(--green);
-}
-
-.wk-probe--red {
-	color: var(--red);
-}
-
-.wk-probe--yellow {
-	color: var(--amber);
-}
-
-.wk-probe--gray {
-	color: var(--text-3);
-}
+.wk-probe--green { color: var(--green); }   /* ↔ .b-ok */
+.wk-probe--yellow { color: var(--amber); }  /* ↔ .b-warn */
+.wk-probe--red { color: var(--red); }       /* ↔ .b-err */
+.wk-probe--gray { color: var(--text-3); }   /* ↔ .b-dim */
 
 /* ---------- C4 · Tab① 驱动健康灯 / Tab③ 云审核（02 §5 状态机最小实装） ---------- */
 

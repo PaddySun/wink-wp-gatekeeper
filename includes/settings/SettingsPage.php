@@ -289,13 +289,36 @@ final class SettingsPage {
 	}
 
 	/**
+	 * 请求内设置树缓存（【A2-F3】Tab① 单请求 9-10 次全树 merge 收敛到 1——照抄
+	 * StatsCache::$request_settings_cache 先例：同请求内设置树恒定〔保存走 sanitize
+	 * 桥独立面、渲染纯读〕，merge 结果缓存一次复用；每请求独立静态=PHP 进程模型，
+	 * 无并发语义影响。渲染读取行为零变化）。
+	 *
+	 * @var array<string, mixed>|null
+	 */
+	private static $request_settings_cache = null;
+
+	/**
+	 * 复位请求内设置树缓存（单测隔离桥；生产请求生命周期内无需显式调用——
+	 * StatsCache::reset_request_cache 同款）。
+	 *
+	 * @return void
+	 */
+	public static function reset_request_settings_cache(): void {
+		self::$request_settings_cache = null;
+	}
+
+	/**
 	 * 当前设置树（option 读取 + 默认树补全，渲染单一数据源）。
 	 *
 	 * @return array<string, mixed>
 	 */
 	private static function settings(): array {
-		$stored = get_option( self::OPTION_NAME, array() );
-		return SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		if ( null === self::$request_settings_cache ) {
+			$stored = get_option( self::OPTION_NAME, array() );
+			self::$request_settings_cache = SettingsSchema::merge_defaults( is_array( $stored ) ? $stored : array() );
+		}
+		return self::$request_settings_cache;
 	}
 
 	/**
@@ -1898,7 +1921,8 @@ final class SettingsPage {
 		if ( null === self::$driver_registry ) {
 			return 0;
 		}
-		$cloud      = isset( self::settings()['review']['cloud'] ) && is_array( self::settings()['review']['cloud'] ) ? self::settings()['review']['cloud'] : array();
+		$settings_tree = self::settings(); // 【A2-F3】单行 3 次调用 → 1 次局部变量（缓存后成本已收敛，语义仍收口）。
+		$cloud         = isset( $settings_tree['review']['cloud'] ) && is_array( $settings_tree['review']['cloud'] ) ? $settings_tree['review']['cloud'] : array();
 		$registered = self::$driver_registry->by_type( 'review' );
 		$usable     = 0;
 		foreach ( $chain as $driver_id ) {
@@ -5306,6 +5330,8 @@ final class SettingsPage {
 			}
 		} catch ( \RuntimeException $e ) {
 			// 已在运行等竞态：静默回 Tab⑦（状态行会显示现态）。
+			// 【A1-F13】观测决策声明：本分支=预期竞态（管理员双击/并发操作），非异常态
+			// ——有意无观测（落事件/日志=预期双击噪音；现态已由 Tab⑦ 状态行呈现）。
 		}
 
 		wp_safe_redirect( self::tab_url( 'tools' ) );

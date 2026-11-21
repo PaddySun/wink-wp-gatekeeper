@@ -279,8 +279,10 @@
 	 *   当场不回写。本件在各探活响应成功分支按 driver key 调用：data-wk-driver-key
 	 *   属性选择器 forEach 批量命中全部同驱动徽标（向导页同屏同驱动徽标多副本——
 	 *   步二凭据面 + 步四上岗引导复用同 id 口径——单 id 窄选择器对此场景必漏）。
-	 *   五态词/徽标类与 SettingsPage::probe_state_badge 闭集双写同源（改动须同批
-	 *   同步 W3FixW3F2Test 契约）；avatar 镜像探活不入回写（ok/slow/fail 态在五态
+	 *   【A1-F16】徽标词汇表归一后态：chip 徽标类与五态词仍与 SettingsPage::
+	 *   probe_state_badge 闭集双写同源（改动须同批同步 W3FixW3F2Test 契约）；即时结果位
+	 *   色板映射归 CSS 单点（admin-settings.css .wk-probe--* 分组↔ .b-* 注释对照，
+	 *   色板改版不需本件同步）；avatar 镜像探活不入回写（ok/slow/fail 态在五态
 	 *   闭集外且结果不落库——N1 红线，徽标保持服务端「未测试」真值）。
 	 * ----------------------------------------------------------------- */
 

@@ -267,12 +267,19 @@ final class Bootstrap {
 		}
 
 		/* ---------- M5 U5 网址核查（nw 三原则①：异步-first 同步链零接触） ---------- */
-		// 增量入队（comment_post 边界——瞬时返回零外呼；功能关/URL 空/重复幂等在 worker 内）。
+		// 增量入队（comment_post 边界——瞬时返回零外呼；URL 空/重复幂等在 worker 内）。
+		// 【A2-F12】功能关时零构造：装配缓存树（init@5 已 merge，本回调远后于装配）判
+		// url_audit.enabled——关闭=零 worker 构造（原形态=无条件 get_option+merge+构造后
+		// worker 内 enabled 短路，每条已入列评论付一次全树 merge；enabled 缺省=false，
+		// 判定源与 worker 内检查同语义）。null 兜底=装配未及（防御）→ 走原全路径。
 		add_action(
 			'comment_post',
-			static function ( int $comment_id ): void {
-				$worker = self::url_audit_worker();
-				$worker->enqueue_url_audit_job( $comment_id );
+			function ( int $comment_id ): void {
+				$assembled = $this->assembled_settings;
+				if ( is_array( $assembled ) && empty( $assembled['url_audit']['enabled'] ) ) {
+					return;
+				}
+				self::url_audit_worker()->enqueue_url_audit_job( $comment_id );
 			},
 			20,
 			1

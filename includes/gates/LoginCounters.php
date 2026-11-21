@@ -339,6 +339,11 @@ final class LoginCounters {
 			case 'wk_captcha_missing':
 				// 本闸自身：口令正确只是验证码失败；计入用户名维度会惩罚已过码但手滑的真人。
 				return array( 'ip' => true, 'user' => false );
+			case 'wk_bad_signature':
+				// 【A1-F14】本闸自身：存根坏签名（伪造/篡改=明显恶意）——与 wk_captcha_failed
+				// 同档 IP-only 归档显式化（原落 default=第三方码兜底，语义等价但归档缺位；
+				// 坏签名攻击者无用户名上下文，user 维不适用）。
+				return array( 'ip' => true, 'user' => false );
 			case 'empty_username':
 			case 'empty_password':
 				// core 忽略清单（pluggable.php:729-731 不触发动作）——防御性归零。
