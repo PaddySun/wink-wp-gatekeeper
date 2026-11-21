@@ -262,20 +262,20 @@ final class I18nInfraTest extends TestCase {
 	public function test_i4a_version_bump_to_0_9_0(): void {
 		$plugin = self::src( 'wink-wp-gatekeeper.php' );
 		self::assertMatchesRegularExpression(
-			'/^ \* Version:\s+0\.9\.5$/m',
+			'/^ \* Version:\s+0\.9\.6$/m',
 			$plugin,
-			'批 I-4c 版本进位：插件头 Version 须为 0.9.5（0.9.4 收口在前）'
+			'批 I-4c 版本进位：插件头 Version 须为 0.9.6（0.9.5 收口在前）'
 		);
 		self::assertStringContainsString(
-			"define( 'WINK_GATEKEEPER_VERSION', '0.9.5' )",
+			"define( 'WINK_GATEKEEPER_VERSION', '0.9.6' )",
 			$plugin,
-			'批 I-4c 版本进位：版本常量须为 0.9.5'
+			'批 I-4c 版本进位：版本常量须为 0.9.6'
 		);
 		$readme = self::src( 'readme.txt' );
 		self::assertMatchesRegularExpression(
-			'/^Stable tag: 0\.9\.5$/m',
+			'/^Stable tag: 0\.9\.6$/m',
 			$readme,
-			'批 I-4c 版本进位：readme Stable tag 须为 0.9.5'
+			'批 I-4c 版本进位：readme Stable tag 须为 0.9.6'
 		);
 	}
 

@@ -264,9 +264,9 @@ final class UiTab1OverviewContractTest extends TestCase {
 	public function test_version_bumped_to_0_4_2_in_four_places(): void {
 		$entry  = self::source( 'wink-wp-gatekeeper.php' );
 		$readme = self::source( 'readme.txt' );
-		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.5$/m', $entry, '插件头 Version 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.4 收口在前）' );
-		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.5' )", $entry, '版本常量 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.4 收口在前）' );
-		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.5$/m', $readme, 'readme Stable tag 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.4 收口在前）' );
-		$this->assertStringContainsString( '= 0.9.1 =', $readme, 'Changelog 0.9.1 条目（批 P+W6-A3/审计尾批 链尾进位——0.9.4 收口在前）' );
+		$this->assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.6$/m', $entry, '插件头 Version 0.9.6（批 W6-C/实录演示 链尾进位——0.9.5 收口在前）' );
+		$this->assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.6' )", $entry, '版本常量 0.9.6（批 W6-C/实录演示 链尾进位——0.9.5 收口在前）' );
+		$this->assertMatchesRegularExpression( '/^Stable tag: 0\.9\.6$/m', $readme, 'readme Stable tag 0.9.6（批 W6-C/实录演示 链尾进位——0.9.5 收口在前）' );
+		$this->assertStringContainsString( '= 0.9.1 =', $readme, 'Changelog 0.9.1 条目（批 W6-C/实录演示 链尾进位——0.9.5 收口在前）' );
 	}
 }

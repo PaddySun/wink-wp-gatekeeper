@@ -4,7 +4,7 @@ Tags: comments, spam, captcha, security, login
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.9.5
+Stable tag: 0.9.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ The plugin's heavy paths (paid cloud-moderation / URL-check calls, event writes)
 The coexistence yield protocol landed in M4 (when the official plugin takes over comment verification, this plugin yields automatically).
 
 == Changelog ==
+
+= 0.9.6 =
+
+Archive hygiene + maintenance guard + metering coalescing + wizard real-recording demo (2026-11-21; independent-agent batch per user ruling "W6-C go"; report IMPL-W6C). ① **Spam-archive retention**: the daily maintenance cron now purges archived spam comments (with their archive meta) older than **30 days** (filter-adjustable wk_archive_retention_days, 0 = keep forever; LIMIT 100 batches) — the archive no longer grows unbounded; reversible-window trade-off accepted at design. ② **Maintenance time guard**: daily cleanup loops respect max_execution_time minus 5s and yield the remainder to the next cron tick (Akismet-style). ③ **Usage metering coalesces per request**: bump() accumulates in memory and flushes exactly once (read paths flush-before-read; shutdown fires even after wp_die) — the per-request UPDATE write amplification (audit A2-F4) is retired; hard-kill residual risk registered. ④ **Setup wizard step 1 shows real recordings** for both submit-trigger modes (no-button popup / classic embedded, v0.9.1 captures provided by the owner; ~506KB of GIF assets; the synthetic CSS frame animation retires; radio linkage highlights the active mode). Static analysis 93E → 89E dual-engine (four WINK_GATEKEEPER_URL false positives cleared via a constants stub, ST1-precedent). Tests 2416 → 2446 / assertions 15770 → 15912 all green (double gate phpunit 12.5.43/12.5.44).
 
 = 0.9.5 =
 

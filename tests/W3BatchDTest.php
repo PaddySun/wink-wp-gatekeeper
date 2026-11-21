@@ -398,10 +398,10 @@ namespace WinkGatekeeper\Tests {
 			$entry  = self::src( 'wink-wp-gatekeeper.php' );
 			$readme = self::src( 'readme.txt' );
 
-			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.5$/m', $entry, '四点①插件头 Version 0.9.5（链尾进位——0.9.4 收口在前）' );
-			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.5' )", $entry, '四点②版本常量 0.9.5（批 P+W6-A3/审计尾批 链尾进位）' );
-			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.5$/m', $readme, '四点③readme Stable tag 0.9.5（批 P+W6-A3/审计尾批 链尾进位）' );
-			self::assertStringContainsString( '= 0.9.5 =', $readme, '四点④changelog 当前条目 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.2 收口在前）' );
+			self::assertMatchesRegularExpression( '/^ \* Version:\s+0\.9\.6$/m', $entry, '四点①插件头 Version 0.9.6（链尾进位——0.9.5 收口在前）' );
+			self::assertStringContainsString( "define( 'WINK_GATEKEEPER_VERSION', '0.9.6' )", $entry, '四点②版本常量 0.9.6（批 W6-C/实录演示 链尾进位）' );
+			self::assertMatchesRegularExpression( '/^Stable tag: 0\.9\.6$/m', $readme, '四点③readme Stable tag 0.9.6（批 W6-C/实录演示 链尾进位）' );
+			self::assertStringContainsString( '= 0.9.6 =', $readme, '四点④changelog 当前条目 0.9.6（批 W6-C/实录演示 链尾进位——0.9.2 收口在前）' );
 
 			// 0.8.4 条目还原保留（历史条目不删——readme changelog 只增不删纪律）。
 			self::assertStringContainsString( '= 0.8.4 =', $readme, '0.8.4 历史条目保留' );
@@ -455,9 +455,9 @@ namespace WinkGatekeeper\Tests {
 			foreach ( self::pin_files() as $file ) {
 				$src = self::src( 'tests/' . $file );
 				self::assertStringContainsString(
-					"define( 'WINK_GATEKEEPER_VERSION', '0.9.5' )",
+					"define( 'WINK_GATEKEEPER_VERSION', '0.9.6' )",
 					$src,
-					"{$file} 版本常量断言已翻转 0.9.5（批 P+W6-A3/审计尾批 链尾进位——0.9.2 收口在前）"
+					"{$file} 版本常量断言已翻转 0.9.6（批 W6-C/实录演示 链尾进位——0.9.2 收口在前）"
 				);
 				self::assertStringNotContainsString(
 					"define( 'WINK_GATEKEEPER_VERSION', '0.8.4' )",
@@ -504,7 +504,7 @@ namespace WinkGatekeeper\Tests {
 
 		public function test_w3_tab_remodel_no_bump_pin_flipped(): void {
 			$src = self::src( 'tests/W3TabRemodelTest.php' );
-			self::assertStringContainsString( "'0.9.5'", $src, '批内 no-bump 钉已随链尾进位翻转为 0.9.5（0.9.4 收口在前）' );
+			self::assertStringContainsString( "'0.9.6'", $src, '批内 no-bump 钉已随链尾进位翻转为 0.9.6（0.9.5 收口在前）' );
 			self::assertStringNotContainsString( "assertStringContainsString( '0.8.4', \$plugin", $src, '批 C no-bump 钉零 0.8.4 残留' );
 		}
 
