@@ -74,4 +74,21 @@ interface CompatModule {
 	 * @return string
 	 */
 	public function absent_copy(): string;
+
+	/**
+	 * 应对行为腿声明（【W6-A2】行为腿契约——定稿 docs/W6A-统一兼容层设计定稿-2026-11-21.md
+	 * §15：甲档→甲+乙档演进，用户拍板 2026-11-21「统一兼容层要承载应对行为」）。
+	 *
+	 * 形状：array<int, array{hook: string, callback: callable, priority: int, accepted_args: int}>
+	 * ——每项=一个**第三方暴露的应对 filter** 挂载规格。空数组=纯呈现模块（本批四模块中
+	 * 仅 FluentComments 非空：官方预留加白 filter 白名单回注——钩子名/回调字面量单点登记
+	 * 在其模块文件，R5 扩展钉）。挂载由 CompatRegistry::mount_behaviors() 统一执行：
+	 * detect() 为真才挂（目标未装=零动作）；
+	 * 回调可命名性由模块自证（R5 扩展——回调方法名字面量+回注项字符串仅模块文件命中）。
+	 * 本方法=声明面：模块内零 add_filter 调用（层挂载点唯一=registry mount——R5 扩展钉）。
+	 * 层挂载钩子闭集红线：只挂第三方应对 filter，WP 核心/判定链钩子零挂载（§15.4）。
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function behaviors(): array;
 }

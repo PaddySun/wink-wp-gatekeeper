@@ -441,6 +441,50 @@ namespace WinkGatekeeper\Settings {
 				return $text;
 			}
 		}
+
+		if ( ! function_exists( 'WinkGatekeeper\Compat\add_action' ) ) {
+			/**
+			 * add_action 命名空间桩（【W6-A2】行为腿挂载记录面——CompatProbeStub::$actions
+			 * 记录挂载规格，生产语境命名空间回退 WP 全局函数语义全等）。
+			 *
+			 * @param string   $hook_name    钩子名。
+			 * @param callable $callback     回调。
+			 * @param int      $priority     优先级。
+			 * @param int      $accepted_args 参数数。
+			 * @return bool
+			 */
+			function add_action( string $hook_name, $callback, int $priority = 10, int $accepted_args = 1 ): bool {
+				\WinkGatekeeper\Tests\CompatProbeStub::$actions[] = array(
+					'hook'          => $hook_name,
+					'callback'      => $callback,
+					'priority'      => $priority,
+					'accepted_args' => $accepted_args,
+				);
+				return true;
+			}
+		}
+
+		if ( ! function_exists( 'WinkGatekeeper\Compat\add_filter' ) ) {
+			/**
+			 * add_filter 命名空间桩（【W6-A2】行为腿挂载记录面——CompatProbeStub::$filters
+			 * 记录挂载规格；CompatLayerTest 钉 detect 开/关两态挂载数）。
+			 *
+			 * @param string   $hook_name    钩子名。
+			 * @param callable $callback     回调。
+			 * @param int      $priority     优先级。
+			 * @param int      $accepted_args 参数数。
+			 * @return bool
+			 */
+			function add_filter( string $hook_name, $callback, int $priority = 10, int $accepted_args = 1 ): bool {
+				\WinkGatekeeper\Tests\CompatProbeStub::$filters[] = array(
+					'hook'          => $hook_name,
+					'callback'      => $callback,
+					'priority'      => $priority,
+					'accepted_args' => $accepted_args,
+				);
+				return true;
+			}
+		}
 	}
 
 	namespace WinkGatekeeper\Tests {
@@ -530,6 +574,16 @@ namespace WinkGatekeeper\Settings {
 		public static array $functions = array();
 
 		/**
+		 * @var array<int, array<string, mixed>> add_action 桩记录的挂载规格（【W6-A2】行为腿钉断言面）。
+		 */
+		public static array $actions = array();
+
+		/**
+		 * @var array<int, array<string, mixed>> add_filter 桩记录的挂载规格（【W6-A2】行为腿钉断言面）。
+		 */
+		public static array $filters = array();
+
+		/**
 		 * 逐测自清理。
 		 *
 		 * @return void
@@ -538,6 +592,8 @@ namespace WinkGatekeeper\Settings {
 			self::$constants = array();
 			self::$classes   = array();
 			self::$functions = array();
+			self::$actions   = array();
+			self::$filters   = array();
 		}
 	}
 }

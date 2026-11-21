@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-21T01:21:42+00:00\n"
+"POT-Creation-Date: 2026-11-21T02:28:21+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wink-wp-gatekeeper\n"
@@ -489,19 +489,19 @@ msgstr ""
 msgid "No interaction. If Akismet is added later, this row turns into the coexistence note automatically — detection runs live on each settings page render, nothing is stored."
 msgstr ""
 
-#: includes/compat/FluentComments.php:41
+#: includes/compat/FluentComments.php:45
 msgid "FluentComments"
 msgstr ""
 
-#: includes/compat/FluentComments.php:45
+#: includes/compat/FluentComments.php:49
 msgid "AJAX comment form"
 msgstr ""
 
-#: includes/compat/FluentComments.php:53
-msgid "FluentComments replaces the native comment form with its own AJAX form and, while inserting a submission, strips third-party callbacks off the comment preprocessing hooks (Akismet is on its allow list; this plugin is not). This row is detection only in this release — whether the comment gate should take part in AJAX submissions is a separately signed-off decision."
+#: includes/compat/FluentComments.php:57
+msgid "FluentComments replaces the native comment form with its own AJAX form and, while inserting a submission, strips third-party callbacks off the comment preprocessing hooks (Akismet is on its allow list). When FluentComments is detected, this plugin re-registers its comment gate onto that allow list — the gate still screens AJAX submissions, and its layered spam guard composes behind it. How the challenge renders inside its AJAX flow is a live-machine follow-up."
 msgstr ""
 
-#: includes/compat/FluentComments.php:57
+#: includes/compat/FluentComments.php:61
 msgid "No interaction. If FluentComments is added later, this row turns into the AJAX-form coexistence note automatically — detection runs live, nothing is stored."
 msgstr ""
 

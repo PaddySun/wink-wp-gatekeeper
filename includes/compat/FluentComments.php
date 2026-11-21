@@ -9,15 +9,19 @@
  *   ② class_exists( 'FluentCommentsPlugin' ) —— flc/fluent-comments.php:23
  *      （class FluentCommentsPlugin）
  *
- * ⚠ 判定级冲突登记（定稿 §7——本批零应对，W6-B 拍板项）：其 AJAX 提交走
+ * 判定级冲突与应对（定稿 §7 登记 + §15 行为腿契约）：其 AJAX 提交走
  * wp_handle_comment_submission（flc/app/Services/CommentSubmission.php:196）但
  * suppressForeignHooks（同文件 260-291 行）在插入期把 preprocess_comment 上的全部
  * 第三方回调剥净——默认白名单恰一项 Akismet::auto_check_comment（264-266 行），
- * 本插件评论闸主判定腿（Bootstrap @-PHP_INT_MAX）随之被剥。官方预留加白通道=
- * fluent_comments/allowed_comment_hooks 过滤器（253-256/264 行）；任何应对须先
- * 真机复现再拍板，本模块文案只做事实陈述（零行为承诺——R6）。
+ * 本插件评论闸主判定腿（Bootstrap 实例方法对注册）随之被剥。【W6-A2】用户拍板
+ * （2026-11-21 真机轮三层证据后）由本模块 behaviors() 声明应对腿：注册
+ * fluent_comments/allowed_comment_hooks filter（官方预留加白通道 :253-256/:264）
+ * 把 'WinkGatekeeper\Gates\CommentGate::hook_preprocess_comment'（callbackName
+ * get_class 归一化形态全等可命名——定稿 §15.1 结论 a）追加进白名单，闸在 AJAX
+ * 提交期间不再被剥。挂载由 CompatRegistry::mount_behaviors() 统一执行（detect()
+ * 为真才挂）；本模块文件零 add_filter 调用（声明面非挂载面——R5 扩展钉）。
  *
- * 呈现级模块：detect() 只读原语零存储零外呼；无行为分支。
+ * detect() 只读原语零存储零外呼。
  *
  * @package WinkGatekeeper\Compat
  */
@@ -50,10 +54,48 @@ final class FluentComments implements CompatModule {
 	}
 
 	public function status_copy(): string {
-		return __( 'FluentComments replaces the native comment form with its own AJAX form and, while inserting a submission, strips third-party callbacks off the comment preprocessing hooks (Akismet is on its allow list; this plugin is not). This row is detection only in this release — whether the comment gate should take part in AJAX submissions is a separately signed-off decision.', 'wink-wp-gatekeeper' );
+		return __( 'FluentComments replaces the native comment form with its own AJAX form and, while inserting a submission, strips third-party callbacks off the comment preprocessing hooks (Akismet is on its allow list). When FluentComments is detected, this plugin re-registers its comment gate onto that allow list — the gate still screens AJAX submissions, and its layered spam guard composes behind it. How the challenge renders inside its AJAX flow is a live-machine follow-up.', 'wink-wp-gatekeeper' );
 	}
 
 	public function absent_copy(): string {
 		return __( 'No interaction. If FluentComments is added later, this row turns into the AJAX-form coexistence note automatically — detection runs live, nothing is stored.', 'wink-wp-gatekeeper' );
+	}
+
+	public function behaviors(): array {
+		/**
+		 * 行为腿闭集（【W6-A2】定稿 §15.2）：恰一项=fluent_comments/allowed_comment_hooks
+		 * 白名单回注（官方预留加白通道——flc/CommentSubmission.php:253-256/264）。
+		 */
+		return array(
+			array(
+				'hook'          => 'fluent_comments/allowed_comment_hooks',
+				'callback'      => array( $this, 'allow_list_gate_preprocess' ),
+				'priority'      => 10,
+				'accepted_args' => 1,
+			),
+		);
+	}
+
+	/**
+	 * fluent_comments/allowed_comment_hooks 应对回调（【W6-A2】——白名单回注本插件
+	 * 主判定腿；用户拍板 2026-11-21，定稿 §15）。
+	 *
+	 * 语义：把本插件评论闸 preprocess 回调（Bootstrap 以实例方法对注册——FluentComments
+	 * callbackName（flc/CommentSubmission.php:321-338）经 get_class 归一化为
+	 * 'WinkGatekeeper\Gates\CommentGate::hook_preprocess_comment' 全等可命名）追加进
+	 * 剥除白名单，使闸在 AJAX 提交期间不再被剥（判定级冲突定稿 §7 的应对）。幂等：
+	 * 已含本项则原样返回；非数组输入原样透传（suppressForeignHooks 外层 (array) cast
+	 * 兜底）。SiteEnhance url 摘除腿**有意不回注**（呈现级且对方自带 url=''——定稿 §15.5）。
+	 *
+	 * @param mixed $allowed 白名单（FluentComments 默认 array( 'Akismet::auto_check_comment' )）。
+	 * @return mixed
+	 */
+	public function allow_list_gate_preprocess( $allowed ) {
+		$entry = 'WinkGatekeeper\Gates\CommentGate::hook_preprocess_comment';
+		if ( ! is_array( $allowed ) || in_array( $entry, $allowed, true ) ) {
+			return $allowed;
+		}
+		$allowed[] = $entry;
+		return $allowed;
 	}
 }

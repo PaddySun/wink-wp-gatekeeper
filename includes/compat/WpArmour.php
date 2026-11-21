@@ -57,4 +57,8 @@ final class WpArmour implements CompatModule {
 	public function absent_copy(): string {
 		return __( 'No interaction. If WP Armour is added later, this row turns into the honeypot composition note automatically — detection runs live, nothing is stored.', 'wink-wp-gatekeeper' );
 	}
+
+	public function behaviors(): array {
+		return array(); // 纯呈现模块（【W6-A2】行为腿契约——定稿 §15.2）。
+	}
 }

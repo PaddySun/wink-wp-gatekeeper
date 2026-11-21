@@ -308,6 +308,163 @@ final class CompatLayerTest extends TestCase {
 	}
 
 	/* ================================================================
+	 * ⑧ 行为腿契约（【W6-A2】定稿 §15——甲+乙档演进第一件：FluentComments
+	 *    allow-list 回注本插件主判定腿；behaviors() 声明面 + registry mount 统一挂载）
+	 * ================================================================ */
+
+	/**
+	 * 纯呈现模块 behaviors 闭集：三模块恒空数组（空数组=纯呈现零动作短路——定稿 §15.2）。
+	 */
+	public function test_behaviors_contract_presentation_modules_empty(): void {
+		foreach ( CompatRegistry::all() as $module ) {
+			if ( 'fluentcomments' === $module->key() ) {
+				continue;
+			}
+			self::assertSame( array(), $module->behaviors(), "{$module->key()} 纯呈现模块 behaviors 必为空数组" );
+		}
+	}
+
+	/**
+	 * FluentComments 行为腿闭集：恰一项、规格四键形状全等、回调可命名（实例方法对——
+	 * callbackName 归一化形态，定稿 §15.1 结论 a）。
+	 */
+	public function test_fluentcomments_behavior_spec_closed_set(): void {
+		$module   = new \WinkGatekeeper\Compat\FluentComments();
+		$behavior = $module->behaviors();
+		self::assertCount( 1, $behavior, 'FluentComments 行为腿闭集=恰一项（白名单回注）' );
+
+		$spec = $behavior[0];
+		self::assertSame( 'fluent_comments/allowed_comment_hooks', $spec['hook'], '应对钩子名=FluentComments 官方预留加白 filter（CommentSubmission.php:264 锚）' );
+		self::assertSame( 10, $spec['priority'], '挂载优先级 10（白名单成员序无关——in_array 语义）' );
+		self::assertSame( 1, $spec['accepted_args'], '单参（\$allowed 白名单数组）' );
+		self::assertSame( array( $module, 'allow_list_gate_preprocess' ), $spec['callback'], '回调=模块实例方法对（可命名形态——callbackName :321-338 get_class 分支）' );
+	}
+
+	/**
+	 * 回注回调语义：默认白名单+本插件主判定腿全等追加 / 幂等 / 非数组透传 / 空数组可回注。
+	 */
+	public function test_allow_list_callback_appends_gate_entry_idempotent(): void {
+		$module = new \WinkGatekeeper\Compat\FluentComments();
+		$entry  = 'WinkGatekeeper\\Gates\\CommentGate::hook_preprocess_comment';
+
+		$result = $module->allow_list_gate_preprocess( array( 'Akismet::auto_check_comment' ) );
+		self::assertSame(
+			array( 'Akismet::auto_check_comment', $entry ),
+			$result,
+			'回注语义=默认白名单（Akismet::auto_check_comment，CommentSubmission.php:264-266）+本插件主判定腿'
+		);
+
+		self::assertSame( $result, $module->allow_list_gate_preprocess( $result ), '重复回注零重复（in_array 幂等）' );
+		self::assertSame( array( $entry ), $module->allow_list_gate_preprocess( array() ), '空数组可回注' );
+		self::assertSame( 'garbage', $module->allow_list_gate_preprocess( 'garbage' ), '非数组输入原样透传（防御性——suppressForeignHooks 外层 (array) cast 兜底）' );
+	}
+
+	/**
+	 * mount 只排程：plugins_loaded 延迟挂载（全插件装载后 detect 原语可靠——定稿 §15.3，
+	 * 字母序装载依赖回避）。
+	 */
+	public function test_mount_defers_to_plugins_loaded(): void {
+		\WinkGatekeeper\Compat\CompatRegistry::mount();
+		self::assertCount( 1, CompatProbeStub::$actions, 'mount 恰排程一 action' );
+		self::assertSame( 'plugins_loaded', CompatProbeStub::$actions[0]['hook'], '排程钩子=plugins_loaded' );
+		self::assertSame( 10, CompatProbeStub::$actions[0]['priority'], '排程优先级 10' );
+		self::assertSame( 0, CompatProbeStub::$actions[0]['accepted_args'], '零参回调' );
+	}
+
+	/**
+	 * mount_behaviors detect 开态：FluentComments 在场=恰挂一 filter（规格全等透传）。
+	 */
+	public function test_mount_behaviors_detect_on_registers_exactly_one_filter(): void {
+		CompatProbeStub::$constants = array( 'FLUENT_COMMENTS_VERSION' );
+		\WinkGatekeeper\Compat\CompatRegistry::mount_behaviors();
+		self::assertCount( 1, CompatProbeStub::$filters, 'detect 开=恰挂一 filter（激活条件——任务书）' );
+		$rec = CompatProbeStub::$filters[0];
+		self::assertSame( 'fluent_comments/allowed_comment_hooks', $rec['hook'], '挂载钩子=应对 filter' );
+		self::assertSame( 10, $rec['priority'], '优先级透传' );
+		self::assertSame( 1, $rec['accepted_args'], '参数数透传' );
+		self::assertIsCallable( $rec['callback'], '回调可调用' );
+	}
+
+	/**
+	 * mount_behaviors detect 关态：目标未装=零动作（零 filter 记录）。
+	 */
+	public function test_mount_behaviors_detect_off_zero_action(): void {
+		\WinkGatekeeper\Compat\CompatRegistry::mount_behaviors();
+		self::assertSame( array(), CompatProbeStub::$filters, 'detect 关=零动作（插件未装零挂载）' );
+	}
+
+	/**
+	 * 四模块全探测也只挂 FluentComments 一条（呈现模块 behaviors 空=零动作短路先于 detect）。
+	 */
+	public function test_mount_behaviors_presentation_modules_zero_action_even_when_detected(): void {
+		CompatProbeStub::$constants  = array( 'AKISMET_VERSION', 'WORDFENCE_VERSION', 'FLUENT_COMMENTS_VERSION' );
+		CompatProbeStub::$classes    = array( 'FluentCommentsPlugin' );
+		CompatProbeStub::$functions  = array( 'wpa_check_is_spam' );
+		\WinkGatekeeper\Compat\CompatRegistry::mount_behaviors();
+		self::assertCount( 1, CompatProbeStub::$filters, '四模块全探测仍只挂一条（呈现模块零行为腿）' );
+		self::assertSame( 'fluent_comments/allowed_comment_hooks', CompatProbeStub::$filters[0]['hook'], '唯一挂载=FluentComments 应对 filter' );
+	}
+
+	/**
+	 * R5 扩展（定稿 §15.4）：行为腿三字面量全库（includes/）仅 FluentComments.php 命中；
+	 * includes/compat/ 内 add_filter 调用点唯一=CompatRegistry（mount）。
+	 */
+	public function test_r5_behavior_literals_single_point(): void {
+		$dir   = new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( dirname( __DIR__ ) . '/includes' ) );
+		$codes = array();
+		foreach ( $dir as $file ) {
+			if ( $file->isFile() && 'php' === $file->getExtension() ) {
+				$codes[ str_replace( chr( 92 ), '/', (string) $file ) ] = (string) file_get_contents( (string) $file );
+			}
+		}
+
+		$probes = array(
+			'WinkGatekeeper\\Gates\\CommentGate::hook_preprocess_comment' => 'FluentComments.php',
+			'allow_list_gate_preprocess'                                  => 'FluentComments.php',
+			'fluent_comments/allowed_comment_hooks'                       => 'FluentComments.php',
+		);
+		foreach ( $probes as $literal => $module_file ) {
+			$hits     = array();
+			$expected = array();
+			foreach ( $codes as $path => $code ) {
+				if ( false !== strpos( $code, $literal ) ) {
+					$hits[] = $path;
+				}
+				if ( str_ends_with( $path, '/compat/' . $module_file ) ) {
+					$expected[] = $path;
+				}
+			}
+			self::assertSame( $expected, $hits, "R5 扩展：行为腿字面量 {$literal} 全库仅 {$module_file} 单点（命中 " . count( $hits ) . ' 文件）' );
+		}
+
+		$compat_add_filter = array();
+		foreach ( $codes as $path => $code ) {
+			if ( false !== strpos( $path, '/compat/' ) && false !== strpos( $code, 'add_filter(' ) ) {
+				$compat_add_filter[] = $path;
+			}
+		}
+		$expected_mount = array();
+		foreach ( $codes as $path => $unused ) {
+			unset( $unused );
+			if ( str_ends_with( $path, '/compat/CompatRegistry.php' ) ) {
+				$expected_mount[] = $path;
+			}
+		}
+		self::assertSame( $expected_mount, $compat_add_filter, 'includes/compat/ 内 add_filter 调用点唯一=registry mount（模块=声明面零挂载——定稿 §15.2）' );
+	}
+
+	/**
+	 * 入口装配根挂载：恰一次 CompatRegistry::mount()（FQCN 全限定形态）——W6-A R1 钉
+	 * 「Bootstrap 零 'Compat'」不破坏（挂载点=入口非判定链装配，定稿 §15.3）。
+	 */
+	public function test_entry_mounts_layer_once(): void {
+		$entry = self::src( 'wink-wp-gatekeeper.php' );
+		self::assertSame( 1, substr_count( $entry, 'CompatRegistry::mount()' ), '入口装配根恰一挂载调用' );
+		self::assertStringContainsString( '\\WinkGatekeeper\\Compat\\CompatRegistry::mount()', $entry, '挂载调用=FQCN 全限定形态' );
+		self::assertStringContainsString( '【W6-A2】', $entry, '挂载调用带批次注记（装配根可读性）' );
+	}
+
+	/* ================================================================
 	 * ⑦ 甲档红线钉（定稿 §4：R1 判定链零感知 / R2 探测只读 /
 	 *    R3 零缓存零落库 / R5 判据单点登记）
 	 * ================================================================ */

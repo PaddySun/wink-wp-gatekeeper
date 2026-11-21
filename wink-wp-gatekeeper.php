@@ -105,4 +105,10 @@ register_deactivation_hook(
  * 启动（02 §4：普通时序；M0 只装配设置页。顶层共存检测 M4 接入，02 §3.4）
  * -------------------------------------------------------------------- */
 
+// 【W6-A2】统一兼容层行为腿挂载排程（docs/W6A-统一兼容层设计定稿-2026-11-21.md §15）：
+// 入口装配根一行调用——mount() 只排程 plugins_loaded（全插件装载后 detect 可靠），
+// mount_behaviors 逐模块 behaviors()+detect() 判定后挂应对 filter（目标未装零动作）。
+// Bootstrap 判定链装配保持零感知（R1 钉不变——层只挂第三方 filter 零挂核心钩子）。
+\WinkGatekeeper\Compat\CompatRegistry::mount();
+
 \WinkGatekeeper\Bootstrap::instance( WINK_GATEKEEPER_DIR, WINK_GATEKEEPER_URL )->boot();
