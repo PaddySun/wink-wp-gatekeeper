@@ -2,25 +2,25 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Wink WP Gatekeeper 0.9.3\n"
+"Project-Id-Version: Wink WP Gatekeeper 0.9.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wink-wp-gatekeeper\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-21T02:28:21+00:00\n"
+"POT-Creation-Date: 2026-11-21T10:04:58+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wink-wp-gatekeeper\n"
 
 #. Plugin Name of the plugin
 #: wink-wp-gatekeeper.php
-#: includes/Bootstrap.php:1238
-#: includes/Bootstrap.php:1239
+#: includes/Bootstrap.php:1195
+#: includes/Bootstrap.php:1196
 #: includes/intercept/DiePage.php:60
 #: includes/intercept/DiePage.php:102
-#: includes/settings/SettingsPage.php:630
+#: includes/settings/SettingsPage.php:658
 msgid "Wink WP Gatekeeper"
 msgstr ""
 
@@ -111,7 +111,7 @@ msgstr ""
 #: includes/audit/ExistingAuditCli.php:142
 #: includes/settings/CaptchaTabSpec.php:124
 #: includes/settings/DriverConfigSpec.php:136
-#: includes/settings/SettingsPage.php:6883
+#: includes/settings/SettingsPage.php:6931
 #: includes/stats/Labels.php:397
 msgid "Not configured"
 msgstr ""
@@ -122,7 +122,7 @@ msgstr ""
 msgid "Progress %1$d/%2$d · provider %3$s · pass=%4$d reject=%5$d review=%6$d gone=%7$d"
 msgstr ""
 
-#: includes/audit/ExistingAuditWorker.php:647
+#: includes/audit/ExistingAuditWorker.php:629
 #: includes/urlaudit/UrlAuditWorker.php:1099
 msgid "(no reason given)"
 msgstr ""
@@ -131,345 +131,345 @@ msgstr ""
 msgid "Every 5 minutes (wink existing-audit worker)"
 msgstr ""
 
-#: includes/Bootstrap.php:1141
+#: includes/Bootstrap.php:1098
 #: includes/drivers/captcha/AliyunCaptchaDriver.php:407
 #: includes/drivers/captcha/TencentCaptchaDriver.php:452
 msgid "Complete human verification"
 msgstr ""
 
-#: includes/Bootstrap.php:1142
+#: includes/Bootstrap.php:1099
 msgid "Loading captcha…"
 msgstr ""
 
-#: includes/Bootstrap.php:1143
+#: includes/Bootstrap.php:1100
 msgid "Verifying…"
 msgstr ""
 
-#: includes/Bootstrap.php:1144
+#: includes/Bootstrap.php:1101
 msgid "Verification passed"
 msgstr ""
 
-#: includes/Bootstrap.php:1145
+#: includes/Bootstrap.php:1102
 msgid "Verification incomplete — click to retry"
 msgstr ""
 
-#: includes/Bootstrap.php:1146
+#: includes/Bootstrap.php:1103
 msgid "Captcha failed to load — click to retry"
 msgstr ""
 
-#: includes/Bootstrap.php:1147
+#: includes/Bootstrap.php:1104
 msgid "The verification widget failed to load. Please refresh the page and try again."
 msgstr ""
 
-#: includes/Bootstrap.php:1148
+#: includes/Bootstrap.php:1105
 msgid "The verification widget failed to initialize — refresh to retry"
 msgstr ""
 
-#: includes/Bootstrap.php:1150
+#: includes/Bootstrap.php:1107
 msgid "Weak network — please retry later or contact the site owner"
 msgstr ""
 
-#: includes/Bootstrap.php:1151
+#: includes/Bootstrap.php:1108
 msgid "Captcha is not configured. Please contact the site owner."
 msgstr ""
 
-#: includes/Bootstrap.php:1153
+#: includes/Bootstrap.php:1110
 msgid "Verification expired — please verify again"
 msgstr ""
 
-#: includes/Bootstrap.php:1155
+#: includes/Bootstrap.php:1112
 msgid "Please complete human verification first"
 msgstr ""
 
-#: includes/Bootstrap.php:1157
+#: includes/Bootstrap.php:1114
 msgid "Checking…"
 msgstr ""
 
-#: includes/Bootstrap.php:1160
+#: includes/Bootstrap.php:1117
 msgid "Old friend, no verification needed"
 msgstr ""
 
-#: includes/Bootstrap.php:1163
-#: includes/Bootstrap.php:1166
-#: includes/Bootstrap.php:1169
-#: includes/Bootstrap.php:1172
+#: includes/Bootstrap.php:1120
+#: includes/Bootstrap.php:1123
+#: includes/Bootstrap.php:1126
+#: includes/Bootstrap.php:1129
 msgid "Your comment is being checked, please wait…"
 msgstr ""
 
-#: includes/Bootstrap.php:1175
+#: includes/Bootstrap.php:1132
 msgid "Please complete human verification before submitting"
 msgstr ""
 
-#: includes/Bootstrap.php:1176
+#: includes/Bootstrap.php:1133
 msgid "Human verification incomplete — click submit once more to retry"
 msgstr ""
 
-#: includes/Bootstrap.php:1191
+#: includes/Bootstrap.php:1148
 msgid "Reset done."
 msgstr ""
 
-#: includes/Bootstrap.php:1192
+#: includes/Bootstrap.php:1149
 msgid "Reset failed."
 msgstr ""
 
-#: includes/Bootstrap.php:1193
+#: includes/Bootstrap.php:1150
 msgid "Reset failed (network error)."
 msgstr ""
 
-#: includes/Bootstrap.php:1194
+#: includes/Bootstrap.php:1151
 msgid "Driver “"
 msgstr ""
 
-#: includes/Bootstrap.php:1195
+#: includes/Bootstrap.php:1152
 msgid "” is missing: "
 msgstr ""
 
-#: includes/Bootstrap.php:1196
+#: includes/Bootstrap.php:1153
 msgid " — fill it in before saving (blocked this time; clicking save again force-submits and the server treats the driver as not configured)."
 msgstr ""
 
-#: includes/Bootstrap.php:1197
-#: includes/settings/SettingsPage.php:781
+#: includes/Bootstrap.php:1154
+#: includes/settings/SettingsPage.php:809
 msgid "Connected · credentials work"
 msgstr ""
 
-#: includes/Bootstrap.php:1198
-#: includes/settings/SettingsPage.php:782
+#: includes/Bootstrap.php:1155
+#: includes/settings/SettingsPage.php:810
 msgid "Incomplete · required fields missing"
 msgstr ""
 
-#: includes/Bootstrap.php:1199
-#: includes/settings/SettingsPage.php:783
+#: includes/Bootstrap.php:1156
+#: includes/settings/SettingsPage.php:811
 msgid "Rejected · key error"
 msgstr ""
 
-#: includes/Bootstrap.php:1200
-#: includes/settings/SettingsPage.php:784
+#: includes/Bootstrap.php:1157
+#: includes/settings/SettingsPage.php:812
 msgid "Contract mismatch · status unknown"
 msgstr ""
 
-#: includes/Bootstrap.php:1201
-#: includes/settings/SettingsPage.php:862
+#: includes/Bootstrap.php:1158
+#: includes/settings/SettingsPage.php:890
 msgid "Connected"
 msgstr ""
 
-#: includes/Bootstrap.php:1202
-#: includes/settings/SettingsPage.php:863
+#: includes/Bootstrap.php:1159
+#: includes/settings/SettingsPage.php:891
 msgid "Incomplete"
 msgstr ""
 
-#: includes/Bootstrap.php:1203
-#: includes/settings/SettingsPage.php:864
+#: includes/Bootstrap.php:1160
+#: includes/settings/SettingsPage.php:892
 msgid "Rejected"
 msgstr ""
 
-#: includes/Bootstrap.php:1204
-#: includes/settings/SettingsPage.php:865
+#: includes/Bootstrap.php:1161
+#: includes/settings/SettingsPage.php:893
 msgid "Contract mismatch"
 msgstr ""
 
-#: includes/Bootstrap.php:1205
+#: includes/Bootstrap.php:1162
 #: includes/stats/OverviewRoster.php:286
 msgid "-"
 msgstr ""
 
-#: includes/Bootstrap.php:1206
+#: includes/Bootstrap.php:1163
 #: includes/stats/OverviewRoster.php:286
 msgid " "
 msgstr ""
 
-#: includes/Bootstrap.php:1207
+#: includes/Bootstrap.php:1164
 msgid "Last test: "
 msgstr ""
 
-#: includes/Bootstrap.php:1208
+#: includes/Bootstrap.php:1165
 msgid "Testing…"
 msgstr ""
 
-#: includes/Bootstrap.php:1209
-#: includes/settings/SettingsPage.php:7509
+#: includes/Bootstrap.php:1166
+#: includes/settings/SettingsPage.php:7558
 msgid "Test failed."
 msgstr ""
 
-#: includes/Bootstrap.php:1210
+#: includes/Bootstrap.php:1167
 msgid "Test failed (network error)."
 msgstr ""
 
-#: includes/Bootstrap.php:1211
+#: includes/Bootstrap.php:1168
 msgid "AbuseIPDB (threat group)"
 msgstr ""
 
-#: includes/Bootstrap.php:1212
+#: includes/Bootstrap.php:1169
 msgid "StopForumSpam (threat group)"
 msgstr ""
 
-#: includes/Bootstrap.php:1213
+#: includes/Bootstrap.php:1170
 msgid "ip.nc.gy (threat group)"
 msgstr ""
 
-#: includes/Bootstrap.php:1214
+#: includes/Bootstrap.php:1171
 msgid "ip.sb (geo group)"
 msgstr ""
 
-#: includes/Bootstrap.php:1215
+#: includes/Bootstrap.php:1172
 msgid "The lookup failed."
 msgstr ""
 
-#: includes/Bootstrap.php:1216
+#: includes/Bootstrap.php:1173
 msgid "Enter an IP to look up first."
 msgstr ""
 
-#: includes/Bootstrap.php:1217
+#: includes/Bootstrap.php:1174
 msgid "Looking up… (3s timeout per source, up to ~12s total)"
 msgstr ""
 
-#: includes/Bootstrap.php:1218
+#: includes/Bootstrap.php:1175
 msgid "Done: "
 msgstr ""
 
-#: includes/Bootstrap.php:1219
+#: includes/Bootstrap.php:1176
 msgid "The lookup failed (network error)."
 msgstr ""
 
-#: includes/Bootstrap.php:1220
+#: includes/Bootstrap.php:1177
 msgid "All "
 msgstr ""
 
-#: includes/Bootstrap.php:1221
+#: includes/Bootstrap.php:1178
 msgid " lines are valid."
 msgstr ""
 
-#: includes/Bootstrap.php:1222
+#: includes/Bootstrap.php:1179
 msgid "Found "
 msgstr ""
 
-#: includes/Bootstrap.php:1223
+#: includes/Bootstrap.php:1180
 msgid " lines are not valid CIDR/IP: "
 msgstr ""
 
-#: includes/Bootstrap.php:1224
+#: includes/Bootstrap.php:1181
 msgid " etc."
 msgstr ""
 
-#: includes/Bootstrap.php:1279
+#: includes/Bootstrap.php:1236
 msgid "Wink WP Gatekeeper · Today's status"
 msgstr ""
 
-#: includes/Bootstrap.php:1345
-#: includes/settings/SettingsPage.php:1094
+#: includes/Bootstrap.php:1300
+#: includes/settings/SettingsPage.php:1122
 msgid "AbuseIPDB (reporting)"
 msgstr ""
 
-#: includes/Bootstrap.php:1386
+#: includes/Bootstrap.php:1341
 msgid "Proxy forwarding headers detected but the IP source is direct — per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely; choose an IP source that matches your deployment topology in the network settings."
 msgstr ""
 
-#: includes/Bootstrap.php:1387
+#: includes/Bootstrap.php:1342
 msgid "Go check"
 msgstr ""
 
-#: includes/Bootstrap.php:1392
+#: includes/Bootstrap.php:1347
 msgid "System health"
 msgstr ""
 
-#: includes/Bootstrap.php:1403
+#: includes/Bootstrap.php:1358
 #: includes/settings/CaptchaTabSpec.php:123
 #: includes/settings/DriverConfigSpec.php:135
 msgid "Configured"
 msgstr ""
 
-#: includes/Bootstrap.php:1403
+#: includes/Bootstrap.php:1358
 msgid "Not configured — the captcha stage is skipped entirely"
 msgstr ""
 
-#: includes/Bootstrap.php:1416
+#: includes/Bootstrap.php:1371
 msgid "Daily maintenance task"
 msgstr ""
 
-#: includes/Bootstrap.php:1417
+#: includes/Bootstrap.php:1372
 msgid "Scheduled"
 msgstr ""
 
-#: includes/Bootstrap.php:1417
+#: includes/Bootstrap.php:1372
 msgid "Missing — event cleanup has stalled"
 msgstr ""
 
-#: includes/Bootstrap.php:1419
+#: includes/Bootstrap.php:1374
 msgid "Reactivate"
 msgstr ""
 
-#: includes/Bootstrap.php:1423
+#: includes/Bootstrap.php:1378
 msgid "Overview details"
 msgstr ""
 
-#: includes/Bootstrap.php:1431
+#: includes/Bootstrap.php:1386
 msgid "Third-party calls (today)"
 msgstr ""
 
-#: includes/Bootstrap.php:1433
-#: includes/settings/SettingsPage.php:892
+#: includes/Bootstrap.php:1388
+#: includes/settings/SettingsPage.php:920
 msgid "No outbound calls today."
 msgstr ""
 
-#: includes/Bootstrap.php:1445
-#: includes/settings/SettingsPage.php:918
+#: includes/Bootstrap.php:1400
+#: includes/settings/SettingsPage.php:946
 msgid "— quota reached, paused for today"
 msgstr ""
 
-#: includes/Bootstrap.php:1447
-#: includes/Bootstrap.php:1455
-#: includes/Bootstrap.php:1460
-#: includes/settings/SettingsPage.php:927
+#: includes/Bootstrap.php:1402
+#: includes/Bootstrap.php:1410
+#: includes/Bootstrap.php:1415
+#: includes/settings/SettingsPage.php:955
 msgid " times"
 msgstr ""
 
-#: includes/Bootstrap.php:1454
+#: includes/Bootstrap.php:1409
 msgid "Site outbound calls today"
 msgstr ""
 
-#: includes/Bootstrap.php:1459
-#: includes/settings/SettingsPage.php:927
+#: includes/Bootstrap.php:1414
+#: includes/settings/SettingsPage.php:955
 msgid "Failover passes today"
 msgstr ""
 
-#: includes/Bootstrap.php:1460
-#: includes/settings/SettingsPage.php:927
+#: includes/Bootstrap.php:1415
+#: includes/settings/SettingsPage.php:955
 msgid "— a barometer of captcha service instability"
 msgstr ""
 
-#: includes/Bootstrap.php:1463
+#: includes/Bootstrap.php:1418
 msgid "View call details"
 msgstr ""
 
-#: includes/Bootstrap.php:1470
+#: includes/Bootstrap.php:1425
 msgid "Today: blocked"
 msgstr ""
 
-#: includes/Bootstrap.php:1472
+#: includes/Bootstrap.php:1427
 msgid "| pending"
 msgstr ""
 
-#: includes/Bootstrap.php:1474
+#: includes/Bootstrap.php:1429
 msgid "| driver errors"
 msgstr ""
 
-#: includes/Bootstrap.php:1478
+#: includes/Bootstrap.php:1433
 msgid "View details"
 msgstr ""
 
-#: includes/Bootstrap.php:1498
-#: includes/settings/SettingsPage.php:1244
-#: includes/settings/SettingsPage.php:1263
-#: includes/settings/SettingsPage.php:5060
-#: includes/settings/SettingsPage.php:5267
-#: includes/settings/SettingsPage.php:5635
-#: includes/settings/SettingsPage.php:5652
-#: includes/settings/SettingsPage.php:5677
-#: includes/settings/SettingsPage.php:6429
+#: includes/Bootstrap.php:1453
+#: includes/settings/SettingsPage.php:1272
+#: includes/settings/SettingsPage.php:1291
+#: includes/settings/SettingsPage.php:5106
+#: includes/settings/SettingsPage.php:5313
+#: includes/settings/SettingsPage.php:5683
+#: includes/settings/SettingsPage.php:5700
+#: includes/settings/SettingsPage.php:5725
+#: includes/settings/SettingsPage.php:6477
 msgid "Insufficient permissions."
 msgstr ""
 
-#: includes/Bootstrap.php:1589
+#: includes/Bootstrap.php:1544
 msgid "Wink captcha drill mode is active — site-wide human verification bypassed (auto-expires in 24h)"
 msgstr ""
 
@@ -489,19 +489,19 @@ msgstr ""
 msgid "No interaction. If Akismet is added later, this row turns into the coexistence note automatically — detection runs live on each settings page render, nothing is stored."
 msgstr ""
 
-#: includes/compat/FluentComments.php:45
+#: includes/compat/FluentComments.php:56
 msgid "FluentComments"
 msgstr ""
 
-#: includes/compat/FluentComments.php:49
+#: includes/compat/FluentComments.php:60
 msgid "AJAX comment form"
 msgstr ""
 
-#: includes/compat/FluentComments.php:57
+#: includes/compat/FluentComments.php:68
 msgid "FluentComments replaces the native comment form with its own AJAX form and, while inserting a submission, strips third-party callbacks off the comment preprocessing hooks (Akismet is on its allow list). When FluentComments is detected, this plugin re-registers its comment gate onto that allow list — the gate still screens AJAX submissions, and its layered spam guard composes behind it. How the challenge renders inside its AJAX flow is a live-machine follow-up."
 msgstr ""
 
-#: includes/compat/FluentComments.php:61
+#: includes/compat/FluentComments.php:72
 msgid "No interaction. If FluentComments is added later, this row turns into the AJAX-form coexistence note automatically — detection runs live, nothing is stored."
 msgstr ""
 
@@ -540,15 +540,15 @@ msgstr ""
 #: includes/drivers/captcha/AliyunCaptchaDriver.php:173
 #: includes/drivers/captcha/AliyunCaptchaDriver.php:220
 #: includes/settings/CaptchaTabSpec.php:161
-#: includes/settings/SettingsPage.php:1351
-#: includes/settings/SettingsPage.php:2685
+#: includes/settings/SettingsPage.php:1379
+#: includes/settings/SettingsPage.php:2731
 msgid "Aliyun Captcha 2.0"
 msgstr ""
 
 #: includes/drivers/captcha/AliyunCaptchaDriver.php:190
 #: includes/settings/CaptchaTabSpec.php:64
-#: includes/settings/SettingsPage.php:2730
-#: includes/settings/SettingsPage.php:2734
+#: includes/settings/SettingsPage.php:2776
+#: includes/settings/SettingsPage.php:2780
 msgid "prefix (identity tag)"
 msgstr ""
 
@@ -588,14 +588,14 @@ msgstr ""
 #: includes/drivers/captcha/TencentCaptchaDriver.php:184
 #: includes/drivers/captcha/TencentCaptchaDriver.php:230
 #: includes/settings/CaptchaTabSpec.php:161
-#: includes/settings/SettingsPage.php:2573
+#: includes/settings/SettingsPage.php:2619
 msgid "Tencent Tianyu Captcha 2.0"
 msgstr ""
 
 #: includes/drivers/captcha/TencentCaptchaDriver.php:200
 #: includes/settings/CaptchaTabSpec.php:33
-#: includes/settings/SettingsPage.php:2618
-#: includes/settings/SettingsPage.php:2620
+#: includes/settings/SettingsPage.php:2664
+#: includes/settings/SettingsPage.php:2666
 msgid "AppSecretKey (captcha console)"
 msgstr ""
 
@@ -604,17 +604,17 @@ msgid "Verification already took effect once — within 10 minutes: press the br
 msgstr ""
 
 #: includes/drivers/review/AliyunGreenPlusDriver.php:151
-#: includes/settings/SettingsPage.php:3511
+#: includes/settings/SettingsPage.php:3557
 msgid "Aliyun Content Security · Text Moderation Plus"
 msgstr ""
 
 #: includes/drivers/review/AliyunGreenPlusDriver.php:160
-#: includes/settings/SettingsPage.php:3665
+#: includes/settings/SettingsPage.php:3711
 msgid "Nickname service name"
 msgstr ""
 
 #: includes/drivers/review/AliyunGreenPlusDriver.php:161
-#: includes/settings/SettingsPage.php:3673
+#: includes/settings/SettingsPage.php:3719
 msgid "Body service name"
 msgstr ""
 
@@ -632,10 +632,10 @@ msgstr ""
 #: includes/drivers/review/DeepSeekReviewDriver.php:81
 #: includes/drivers/review/OpenAiCustomReviewDriver.php:89
 #: includes/drivers/review/TencentTmsDriver.php:148
-#: includes/settings/SettingsPage.php:3588
-#: includes/settings/SettingsPage.php:3710
-#: includes/settings/SettingsPage.php:3804
-#: includes/settings/SettingsPage.php:4425
+#: includes/settings/SettingsPage.php:3634
+#: includes/settings/SettingsPage.php:3756
+#: includes/settings/SettingsPage.php:3850
+#: includes/settings/SettingsPage.php:4471
 msgid "Daily quota"
 msgstr ""
 
@@ -644,9 +644,9 @@ msgstr ""
 #: includes/drivers/review/DeepSeekReviewDriver.php:82
 #: includes/drivers/review/OpenAiCustomReviewDriver.php:90
 #: includes/drivers/review/TencentTmsDriver.php:149
-#: includes/settings/SettingsPage.php:3596
-#: includes/settings/SettingsPage.php:3718
-#: includes/settings/SettingsPage.php:3812
+#: includes/settings/SettingsPage.php:3642
+#: includes/settings/SettingsPage.php:3764
+#: includes/settings/SettingsPage.php:3858
 msgid "Failure fallback"
 msgstr ""
 
@@ -731,8 +731,8 @@ msgid "Low-quality flooding"
 msgstr ""
 
 #: includes/drivers/review/BaiduTextModerationDriver.php:206
-#: includes/settings/SettingsPage.php:1512
-#: includes/settings/SettingsPage.php:3513
+#: includes/settings/SettingsPage.php:1557
+#: includes/settings/SettingsPage.php:3559
 msgid "Baidu Text Moderation"
 msgstr ""
 
@@ -754,15 +754,15 @@ msgstr ""
 
 #: includes/drivers/review/DeepSeekReviewDriver.php:78
 #: includes/drivers/review/OpenAiCustomReviewDriver.php:86
-#: includes/settings/SettingsPage.php:3876
-#: includes/settings/SettingsPage.php:4000
+#: includes/settings/SettingsPage.php:3922
+#: includes/settings/SettingsPage.php:4046
 msgid "Endpoint URL"
 msgstr ""
 
 #: includes/drivers/review/DeepSeekReviewDriver.php:79
 #: includes/drivers/review/OpenAiCustomReviewDriver.php:87
-#: includes/settings/SettingsPage.php:3883
-#: includes/settings/SettingsPage.php:4009
+#: includes/settings/SettingsPage.php:3929
+#: includes/settings/SettingsPage.php:4055
 msgid "Verdict model"
 msgstr ""
 
@@ -787,7 +787,7 @@ msgstr ""
 msgid "4. Verdict mapping (not admin-adjustable): confidence ≥0.8 is taken as high confidence, <0.8 always goes to pending review; an AI pass never approves a comment by itself (it only tightens)."
 msgstr ""
 
-#: includes/drivers/review/LocalRulesDriver.php:77
+#: includes/drivers/review/LocalRulesDriver.php:85
 msgid "Local rules four gates (upstream migration)"
 msgstr ""
 
@@ -800,8 +800,8 @@ msgid "Output caught by content filtering (non-retryable inconclusive)"
 msgstr ""
 
 #: includes/drivers/review/OpenAiCustomReviewDriver.php:78
-#: includes/settings/SettingsPage.php:1533
-#: includes/settings/SettingsPage.php:3969
+#: includes/settings/SettingsPage.php:1578
+#: includes/settings/SettingsPage.php:4015
 msgid "Custom OpenAI-compatible endpoint"
 msgstr ""
 
@@ -826,17 +826,17 @@ msgid "4. Reachability and compliance are on you: data goes to the jurisdiction 
 msgstr ""
 
 #: includes/drivers/review/TencentTmsDriver.php:137
-#: includes/settings/SettingsPage.php:3509
+#: includes/settings/SettingsPage.php:3555
 msgid "Tencent Cloud TMS Text Moderation"
 msgstr ""
 
 #: includes/drivers/review/TencentTmsDriver.php:146
-#: includes/settings/SettingsPage.php:3552
+#: includes/settings/SettingsPage.php:3598
 msgid "BizType (policy ID)"
 msgstr ""
 
 #: includes/drivers/review/TencentTmsDriver.php:150
-#: includes/settings/SettingsPage.php:3571
+#: includes/settings/SettingsPage.php:3617
 msgid "Direct-block score threshold"
 msgstr ""
 
@@ -857,46 +857,46 @@ msgid "4. Paste below → click “Test credentials” (a normal text test shoul
 msgstr ""
 
 #: includes/gates/AccountFormGate.php:326
-#: includes/gates/CommentGate.php:1082
-#: includes/gates/CommentGate.php:1116
-#: includes/gates/CommentGate.php:1154
-#: includes/gates/CommentGate.php:1408
-#: includes/gates/CommentGate.php:1768
-#: includes/settings/SettingsPage.php:5042
-#: includes/settings/SettingsPage.php:6214
-#: includes/settings/SettingsPage.php:6303
-#: includes/settings/SettingsPage.php:6671
+#: includes/gates/CommentGate.php:1149
+#: includes/gates/CommentGate.php:1183
+#: includes/gates/CommentGate.php:1221
+#: includes/gates/CommentGate.php:1475
+#: includes/gates/CommentGate.php:1835
+#: includes/settings/SettingsPage.php:5088
+#: includes/settings/SettingsPage.php:6262
+#: includes/settings/SettingsPage.php:6351
+#: includes/settings/SettingsPage.php:6719
 msgid "Event No."
 msgstr ""
 
 #: includes/gates/AccountFormGate.php:329
-#: includes/gates/CommentGate.php:1084
-#: includes/gates/CommentGate.php:1411
-#: includes/gates/CommentGate.php:1744
-#: includes/gates/CommentGate.php:1745
-#: includes/gates/CommentGate.php:1770
+#: includes/gates/CommentGate.php:1151
+#: includes/gates/CommentGate.php:1478
+#: includes/gates/CommentGate.php:1811
+#: includes/gates/CommentGate.php:1812
+#: includes/gates/CommentGate.php:1837
 #: includes/gates/ResponseDispatcher.php:206
 #: includes/gates/ResponseDispatcher.php:207
-#: includes/settings/SettingsPage.php:5043
+#: includes/settings/SettingsPage.php:5089
 msgid "Matched rule"
 msgstr ""
 
 #: includes/gates/AccountFormGate.php:331
 #: includes/gates/AccountFormGate.php:335
-#: includes/gates/CommentGate.php:1085
-#: includes/gates/CommentGate.php:1118
-#: includes/gates/CommentGate.php:1156
-#: includes/gates/CommentGate.php:1413
-#: includes/gates/CommentGate.php:1418
-#: includes/gates/CommentGate.php:1772
-#: includes/settings/SettingsPage.php:5044
-#: includes/settings/SettingsPage.php:6210
-#: includes/settings/SettingsPage.php:6302
-#: includes/settings/SettingsPage.php:6670
+#: includes/gates/CommentGate.php:1152
+#: includes/gates/CommentGate.php:1185
+#: includes/gates/CommentGate.php:1223
+#: includes/gates/CommentGate.php:1480
+#: includes/gates/CommentGate.php:1485
+#: includes/gates/CommentGate.php:1839
+#: includes/settings/SettingsPage.php:5090
+#: includes/settings/SettingsPage.php:6258
+#: includes/settings/SettingsPage.php:6350
+#: includes/settings/SettingsPage.php:6718
 msgid "Time"
 msgstr ""
 
-#: includes/gates/CommentGate.php:1282
+#: includes/gates/CommentGate.php:1349
 msgid "The comment did not pass verification."
 msgstr ""
 
@@ -1175,7 +1175,7 @@ msgid "Back to the previous page"
 msgstr ""
 
 #: includes/ip/AbuseIpdbService.php:435
-#: includes/settings/SettingsPage.php:4347
+#: includes/settings/SettingsPage.php:4393
 msgid "AbuseIPDB (IP reputation lookup)"
 msgstr ""
 
@@ -1396,7 +1396,7 @@ msgstr ""
 #: includes/settings/CredentialProbe.php:402
 #: includes/settings/CredentialProbe.php:507
 #: includes/settings/CredentialProbe.php:894
-#: includes/settings/SettingsPage.php:3051
+#: includes/settings/SettingsPage.php:3097
 msgid "Required fields missing: "
 msgstr ""
 
@@ -1405,7 +1405,7 @@ msgstr ""
 #: includes/settings/CredentialProbe.php:402
 #: includes/settings/CredentialProbe.php:507
 #: includes/settings/CredentialProbe.php:894
-#: includes/settings/SettingsPage.php:3051
+#: includes/settings/SettingsPage.php:3097
 msgid " — fill them in and test again."
 msgstr ""
 
@@ -1912,2240 +1912,2250 @@ msgstr ""
 msgid "Overseas reputation database — data leaves the country"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:610
-#: includes/settings/SettingsPage.php:2908
-#: includes/settings/SettingsPage.php:2957
-#: includes/settings/SettingsPage.php:3022
-#: includes/settings/SettingsPage.php:3089
-#: includes/settings/SettingsPage.php:3154
-#: includes/settings/SettingsPage.php:4908
-#: includes/settings/SettingsPage.php:4973
-#: includes/settings/SettingsPage.php:5104
-#: includes/settings/SettingsPage.php:5151
-#: includes/settings/SettingsPage.php:5208
-#: includes/settings/SettingsPage.php:6719
-#: includes/settings/SettingsPage.php:7455
+#: includes/settings/SettingsPage.php:638
+#: includes/settings/SettingsPage.php:2954
+#: includes/settings/SettingsPage.php:3003
+#: includes/settings/SettingsPage.php:3068
+#: includes/settings/SettingsPage.php:3135
+#: includes/settings/SettingsPage.php:3200
+#: includes/settings/SettingsPage.php:4954
+#: includes/settings/SettingsPage.php:5019
+#: includes/settings/SettingsPage.php:5150
+#: includes/settings/SettingsPage.php:5197
+#: includes/settings/SettingsPage.php:5254
+#: includes/settings/SettingsPage.php:6767
+#: includes/settings/SettingsPage.php:7504
 msgid "Insufficient permissions: manage_options required."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:633
-#: includes/settings/SettingsPage.php:1307
+#: includes/settings/SettingsPage.php:661
+#: includes/settings/SettingsPage.php:1335
 msgid "Gatekeeper"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:634
+#: includes/settings/SettingsPage.php:662
 msgid "It winks at real visitors and keeps its eyes open for bots."
 msgstr ""
 
 #. translators: %s: 今日拦截数
-#: includes/settings/SettingsPage.php:637
+#: includes/settings/SettingsPage.php:665
 #, php-format
 msgid "Blocked today: %s"
 msgstr ""
 
 #. translators: %s: 版本号
-#: includes/settings/SettingsPage.php:638
+#: includes/settings/SettingsPage.php:666
 #, php-format
 msgid "v%s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:645
+#: includes/settings/SettingsPage.php:673
 msgid "Wink WP Gatekeeper settings sections"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:665
+#: includes/settings/SettingsPage.php:693
 msgid "Save settings"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:780
+#: includes/settings/SettingsPage.php:808
 msgid "Not tested"
 msgstr ""
 
 #. translators: %s: date and time of the last verification test
-#: includes/settings/SettingsPage.php:791
+#: includes/settings/SettingsPage.php:819
 #, php-format
 msgid "Last test: %s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:869
+#: includes/settings/SettingsPage.php:897
 msgid "M j, H:i"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:890
+#: includes/settings/SettingsPage.php:918
 msgid "API calls today"
 msgstr ""
 
 #. translators: %d: 站点今日总外呼次数
-#: includes/settings/SettingsPage.php:890
+#: includes/settings/SettingsPage.php:918
 #, php-format
 msgid "Total site outbound calls: %d"
 msgstr ""
 
 #. translators: %d: 调用次数
-#: includes/settings/SettingsPage.php:920
+#: includes/settings/SettingsPage.php:948
 #, php-format
 msgctxt "call-count"
 msgid "%d calls"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1141
+#: includes/settings/SettingsPage.php:1169
 msgid "Start protection in three steps"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1142
+#: includes/settings/SettingsPage.php:1170
 msgid "Pick a captcha (Tab 2: Captcha)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1143
+#: includes/settings/SettingsPage.php:1171
 msgid "Add cloud moderation / IP reputation (Tab 3: Content moderation / Tab 4: IP reputation)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1144
+#: includes/settings/SettingsPage.php:1172
 msgid "Use “Test credentials” on each provider card to verify connectivity."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1145
+#: includes/settings/SettingsPage.php:1173
 msgid "This notice disappears once any provider is configured."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1146
+#: includes/settings/SettingsPage.php:1174
 msgid "Start from step 1 →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1150
+#: includes/settings/SettingsPage.php:1178
 msgid "Protection is on duty. To add captcha, cloud moderation, or IP reputation later, rerun the setup wizard at any time (or fine-tune things directly on each tab)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1151
+#: includes/settings/SettingsPage.php:1179
 msgid "Continue setup (wizard) →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1308
+#: includes/settings/SettingsPage.php:1336
 msgid "First day on duty"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1312
+#: includes/settings/SettingsPage.php:1340
 msgid "Welcome"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1313
+#: includes/settings/SettingsPage.php:1341
 #: includes/stats/DashboardDigest.php:193
 #: includes/stats/Labels.php:38
 #: includes/stats/Labels.php:144
 msgid "Human verification"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1314
+#: includes/settings/SettingsPage.php:1342
 #: includes/stats/Labels.php:145
 msgid "Content moderation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1315
+#: includes/settings/SettingsPage.php:1343
 msgid "Done"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1324
+#: includes/settings/SettingsPage.php:1352
 msgid "On duty in three steps, five minutes"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1325
+#: includes/settings/SettingsPage.php:1353
 msgid "Wink WP Gatekeeper stands at your blog's door: it blocks spam comments, stops credential-stuffing logins, and routes suspicious content to manual review. This wizard walks you through the two most important keys — you can skip any step and come back later; skipped parts keep fallback protection, so you are never left exposed."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1327
+#: includes/settings/SettingsPage.php:1355
 msgid "STEP 1 Human verification — pick a captcha provider to keep bots out. Real visitors barely notice it."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1328
+#: includes/settings/SettingsPage.php:1356
 msgid "STEP 2 Content moderation — the built-in rules are free and already on duty; add a cloud moderation provider so machine-crafted wording cannot slip through either."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1329
+#: includes/settings/SettingsPage.php:1357
 msgid "STEP 3 Test your credentials — click “Test credentials” after configuring each provider; green means on duty."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1335
+#: includes/settings/SettingsPage.php:1363
 msgid "The built-in rules alone are enough — cloud moderation is an enhancement layer that leaves basic protection untouched; when enabled, comments the built-in rules do not block get one more round of cloud review."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1339
+#: includes/settings/SettingsPage.php:1367
 msgid "Not now — go straight to settings (skip everything) →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1340
+#: includes/settings/SettingsPage.php:1368
 msgid "Start step 1 →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1346
+#: includes/settings/SettingsPage.php:1374
 msgid "Step 1 · Human verification"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1347
+#: includes/settings/SettingsPage.php:1375
 msgid "Pick a captcha provider. For sites serving visitors in mainland China the default is recommended — it loads fastest there."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1352
-#: includes/settings/SettingsPage.php:1448
-#: includes/settings/SettingsPage.php:1513
+#: includes/settings/SettingsPage.php:1380
+#: includes/settings/SettingsPage.php:1476
+#: includes/settings/SettingsPage.php:1558
 msgid "Recommended · Default"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1353
+#: includes/settings/SettingsPage.php:1381
 msgid "Fast mainland direct connection · generous free tier · smart verification that leaves humans alone."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1357
+#: includes/settings/SettingsPage.php:1385
 msgid "Tencent Tianyu 2.0"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1358
+#: includes/settings/SettingsPage.php:1386
 msgid "Retired as default: the account plan has been discontinued and it is no longer recommended — sites already configured can keep using it."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1362
-#: includes/settings/SettingsPage.php:1538
+#: includes/settings/SettingsPage.php:1390
+#: includes/settings/SettingsPage.php:1583
 msgid "Not now"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1363
+#: includes/settings/SettingsPage.php:1391
 msgid "The comment gate keeps its four built-in rule defenses; you can configure a captcha later on the “2: Captcha” tab."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1369
-#: includes/settings/SettingsPage.php:1575
+#: includes/settings/SettingsPage.php:1397
+#: includes/settings/SettingsPage.php:1620
 msgid "AccessKeyId / AccessKeySecret (Aliyun RAM)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1372
+#: includes/settings/SettingsPage.php:1400
 msgid "SceneId (scene ID · required)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1374
+#: includes/settings/SettingsPage.php:1402
 msgid "prefix (front-end identity tag · required)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1376
+#: includes/settings/SettingsPage.php:1404
 msgid "Where to get them: Aliyun console → Captcha 2.0 → Scene management. Create a scene and copy the SceneId and prefix over together; the RAM key needs the AliyunYundunAFSFullAccess policy. After pasting, click “Test credentials” below: green = credentials work, yellow = required fields missing, red = key rejected."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1382
-#: includes/settings/SettingsPage.php:1432
-#: includes/settings/SettingsPage.php:1555
-#: includes/settings/SettingsPage.php:1569
-#: includes/settings/SettingsPage.php:1584
-#: includes/settings/SettingsPage.php:1599
-#: includes/settings/SettingsPage.php:1615
-#: includes/settings/SettingsPage.php:1746
-#: includes/settings/SettingsPage.php:1754
-#: includes/settings/SettingsPage.php:2665
-#: includes/settings/SettingsPage.php:2818
-#: includes/settings/SettingsPage.php:3621
-#: includes/settings/SettingsPage.php:3743
-#: includes/settings/SettingsPage.php:3837
-#: includes/settings/SettingsPage.php:3955
-#: includes/settings/SettingsPage.php:4085
-#: includes/settings/SettingsPage.php:4473
-#: includes/settings/SettingsPage.php:5462
+#: includes/settings/SettingsPage.php:1410
+#: includes/settings/SettingsPage.php:1460
+#: includes/settings/SettingsPage.php:1600
+#: includes/settings/SettingsPage.php:1614
+#: includes/settings/SettingsPage.php:1629
+#: includes/settings/SettingsPage.php:1644
+#: includes/settings/SettingsPage.php:1660
+#: includes/settings/SettingsPage.php:1791
+#: includes/settings/SettingsPage.php:1799
+#: includes/settings/SettingsPage.php:2711
+#: includes/settings/SettingsPage.php:2864
+#: includes/settings/SettingsPage.php:3667
+#: includes/settings/SettingsPage.php:3789
+#: includes/settings/SettingsPage.php:3883
+#: includes/settings/SettingsPage.php:4001
+#: includes/settings/SettingsPage.php:4131
+#: includes/settings/SettingsPage.php:4519
+#: includes/settings/SettingsPage.php:5510
 msgid "Test credentials"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1392
+#: includes/settings/SettingsPage.php:1420
 msgid "Tianyu is retired as default (existing setups still work) — its settings live on the “2: Captcha” tab; it stays here only as a choice."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1401
+#: includes/settings/SettingsPage.php:1429
 msgid "“Not now” selected — the comment gate relies on the built-in rules alone and the captcha stage is skipped entirely. The overview page keeps a yellow banner reminding you to come back."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1410
+#: includes/settings/SettingsPage.php:1438
 msgid "IP reputation (AbuseIPDB) · optional — add it once your captcha is set up"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1415
+#: includes/settings/SettingsPage.php:1443
 msgid "Treat suspicious visitors strictly based on their IP record (force human verification before letting them through) — shared by the comment and login gates; skipping it does not affect any protection above, and you can fine-tune later on the “4: IP reputation” tab (threshold / soft cap / daily quota all live under ⚙ Advanced there)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1420
+#: includes/settings/SettingsPage.php:1448
 msgid "Enable IP reputation lookups"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1421
+#: includes/settings/SettingsPage.php:1449
 msgid "It only takes effect with a key filled in; when off or empty, the trust chain skips this item. When enabled, visitor IPs are sent to an overseas service for lookup — see Tab 4 for the data-transfer notice."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1424
+#: includes/settings/SettingsPage.php:1452
 msgid "AbuseIPDB API Key"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1426
+#: includes/settings/SettingsPage.php:1454
 msgid "Free tier: 1,000 lookups/day (agreed baseline). Register at abuseipdb.com; lookups count against the quota, and the soft cap / daily quota limits are tuned under ⚙ Advanced on Tab 4."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1441
-#: includes/settings/SettingsPage.php:2504
+#: includes/settings/SettingsPage.php:1469
+#: includes/settings/SettingsPage.php:2550
 msgid "Submit-trigger flow"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1442
-msgid "How visitors get challenged — two flows, compared in the animation below (illustrative, not a live recording)."
+#: includes/settings/SettingsPage.php:1470
+msgid "How visitors get challenged — two flows, compared in the two recordings below (real captures from v0.9.1)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1447
-#: includes/settings/SettingsPage.php:1717
+#: includes/settings/SettingsPage.php:1475
+#: includes/settings/SettingsPage.php:1762
 msgid "No-button mode"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1449
+#: includes/settings/SettingsPage.php:1477
 msgid "No separate verify button — clicking the native “Post Comment / Log In” runs the check, and the form resubmits automatically afterwards."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1453
+#: includes/settings/SettingsPage.php:1481
 msgid "Dedicated verify button (classic)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1454
+#: includes/settings/SettingsPage.php:1482
 msgid "Click “Complete human verification” in the form first, then submit — the behavior up to 0.8.3."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1461
+#: includes/settings/SettingsPage.php:1493
+#: includes/settings/SettingsPage.php:1496
+msgid "No-button mode (current default)"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1499
 msgid "① Submit — the visitor clicks “Post Comment” (no-button mode: the submission is intercepted and the verification popup opens automatically)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1462
+#: includes/settings/SettingsPage.php:1500
 msgid "② Verify — the slider / smart check completes inside the popup"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1463
+#: includes/settings/SettingsPage.php:1501
 msgid "③ Auto-resubmit — no second click needed; toast “Running checks”"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1464
+#: includes/settings/SettingsPage.php:1502
 msgid "④ Landing — the comment enters the built-in rules → cloud moderation → IP reputation chain"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1466
-msgid "Looped demo: no-button mode ↔ classic button (classic = “Complete human verification” first, then submit — one extra step) · illustrative, not a live recording."
+#: includes/settings/SettingsPage.php:1506
+#: includes/settings/SettingsPage.php:1509
+msgid "Classic button mode"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1487
-#: includes/settings/SettingsPage.php:1631
+#: includes/settings/SettingsPage.php:1512
+msgid "Real screen recordings (captured on v0.9.1) — both loop automatically; the card matching the selection above is highlighted."
+msgstr ""
+
+#: includes/settings/SettingsPage.php:1532
+#: includes/settings/SettingsPage.php:1676
 msgid "Skip this step for now →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1489
-#: includes/settings/SettingsPage.php:1633
+#: includes/settings/SettingsPage.php:1534
+#: includes/settings/SettingsPage.php:1678
 msgid "← Back"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1490
+#: includes/settings/SettingsPage.php:1535
 msgid "Next · Content moderation →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1497
+#: includes/settings/SettingsPage.php:1542
 msgid "Step 2 · Content moderation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1498
+#: includes/settings/SettingsPage.php:1543
 msgid "The built-in rules (length / no-Chinese / keywords) are free and already on duty. For more strength, add a cloud moderation provider — it polices wording and ad variants. Choosing “Not now” does not affect existing protection at all."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1504
-#: includes/settings/SettingsPage.php:3452
+#: includes/settings/SettingsPage.php:1549
+#: includes/settings/SettingsPage.php:3498
 msgid "Enable cloud moderation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1505
+#: includes/settings/SettingsPage.php:1550
 msgid "When on, submissions run through “local rules → selected cloud driver” in series; local rules always stay first in the chain and cannot be turned off."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1514
+#: includes/settings/SettingsPage.php:1559
 msgid "Recommended · mainland direct connection / pay-as-you-go — the lowest barrier to entry."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1518
+#: includes/settings/SettingsPage.php:1563
 msgid "DeepSeek (LLM moderation)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1519
+#: includes/settings/SettingsPage.php:1564
 msgid "Second choice — moderation that actually “reads” the text, with stronger verdicts; submissions leave the country."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1523
+#: includes/settings/SettingsPage.php:1568
 msgid "Aliyun text moderation PLUS"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1524
+#: includes/settings/SettingsPage.php:1569
 msgid "Mainland · dual-channel submission (nickname and body sent separately) · shares an account with Aliyun Captcha."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1528
+#: includes/settings/SettingsPage.php:1573
 msgid "Tencent TMS text moderation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1529
+#: includes/settings/SettingsPage.php:1574
 msgid "Mainland · fits the Tencent Cloud ecosystem (pick it if you already have Tencent Cloud keys)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1534
+#: includes/settings/SettingsPage.php:1579
 msgid "For relays / self-hosted gateways — endpoint and model name are entered manually."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1539
+#: includes/settings/SettingsPage.php:1584
 msgid "Built-in rules only — perfectly usable; add a provider later on the “3: Content moderation” tab."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1546
+#: includes/settings/SettingsPage.php:1591
 msgid "API Key / Secret Key (Baidu AI Cloud app)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1549
+#: includes/settings/SettingsPage.php:1594
 msgid "Why it is the default recommendation = lowest barrier to entry: Baidu AI Cloud is free to enable, pay-as-you-go, and connects directly within the mainland — with both keys in hand you are ready to go. After pasting, click “Test credentials” (a real call with a benign sample): green = credentials work, yellow = required fields missing (listed per field), red = key rejected."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1561
+#: includes/settings/SettingsPage.php:1606
 msgid "API Key (DeepSeek platform)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1563
+#: includes/settings/SettingsPage.php:1608
 msgid "Note: LLM moderation sends the comment body abroad (DeepSeek platform); commenter IPs are not sent. Pay-as-you-go — past the daily quota, items go to pending review first, so the bill cannot explode."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1578
+#: includes/settings/SettingsPage.php:1623
 msgid "Already picked Aliyun Captcha in step 1? You can share the same RAM user (two product lines, one account). Dual-service submission: nickname and email+body each go through their own channel (OR, stricter wins). Grant the extra content-safety enhanced permission."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1590
+#: includes/settings/SettingsPage.php:1635
 msgid "SecretId / SecretKey (Tencent Cloud CAM)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1593
+#: includes/settings/SettingsPage.php:1638
 msgid "Mainland, per-call billing with a free tier; fits the Tencent Cloud ecosystem. When enabled, comment nicknames, emails, and bodies are sent to a third party (Tencent Cloud, in the mainland) — this notice is always shown."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1605
+#: includes/settings/SettingsPage.php:1650
 msgid "Endpoint / API Key / model name (manual entry)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1608
+#: includes/settings/SettingsPage.php:1653
 msgid "The model name must match the endpoint (“Test credentials” can check the /models list)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1609
+#: includes/settings/SettingsPage.php:1654
 msgid "The jurisdiction of the endpoint is unknown — the generic data-transfer notice is always shown; assess compliance yourself. Path prefix trap: for the official OpenAI family, fill up to …/v1 (this plugin appends /chat/completions)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1625
+#: includes/settings/SettingsPage.php:1670
 msgid "Good choice — the built-in rules stay on duty at zero cost and zero outbound calls. The overview page will not flag this one."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1634
+#: includes/settings/SettingsPage.php:1679
 msgid "Finish setup →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1641
+#: includes/settings/SettingsPage.php:1686
 msgid "On-duty checklist"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1642
+#: includes/settings/SettingsPage.php:1687
 msgid "Whatever you finished counts — below is your current protection checklist; missing items can be added later on the settings page."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1645
+#: includes/settings/SettingsPage.php:1690
 msgid "Rerun the wizard"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1647
+#: includes/settings/SettingsPage.php:1692
 msgid "Open the Copy Workshop to give the block page your own voice"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1648
+#: includes/settings/SettingsPage.php:1693
 msgid "Go to overview →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1654
+#: includes/settings/SettingsPage.php:1699
 msgid "Each “Next” step saves what you have filled in so far; "
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1654
+#: includes/settings/SettingsPage.php:1699
 msgid "Skip everything and go straight to settings →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1674
-#: includes/settings/SettingsPage.php:3417
+#: includes/settings/SettingsPage.php:1719
+#: includes/settings/SettingsPage.php:3463
 msgid "Enabled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1674
-#: includes/settings/SettingsPage.php:2263
-#: includes/settings/SettingsPage.php:3418
+#: includes/settings/SettingsPage.php:1719
+#: includes/settings/SettingsPage.php:2309
+#: includes/settings/SettingsPage.php:3464
 msgid "Disabled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1678
+#: includes/settings/SettingsPage.php:1723
 msgid "A WordPress native moderation switch is on"
 msgstr ""
 
 #. translators: 1: 手动批准状态 2: 先前已批准状态
-#: includes/settings/SettingsPage.php:1681
+#: includes/settings/SettingsPage.php:1726
 #, php-format
 msgid "— Comments still require manual approval after passing the captcha (this is not a malfunction). “Comment must be manually approved”: %1$s; “Comment author must have a previously approved comment”: %2$s."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1685
+#: includes/settings/SettingsPage.php:1730
 msgid "Adjust in Discussion Settings"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1699
+#: includes/settings/SettingsPage.php:1744
 msgid "Not configured — the comment captcha stage is skipped"
 msgstr ""
 
 #. translators: %s: 提交触发形态（经典按钮 / 无按钮模式）
-#: includes/settings/SettingsPage.php:1716
+#: includes/settings/SettingsPage.php:1761
 #, php-format
 msgid "Aliyun Captcha 2.0 · all four keys set (submit-trigger flow=%s)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1717
+#: includes/settings/SettingsPage.php:1762
 msgid "Classic button"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1719
+#: includes/settings/SettingsPage.php:1764
 msgid "Aliyun Captcha 2.0 · four keys incomplete"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1721
+#: includes/settings/SettingsPage.php:1766
 msgid "Tencent Tianyu 2.0 · credentials set (existing setups still work)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1721
+#: includes/settings/SettingsPage.php:1766
 msgid "Tencent Tianyu 2.0 · credentials incomplete"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1733
+#: includes/settings/SettingsPage.php:1778
 msgid "Four built-in rule defenses · on duty (length / no-Chinese / keywords / regex — free, zero outbound calls, always on)"
 msgstr ""
 
 #. translators: %s: 人机验证状态句
-#: includes/settings/SettingsPage.php:1734
+#: includes/settings/SettingsPage.php:1779
 #, php-format
 msgid "Human verification · %s"
 msgstr ""
 
 #. translators: %s: 人机验证状态句
-#: includes/settings/SettingsPage.php:1735
+#: includes/settings/SettingsPage.php:1780
 msgid "Cloud moderation · enabled (provider credentials count as good when “Test credentials” shows green)"
 msgstr ""
 
 #. translators: %s: 人机验证状态句
-#: includes/settings/SettingsPage.php:1735
+#: includes/settings/SettingsPage.php:1780
 msgid "Cloud moderation · disabled (the built-in rules keep watch as usual)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1736
+#: includes/settings/SettingsPage.php:1781
 msgid "IP reputation (AbuseIPDB) · enabled (credentials count as good when “Test credentials” shows green)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1736
+#: includes/settings/SettingsPage.php:1781
 msgid "IP reputation (AbuseIPDB) · optional enhancement — skipping it does not affect the protections above"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1739
+#: includes/settings/SettingsPage.php:1784
 msgid "Last step: click “Test credentials” — green means on duty."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1759
+#: includes/settings/SettingsPage.php:1804
 msgid "The “Test credentials” buttons for cloud moderation and IP reputation live on their cards / on the “3: Content moderation” and “4: IP reputation” tabs; each button's status badge and “last test” time are persisted (N1)."
 msgstr ""
 
 #. translators: 1: processed 2: total
-#: includes/settings/SettingsPage.php:1789
+#: includes/settings/SettingsPage.php:1834
 #, php-format
 msgid "Existing comment audit in progress (%1$d of %2$d processed)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1793
-#: includes/settings/SettingsPage.php:6780
+#: includes/settings/SettingsPage.php:1838
+#: includes/settings/SettingsPage.php:6828
 msgid "Pause"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1794
-#: includes/settings/SettingsPage.php:1808
+#: includes/settings/SettingsPage.php:1839
+#: includes/settings/SettingsPage.php:1853
 msgid "View report →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1807
+#: includes/settings/SettingsPage.php:1852
 msgid "Existing URL check in progress… advances automatically within the daily quota (violations go to Spam, unclear ones to pending — both recoverable by hand)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1824
+#: includes/settings/SettingsPage.php:1869
 msgid "Active (enabled today at "
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1824
+#: includes/settings/SettingsPage.php:1869
 msgid ", about "
 msgstr ""
 
 #. translators: %d: 剩余小时数
-#: includes/settings/SettingsPage.php:1824
+#: includes/settings/SettingsPage.php:1869
 msgid " hour)"
 msgid_plural " hours)"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: 剩余小时数
-#: includes/settings/SettingsPage.php:1825
+#: includes/settings/SettingsPage.php:1870
 msgid "Site-wide human verification is temporarily bypassed for pipeline drills only; it ends automatically after 24 hours (bypassed events are tagged drill and excluded from statistics)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1826
+#: includes/settings/SettingsPage.php:1871
 msgid "Turn it off now"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1837
+#: includes/settings/SettingsPage.php:1882
 msgid "Statistics counting is disabled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1838
+#: includes/settings/SettingsPage.php:1883
 msgid "The report below keeps no counts; event records still land as usual (Tab 6 is authoritative)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1839
+#: includes/settings/SettingsPage.php:1884
 msgid "Turn on"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1849
-#: includes/settings/SettingsPage.php:2340
+#: includes/settings/SettingsPage.php:1894
+#: includes/settings/SettingsPage.php:2386
 msgid "No captcha provider selected yet"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1850
+#: includes/settings/SettingsPage.php:1895
 msgid "Bots are not stopped by the challenge; comments are still screened by the built-in rules."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1851
-#: includes/settings/SettingsPage.php:1864
-#: includes/settings/SettingsPage.php:3327
-#: includes/settings/SettingsPage.php:6594
+#: includes/settings/SettingsPage.php:1896
+#: includes/settings/SettingsPage.php:1909
+#: includes/settings/SettingsPage.php:3373
+#: includes/settings/SettingsPage.php:6642
 msgid "Configure"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1862
+#: includes/settings/SettingsPage.php:1907
 msgid "Content moderation is enabled, but no moderation provider is configured yet"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1863
+#: includes/settings/SettingsPage.php:1908
 msgid "Comments currently rely on the built-in rules alone."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1875
+#: includes/settings/SettingsPage.php:1920
 msgid "Suspicious: a sudden spike in IP report requests today"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1876
+#: includes/settings/SettingsPage.php:1921
 msgid "A script forging captchas may be triggering reports in bulk, or someone may be abusing your site as a false-report weapon. Blocking still works, and reporting has cooldown and quota guardrails; if it persists, temporarily disable the trigger under IP reputation → Reporting."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1877
+#: includes/settings/SettingsPage.php:1922
 msgid "Open reporting settings"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1949
+#: includes/settings/SettingsPage.php:1995
 msgid "M j"
 msgstr ""
 
 #. translators: %s: 日期（n月j日）.
-#: includes/settings/SettingsPage.php:1955
+#: includes/settings/SettingsPage.php:2001
 #, php-format
 msgid "Today's report (%s)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1958
+#: includes/settings/SettingsPage.php:2004
 msgid "Statistics: enabled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1958
+#: includes/settings/SettingsPage.php:2004
 msgid "Statistics: disabled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1961
-#: includes/settings/SettingsPage.php:1969
+#: includes/settings/SettingsPage.php:2007
+#: includes/settings/SettingsPage.php:2015
 msgid "Comment gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1961
-#: includes/settings/SettingsPage.php:1980
+#: includes/settings/SettingsPage.php:2007
+#: includes/settings/SettingsPage.php:2026
 msgid "Login gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1961
-#: includes/settings/SettingsPage.php:1995
+#: includes/settings/SettingsPage.php:2007
+#: includes/settings/SettingsPage.php:2041
 msgid "Registration & recovery gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1964
+#: includes/settings/SettingsPage.php:2010
 msgid "Statistics are disabled, so nothing was counted today (events are still recorded)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1975
+#: includes/settings/SettingsPage.php:2021
 msgid "No suspicious comments"
 msgstr ""
 
 #. translators: %d: 密码输错次数.
-#: includes/settings/SettingsPage.php:1987
+#: includes/settings/SettingsPage.php:2033
 #, php-format
 msgid "%d wrong passwords, stopped by a captcha"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1990
+#: includes/settings/SettingsPage.php:2036
 msgid "Nobody tried to pick the locks"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:1997
+#: includes/settings/SettingsPage.php:2043
 msgid "No abnormal registrations or recoveries"
 msgstr ""
 
 #. translators: 1: 待你过目. 2: 条数.
-#: includes/settings/SettingsPage.php:2005
+#: includes/settings/SettingsPage.php:2051
 #, php-format
 msgid "Comments by %1$s: %2$d →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2009
+#: includes/settings/SettingsPage.php:2055
 msgid "Review them"
 msgstr ""
 
 #. translators: %d: IP 信誉强制验证码次数.
-#: includes/settings/SettingsPage.php:2014
+#: includes/settings/SettingsPage.php:2060
 #, php-format
 msgid "Plus %d captcha challenges enforced by IP reputation (counted separately — not included in the figures above)"
 msgstr ""
 
 #. translators: 1: 垃圾箱存档. 2: 条数.
-#: includes/settings/SettingsPage.php:2022
+#: includes/settings/SettingsPage.php:2068
 #, php-format
 msgid "%1$s: %2$d →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2026
+#: includes/settings/SettingsPage.php:2072
 msgid "Take a look (time for a cleanup)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2026
+#: includes/settings/SettingsPage.php:2072
 msgid "Take a look"
 msgstr ""
 
 #. translators: %d: 服务商数.
-#: includes/settings/SettingsPage.php:2074
+#: includes/settings/SettingsPage.php:2120
 #, php-format
 msgid "Provider roster (%d)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2077
+#: includes/settings/SettingsPage.php:2123
 msgid "Even the error-free get called each day, so you can tell at a glance"
 msgstr ""
 
 #. translators: %s: 未配置服务商人话名清单.
-#: includes/settings/SettingsPage.php:2085
+#: includes/settings/SettingsPage.php:2131
 #, php-format
 msgid "Unconfigured providers: %s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2088
+#: includes/settings/SettingsPage.php:2134
 msgid "Configure →"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2216
+#: includes/settings/SettingsPage.php:2262
 msgid "Recent incidents"
 msgstr ""
 
 #. translators: %d: 条数.
-#: includes/settings/SettingsPage.php:2219
+#: includes/settings/SettingsPage.php:2265
 #, php-format
 msgid "(last %d)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2223
+#: includes/settings/SettingsPage.php:2269
 msgid "Full records → Statistics"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2225
+#: includes/settings/SettingsPage.php:2271
 msgid "All quiet for the last 7 days."
 msgstr ""
 
 #. translators: 1: 统计计数态. 2: 演练模式态. 3: 当前事件行数. 4: 容量上限.
-#: includes/settings/SettingsPage.php:2260
+#: includes/settings/SettingsPage.php:2306
 #, php-format
 msgid "Statistics counting %1$s · %2$s %3$s · event records %4$d / %5$d"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2261
+#: includes/settings/SettingsPage.php:2307
 msgid "On"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2261
+#: includes/settings/SettingsPage.php:2307
 msgid "Off"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2263
+#: includes/settings/SettingsPage.php:2309
 msgctxt "drill-active"
 msgid "Active"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2341
+#: includes/settings/SettingsPage.php:2387
 msgid "Bots are not stopped by the challenge; comments are still screened by the built-in rules — pick a provider under “Provider” below."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2358
+#: includes/settings/SettingsPage.php:2404
 msgid "Gate switches"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2364
+#: includes/settings/SettingsPage.php:2410
 msgid "Comment gate · Enable comment protection"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2365
+#: includes/settings/SettingsPage.php:2411
 msgid "= master switch for the four local rule gates plus the captcha and IP reputation stages; to disable only the captcha, set the provider to “Not configured”. When off, the comment form has zero DOM changes and submissions are not verified."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2376
+#: includes/settings/SettingsPage.php:2422
 msgid "Comment protection · trusted-visitor waiver (pre-check without a captcha)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2379
+#: includes/settings/SettingsPage.php:2425
 msgid "Trusted-visitor waiver"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2385
+#: includes/settings/SettingsPage.php:2431
 msgid "When “Complete human verification” is clicked, a pre-check runs first (four local gates + IP reputation + track record); passing everything skips the real captcha"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2387
+#: includes/settings/SettingsPage.php:2433
 msgid "The pre-check is a UX rehearsal — at submission time the four gates / cloud moderation still run the full chain; only the captcha challenge itself is waived."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2391
+#: includes/settings/SettingsPage.php:2437
 msgid "Approved-comments threshold N"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2394
+#: includes/settings/SettingsPage.php:2440
 msgid "Visitors (same nickname + email) or logged-in users with N approved comments are waived; the comparable WP core precedent is 1, and because a captcha waiver is stronger, the default is tightened to 3."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2398
+#: includes/settings/SettingsPage.php:2444
 msgid "Trust voucher validity (minutes)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2401
+#: includes/settings/SettingsPage.php:2447
 msgid "Passing the pre-check issues a trust voucher (bound to IP + form + identity, not content — editing and resubmitting does not invalidate it); same width as the short verification cache window."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2405
+#: includes/settings/SettingsPage.php:2451
 msgid "Trust cache (minutes)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2408
+#: includes/settings/SettingsPage.php:2454
 msgid "Boolean cache TTL for track-record checks (0 = query the database on every click); approving a new comment invalidates the cache immediately."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2412
+#: includes/settings/SettingsPage.php:2458
 msgid "Pre-check rate limit (per hour per IP)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2415
+#: includes/settings/SettingsPage.php:2461
 msgid "Blocks scripts hammering the keyword-list / email-trust probes; real humans click the button single-digit times per hour, and 30 leaves room for edits and retries. Over the limit it always degrades to showing a captcha."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2424
-#: includes/settings/SettingsPage.php:2886
+#: includes/settings/SettingsPage.php:2470
+#: includes/settings/SettingsPage.php:2932
 msgid "Three IP reputation states:"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2426
-#: includes/settings/SettingsPage.php:2888
+#: includes/settings/SettingsPage.php:2472
+#: includes/settings/SettingsPage.php:2934
 msgid "When IP reputation is disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail and a captcha is shown outright) — configuring IP reputation is recommended for stronger protection."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2427
-#: includes/settings/SettingsPage.php:2889
+#: includes/settings/SettingsPage.php:2473
+#: includes/settings/SettingsPage.php:2935
 msgid "→ Configure IP reputation (Tab 4)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2431
+#: includes/settings/SettingsPage.php:2477
 msgid "Full-page cache note: keep the cache cycle under 12 hours — a stale nonce silently degrades the waiver into always-show-a-captcha (fail-safe, submissions still work)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2437
+#: includes/settings/SettingsPage.php:2483
 msgid "Login gate · Enable login verification"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2438
+#: includes/settings/SettingsPage.php:2484
 msgid "Mode levels are in the dropdown on the right; thresholds / windows and other details are in the separate “Login protection” card below."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2440
+#: includes/settings/SettingsPage.php:2486
 msgid "When login verification appears"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2441
+#: includes/settings/SettingsPage.php:2487
 msgid "Never"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2441
+#: includes/settings/SettingsPage.php:2487
 msgid "Adaptive (default)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2441
+#: includes/settings/SettingsPage.php:2487
 msgid "Always"
 msgstr ""
 
 #. translators: 1: 同用户名失败阈值 2: 同 IP 聚合阈值（均随当前配置值渲染）
-#: includes/settings/SettingsPage.php:2449
+#: includes/settings/SettingsPage.php:2495
 #, php-format
 msgid "Adaptive: the login captcha appears only after %1$d cumulative wrong passwords for one account across IPs (only accounts that actually exist are counted), %2$d aggregated for one IP, or a site-level account alert trips — zero bother otherwise; Always: verify before every login. Failure counting also applies to XML-RPC; with no captcha provider configured, going over the threshold still does not block."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2460
+#: includes/settings/SettingsPage.php:2506
 msgid "Registration gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2460
+#: includes/settings/SettingsPage.php:2506
 msgid "The registration form (wp-login.php?action=register) always shows a captcha; ticketless registrations are rejected and no user is created."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2461
+#: includes/settings/SettingsPage.php:2507
 msgid "Password recovery gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2461
+#: includes/settings/SettingsPage.php:2507
 msgid "The lost-password form always shows a captcha; ticketless submissions are rejected and no reset email is sent (including submissions for nonexistent users — anti-enumeration)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2467
+#: includes/settings/SettingsPage.php:2513
 msgid "Enable (always — the captcha shows as soon as the page loads)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2468
+#: includes/settings/SettingsPage.php:2514
 msgid "With no captcha provider configured, nothing renders and nothing blocks; if “Settings → General” disallows registration, the signup form is unreachable (an idle switch is harmless); multisite signups go through wp-signup.php, which this gate does not cover."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2475
+#: includes/settings/SettingsPage.php:2521
 msgid "Provider selection"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2476
+#: includes/settings/SettingsPage.php:2522
 msgid "Captcha provider"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2492
+#: includes/settings/SettingsPage.php:2538
 msgid "Selecting a vendor shows its settings below; switching vendors does not clear filled fields (each saves independently). “Not configured” = the captcha stage is skipped entirely."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2508
+#: includes/settings/SettingsPage.php:2554
 msgid "No-button mode (default) — no separate verify button; visitors click “Post Comment / Log In” directly, human verification triggers, and the submission goes through once cleared"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2512
+#: includes/settings/SettingsPage.php:2558
 msgid "Dedicated verify button (classic) — click “Complete human verification” in the form first, then submit (the behavior up to 0.8.3)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2514
+#: includes/settings/SettingsPage.php:2560
 msgid "Since 0.8.4 the default is no-button mode (across the board — upgraded sites switch front-end flow on update); with no JS or a broken widget it falls back to the classic button, and server-side verification always has your back. All four forms — comment / login / registration / recovery — behave the same."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2529
+#: includes/settings/SettingsPage.php:2575
 msgid "Drill mode (bypass human verification)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2530
+#: includes/settings/SettingsPage.php:2576
 msgid "When enabled, site-wide human verification is bypassed — for pipeline drills only."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2531
+#: includes/settings/SettingsPage.php:2577
 msgid "Once enabled it expires automatically after 24 hours; bypassed events are tagged drill (excluded from statistics) and never write the short verification cache; the content / cloud / IP stages still run the full chain."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2537
+#: includes/settings/SettingsPage.php:2583
 msgid "Enable drill mode"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2541
+#: includes/settings/SettingsPage.php:2587
 msgid "I confirm I want to bypass site-wide human verification (double confirmation)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2565
+#: includes/settings/SettingsPage.php:2611
 msgid "Tencent Tianyu Captcha 2.0 · Configuration"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2566
+#: includes/settings/SettingsPage.php:2612
 msgid "Retired · usable if configured"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2567
+#: includes/settings/SettingsPage.php:2613
 msgid "Retired as default (the factory default switched to Aliyun Captcha 2.0 — H-3 breaking): selecting this card still lets you maintain existing credentials; all four keys keep working."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2580
-#: includes/settings/SettingsPage.php:2692
-#: includes/settings/SettingsPage.php:3526
-#: includes/settings/SettingsPage.php:3639
-#: includes/settings/SettingsPage.php:3760
-#: includes/settings/SettingsPage.php:3857
-#: includes/settings/SettingsPage.php:3982
+#: includes/settings/SettingsPage.php:2626
+#: includes/settings/SettingsPage.php:2738
+#: includes/settings/SettingsPage.php:3572
+#: includes/settings/SettingsPage.php:3685
+#: includes/settings/SettingsPage.php:3806
+#: includes/settings/SettingsPage.php:3903
+#: includes/settings/SettingsPage.php:4028
 msgid "Setup guide (expand on first configuration)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2587
-#: includes/settings/SettingsPage.php:2699
+#: includes/settings/SettingsPage.php:2633
+#: includes/settings/SettingsPage.php:2745
 msgid "Captcha console"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2588
+#: includes/settings/SettingsPage.php:2634
 msgid "Ticket verification API documentation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2595
-#: includes/settings/SettingsPage.php:2599
+#: includes/settings/SettingsPage.php:2641
+#: includes/settings/SettingsPage.php:2645
 msgid "CaptchaAppId"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2600
+#: includes/settings/SettingsPage.php:2646
 msgid "Captcha console → Verification management → Keys column (public level, used by the front-end widget)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2604
-#: includes/settings/SettingsPage.php:3538
+#: includes/settings/SettingsPage.php:2650
+#: includes/settings/SettingsPage.php:3584
 msgid "SecretId（CAM）"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2607
+#: includes/settings/SettingsPage.php:2653
 msgid "Cloud API key (for TC3 signing, Access Management → API Key Management). Separate from the captcha console's AppSecretKey — two different credential systems."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2611
-#: includes/settings/SettingsPage.php:3545
+#: includes/settings/SettingsPage.php:2657
+#: includes/settings/SettingsPage.php:3591
 msgid "SecretKey（CAM）"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2614
+#: includes/settings/SettingsPage.php:2660
 msgid "The CAM key paired with the SecretId; used only for server-side TC3 signing and never exposed to the front end."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2621
+#: includes/settings/SettingsPage.php:2667
 msgid "The key on the same captcha console page as the CaptchaAppId — a required body parameter of the verification request (enforced by server-side online checks, confirmed by live testing on 2026-11-09). Server-side only."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2632
+#: includes/settings/SettingsPage.php:2678
 msgid "Bot-score threshold (min_score)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2637
+#: includes/settings/SettingsPage.php:2683
 msgid "Score-based providers only: the bot score is normalized to (0,1] and anything below the threshold is blocked as a fail (the server clamps to 0.1–1.0 so 0 is not a free pass and 1.5 is not an always-reject). Event meta records score + threshold so you can inspect the gap."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2642
+#: includes/settings/SettingsPage.php:2688
 msgid "Failover tickets (pass on bad networks)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2647
+#: includes/settings/SettingsPage.php:2693
 msgid "Pass on bad networks (default) — front-end failover tickets count as passed, limited to 5 per IP per hour, events tagged trerror"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2651
+#: includes/settings/SettingsPage.php:2697
 msgid "Block (safety first) — switch temporarily during attacks; failover tickets are never accepted"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2653
+#: includes/settings/SettingsPage.php:2699
 msgid "Official semantics: users on weak networks may receive failover tickets (trerror prefix); blocking them by default would hit real humans — rate limiting guards against abuse."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2669
+#: includes/settings/SettingsPage.php:2715
 msgid "Sends one full-parameter fake-ticket verification: green = credentials work; red = wrong CAM keys (SecretId/SecretKey); yellow = required parameters missing. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2681
+#: includes/settings/SettingsPage.php:2727
 msgid "Aliyun Captcha 2.0 · Configuration"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2700
+#: includes/settings/SettingsPage.php:2746
 msgid "VerifyIntelligentCaptcha API documentation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2707
-#: includes/settings/SettingsPage.php:3651
+#: includes/settings/SettingsPage.php:2753
+#: includes/settings/SettingsPage.php:3697
 msgid "AccessKeyId"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2710
+#: includes/settings/SettingsPage.php:2756
 msgid "RAM AccessKey (primary-account AKs forbidden — for ACS3 V3 signing, Access Management → RAM). Server-side only, never exposed to the front end."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2714
-#: includes/settings/SettingsPage.php:3658
+#: includes/settings/SettingsPage.php:2760
+#: includes/settings/SettingsPage.php:3704
 msgid "AccessKeySecret"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2717
+#: includes/settings/SettingsPage.php:2763
 msgid "The RAM key paired with the AccessKeyId (the raw HMAC signing key). Server-side only. The RAM user needs the AliyunYundunAFSFullAccess policy."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2721
-#: includes/settings/SettingsPage.php:2725
+#: includes/settings/SettingsPage.php:2767
+#: includes/settings/SettingsPage.php:2771
 msgid "SceneId"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2726
+#: includes/settings/SettingsPage.php:2772
 msgid "Captcha console → Scene management (required — the server re-sends it so the front end cannot tamper with the scene; a mismatch returns F012)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2735
+#: includes/settings/SettingsPage.php:2781
 msgid "Get it from the console overview page — used by the front-end AliyunCaptchaConfig global config (a public front-end parameter, not a server-side API credential)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2739
+#: includes/settings/SettingsPage.php:2785
 msgid "Front-end style (mode)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2745
+#: includes/settings/SettingsPage.php:2791
 msgid "Popup (default) — zero footprint: clicking “Post Comment / Log In” opens the interactive popup directly (the primary no-button flow)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2749
+#: includes/settings/SettingsPage.php:2795
 msgid "Embedded trigger bar — renders a “click to start verification” bar in the page; clicking it opens the puzzle / image-restore popup (the default up to 0.8.4)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2751
+#: includes/settings/SettingsPage.php:2797
 msgid "Slider width follows the official 320px minimum; switching mode does not affect server-side verification (ticket checking uses the same API). The recommended level already shifted (embed → popup) — upgraded sites with credentials keep the embedded style as an explicit choice; without credentials the new popup default applies. Once you pick the embedded bar again and save, it never shifts back."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2760
+#: includes/settings/SettingsPage.php:2806
 msgid "Advanced (region / failure handling)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2765
+#: includes/settings/SettingsPage.php:2811
 msgid "What to do on failure"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2772
+#: includes/settings/SettingsPage.php:2818
 msgid "Block on failure (default) — when the captcha service misbehaves, prefer not to let things through (safety first)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2773
+#: includes/settings/SettingsPage.php:2819
 msgid "Limited pass — transport failures only, plus a 5-per-IP-per-hour pass limit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2775
+#: includes/settings/SettingsPage.php:2821
 msgid "Shared by both providers (top-level captcha key); past the rate limit it tightens back to “block on failure”."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2779
+#: includes/settings/SettingsPage.php:2825
 msgid "Region"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2785
+#: includes/settings/SettingsPage.php:2831
 msgid "Mainland China (cn · default) — endpoint captcha.cn-shanghai.aliyuncs.com"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2789
+#: includes/settings/SettingsPage.php:2835
 msgid "International (sgp) — endpoint captcha.ap-southeast-1.aliyuncs.com (not verified on a live site)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2791
+#: includes/settings/SettingsPage.php:2837
 msgid "region must match the server side — the front-end SDK and the server endpoint are linked, and a mismatch errors out; after switching, run “Test credentials” once. The sgp endpoint is a static inference (not verified on a live site; the level will be disabled if live re-verification fails)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2804
+#: includes/settings/SettingsPage.php:2850
 msgid "Daily verification quota"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2804
-#: includes/settings/SettingsPage.php:7212
-#: includes/settings/SettingsPage.php:7216
-#: includes/settings/SettingsPage.php:7220
-#: includes/settings/SettingsPage.php:7261
-#: includes/settings/SettingsPage.php:7279
-#: includes/settings/SettingsPage.php:7296
-#: includes/settings/SettingsPage.php:7301
+#: includes/settings/SettingsPage.php:2850
+#: includes/settings/SettingsPage.php:7260
+#: includes/settings/SettingsPage.php:7264
+#: includes/settings/SettingsPage.php:7268
+#: includes/settings/SettingsPage.php:7309
+#: includes/settings/SettingsPage.php:7327
+#: includes/settings/SettingsPage.php:7344
+#: includes/settings/SettingsPage.php:7349
 msgid "Planned · not yet built"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2805
+#: includes/settings/SettingsPage.php:2851
 msgid "Planned behavior: when the quota runs out it stops for the day and self-heals the next. The captcha service currently sets no daily cap (no settings on this row yet) — it becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2822
+#: includes/settings/SettingsPage.php:2868
 msgid "Makes one real call with fake parameters (VerifyIntelligentCaptcha): green = credentials work; red = wrong AccessKey / signature / permissions (including RAM-not-authorized hints); yellow = required parameters missing. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2831
+#: includes/settings/SettingsPage.php:2877
 msgid "Login protection"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2832
+#: includes/settings/SettingsPage.php:2878
 msgid "Captcha over threshold — no account locks, no collateral damage to real users: crossing the threshold within the window only adds a captcha challenge, never locking accounts or IPs (to avoid locking out office egress IPs / home NAT users; Wordfence-style hard lockouts are deliberately not done)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2835
+#: includes/settings/SettingsPage.php:2881
 msgid "Per-username failure threshold"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2839
+#: includes/settings/SettingsPage.php:2885
 msgid "N cumulative wrong passwords for one account across IPs triggers a captcha — distributed brute force still trips it; only accounts that actually exist are counted."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2843
+#: includes/settings/SettingsPage.php:2889
 msgid "Counting window (minutes)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2846
+#: includes/settings/SettingsPage.php:2892
 msgid "Fixed window for failure counting: counts reset naturally once the window passes (a successful login resets immediately)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2850
+#: includes/settings/SettingsPage.php:2896
 msgid "Per-IP failure threshold"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2853
+#: includes/settings/SettingsPage.php:2899
 msgid "Aggregate threshold for username spraying from one IP: however the username changes, this many cumulative failures triggers it."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2857
+#: includes/settings/SettingsPage.php:2903
 msgid "IP reputation tie-in"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2863
+#: includes/settings/SettingsPage.php:2909
 msgid "When enabled, the three IP reputation states take part in deciding when to show the login captcha"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2865
+#: includes/settings/SettingsPage.php:2911
 msgid "Without IP reputation the trust chain skips it and login counts are unaffected; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (a captcha is shown outright)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2869
+#: includes/settings/SettingsPage.php:2915
 msgid "Disable XML-RPC logins"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2876
+#: includes/settings/SettingsPage.php:2922
 msgid "Completely disable XML-RPC logins (recommended hardening)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:2878
+#: includes/settings/SettingsPage.php:2924
 msgid "Off by default (since 0.4.5): publishers using XML-RPC tools (blog clients) should untick this and save to re-enable; upgraded sites that had it on are unaffected. When ticked, login-type XML-RPC methods (wp.getUsersBlogs, credentials carried by system.multicall, etc.) get an across-the-board 405; read-only methods such as system.listMethods are unaffected. While on, over-threshold counting also rejects XML-RPC authentication attempt by attempt (a captcha cannot be presented inside XML-RPC)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3222
+#: includes/settings/SettingsPage.php:3268
 msgid "Configured ✓ (save with it blank to keep it unchanged)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3229
+#: includes/settings/SettingsPage.php:3275
 msgid "Clear this credential"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3325
+#: includes/settings/SettingsPage.php:3371
 msgid "Cloud moderation is neither configured nor enabled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3326
+#: includes/settings/SettingsPage.php:3372
 msgid "Comments currently run the local rule gates only (length / Chinese / banned words); to add cloud review, enable it on the “Cloud moderation” card below and pick a provider."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3341
-#: includes/settings/SettingsPage.php:3449
+#: includes/settings/SettingsPage.php:3387
+#: includes/settings/SettingsPage.php:3495
 msgid "Cloud moderation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3354
+#: includes/settings/SettingsPage.php:3400
 msgid "Local rules (four gates, migrated from upstream)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3357
+#: includes/settings/SettingsPage.php:3403
 msgid "Minimum length"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3360
+#: includes/settings/SettingsPage.php:3406
 msgid "characters (0 = no limit)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3364
+#: includes/settings/SettingsPage.php:3410
 msgid "Maximum length"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3367
+#: includes/settings/SettingsPage.php:3413
 msgid "characters (default 1800)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3371
+#: includes/settings/SettingsPage.php:3417
 msgid "Require Chinese"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3376
+#: includes/settings/SettingsPage.php:3422
 msgid "Block comments without Chinese"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3378
+#: includes/settings/SettingsPage.php:3424
 msgid "Blocks comments whose body contains no Chinese characters at all (the third of the upstream four gates)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3382
+#: includes/settings/SettingsPage.php:3428
 msgid "Custom banned keywords"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3384
+#: includes/settings/SettingsPage.php:3430
 msgid "One per line; /regex/flags entries match as regular expressions, e.g. /代.{0,3}开发票/i"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3385
+#: includes/settings/SettingsPage.php:3431
 msgid "Invalid regex lines are skipped automatically and logged as events (other lines are unaffected)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3389
+#: includes/settings/SettingsPage.php:3435
 msgid "Merge WordPress discussion keywords"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3394
+#: includes/settings/SettingsPage.php:3440
 msgid "Merges “Settings → Discussion → Disallowed comment keywords”"
 msgstr ""
 
 #. translators: %s: 关键词数
-#: includes/settings/SettingsPage.php:3399
+#: includes/settings/SettingsPage.php:3445
 #, php-format
 msgid "Currently %s:"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3403
+#: includes/settings/SettingsPage.php:3449
 msgid "Manage"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3423
+#: includes/settings/SettingsPage.php:3469
 msgid "Two native WP switches (read-only display)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3432
+#: includes/settings/SettingsPage.php:3478
 msgid "“Comment must be manually approved” (Settings → Discussion):"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3434
+#: includes/settings/SettingsPage.php:3480
 msgid "On: even when the plugin approves a comment, it still stays hidden until you manually approve it in WP."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3435
+#: includes/settings/SettingsPage.php:3481
 msgid "“Comment author must have a previously approved comment”:"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3437
+#: includes/settings/SettingsPage.php:3483
 msgid "On: even when the plugin approves a comment, returning authors without an approval record still need manual approval."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3438
+#: includes/settings/SettingsPage.php:3484
 msgid "This plugin shows them read-only and never changes their behavior; to adjust, go to "
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3439
+#: includes/settings/SettingsPage.php:3485
 msgid "Settings → Discussion"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3457
+#: includes/settings/SettingsPage.php:3503
 msgid "When on, submissions run through “local rules → selected cloud driver” in series (failover chain)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3459
+#: includes/settings/SettingsPage.php:3505
 msgid "Local rules always stay first in the chain and cannot be disabled; a failing driver hands over to the next automatically, and when every cloud driver fails each one's “failure fallback” level applies (default: pending review)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3463
+#: includes/settings/SettingsPage.php:3509
 msgid "Current cloud moderation driver"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3481
+#: includes/settings/SettingsPage.php:3527
 msgid "Cloud moderation driver"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3495
+#: includes/settings/SettingsPage.php:3541
 msgid "Selecting a driver shows its settings below (each vendor saves independently and switching does not clear fields); “Not configured” = the cloud moderation stage is skipped (enabled + not configured matches Tab 2 semantics). DeepSeek is implemented; Moli is a future milestone driver."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3516
+#: includes/settings/SettingsPage.php:3562
 msgid "Tencent Cloud TMS text moderation · Configuration"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3528
+#: includes/settings/SettingsPage.php:3574
 msgid "Enable “Content Security · Text Moderation” in the Tencent Cloud console and purchase/claim a package (TextModeration bills by policy)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3529
+#: includes/settings/SettingsPage.php:3575
 msgid "Get the policy ID (BizType) from the Content Security console (e.g. TencentCloudDefault or a custom policy) — preferably one bound to your package."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3530
+#: includes/settings/SettingsPage.php:3576
 msgid "Prepare a CAM key pair (Access Management → API Key Management; same system as the captcha CAM keys, so you can reuse one pair)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3531
+#: includes/settings/SettingsPage.php:3577
 msgid "Paste below → click “Test credentials” (a normal-text live call should return Pass)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3533
+#: includes/settings/SettingsPage.php:3579
 msgid "TextModeration API documentation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3541
+#: includes/settings/SettingsPage.php:3587
 msgid "Cloud API key (for TC3 signing). Server-side only, never exposed to the front end."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3548
+#: includes/settings/SettingsPage.php:3594
 msgid "The CAM key paired with the SecretId."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3556
+#: includes/settings/SettingsPage.php:3602
 msgid "The recognition policy ID from the Content Security console. Officially optional (blank uses the default policy); preferably fill in one bound to your package, otherwise you may get “not authorized for this API”."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3566
+#: includes/settings/SettingsPage.php:3612
 msgid "Advanced (block threshold / timeout / daily quota / failure handling)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3575
+#: includes/settings/SettingsPage.php:3621
 msgid "(0-100, default 80)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3576
+#: includes/settings/SettingsPage.php:3622
 msgid "Tencent must judge Block with a score ≥ this value for a direct block; below the threshold it drops to pending review (manual). Real malicious-ad samples scored 99 in testing, so the default 80 leaves a gray-zone buffer."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3580
-#: includes/settings/SettingsPage.php:3702
-#: includes/settings/SettingsPage.php:3796
+#: includes/settings/SettingsPage.php:3626
+#: includes/settings/SettingsPage.php:3748
+#: includes/settings/SettingsPage.php:3842
 msgid "Timeout"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3584
-#: includes/settings/SettingsPage.php:3706
-#: includes/settings/SettingsPage.php:3800
+#: includes/settings/SettingsPage.php:3630
+#: includes/settings/SettingsPage.php:3752
+#: includes/settings/SettingsPage.php:3846
 msgid "seconds (default 8)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3592
+#: includes/settings/SettingsPage.php:3638
 msgid "calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback”"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3601
-#: includes/settings/SettingsPage.php:3723
-#: includes/settings/SettingsPage.php:3817
+#: includes/settings/SettingsPage.php:3647
+#: includes/settings/SettingsPage.php:3769
+#: includes/settings/SettingsPage.php:3863
 msgid "Pending review (default) — on cloud failure or exhausted quota, comments go to the pending queue for you to handle later"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3605
-#: includes/settings/SettingsPage.php:3727
-#: includes/settings/SettingsPage.php:3821
+#: includes/settings/SettingsPage.php:3651
+#: includes/settings/SettingsPage.php:3773
+#: includes/settings/SettingsPage.php:3867
 msgid "Pass — on failure, neither blocked nor pended (local rules only)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3625
+#: includes/settings/SettingsPage.php:3671
 msgid "One live call with normal text: green = credentials work (and the day's pause is lifted); red = wrong keys or no package; yellow = bad parameters. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3629
+#: includes/settings/SettingsPage.php:3675
 msgid "Aliyun Content Security · Text Moderation PLUS · Configuration"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3641
+#: includes/settings/SettingsPage.php:3687
 msgid "Enable “Content Security · Text Moderation Plus” in the Aliyun console (TextModerationPlus, Green 2022-03-02)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3642
+#: includes/settings/SettingsPage.php:3688
 msgid "Prepare a RAM AccessKey pair (shareable with the Captcha 2.0 RAM user) and grant it AliyunYundunGreenWebFullAccess."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3643
+#: includes/settings/SettingsPage.php:3689
 msgid "Paste below (the dual service names default to nickname/comment_detection_pro and rarely need changes) → click “Test credentials”."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3644
+#: includes/settings/SettingsPage.php:3690
 msgid "Verdict mapping (not admin-adjustable): RiskLevel none/low → pass, medium → pending review, high → direct block; the band boundaries live in the Aliyun console's rule config. For a medium/low middle band and decimal confidence scores, enable fine-grained detection in the Content Security console rules."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3646
+#: includes/settings/SettingsPage.php:3692
 msgid "TextModerationPlus API documentation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3654
+#: includes/settings/SettingsPage.php:3700
 msgid "RAM AccessKey (for ACS3 signing). Server-side only, never exposed to the front end."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3661
+#: includes/settings/SettingsPage.php:3707
 msgid "The key paired with the AccessKeyId."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3669
+#: includes/settings/SettingsPage.php:3715
 msgid "Nickname submission channel (default nickname_detection_pro). The nickname-tuned model catches short ad strings more precisely; rarely needs changes."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3677
+#: includes/settings/SettingsPage.php:3723
 msgid "Email + body submission channel (default comment_detection_pro)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3681
+#: includes/settings/SettingsPage.php:3727
 msgid "Dual-service submission"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3686
+#: includes/settings/SettingsPage.php:3732
 msgid "One call for the nickname plus one for email/body (default; better accuracy, and the doubled cost is negligible)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3688
+#: includes/settings/SettingsPage.php:3734
 msgid "Off = compatibility fallback: one single call with “nickname\\nemail\\nbody” joined (same as the other cloud drivers)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3697
-#: includes/settings/SettingsPage.php:3791
+#: includes/settings/SettingsPage.php:3743
+#: includes/settings/SettingsPage.php:3837
 msgid "Advanced (timeout / daily quota / failure handling)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3714
+#: includes/settings/SettingsPage.php:3760
 msgid "calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback”; dual submission counts as two calls"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3747
+#: includes/settings/SettingsPage.php:3793
 msgid "One live call with a normal short text: green = credentials work (and the day's pause is lifted); red = unauthorized / in arrears / not enabled (Code=408) or wrong key / signature; yellow = bad parameters or missing required fields. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3750
+#: includes/settings/SettingsPage.php:3796
 msgid "Baidu Text Moderation · Configuration"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3762
+#: includes/settings/SettingsPage.php:3808
 msgid "Enable “Content Moderation · Text Moderation” in the Baidu AI Cloud console (current v2 endpoint, text moderation is pay-as-you-go)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3763
+#: includes/settings/SettingsPage.php:3809
 msgid "Create an app under “Application List” in the console to get the API Key and Secret Key (the AppID is just a console label and never appears in requests)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3764
+#: includes/settings/SettingsPage.php:3810
 msgid "Paste below → click “Test credentials” (a normal-text live call should return Compliant)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3765
+#: includes/settings/SettingsPage.php:3811
 msgid "Verdict mapping (not admin-adjustable): conclusionType 1 compliant → pass, 2 non-compliant → direct block, 3 suspected → pending review; the access_token is cached and reused by the plugin (30-day validity, no manual management)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3767
+#: includes/settings/SettingsPage.php:3813
 msgid "Text Moderation v2 API documentation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3772
-#: includes/settings/SettingsPage.php:3869
-#: includes/settings/SettingsPage.php:3993
-#: includes/settings/SettingsPage.php:4353
+#: includes/settings/SettingsPage.php:3818
+#: includes/settings/SettingsPage.php:3915
+#: includes/settings/SettingsPage.php:4039
+#: includes/settings/SettingsPage.php:4399
 msgid "API Key"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3775
+#: includes/settings/SettingsPage.php:3821
 msgid "Baidu AI Cloud app API Key (for client_credentials auth). Server-side only, never exposed to the front end."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3779
+#: includes/settings/SettingsPage.php:3825
 msgid "Secret Key"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3782
+#: includes/settings/SettingsPage.php:3828
 msgid "The Secret Key paired with the API Key (the access_token is valid 30 days and cached/reused by the plugin)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3808
+#: includes/settings/SettingsPage.php:3854
 msgid "calls/day (0 = unlimited) — when reached, disabled for the day and handled per “failure fallback” (billing guard, project brief §6.4)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3841
+#: includes/settings/SettingsPage.php:3887
 msgid "One live call with normal text: green = credentials work (and the day's pause is lifted); red = auth failed (wrong API Key / Secret Key or service not enabled); yellow = bad parameters or missing required fields. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3845
+#: includes/settings/SettingsPage.php:3891
 msgid "DeepSeek (AI verdict) · Configuration"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3859
+#: includes/settings/SettingsPage.php:3905
 msgid "Create an API Key on the DeepSeek platform (platform.deepseek.com) and top up (pay-as-you-go; one verdict costs roughly a few hundred tokens)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3860
+#: includes/settings/SettingsPage.php:3906
 msgid "Paste the API Key below → click “Test credentials” (a zero-cost balance probe — you also get to see the balance)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3861
+#: includes/settings/SettingsPage.php:3907
 msgid "“Low-confidence auto-upgrade” is on by default — see the switch row below (once per passage)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3862
+#: includes/settings/SettingsPage.php:3908
 msgid "Verdict mapping (not admin-adjustable): confidence ≥0.8 is taken as high confidence, <0.8 always goes to pending review; an AI pass never approves a comment by itself (it only tightens, never loosens)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3864
+#: includes/settings/SettingsPage.php:3910
 msgid "DeepSeek API documentation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3872
+#: includes/settings/SettingsPage.php:3918
 msgid "Server-side only, never exposed to the front end."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3879
+#: includes/settings/SettingsPage.php:3925
 msgid "Pre-filled with the official address; rarely needs changing."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3886
+#: includes/settings/SettingsPage.php:3932
 msgid "Standard (deepseek-flash, cheap and fast)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3887
+#: includes/settings/SettingsPage.php:3933
 msgid "Deep-think (deepseek-reasoner, stronger but slower)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3892
-#: includes/settings/SettingsPage.php:4018
+#: includes/settings/SettingsPage.php:3938
+#: includes/settings/SettingsPage.php:4064
 msgid "Low-confidence auto-upgrade"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3897
+#: includes/settings/SettingsPage.php:3943
 msgid "Comments the AI is unsure about are automatically re-judged once by the better “deep-think” model, at most two verdicts per comment"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3902
-#: includes/settings/SettingsPage.php:4028
+#: includes/settings/SettingsPage.php:3948
+#: includes/settings/SettingsPage.php:4074
 msgid "Upgrade model"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3905
+#: includes/settings/SettingsPage.php:3951
 msgid "Deep-think (deepseek-reasoner)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3906
+#: includes/settings/SettingsPage.php:3952
 msgid "Standard (deepseek-flash)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3920
-#: includes/settings/SettingsPage.php:4050
+#: includes/settings/SettingsPage.php:3966
+#: includes/settings/SettingsPage.php:4096
 msgid "Advanced (fallback / today's verdict quota)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3925
-#: includes/settings/SettingsPage.php:4055
+#: includes/settings/SettingsPage.php:3971
+#: includes/settings/SettingsPage.php:4101
 msgid "Fallback behavior"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3928
-#: includes/settings/SettingsPage.php:4058
+#: includes/settings/SettingsPage.php:3974
+#: includes/settings/SettingsPage.php:4104
 msgid "On failure, comments go to pending review (recommended)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3929
-#: includes/settings/SettingsPage.php:4059
+#: includes/settings/SettingsPage.php:3975
+#: includes/settings/SettingsPage.php:4105
 msgid "On failure, comments pass as usual (not recommended)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3931
+#: includes/settings/SettingsPage.php:3977
 msgid "8-second timeout (guardrail range); the AI verdict only tightens: even a pass never approves a comment."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3935
-#: includes/settings/SettingsPage.php:4065
+#: includes/settings/SettingsPage.php:3981
+#: includes/settings/SettingsPage.php:4111
 msgid "Today's verdict quota"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3938
-#: includes/settings/SettingsPage.php:4068
-#: includes/settings/SettingsPage.php:5506
+#: includes/settings/SettingsPage.php:3984
+#: includes/settings/SettingsPage.php:4114
+#: includes/settings/SettingsPage.php:5554
 msgid "verdicts (0 = unlimited)"
 msgstr ""
 
 #. translators: 1: verdicts issued today, 2: remaining daily quota
-#: includes/settings/SettingsPage.php:3940
-#: includes/settings/SettingsPage.php:4070
+#: includes/settings/SettingsPage.php:3986
+#: includes/settings/SettingsPage.php:4116
 #, php-format
 msgid "%1$d verdicts issued today · %2$s left in quota."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3959
+#: includes/settings/SettingsPage.php:4005
 msgid "Balance probe (zero cost): green = credentials valid and account usable (balance shown); yellow = account temporarily unusable (possibly in arrears); red = invalid key or unreachable; yellow = API Key blank. The last test status and time are recorded. Custom endpoints are probed via the model list (OpenAI-compatible, no standard balance API)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3972
+#: includes/settings/SettingsPage.php:4018
 msgid "Custom OpenAI-compatible endpoint (AI verdict) · Configuration"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3984
+#: includes/settings/SettingsPage.php:4030
 msgid "The endpoint must provide chat/completions (OpenAI-compatible) — relays / self-hosted gateways (LiteLLM-style) / any compatible vendor all work."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3985
+#: includes/settings/SettingsPage.php:4031
 msgid "Fill in the endpoint URL (mind the path prefix: the plugin appends /chat/completions to what you enter — for the official OpenAI family, stop at …/v1)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3986
+#: includes/settings/SettingsPage.php:4032
 msgid "Fill in the API Key and model name → click “Test credentials” (model-list probe, zero tokens — generic endpoints have no standard balance API, so no balance is shown)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3987
+#: includes/settings/SettingsPage.php:4033
 msgid "Reachability and compliance are on you: data goes to the jurisdiction of the endpoint you enter (private-network addresses are not supported — the transport-layer private-address refusal red line wins)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:3996
+#: includes/settings/SettingsPage.php:4042
 msgid "The API Key issued by that endpoint (relays / gateways each issue their own). Server-side only, never exposed to the front end."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4004
+#: includes/settings/SettingsPage.php:4050
 msgid "https://your-endpoint/v1"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4005
+#: includes/settings/SettingsPage.php:4051
 msgid "Enter the root URL of your OpenAI-compatible endpoint — the plugin appends /chat/completions to it. For the official OpenAI family stop at https://…/v1; for official DeepSeek use https://api.deepseek.com (without /v1)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4013
+#: includes/settings/SettingsPage.php:4059
 msgid "Enter a model name this endpoint supports"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4014
+#: includes/settings/SettingsPage.php:4060
 msgid "The model name must match the endpoint — “Test credentials” can check it against the available list (it may still work if absent; some endpoints have incomplete lists)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4023
+#: includes/settings/SettingsPage.php:4069
 msgid "Comments the AI is unsure about are automatically re-judged once by a stronger model, at most two verdicts per comment"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4036
+#: includes/settings/SettingsPage.php:4082
 msgid "Enter a stronger model this endpoint supports; blank = no upgrade"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4037
+#: includes/settings/SettingsPage.php:4083
 msgid "Shares the same key with DeepSeek: an upgrade model name used for DeepSeek lingers here — clear it if you do not want upgrades (blank = no second verdict)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4061
+#: includes/settings/SettingsPage.php:4107
 msgid "Timeout defaults to 8 seconds; the AI verdict only tightens: even a pass never approves a comment."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4089
+#: includes/settings/SettingsPage.php:4135
 msgid "Model-list probe (zero tokens): green = credentials work (if a verdict model is filled in, it is also checked against the list); yellow = model not in the list or required fields missing; red = key rejected by the endpoint; gray = no /models or a transport error. Generic endpoints have no standard balance API, so no balance is shown. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4097
+#: includes/settings/SettingsPage.php:4143
 msgid "Not configured = the cloud moderation stage is skipped (enabled + not configured matches Tab 2 semantics). Selecting a driver shows that vendor's settings below; each saves independently and switching does not clear fields."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4141
+#: includes/settings/SettingsPage.php:4187
 msgid "Proxy forwarding headers detected but the IP source is direct"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4142
+#: includes/settings/SettingsPage.php:4188
 msgid "per-IP defenses (rate limiting / login thresholds / reputation attribution) may fail entirely; choose an IP source that matches your deployment topology in the network settings (CDN sites = custom_header, self-hosted reverse proxies = xff/traverse), and verify the parsed result in the diagnostics panel below."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4176
+#: includes/settings/SettingsPage.php:4222
 msgid "Direct (default)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4177
-#: includes/settings/SettingsPage.php:4743
+#: includes/settings/SettingsPage.php:4223
+#: includes/settings/SettingsPage.php:4789
 msgid "XFF trust chain (rightmost only)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4178
+#: includes/settings/SettingsPage.php:4224
 msgid "traverse chain walk (multi-level self-hosted proxies)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4179
-#: includes/settings/SettingsPage.php:4744
+#: includes/settings/SettingsPage.php:4225
+#: includes/settings/SettingsPage.php:4790
 msgid "custom_header"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4183
+#: includes/settings/SettingsPage.php:4229
 msgid "Real IP source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4184
+#: includes/settings/SettingsPage.php:4230
 msgid "This decides “where a visitor's real IP is read from” — captcha verification, login counting, IP reputation, and reporting all follow it. Confirm the diagnostics panel below parses correctly before configuring further."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4189
+#: includes/settings/SettingsPage.php:4235
 msgid "Please check whether the current IP matches your actual egress address; if not, expand the configuration."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4198
+#: includes/settings/SettingsPage.php:4244
 msgid "Advanced (real-IP method / custom header / trusted ranges / allowlist)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4203
+#: includes/settings/SettingsPage.php:4249
 msgid "Real-IP retrieval method"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4211
+#: includes/settings/SettingsPage.php:4257
 msgid "Matching topologies: site directly exposed → direct; behind Cloudflare or another CDN → custom_header (set the header name to CF-Connecting-IP); multi-level self-hosted reverse proxy → traverse, with the proxy egress filled into trusted ranges."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4212
+#: includes/settings/SettingsPage.php:4258
 msgid "traverse = REMOTE_ADDR must hit a trusted range, then walk the XFF right-to-left skipping trusted proxies and take the first untrusted IP — not the default: on deployments that can reach the origin directly, walking backwards would trust a forged chain."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4213
+#: includes/settings/SettingsPage.php:4259
 msgid "When REMOTE_ADDR is outside the trusted ranges, forwarding headers are ignored outright (anti-forgery invariant)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4219
+#: includes/settings/SettingsPage.php:4265
 msgid "Custom header name"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4224
+#: includes/settings/SettingsPage.php:4270
 msgid "Takes effect when the real-IP method = custom header (a single-value IP header — Cloudflare's CF-Connecting-IP is the authoritative override header with the smallest forgery surface)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4228
+#: includes/settings/SettingsPage.php:4274
 msgid "Trusted ranges"
 msgstr ""
 
 #. translators: 1: 快照核对日期 2: 网段条数
-#: includes/settings/SettingsPage.php:4237
+#: includes/settings/SettingsPage.php:4283
 #, php-format
 msgid "Use the official Cloudflare ranges (%1$s verified, %2$d entries for v4 + v6)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4243
+#: includes/settings/SettingsPage.php:4289
 msgid "EdgeOne publishes no official static range list (api.edgeone.ai/ips is dynamic with 3–6 month rotation — shipping an empty preset would mean silent no-protection), so no preset is offered; sites behind EdgeOne should hand-enter the origin ranges published in the official docs below."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4244
+#: includes/settings/SettingsPage.php:4290
 msgid "Custom trusted ranges"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4247
+#: includes/settings/SettingsPage.php:4293
 msgid "One CIDR per line (or a bare IP, v4/v6) — usually the egress ranges of your reverse proxy / load balancer."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4253
+#: includes/settings/SettingsPage.php:4299
 msgid "Allowlist (reputation exemption)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4257
+#: includes/settings/SettingsPage.php:4303
 msgid "One IP or CIDR per line (v4/v6) — matches are never reputation-checked and never reported (exempt on both the verdict and reporting channels, zero outbound calls)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4258
+#: includes/settings/SettingsPage.php:4304
 msgid "Versus “trusted ranges”: trusted ranges govern the parsing trust chain (whose forwarded headers to believe), while the allowlist governs reputation exemption (who is never checked) — neither substitutes for the other."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4259
+#: includes/settings/SettingsPage.php:4305
 msgid "False-positive guard: add IPs that reputation databases misjudge, such as search-engine crawlers or office egress addresses — those visitors pass straight through without a forced captcha."
 msgstr ""
 
 #. translators: 1: 非法行数 2: 逗号连接的非法行原文
-#: includes/settings/SettingsPage.php:4266
+#: includes/settings/SettingsPage.php:4312
 #, php-format
 msgid "The allowlist has %1$d invalid lines (ignored on save, no effect): %2$s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4274
+#: includes/settings/SettingsPage.php:4320
 msgid "Validate allowlist format"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4281
+#: includes/settings/SettingsPage.php:4327
 msgid "Validate range format"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4284
+#: includes/settings/SettingsPage.php:4330
 msgid "Validation is a front-end pre-check; invalid lines are skipped by the parsing layer on save and flagged under “Custom range invalid lines” in the diagnostics panel above (calibration tool: tools/api-smoke/refresh-presets.php)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4312
+#: includes/settings/SettingsPage.php:4358
 msgid "Quota exhausted (paused for today — auto-resumes tomorrow)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4313
+#: includes/settings/SettingsPage.php:4359
 msgid "Configuration problem (key rejected — paused for today; re-saving the key and getting a green “Test credentials” clears it)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4314
+#: includes/settings/SettingsPage.php:4360
 #: includes/stats/InterceptDigest.php:542
 #: includes/stats/Labels.php:410
 msgid "Normal"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4317
+#: includes/settings/SettingsPage.php:4363
 msgid "IP reputation lookup"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4318
+#: includes/settings/SettingsPage.php:4364
 msgid "When enabled, before comment and login verdicts the visitor's IP reputation score is looked up at AbuseIPDB — malicious IPs must pass human verification before going through."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4325
+#: includes/settings/SettingsPage.php:4371
 msgid "Today's lookup quota is exhausted — human verification is temporarily enforced for all visitors today and auto-resumes tomorrow."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4326
+#: includes/settings/SettingsPage.php:4372
 msgid "Soft-cap protection: once the day's lookup count reaches the soft cap, no more outbound calls and everything is treated strictly as “fail” — the last slice of quota is reserved as a buffer so the reputation layer never goes silent on attackers."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4333
+#: includes/settings/SettingsPage.php:4379
 msgid "Enable"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4338
+#: includes/settings/SettingsPage.php:4384
 msgid "Enable IP reputation lookup (strengthens both the comment and login gates — the Tab 2 linked switch is on by default)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4340
+#: includes/settings/SettingsPage.php:4386
 msgid "When disabled the trust chain skips it, leaving waiver eligibility and login counts untouched; when enabled, any misconfiguration / timeout / error / over-threshold is judged strictly (treated as a fail — a captcha is shown)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4344
+#: includes/settings/SettingsPage.php:4390
 #: includes/stats/Labels.php:93
 msgid "Provider"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4349
+#: includes/settings/SettingsPage.php:4395
 msgid "IP reputation providers currently available (more vendors in later milestones)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4357
+#: includes/settings/SettingsPage.php:4403
 msgid "AbuseIPDB free tier: 1,000 lookups/day (agreed baseline). Register at abuseipdb.com. Server-side only; stored values are not echoed back. Defaults: soft cap 900 / daily quota 950 (a 5% buffer each)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4358
+#: includes/settings/SettingsPage.php:4404
 msgid "Get an API Key"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4363
+#: includes/settings/SettingsPage.php:4409
 msgid "Health status"
 msgstr ""
 
 #. translators: 1: 停转态/正常 2: 装配态标签（未启用/已启用（AbuseIPDB））
-#: includes/settings/SettingsPage.php:4375
+#: includes/settings/SettingsPage.php:4421
 #, php-format
 msgid "%1$s · %2$s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4391
+#: includes/settings/SettingsPage.php:4437
 msgid "Advanced (thresholds / soft cap / daily quota / cache / timeout)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4396
+#: includes/settings/SettingsPage.php:4442
 msgid "Malicious threshold"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4402
+#: includes/settings/SettingsPage.php:4448
 msgid "Scores ≥ this value count as malicious (default 85) — such visitors must pass human verification. AbuseIPDB scores aggregate multiple reporters; a single report does not blacklist an IP."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4406
+#: includes/settings/SettingsPage.php:4452
 msgid "Suspected threshold"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4412
+#: includes/settings/SettingsPage.php:4458
 msgid "Scores ≥ this value count as suspected (default 60) — the same “fail” band as the malicious threshold, forcing a captcha; the two bands differ only in how events are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4416
+#: includes/settings/SettingsPage.php:4462
 msgid "Soft cap"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4421
+#: includes/settings/SettingsPage.php:4467
 msgid "calls/day (default 900; 0 = unlimited) — once reached, no more outbound calls and everything is treated strictly as “fail” (better strict than silently waved through). The free tier's 1,000/day (agreed baseline) keeps a 5% buffer."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4430
+#: includes/settings/SettingsPage.php:4476
 msgid "calls/day (default 950) — a 5% buffer under the free tier's 1,000/day (agreed baseline); once reached, paused for the day (triggered by 429, self-heals the next day)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4434
+#: includes/settings/SettingsPage.php:4480
 msgid "Clean IP cache"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4439
+#: includes/settings/SettingsPage.php:4485
 msgid "minutes (default 1440 = 24h) — how long IPs judged “pass” stay cached, saving quota."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4443
+#: includes/settings/SettingsPage.php:4489
 msgid "Suspicious IP cache"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4448
+#: includes/settings/SettingsPage.php:4494
 msgid "minutes (default 60 = 1h) — short cache for “suspected/malicious” verdicts, so a malicious IP can be re-checked and downgraded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4452
+#: includes/settings/SettingsPage.php:4498
 msgid "Lookup timeout"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4457
+#: includes/settings/SettingsPage.php:4503
 msgid "seconds (1–5, default 1) — a timeout is treated strictly as “fail” (captcha shown); this one key is shared by login / comment pre-check / submission."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4477
+#: includes/settings/SettingsPage.php:4523
 msgid "One minimal live lookup (reserved address 127.0.0.2, nearly zero quota): green = HTTP 200 with parseable JSON (credentials work — isPublic:false from the reserved address is still green; it is the credentials being tested, not the IP); red = 401/402 key rejected; yellow = API Key blank. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4505
+#: includes/settings/SettingsPage.php:4551
 msgid "T1 · Captcha ticket verification failed"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4506
+#: includes/settings/SettingsPage.php:4552
 msgid "Someone submitted a forged or replayed captcha ticket — “report only with a ticket”: submissions without completed verification (no ticket) never trigger it. On by default."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4515
+#: includes/settings/SettingsPage.php:4561
 msgid "T2 · Cumulative cloud moderation rejections"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4516
+#: includes/settings/SettingsPage.php:4562
 msgid "The same IP judged “rejected” by cloud moderation N times within 24 hours (content-spammer pattern). Off by default."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4526
+#: includes/settings/SettingsPage.php:4572
 msgid "T3 · Login brute force (per-IP count saturation)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4527
+#: includes/settings/SettingsPage.php:4573
 msgid "Login failures from one IP reach the existing threshold (10/IP — reusing the login gate's own counter, no separate threshold). Off by default."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4536
+#: includes/settings/SettingsPage.php:4582
 msgid "T4 · Cumulative local rule blocks"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4537
+#: includes/settings/SettingsPage.php:4583
 msgid "The same IP blocked by the four local rule gates (length / no-Chinese / banned words) N times within 24 hours (both pre-check and submission count). Off by default."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4549
+#: includes/settings/SettingsPage.php:4595
 msgid "Malicious activity reporting"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4550
+#: includes/settings/SettingsPage.php:4596
 msgid "Optional capability: report confirmed malicious activity to the AbuseIPDB community reputation database, helping sites worldwide recognize these IPs. All off by default."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4556
+#: includes/settings/SettingsPage.php:4602
 msgid "When enabled, visitor IPs are submitted to the overseas service AbuseIPDB."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4557
+#: includes/settings/SettingsPage.php:4603
 msgid "Report details are publicly visible on AbuseIPDB (no comment content); assess cross-border data compliance (PIPL) yourself."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4564
+#: includes/settings/SettingsPage.php:4610
 msgid "Enablement gate: real-IP self-check passed — reporting is ready to enable."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4567
+#: includes/settings/SettingsPage.php:4613
 msgid "Reporting has been force-disabled: real-IP resolution is abnormal (NAT / reverse proxy both present)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4568
+#: includes/settings/SettingsPage.php:4614
 msgid "The current request comes from a private network / cannot be determined — reporting a shared egress IP would pollute the database; it auto-recovers once a trusted reverse proxy is configured in Section 1 and saved (this gate has no switch; better to under-report)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4574
+#: includes/settings/SettingsPage.php:4620
 msgid "Reporting master switch"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4579
+#: includes/settings/SettingsPage.php:4625
 msgid "Enable malicious activity reporting (sent only when one of the trigger surfaces in Advanced fires)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4581
+#: includes/settings/SettingsPage.php:4627
 msgid "Independent of the “IP reputation lookup” switch above — reports only, no lookups; silent send failures never affect blocking."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4591
+#: includes/settings/SettingsPage.php:4637
 msgid "Advanced (trigger surfaces T1–T4 / notes / rate-limit parameters)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4602
+#: includes/settings/SettingsPage.php:4648
 msgid "Enable this trigger surface"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4607
+#: includes/settings/SettingsPage.php:4653
 msgid "Threshold N (24h window cumulative)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4614
+#: includes/settings/SettingsPage.php:4660
 msgid "Report category"
 msgstr ""
 
 #. translators: 1: 默认类目码 2: 默认类目名
-#: includes/settings/SettingsPage.php:4621
+#: includes/settings/SettingsPage.php:4667
 #, php-format
 msgid "Use the default (%1$d %2$s)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4633
+#: includes/settings/SettingsPage.php:4679
 msgid "Custom report note"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4642
+#: includes/settings/SettingsPage.php:4688
 msgid "Report note description (shared by T1–T4)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4647
+#: includes/settings/SettingsPage.php:4693
 msgid "A blank note sends that trigger surface's default English phrase (already echoed in each input's placeholder). The [wink-wp-gatekeeper] prefix is added automatically on send (not removable), and over-length notes are truncated (255 characters)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4648
+#: includes/settings/SettingsPage.php:4694
 msgid "Do not enter sensitive site information or personal data — AbuseIPDB report details are publicly visible (visitor IPs are submitted to an overseas service; assess cross-border PIPL compliance yourself)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4651
+#: includes/settings/SettingsPage.php:4697
 msgid "Placeholders supported: {event_no} (block event number), {category} (the AbuseIPDB category code for this report), {gate} (trigger surface T1/T2/T3/T4). Usage example:"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4656
+#: includes/settings/SettingsPage.php:4702
 msgid "The official full category table for the dropdown is at "
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4658
+#: includes/settings/SettingsPage.php:4704
 msgid "(AbuseIPDB official categories 1–23; the same table is built into the dropdown)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4663
+#: includes/settings/SettingsPage.php:4709
 msgid "Rate-limit parameters (read-only)"
 msgstr ""
 
 #. translators: 1: 冷却分钟 2: 每小时次数 3: 每日上限
-#: includes/settings/SettingsPage.php:4669
+#: includes/settings/SettingsPage.php:4715
 #, php-format
 msgid "Per-IP cooldown %1$d minutes · global rate limit %2$d/hour · daily ceiling %3$d/day (a separate reporting pool that does not eat lookup quota)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4675
+#: includes/settings/SettingsPage.php:4721
 msgid "Repeated triggers inside the cooldown window are not re-reported; more than 20 triggers within 10 minutes raises a notice on the overview page (someone may be flooding with forged tickets)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4697
+#: includes/settings/SettingsPage.php:4743
 msgid "Three possible verdicts (plain words)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4699
+#: includes/settings/SettingsPage.php:4745
 msgid "Skip: IP reputation is disabled, or the lookup happens to be unavailable right now (backoff / paused / private network) — no say in the verdict, verification proceeds as usual, and “old friend” waiver eligibility is unaffected."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4700
+#: includes/settings/SettingsPage.php:4746
 msgid "Pass: good reputation — through as usual, invisible to the visitor."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4701
+#: includes/settings/SettingsPage.php:4747
 msgid "Fail: malicious / suspected IP, or misconfiguration, timeout, error, over-threshold — always strict: the visitor must pass human verification first."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4703
+#: includes/settings/SettingsPage.php:4749
 msgid "Tie-in with the trusted-visitor waiver: when IP reputation says “fail”, even an “old friend” (waiver channel) is asked for one captcha — a fresh verdict outranks the trust voucher, and passage resumes as usual afterwards."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4704
+#: includes/settings/SettingsPage.php:4750
 msgid "After the day's lookup quota is exhausted, the captcha is temporarily enforced for all visitors — it auto-resumes the next day; not a malfunction."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4729
+#: includes/settings/SettingsPage.php:4775
 msgid "Trusted"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4730
+#: includes/settings/SettingsPage.php:4776
 msgid "Public"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4731
+#: includes/settings/SettingsPage.php:4777
 msgid "Private"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4732
+#: includes/settings/SettingsPage.php:4778
 msgid "Invalid"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4735
+#: includes/settings/SettingsPage.php:4781
 msgid "Direct"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4736
+#: includes/settings/SettingsPage.php:4782
 msgid "XFF chain"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4737
+#: includes/settings/SettingsPage.php:4783
 msgid "Custom header"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4738
+#: includes/settings/SettingsPage.php:4784
 msgid "Unresolved (fallback)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4739
+#: includes/settings/SettingsPage.php:4785
 msgid "Source untrusted · forwarding headers ignored"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4742
+#: includes/settings/SettingsPage.php:4788
 msgid "direct"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4745
+#: includes/settings/SettingsPage.php:4791
 msgid "traverse chain walk"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4749
+#: includes/settings/SettingsPage.php:4795
 msgid "IP detection diagnostics panel"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4750
+#: includes/settings/SettingsPage.php:4796
 msgid "This panel shows the parsing of the current page request as it happened; the manual query below sends the entered IP to four providers (AbuseIPDB / StopForumSpam / ip.nc.gy / ip.sb) — results are shown for this request only, never stored, cached, or counted."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4752
+#: includes/settings/SettingsPage.php:4798
 msgid "Local parsing"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4755
+#: includes/settings/SettingsPage.php:4801
 msgid "REMOTE_ADDR"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4757
+#: includes/settings/SettingsPage.php:4803
 msgid "(missing)"
 msgstr ""
 
 #. translators: 1: 作用域标注 2: 受信命中说明
-#: includes/settings/SettingsPage.php:4762
+#: includes/settings/SettingsPage.php:4808
 #, php-format
 msgid "%1$s、%2$s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4764
+#: includes/settings/SettingsPage.php:4810
 msgid "In a trusted range"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4764
+#: includes/settings/SettingsPage.php:4810
 msgid "Not in a trusted range"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4775
+#: includes/settings/SettingsPage.php:4821
 msgid "(absent in this request)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4796
+#: includes/settings/SettingsPage.php:4842
 msgid "Currently in effect"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4801
+#: includes/settings/SettingsPage.php:4847
 msgid "Allowlist-exempt"
 msgstr ""
 
 #. translators: 1: 五态 ip_src 2: 获取模式
-#: includes/settings/SettingsPage.php:4807
+#: includes/settings/SettingsPage.php:4853
 #, php-format
 msgid "ip_src=%1$s · mode=%2$s"
 msgstr ""
 
 #. translators: %s: 配置的自定义头名
-#: includes/settings/SettingsPage.php:4823
+#: includes/settings/SettingsPage.php:4869
 #, php-format
 msgid "Configuration consistency: custom header “%s” is configured but absent in this request — please check your topology (same warning as Wordfence's “Configured but not valid”)."
 msgstr ""
 
 #. translators: 1: 网段名 2: 条数
-#: includes/settings/SettingsPage.php:4835
+#: includes/settings/SettingsPage.php:4881
 #, php-format
 msgid "%1$s (%2$d range)"
 msgid_plural "%1$s (%2$d ranges)"
@@ -4153,983 +4163,983 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: 快照核对日期
-#: includes/settings/SettingsPage.php:4840
+#: includes/settings/SettingsPage.php:4886
 #, php-format
 msgid "Preset snapshot verified on: %s"
 msgstr ""
 
 #. translators: %s: 受信网段列表
-#: includes/settings/SettingsPage.php:4847
+#: includes/settings/SettingsPage.php:4893
 #, php-format
 msgid "Trusted ranges: %s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4850
+#: includes/settings/SettingsPage.php:4896
 msgid "Trusted ranges: (no preset or custom ranges enabled — forwarded headers take no part in parsing)"
 msgstr ""
 
 #. translators: 1: 快照日期 2: 距今天数
-#: includes/settings/SettingsPage.php:4859
+#: includes/settings/SettingsPage.php:4905
 #, php-format
 msgid "The trusted-range snapshot is over 180 days old (last verified %1$s, %2$d days ago) — ranges may be stale; recalibrate (dev tool tools/api-smoke/refresh-presets.php pulls the latest official ranges for a manual diff-and-edit)."
 msgstr ""
 
 #. translators: %s: 非法行列表
-#: includes/settings/SettingsPage.php:4872
+#: includes/settings/SettingsPage.php:4918
 #, php-format
 msgid "Custom range invalid lines (skipped): %s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4879
+#: includes/settings/SettingsPage.php:4925
 msgid "Manual aggregate query"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4881
+#: includes/settings/SettingsPage.php:4927
 msgid "IP address to look up"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4882
+#: includes/settings/SettingsPage.php:4928
 msgid "8.8.8.8 or 2001:db8::1"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4883
+#: includes/settings/SettingsPage.php:4929
 msgid "Sources to query"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4888
+#: includes/settings/SettingsPage.php:4934
 msgid "Threat group: AbuseIPDB (score / usage / ISP / Tor) · StopForumSpam (blacklist hits / frequency) · ip.nc.gy (proxy / VPN / Tor / hosting / CDN / anonymity — six flags); geo group: ip.sb (location / ISP / ASN). 3-second timeout per source; a failing source fails only its own card while the rest still report."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4916
+#: includes/settings/SettingsPage.php:4962
 msgid "Invalid IP format."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:4934
+#: includes/settings/SettingsPage.php:4980
 msgid "No API Key configured (Tab 4, section 2)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5029
-#: includes/settings/SettingsPage.php:5043
+#: includes/settings/SettingsPage.php:5075
+#: includes/settings/SettingsPage.php:5089
 msgid "Sample rule"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5337
+#: includes/settings/SettingsPage.php:5385
 msgid "URL check (enhancement layer — with it off, comment protection is unchanged, zero behavior difference)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5341
+#: includes/settings/SettingsPage.php:5389
 msgid "Enable the URL check"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5346
+#: includes/settings/SettingsPage.php:5394
 msgid "The website a commenter fills in is first opened for a look, then the AI judges whether the site is problematic (gambling / scams / phishing, etc.)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5348
+#: includes/settings/SettingsPage.php:5396
 msgid "Only tightens: a clean URL never approves a comment by itself."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5352
+#: includes/settings/SettingsPage.php:5400
 msgid "Handling level"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5355
+#: includes/settings/SettingsPage.php:5403
 msgid "Conservative (default) — violations are not auto-spammed, only reported and flagged; unclear URLs go to pending review for your call"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5356
+#: includes/settings/SettingsPage.php:5404
 msgid "Balanced (recommended) — clear-cut violations are auto-spammed (one-click undo), the rest go to pending review"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5357
+#: includes/settings/SettingsPage.php:5405
 msgid "Aggressive — even not-so-sure cases are auto-spammed, unclear ones go to pending review; for emergencies during spam floods, switch back afterwards"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5359
+#: includes/settings/SettingsPage.php:5407
 msgid "The “clear-cut evidence” bar is system-controlled with no UI knob — it only tightens."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5370
+#: includes/settings/SettingsPage.php:5418
 msgid "Advanced (collapsed by default)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5378
+#: includes/settings/SettingsPage.php:5426
 msgid "Search before checking"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5383
+#: includes/settings/SettingsPage.php:5431
 msgid "When a page will not open, search results can still serve as clues, reducing “could not tell” cases (off by default)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5385
+#: includes/settings/SettingsPage.php:5433
 msgid "Bocha API Key"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5387
+#: includes/settings/SettingsPage.php:5435
 msgid "Search source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5389
+#: includes/settings/SettingsPage.php:5437
 msgid "Bocha web search (default — needs the Bocha key above; per-call billing, metered separately)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5390
+#: includes/settings/SettingsPage.php:5438
 msgid "DeepSeek web search (uses the LLM provider's credentials above — billed per success)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5393
+#: includes/settings/SettingsPage.php:5441
 msgid "Bocha requires an API Key from the Bocha open platform (bocha.cn; per-call billing, metered separately); DeepSeek follows the LLM provider's credentials above (no extra key, billed per success)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5410
+#: includes/settings/SettingsPage.php:5458
 msgid "LLM provider"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5413
+#: includes/settings/SettingsPage.php:5461
 msgid "Follow cloud moderation (default — when cloud moderation is DeepSeek, verdicts use the same configuration)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5414
+#: includes/settings/SettingsPage.php:5462
 msgid "Separate credentials (for the URL check)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5416
+#: includes/settings/SettingsPage.php:5464
 msgid "Follow (default): when cloud moderation is DeepSeek, both verdicts and page fetching use DeepSeek (one set of credentials); with another driver, verdicts use its configuration and page fetching does not auto-enable (unconfigured — pick one manually under “Fetch provider” below). Separate: the URL check uses its own DeepSeek credentials (independent of comment cloud moderation; only needed for a different account/quota)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5422
+#: includes/settings/SettingsPage.php:5470
 msgid "Separate-credentials API Key"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5424
+#: includes/settings/SettingsPage.php:5472
 msgid "URL check API Key"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5425
+#: includes/settings/SettingsPage.php:5473
 msgid "An API Key from the DeepSeek platform (may be a different account from Tab 3 cloud moderation)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5429
+#: includes/settings/SettingsPage.php:5477
 msgid "Separate-credentials endpoint"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5434
+#: includes/settings/SettingsPage.php:5482
 msgid "Leave blank to use the official address (rarely needs changing)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5438
+#: includes/settings/SettingsPage.php:5486
 msgid "Separate-credentials verdict model"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5446
+#: includes/settings/SettingsPage.php:5494
 msgid "Enter the model name manually (for OpenAI-compatible endpoints, one it supports)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5447
+#: includes/settings/SettingsPage.php:5495
 msgid "The model name must match the endpoint; blank = Standard (deepseek-flash fallback — DeepSeek endpoints can stay blank)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5451
+#: includes/settings/SettingsPage.php:5499
 msgid "Test separate credentials"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5466
+#: includes/settings/SettingsPage.php:5514
 msgid "Official address = balance probe (zero cost, shows the balance); other addresses = model-list probe (zero tokens). Green = credentials work; red = key rejected or unreachable. The last test status and time are recorded."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5479
+#: includes/settings/SettingsPage.php:5527
 msgid "Fetch provider"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5484
+#: includes/settings/SettingsPage.php:5532
 msgid "Follow cloud moderation (default — when cloud moderation is DeepSeek, fetching uses the same configuration; with another driver, fetching is unconfigured and direct fetching from this site does not auto-enable)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5485
+#: includes/settings/SettingsPage.php:5533
 msgid "Open directly from this site (free)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5486
+#: includes/settings/SettingsPage.php:5534
 msgid "DeepSeek page fetching (pay-per-use ¥5/1,000)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5488
+#: includes/settings/SettingsPage.php:5536
 msgid "With DeepSeek fetching, your server no longer opens commenters' URLs itself — DeepSeek fetches the content instead (a much better success rate on blocked / anti-scraping sites, e.g. certain adult or heavily protected sites), billed per success. Direct opening is free but exposes your origin IP and often “cannot tell” on anti-scraping sites — it is never auto-enabled; select it here manually."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5494
-#: includes/settings/SettingsPage.php:5496
+#: includes/settings/SettingsPage.php:5542
+#: includes/settings/SettingsPage.php:5544
 msgid "DeepSeek key for fetching"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5497
+#: includes/settings/SettingsPage.php:5545
 msgid "Blank = use the “LLM provider” key above (usually leave it empty). Fill it in only to give page fetching its own DeepSeek account."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5503
+#: includes/settings/SettingsPage.php:5551
 msgid "Daily allowance"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5505
+#: includes/settings/SettingsPage.php:5553
 msgid "Batch lane"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5505
-#: includes/settings/SettingsPage.php:5924
+#: includes/settings/SettingsPage.php:5553
+#: includes/settings/SettingsPage.php:5972
 #: includes/stats/Labels.php:65
 msgid "times"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5506
+#: includes/settings/SettingsPage.php:5554
 msgid "New-comment lane"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5507
+#: includes/settings/SettingsPage.php:5555
 msgid "When the quota runs out: the batch lane stops first, new comments stay protected, and everything auto-resumes the next day."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5511
+#: includes/settings/SettingsPage.php:5559
 msgid "robots disallow rules"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5513
+#: includes/settings/SettingsPage.php:5561
 msgid "Honor the site's robots disallow rules (off by default — honoring them means more “could not tell” cases)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5517
+#: includes/settings/SettingsPage.php:5565
 msgid "Check-record cache"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5520
+#: includes/settings/SettingsPage.php:5568
 msgid "Clear all URL check records? The next encounter with the same URL will be checked again (uses quota)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5520
+#: includes/settings/SettingsPage.php:5568
 msgid "Clear the URL check record cache"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5537
+#: includes/settings/SettingsPage.php:5585
 msgid "Page fetching is unconfigured — direct fetching from this site is not auto-enabled because it exposes the origin IP; please "
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5538
+#: includes/settings/SettingsPage.php:5586
 msgid "pick one manually under “Fetch provider” in the advanced section"
 msgstr ""
 
 #. translators: %d: consecutive failed page-fetch attempts
-#: includes/settings/SettingsPage.php:5557
+#: includes/settings/SettingsPage.php:5605
 #, php-format
 msgid "DeepSeek page fetching has failed %d times in a row — URL check verdicts may not work properly; check credentials, balance, and endpoint status."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5573
+#: includes/settings/SettingsPage.php:5621
 msgid "The URL check is enabled but the AI verdict (DeepSeek) is not configured yet — checks cannot reach a verdict."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5574
+#: includes/settings/SettingsPage.php:5622
 msgid "enter an API Key in the DeepSeek section above"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5575
+#: includes/settings/SettingsPage.php:5623
 msgid ", or "
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5576
+#: includes/settings/SettingsPage.php:5624
 msgid "set up separate credentials for the URL check under “Advanced” below"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5590
+#: includes/settings/SettingsPage.php:5638
 msgid "Website-field collection is off — new comments carry no URL to check, so this feature auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5698
+#: includes/settings/SettingsPage.php:5746
 msgid "Global: contact email"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5701
+#: includes/settings/SettingsPage.php:5749
 msgid "Fills the “contact the site owner” spot in default copy such as captcha_failed / ip_malicious (the {contact_email} placeholder)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5706
+#: includes/settings/SettingsPage.php:5754
 msgid "Block messages and page titles"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5710
+#: includes/settings/SettingsPage.php:5758
 msgid "Three tone rules: tease the behavior only / leave a way out / point to the next step."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5719
+#: includes/settings/SettingsPage.php:5767
 msgid "Advanced (block messages / page titles / placeholder reference)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5725
+#: includes/settings/SettingsPage.php:5773
 msgid "The local length gate's actual verdict values (the current “Minimum length / Maximum length” settings on Tab 3)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5727
+#: includes/settings/SettingsPage.php:5775
 msgid "The event number of this block — use it to look up details in the Tab 6 event stream."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5730
+#: includes/settings/SettingsPage.php:5778
 msgid "The human-readable name of the matched rule key (translated by the Labels map; unmapped keys display as-is; the actual keyword hit is visible to admins only in the event stream). Mapping examples:"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5732
+#: includes/settings/SettingsPage.php:5780
 msgid "remote_semantic → “Provider refused the request (check configuration or billing)” · banned_word → “Keyword blacklist hit”"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5735
+#: includes/settings/SettingsPage.php:5783
 msgid "When the block happened (site timezone)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5737
+#: includes/settings/SettingsPage.php:5785
 msgid "The “contact email” value from above (if blank, the whole sentence with this placeholder is omitted)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5739
+#: includes/settings/SettingsPage.php:5787
 msgid "Restore all copy to defaults? Unsaved changes will be lost."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5740
+#: includes/settings/SettingsPage.php:5788
 msgid "Restore default copy"
 msgstr ""
 
 #. translators: %s: 规则键
-#: includes/settings/SettingsPage.php:5751
+#: includes/settings/SettingsPage.php:5799
 #, php-format
 msgid "%s block message"
 msgstr ""
 
 #. translators: %s: 规则键
-#: includes/settings/SettingsPage.php:5755
+#: includes/settings/SettingsPage.php:5803
 #, php-format
 msgid "%s page title"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5771
+#: includes/settings/SettingsPage.php:5819
 msgid "Block page customization"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5775
+#: includes/settings/SettingsPage.php:5823
 msgid "Applies to the title and body of the branded full-page block page (shared by all scenarios). Blank = each scenario's default copy. Placeholders: {event_no} {rule} {time} {contact_email} — {rule} shows the rule key only."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5778
+#: includes/settings/SettingsPage.php:5826
 msgid "A permanent brand signature line “Wink WP Gatekeeper” at the end of the body — click “Preview” to see it in the live-render preview (landed in W3 batch B)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5784
+#: includes/settings/SettingsPage.php:5832
 msgid "Preview"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5789
+#: includes/settings/SettingsPage.php:5837
 msgid "Block page title"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5797
+#: includes/settings/SettingsPage.php:5845
 msgid "Block page body"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5807
+#: includes/settings/SettingsPage.php:5855
 msgid "Cloud label mapping (read-only preview)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5812
+#: includes/settings/SettingsPage.php:5860
 msgid "The block page's “matched rule” evidence line maps raw Label,Score from cloud drivers into human-readable form (provider name prefix + translated label + confidence). Unmapped labels display as-is."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5817
+#: includes/settings/SettingsPage.php:5865
 msgid "One shared table for all cloud drivers: each driver's reason is already normalized to Label,Score form, so one table serves Tencent TMS / Aliyun Green / Baidu alike — no per-driver tables needed."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5839
+#: includes/settings/SettingsPage.php:5887
 msgid "Length gate: comment too short"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5840
+#: includes/settings/SettingsPage.php:5888
 msgid "Length gate: comment too long"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5841
+#: includes/settings/SettingsPage.php:5889
 msgid "Chinese gate: no Chinese present"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5842
+#: includes/settings/SettingsPage.php:5890
 msgid "Keyword / regex match"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5843
+#: includes/settings/SettingsPage.php:5891
 msgid "Captcha verification failed"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5844
+#: includes/settings/SettingsPage.php:5892
 msgid "Submitted without completing verification"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5845
+#: includes/settings/SettingsPage.php:5893
 msgid "Blocked by malicious IP score"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5846
+#: includes/settings/SettingsPage.php:5894
 msgid "Cloud moderation failure, sent to pending review"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5911
+#: includes/settings/SettingsPage.php:5959
 msgid "Today at a glance"
 msgstr ""
 
 #. translators: 1: 今日拦下, 2: 转人工复核, 3: 出错
-#: includes/settings/SettingsPage.php:5917
+#: includes/settings/SettingsPage.php:5965
 #, php-format
 msgid "%1$d blocked today · %2$d to manual review · %3$d errors"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5926
+#: includes/settings/SettingsPage.php:5974
 msgid "Counting disabled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5926
+#: includes/settings/SettingsPage.php:5974
 msgid "— blocks during statistics-off periods are not counted, while the event table still records them (this page is authoritative for block details)."
 msgstr ""
 
 #. translators: 1: 留档条数, 2: 阈值
-#: includes/settings/SettingsPage.php:5936
+#: includes/settings/SettingsPage.php:5984
 #, php-format
 msgid "This plugin's block archive holds %1$s entries (threshold %2$s) — WP's native spam cleanup (30 days by default) handles it automatically, or clear it manually under the Spam category; archiving can also be disabled in settings."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5941
-#: includes/settings/SettingsPage.php:6705
+#: includes/settings/SettingsPage.php:5989
+#: includes/settings/SettingsPage.php:6753
 msgid "View the Spam category"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5967
+#: includes/settings/SettingsPage.php:6015
 #: includes/stats/Labels.php:313
 msgid "Comment protection"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5969
-#: includes/settings/SettingsPage.php:6137
+#: includes/settings/SettingsPage.php:6017
+#: includes/settings/SettingsPage.php:6185
 msgid "Today's overview"
 msgstr ""
 
 #. translators: 1: 拦下, 2: 转人工复核, 3: 出错
-#: includes/settings/SettingsPage.php:5974
+#: includes/settings/SettingsPage.php:6022
 #, php-format
 msgid "%1$d blocked · %2$d to manual review · %3$d errors"
 msgstr ""
 
 #. translators: %s: 累计行（含窗口标注）
-#: includes/settings/SettingsPage.php:5985
+#: includes/settings/SettingsPage.php:6033
 #, php-format
 msgid "“To manual review” means it sits in the pending queue awaiting you. %s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:5986
+#: includes/settings/SettingsPage.php:6034
 #: includes/stats/Labels.php:65
 msgid "comments"
 msgstr ""
 
 #. translators: %d: IP 风控强制验证码次数
-#: includes/settings/SettingsPage.php:5990
+#: includes/settings/SettingsPage.php:6038
 #, php-format
 msgid "%d IP-reputation-enforced captchas (counted separately — not included in the manual-review figures above)."
 msgstr ""
 
 #. translators: 1: URLs checked today, 2: auto-marked as spam, 3: awaiting your review
-#: includes/settings/SettingsPage.php:6001
+#: includes/settings/SettingsPage.php:6049
 #, php-format
 msgid "URL check: %1$d checked today · %2$d auto-spammed · %3$d awaiting your review (checked = the URL was opened and looked at; auto-spam is undoable)"
 msgstr ""
 
 #. translators: %d: 今日 DeepSeek 搜索成功次数
-#: includes/settings/SettingsPage.php:6019
+#: includes/settings/SettingsPage.php:6067
 #, php-format
 msgid "URL check search (DeepSeek): %1$d today (billed per success; search clues for pages that will not open)"
 msgstr ""
 
 #. translators: %d: 今日 DeepSeek 网页抓取成功次数
-#: includes/settings/SettingsPage.php:6034
+#: includes/settings/SettingsPage.php:6082
 #, php-format
 msgid "Page fetching (DeepSeek opens pages for you): %1$d today (billed per success — with “DeepSeek page fetching” selected, the third party opened and viewed the page)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6040
+#: includes/settings/SettingsPage.php:6088
 msgid "Who blocked it (in chain order)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6042
+#: includes/settings/SettingsPage.php:6090
 msgid "— length / keyword / Chinese checks, costs nothing"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6047
+#: includes/settings/SettingsPage.php:6095
 msgid "Human verification line (third party, pay-per-use)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6052
+#: includes/settings/SettingsPage.php:6100
 msgid "Cloud moderation line (third party, pay-per-use)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6058
+#: includes/settings/SettingsPage.php:6106
 msgid "IP reputation line (third party, pay-per-use)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6062
+#: includes/settings/SettingsPage.php:6110
 msgid "Passed = derived figure (today's actions − blocked − manual review − errors)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6076
+#: includes/settings/SettingsPage.php:6124
 msgid "Post-publish review line (URL check)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6078
+#: includes/settings/SettingsPage.php:6126
 msgid "URL check (review handling)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6078
+#: includes/settings/SettingsPage.php:6126
 msgid "— URLs are re-checked after the comment is published; both violations and unclear ones are held for your review"
 msgstr ""
 
 #. translators: 1: spam 2: hold
-#: includes/settings/SettingsPage.php:6082
+#: includes/settings/SettingsPage.php:6130
 #, php-format
 msgid "%1$d sent to Spam today · %2$d to pending review"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6090
+#: includes/settings/SettingsPage.php:6138
 msgid "Recently blocked comments (last 10)"
 msgstr ""
 
 #. translators: 1: total 2: spam 3: hold
-#: includes/settings/SettingsPage.php:6099
+#: includes/settings/SettingsPage.php:6147
 #, php-format
 msgid "URL check handled %1$d today (Spam %2$d · pending %3$d)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6104
+#: includes/settings/SettingsPage.php:6152
 msgid "→ View details"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6135
+#: includes/settings/SettingsPage.php:6183
 msgid "Login protection (three gates: login / registration / password recovery)"
 msgstr ""
 
 #. translators: 1: 拦下, 2: 验证放行, 3: 密码输错, 4: 窗口分钟
-#: includes/settings/SettingsPage.php:6142
+#: includes/settings/SettingsPage.php:6190
 #, php-format
 msgid "%1$d blocked today · %2$d passed via verification · %3$d wrong passwords (same account within %4$d minutes)"
 msgstr ""
 
 #. translators: 1: 累计拦下, 2: 累计密码输错
-#: includes/settings/SettingsPage.php:6150
+#: includes/settings/SettingsPage.php:6198
 #, php-format
 msgid "%1$d blocked cumulatively · %2$d wrong passwords"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6152
+#: includes/settings/SettingsPage.php:6200
 msgid "Breakdown by gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6157
+#: includes/settings/SettingsPage.php:6205
 #: includes/stats/InterceptDigest.php:651
 msgid "Blocked today"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6158
+#: includes/settings/SettingsPage.php:6206
 #: includes/stats/Labels.php:340
 msgid "Blocked cumulatively"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6159
+#: includes/settings/SettingsPage.php:6207
 msgid "Notes"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6174
+#: includes/settings/SettingsPage.php:6222
 msgid "Who blocked it (by provider)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6179
+#: includes/settings/SettingsPage.php:6227
 msgid "Recently blocked login attempts (last 10)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6199
+#: includes/settings/SettingsPage.php:6247
 msgid "Only characteristics and outcomes are shown, never accounts or IPs; outcome = stopped-by-captcha / stopped-without-captcha (passes never enter this table); why blocked = trigger attribution (too many consecutive failures for one account, etc.) or the captcha result."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6201
+#: includes/settings/SettingsPage.php:6249
 msgid "No login attempts blocked recently — that is a good state."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6211
+#: includes/settings/SettingsPage.php:6259
 #: includes/stats/Labels.php:107
 msgid "Result"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6212
+#: includes/settings/SettingsPage.php:6260
 msgid "Gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6213
+#: includes/settings/SettingsPage.php:6261
 msgid "Why blocked"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6273
+#: includes/settings/SettingsPage.php:6321
 msgid "Error history (things that went wrong with third-party providers)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6275
+#: includes/settings/SettingsPage.php:6323
 msgid "Errors today"
 msgstr ""
 
 #. translators: %d: 今日出错次数
-#: includes/settings/SettingsPage.php:6277
+#: includes/settings/SettingsPage.php:6325
 #, php-format
 msgctxt "error-count"
 msgid "%d errors"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6291
+#: includes/settings/SettingsPage.php:6339
 msgid "No errors today — every line is healthy."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6294
+#: includes/settings/SettingsPage.php:6342
 msgid "Recent errors (all gates, including provider pauses and recoveries)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6295
+#: includes/settings/SettingsPage.php:6343
 msgid "Incidents from all four gates and every provider share one timeline; a provider's same-day pause and next-day recovery are logged here too."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6297
+#: includes/settings/SettingsPage.php:6345
 msgid "No recent errors — all is well."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6304
+#: includes/settings/SettingsPage.php:6352
 msgid "Which gate"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6305
+#: includes/settings/SettingsPage.php:6353
 msgid "Which provider"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6306
+#: includes/settings/SettingsPage.php:6354
 msgid "What went wrong"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6307
+#: includes/settings/SettingsPage.php:6355
 msgid "How it was handled"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6329
+#: includes/settings/SettingsPage.php:6377
 msgid "Expand to see the provider's raw reply (for troubleshooting, redacted)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6356
+#: includes/settings/SettingsPage.php:6404
 msgid "Block record ledger (browse all records / export)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6358
+#: includes/settings/SettingsPage.php:6406
 msgid "No block records today — no export file was generated; export today's ledger once there are records."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6360
+#: includes/settings/SettingsPage.php:6408
 msgid "Every block, manual review, and error has a number (e.g. WK-20261112-0042). When a visitor reports a problem, the number pinpoints it."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6362
+#: includes/settings/SettingsPage.php:6410
 msgid "Export today's block ledger (CSV)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6364
+#: includes/settings/SettingsPage.php:6412
 msgid "The export contains only today's blocked records: time / result / gate / reason / event number — no accounts, emails, comment bodies, or IPs (privacy-minimized, same policy as the login ledger)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6379
+#: includes/settings/SettingsPage.php:6427
 msgid "Statistics settings · Reset"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6384
+#: includes/settings/SettingsPage.php:6432
 msgid "Enable statistics counting (turned off, the numbers on this page stop growing while blocking continues)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6391
+#: includes/settings/SettingsPage.php:6439
 msgid "Record providers' raw replies (for troubleshooting; stores an extra chunk of the response on errors)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6395
+#: includes/settings/SettingsPage.php:6443
 #: includes/stats/Labels.php:289
 msgid "Storage length cap (characters)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6397
+#: includes/settings/SettingsPage.php:6445
 msgid "(128–2048, default 512; body and error messages are truncated separately)"
 msgstr ""
 
 #. translators: %s: 清零范围
-#: includes/settings/SettingsPage.php:6400
+#: includes/settings/SettingsPage.php:6448
 #, php-format
 msgid "“Clear all statistics” will wipe %s — unrecoverable."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6403
+#: includes/settings/SettingsPage.php:6451
 msgid "Confirm the wipe? All statistics and block records will be cleared, unrecoverable."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6404
+#: includes/settings/SettingsPage.php:6452
 msgid "Clear all statistics"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6453
+#: includes/settings/SettingsPage.php:6501
 msgid "Failed to open the export stream."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6663
+#: includes/settings/SettingsPage.php:6711
 msgid "Nicknames/emails are masked here; see the archive link for the originals. Bot probes (fake-submit detection) leave no comment and never enter this table."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6665
+#: includes/settings/SettingsPage.php:6713
 msgid "No comments blocked recently — that is a good state."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6672
+#: includes/settings/SettingsPage.php:6720
 msgid "Which line blocked it"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6673
+#: includes/settings/SettingsPage.php:6721
 msgid "Reason"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6674
+#: includes/settings/SettingsPage.php:6722
 msgid "Nickname"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6675
+#: includes/settings/SettingsPage.php:6723
 msgid "Email"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6676
+#: includes/settings/SettingsPage.php:6724
 msgid "What was said"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6677
+#: includes/settings/SettingsPage.php:6725
 msgid "Archive"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6692
+#: includes/settings/SettingsPage.php:6740
 msgid "View archive"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6694
+#: includes/settings/SettingsPage.php:6742
 msgid "(comment deleted)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6696
+#: includes/settings/SettingsPage.php:6744
 msgid "Not archived"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6724
+#: includes/settings/SettingsPage.php:6772
 msgid "Statistics reset."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6743
+#: includes/settings/SettingsPage.php:6791
 msgid "Moli System One"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6754
+#: includes/settings/SettingsPage.php:6802
 msgid "Existing comment audit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6771
+#: includes/settings/SettingsPage.php:6819
 msgid "Not configured (no provider configured — submissions cannot be sent for review)"
 msgstr ""
 
 #. translators: 1: processed 2: total 3: driver id
-#: includes/settings/SettingsPage.php:6775
+#: includes/settings/SettingsPage.php:6823
 #, php-format
 msgid "In progress (%1$d / %2$d) · current provider: %3$s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6782
+#: includes/settings/SettingsPage.php:6830
 msgid "— today's quota is used up; it auto-resumes tomorrow."
 msgstr ""
 
 #. translators: 1: processed 2: total
-#: includes/settings/SettingsPage.php:6787
+#: includes/settings/SettingsPage.php:6835
 #, php-format
 msgid "Paused (%1$d / %2$d)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6791
+#: includes/settings/SettingsPage.php:6839
 msgid "Resume"
 msgstr ""
 
 #. translators: 1: finished time
-#: includes/settings/SettingsPage.php:6795
+#: includes/settings/SettingsPage.php:6843
 #, php-format
 msgid "Last completed on %1$s"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6798
-#: includes/settings/SettingsPage.php:6858
+#: includes/settings/SettingsPage.php:6846
+#: includes/settings/SettingsPage.php:6906
 msgid "Re-run audit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6800
+#: includes/settings/SettingsPage.php:6848
 msgid "No audit run yet"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6802
+#: includes/settings/SettingsPage.php:6850
 msgid "Start audit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6822
+#: includes/settings/SettingsPage.php:6870
 msgid "Cloud moderation is not configured yet — configure and enable a provider on Tab 3 first, then start the audit."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6834
+#: includes/settings/SettingsPage.php:6882
 msgid "Advanced notes (submission scope / handling)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6837
+#: includes/settings/SettingsPage.php:6885
 msgid "Hands all existing comments to the provider for another pass: violations go to Spam, unclear ones to pending review — both recoverable by hand; clean ones are left alone. The report appears just below this card."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6838
+#: includes/settings/SettingsPage.php:6886
 msgid "Red line: the audit submits “nickname + body” only — emails and URLs never enter the submission (email-exclusion discipline; the URL check is a separate line)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6848
+#: includes/settings/SettingsPage.php:6896
 msgid "Submissions go to the currently enabled provider and consume per-call quota — start now? Violations go to Spam, unclear ones to pending review (both recoverable by hand)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6850
-#: includes/settings/SettingsPage.php:6858
+#: includes/settings/SettingsPage.php:6898
+#: includes/settings/SettingsPage.php:6906
 msgid "Re-running the audit wipes the previous marks and starts over; processed results are voided — sure?"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6877
+#: includes/settings/SettingsPage.php:6925
 msgctxt "audit-running"
 msgid "In progress"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6878
+#: includes/settings/SettingsPage.php:6926
 msgid "Paused"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6879
+#: includes/settings/SettingsPage.php:6927
 msgid "Paused — today's quota is used up (auto-resumes tomorrow)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6880
+#: includes/settings/SettingsPage.php:6928
 msgid "Completed"
 msgstr ""
 
 #. translators: 1: 服务商 2: 发起时间 3: 状态词
-#: includes/settings/SettingsPage.php:6886
+#: includes/settings/SettingsPage.php:6934
 #, php-format
 msgid "Provider: %1$s · started: %2$s · %3$s"
 msgstr ""
 
 #. translators: %s: 完成时间
-#: includes/settings/SettingsPage.php:6894
+#: includes/settings/SettingsPage.php:6942
 #, php-format
 msgid "Completed: %s"
 msgstr ""
 
 #. translators: 1: processed 2: total
-#: includes/settings/SettingsPage.php:6900
+#: includes/settings/SettingsPage.php:6948
 #, php-format
 msgid "%1$d of %2$d comments audited"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6905
-#: includes/settings/SettingsPage.php:7141
+#: includes/settings/SettingsPage.php:6953
+#: includes/settings/SettingsPage.php:7189
 msgid "Violations go to Spam, unclear ones to pending review — both recoverable by hand."
 msgstr ""
 
 #. translators: 1: 评论已删条数 2: 出错条数
-#: includes/settings/SettingsPage.php:6909
+#: includes/settings/SettingsPage.php:6957
 #, php-format
 msgid "Also: %1$d comments deleted · %2$d errors."
 msgstr ""
 
 #. translators: 1: 原因 2: 条数 3: 去向
-#: includes/settings/SettingsPage.php:6921
+#: includes/settings/SettingsPage.php:6969
 #, php-format
 msgid "“%1$s” %2$d item → %3$s"
 msgid_plural "“%1$s” %2$d items → %3$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:6924
-#: includes/settings/SettingsPage.php:7175
+#: includes/settings/SettingsPage.php:6972
+#: includes/settings/SettingsPage.php:7223
 msgid "Spam"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6924
-#: includes/settings/SettingsPage.php:7175
+#: includes/settings/SettingsPage.php:6972
+#: includes/settings/SettingsPage.php:7223
 msgid "Pending review"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6930
-#: includes/settings/SettingsPage.php:7181
+#: includes/settings/SettingsPage.php:6978
+#: includes/settings/SettingsPage.php:7229
 msgid "No matches"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6935
+#: includes/settings/SettingsPage.php:6983
 msgid "Existing-comment audit report"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6937
+#: includes/settings/SettingsPage.php:6985
 msgid "No existing-comment audit yet — click “Start audit” above and the report will appear here."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6944
-#: includes/settings/SettingsPage.php:7110
+#: includes/settings/SettingsPage.php:6992
+#: includes/settings/SettingsPage.php:7158
 msgid "Clean (pass)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6945
-#: includes/settings/SettingsPage.php:6950
-#: includes/settings/SettingsPage.php:6955
-#: includes/settings/SettingsPage.php:7111
-#: includes/settings/SettingsPage.php:7116
-#: includes/settings/SettingsPage.php:7121
+#: includes/settings/SettingsPage.php:6993
+#: includes/settings/SettingsPage.php:6998
+#: includes/settings/SettingsPage.php:7003
+#: includes/settings/SettingsPage.php:7159
+#: includes/settings/SettingsPage.php:7164
+#: includes/settings/SettingsPage.php:7169
 #, php-format
 msgid "%s items"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6946
+#: includes/settings/SettingsPage.php:6994
 msgid "Verified clean — comment status unchanged"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6949
-#: includes/settings/SettingsPage.php:7115
+#: includes/settings/SettingsPage.php:6997
+#: includes/settings/SettingsPage.php:7163
 msgid "Pending review (could not tell, no verdict)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6951
-#: includes/settings/SettingsPage.php:7117
+#: includes/settings/SettingsPage.php:6999
+#: includes/settings/SettingsPage.php:7165
 msgid "Sitting in the pending queue for your review"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6954
-#: includes/settings/SettingsPage.php:7120
+#: includes/settings/SettingsPage.php:7002
+#: includes/settings/SettingsPage.php:7168
 msgid "Spam (verdict: violation)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:6956
-#: includes/settings/SettingsPage.php:7122
+#: includes/settings/SettingsPage.php:7004
+#: includes/settings/SettingsPage.php:7170
 msgid "Moved to Spam"
 msgstr ""
 
 #. translators: %d: 待审核条数
-#: includes/settings/SettingsPage.php:6962
-#: includes/settings/SettingsPage.php:7129
+#: includes/settings/SettingsPage.php:7010
+#: includes/settings/SettingsPage.php:7177
 #, php-format
 msgid "Handle the pending queue (%d item) →"
 msgid_plural "Handle the pending queue (%d items) →"
@@ -5137,8 +5147,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: 垃圾箱条数
-#: includes/settings/SettingsPage.php:6968
-#: includes/settings/SettingsPage.php:7136
+#: includes/settings/SettingsPage.php:7016
+#: includes/settings/SettingsPage.php:7184
 #, php-format
 msgid "View Spam (%d item) →"
 msgid_plural "View Spam (%d items) →"
@@ -5146,364 +5156,364 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: 原因类数
-#: includes/settings/SettingsPage.php:6976
-#: includes/settings/SettingsPage.php:7160
+#: includes/settings/SettingsPage.php:7024
+#: includes/settings/SettingsPage.php:7208
 #, php-format
 msgid "Reason breakdown (%d kinds)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:6999
+#: includes/settings/SettingsPage.php:7047
 msgid "Existing URL check"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7006
+#: includes/settings/SettingsPage.php:7054
 msgid "Existing URL check in progress… advances automatically within the daily quota (violations to Spam, unclear ones to pending review, both recoverable by hand); the report appears below when done."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7018
+#: includes/settings/SettingsPage.php:7066
 msgid "Advanced notes (daily advance quota / re-check policy)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7021
+#: includes/settings/SettingsPage.php:7069
 msgid "Hands every website URL in existing comments to the “URL check” for a full re-pass (open the page + AI verdict on whether the site is problematic). The everyday URL check only covers new comments — this button is for digging through history, with predictable cost."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7022
+#: includes/settings/SettingsPage.php:7070
 msgid "Pauses automatically when the daily quota runs out (continues the next day): violations to Spam, unclear ones to pending review, both recoverable by hand."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7035
+#: includes/settings/SettingsPage.php:7083
 msgid "The URL check is off — enable “URL check” on the “Cloud moderation” tab first, then come back to start the existing-URL check."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7044
+#: includes/settings/SettingsPage.php:7092
 msgid "(Once enabled, you can start the existing-URL check here.)"
 msgstr ""
 
 #. translators: %s: 待核查条数
-#: includes/settings/SettingsPage.php:7049
+#: includes/settings/SettingsPage.php:7097
 #, php-format
 msgid "%s URL queued for checking (advances automatically within the daily quota)."
 msgid_plural "%s URLs queued for checking (advances automatically within the daily quota)."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:7054
+#: includes/settings/SettingsPage.php:7102
 msgid "No existing URLs waiting — the button below re-queues every approved comment that carries a URL."
 msgstr ""
 
 #. translators: %s: 本次入队条数
-#: includes/settings/SettingsPage.php:7062
+#: includes/settings/SettingsPage.php:7110
 #, php-format
 msgid "%s URL queued · checking starts (advances automatically within the daily quota; you can leave this page)."
 msgid_plural "%s URLs queued · checking starts (advances automatically within the daily quota; you can leave this page)."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:7065
+#: includes/settings/SettingsPage.php:7113
 msgid "No newly found existing URLs to check — they may already be queued."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7072
+#: includes/settings/SettingsPage.php:7120
 msgid "Re-check everything? Historical results are ignored (site content may have changed), approved comments with URLs are re-queued, and checks proceed one by one within the daily quota (consuming quota). Violations go to Spam, unclear ones to pending review (both recoverable by hand)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7072
+#: includes/settings/SettingsPage.php:7120
 msgid "Start the existing URL check (re-check everything — historical results ignored, site content may have changed)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7084
+#: includes/settings/SettingsPage.php:7132
 msgid "Existing URL check report"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7086
+#: includes/settings/SettingsPage.php:7134
 msgid "No existing URL check has run yet — click “Start the existing URL check” above and the report will appear here."
 msgstr ""
 
 #. translators: 1: 发起时间 2: 已核查数 3: 共数 4: 队列残留数
-#: includes/settings/SettingsPage.php:7092
+#: includes/settings/SettingsPage.php:7140
 #, php-format
 msgid "Started: %1$s · in progress — %2$d of %3$d checked · %4$d left in queue (advances automatically within the daily quota)"
 msgstr ""
 
 #. translators: 1: 发起时间 2: 完成时间 3: 共数
-#: includes/settings/SettingsPage.php:7101
+#: includes/settings/SettingsPage.php:7149
 #, php-format
 msgid "Started: %1$s · completed: %2$s · %3$d checked in total (this round fully wrapped up)"
 msgstr ""
 
 #. translators: %s: 条数
-#: includes/settings/SettingsPage.php:7112
+#: includes/settings/SettingsPage.php:7160
 msgid "Site verified clean — comment status unchanged"
 msgstr ""
 
 #. translators: %d: 评论已删条数
-#: includes/settings/SettingsPage.php:7145
+#: includes/settings/SettingsPage.php:7193
 #, php-format
 msgid "Also: %d comment deleted."
 msgid_plural "Also: %d comments deleted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/settings/SettingsPage.php:7168
+#: includes/settings/SettingsPage.php:7216
 msgid "URL would not open; judged from search clues"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7191
+#: includes/settings/SettingsPage.php:7239
 msgid "Grouped by site (URL check violations)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7193
+#: includes/settings/SettingsPage.php:7241
 msgid "Website"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7193
+#: includes/settings/SettingsPage.php:7241
 msgid "Comments hit"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7193
+#: includes/settings/SettingsPage.php:7241
 msgid "Violation"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7193
+#: includes/settings/SettingsPage.php:7241
 msgid "Suggestion"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7201
+#: includes/settings/SettingsPage.php:7249
 msgid "Clear this site's URL check cache and re-check it?"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7201
+#: includes/settings/SettingsPage.php:7249
 msgid "Re-check this site"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7212
+#: includes/settings/SettingsPage.php:7260
 msgid "Import/export settings"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7213
+#: includes/settings/SettingsPage.php:7261
 msgid "JSON export (keys excluded by default) / import validation (schema version check). Implemented in M4 (F27)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7216
+#: includes/settings/SettingsPage.php:7264
 msgid "Driver self-check and fallback drills"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7217
+#: includes/settings/SettingsPage.php:7265
 msgid "Key trial calls, front-end JS reachability probes, real-IP self-check (CIDR validation + parsing preview), fallback drills. Implemented in M3/M4 (F28/F33)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7220
+#: includes/settings/SettingsPage.php:7268
 msgid "System info"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7221
+#: includes/settings/SettingsPage.php:7269
 msgid "PHP/WP version requirement check card (following upstream baby_wp_check_requirements behavior)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7261
+#: includes/settings/SettingsPage.php:7309
 msgid "RSS protection"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7262
+#: includes/settings/SettingsPage.php:7310
 msgid "Feed request controls such as RSS/Atom feed rate limiting and excerpting feeds (full text → excerpt) — all off by default, effective only when enabled. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7266
+#: includes/settings/SettingsPage.php:7314
 msgid "XML-RPC controls"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7266
+#: includes/settings/SettingsPage.php:7314
 msgid "Current controls moved over and extended from the Tab 2 login protection card"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7274
+#: includes/settings/SettingsPage.php:7322
 msgid "Fully disable XML-RPC logins"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7274
+#: includes/settings/SettingsPage.php:7322
 msgid "Recommended hardening"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7275
+#: includes/settings/SettingsPage.php:7323
 msgid "Login-type XML-RPC methods (wp.getUsersBlogs, credentials carried by system.multicall, etc.) get an across-the-board 405; publishers using blog-client tools should untick and save to re-enable. Same switch as the Tab 2 “Login protection” card (saving in either place takes effect)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7279
+#: includes/settings/SettingsPage.php:7327
 msgid "Shut down XML-RPC entirely"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7280
+#: includes/settings/SettingsPage.php:7328
 msgid "An across-the-board 405 including pingback and every authenticated method — more thorough than disabling logins only, for sites that never use XML-RPC. Placeholder: zero controls and zero behavior today."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7289
+#: includes/settings/SettingsPage.php:7337
 msgid "Pingback off"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7289
+#: includes/settings/SettingsPage.php:7337
 msgid "Anti-reflection abuse"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7289
+#: includes/settings/SettingsPage.php:7337
 msgid "Done at plugin layer"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7290
+#: includes/settings/SettingsPage.php:7338
 msgid "This plugin removes the pingback.ping and pingback.extensions.getPingbacks XML-RPC methods unconditionally — pingback needs no authentication, so the login switch above does not cover it. Always on with no switch; the anonymous pingback reflection surface is closed at the plugin layer."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7296
+#: includes/settings/SettingsPage.php:7344
 msgid "REST API controls"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7297
+#: includes/settings/SettingsPage.php:7345
 msgid "Narrowing controls such as disabling unauthenticated user enumeration (/wp/v2/users) and counting REST attempts in the login gate's failure counter — trade-off statement: narrowing, not shutting down. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7301
+#: includes/settings/SettingsPage.php:7349
 msgid "UA / HTTP header rules"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7302
+#: includes/settings/SettingsPage.php:7350
 msgid "Custom allow/block rule rows by request headers (UA etc.) — division of labor with the Tab 4 IP reputation allowlist: these rules govern “what the request looks like”, that one governs “who the IP is”. Placeholder: zero controls and zero behavior today; becomes a live card once implemented."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7306
-msgid "Coexistence with other security plugins"
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7306
-msgid "Detect and yield · no fights"
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7313
-msgid "hCaptcha detected handling comments"
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7313
-#: includes/settings/SettingsPage.php:7320
-msgid "Captcha yields"
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7314
-msgid "When the official hCaptcha plugin takes over comment captchas, this plugin's captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default."
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7320
-msgid "hCaptcha detected handling logins"
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7321
-msgid "When the official hCaptcha plugin takes over the login captcha, this plugin's login captcha yields. On by default — independent of the comment-yield switch."
-msgstr ""
-
-#: includes/settings/SettingsPage.php:7333
+#: includes/settings/SettingsPage.php:7354
 msgid "The comment “Website” field"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7334
+#: includes/settings/SettingsPage.php:7355
 msgid "Commenters may fill in their own website. Whatever the switches below say, the admin comments screen always shows this URL so you can identify visitors; stored URLs are never deleted."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7338
+#: includes/settings/SettingsPage.php:7359
 msgid "Collect the website field on new comments"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7343
+#: includes/settings/SettingsPage.php:7364
 msgid "A “Website” field appears on the comment form and new comments store the URL"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7345
+#: includes/settings/SettingsPage.php:7366
 msgid "Unticked (default): the field never appears and any submitted URL is discarded — keeping spam-submit bots from probing it. Published comments are unaffected."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7357
+#: includes/settings/SettingsPage.php:7378
 msgid "Website-field collection is off — the URL check auto-disables for new comments; existing URLs can still be handled via “Existing URL check” on the tools page."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7364
+#: includes/settings/SettingsPage.php:7385
 msgid "Keep commenter names clickable on the front end"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7369
+#: includes/settings/SettingsPage.php:7390
 msgid "Commenter names in front-end comment areas display as clickable links"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7371
+#: includes/settings/SettingsPage.php:7392
 msgid "Unticked (default): only the name itself is shown. Names are always clickable for you in the admin."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7378
+#: includes/settings/SettingsPage.php:7399
 msgid "Commenter avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7381
+#: includes/settings/SettingsPage.php:7402
 msgid "Avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7384
+#: includes/settings/SettingsPage.php:7405
 msgid "Not configured (WordPress official source)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7385
+#: includes/settings/SettingsPage.php:7406
 msgid "Cravatar (mainland mirror, officially compatible)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7386
+#: includes/settings/SettingsPage.php:7407
 msgid "WeAvatar (mainland mirror, multi-level matching)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7387
+#: includes/settings/SettingsPage.php:7408
 msgid "sep.cc (mainland mirror)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7388
-#: includes/settings/SettingsPage.php:7394
+#: includes/settings/SettingsPage.php:7409
+#: includes/settings/SettingsPage.php:7415
 msgid "Custom URL"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7390
+#: includes/settings/SettingsPage.php:7411
 msgid "The official source may load slowly or fail for mainland visitors; a mainland mirror speeds it up."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7397
+#: includes/settings/SettingsPage.php:7418
 msgid "Must start with https:// and end with /avatar/ — follow the mirror's instructions; an invalid address leaves the avatar source unchanged (official source used)."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7401
+#: includes/settings/SettingsPage.php:7422
 msgid "After switching avatar sources, cached old avatars may take a while to refresh — not a malfunction."
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7409
+#: includes/settings/SettingsPage.php:7430
 msgid "Test the current avatar source"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7433
+#: includes/settings/SettingsPage.php:7438
+msgid "Coexistence with other security plugins"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7438
+msgid "Detect and yield · no fights"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7445
+msgid "hCaptcha detected handling comments"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7445
+#: includes/settings/SettingsPage.php:7452
+msgid "Captcha yields"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7446
+msgid "When the official hCaptcha plugin takes over comment captchas, this plugin's captcha yields (yellow-banner notice; login / registration / recovery stay guarded by this plugin). On by default."
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7452
+msgid "hCaptcha detected handling logins"
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7453
+msgid "When the official hCaptcha plugin takes over the login captcha, this plugin's login captcha yields. On by default — independent of the comment-yield switch."
+msgstr ""
+
+#: includes/settings/SettingsPage.php:7482
 msgid "Detected · coexists"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7433
+#: includes/settings/SettingsPage.php:7482
 msgid "Not installed"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7469
+#: includes/settings/SettingsPage.php:7518
 msgid "Invalid custom URL: it must start with https:// and end with /avatar/."
 msgstr ""
 
 #. translators: %s: 响应耗时秒。
-#: includes/settings/SettingsPage.php:7496
+#: includes/settings/SettingsPage.php:7545
 #, php-format
 msgid "OK (%.1f s)"
 msgstr ""
 
 #. translators: %s: 响应耗时秒。
-#: includes/settings/SettingsPage.php:7501
+#: includes/settings/SettingsPage.php:7550
 #, php-format
 msgid "Works but slow (%.1f s)"
 msgstr ""
 
-#: includes/settings/SettingsPage.php:7504
+#: includes/settings/SettingsPage.php:7553
 msgid "Cannot reach this mirror (or the response is not an image)."
 msgstr ""
 
@@ -5528,7 +5538,7 @@ msgstr ""
 msgid "IP reputation"
 msgstr ""
 
-#: includes/stats/EventsTable.php:597
+#: includes/stats/EventsTable.php:643
 #: includes/stats/InterceptDigest.php:437
 msgid "(no category)"
 msgstr ""

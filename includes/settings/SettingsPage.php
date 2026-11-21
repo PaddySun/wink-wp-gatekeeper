@@ -1467,7 +1467,7 @@ final class SettingsPage {
 					?>
 
 					<h3><?php esc_html_e( 'Submit-trigger flow', 'wink-wp-gatekeeper' ); ?></h3>
-					<p class="wk-muted"><?php esc_html_e( 'How visitors get challenged — two flows, compared in the animation below (illustrative, not a live recording).', 'wink-wp-gatekeeper' ); ?></p>
+					<p class="wk-muted"><?php esc_html_e( 'How visitors get challenged — two flows, compared in the two recordings below (real captures from v0.9.1).', 'wink-wp-gatekeeper' ); ?></p>
 					<div class="radio-cards" data-wk-radio-group="submit-flow">
 						<?php $submit_flow = 'button' === ( $settings['captcha']['submit_flow'] ?? 'on_submit' ) ? 'button' : 'on_submit'; ?>
 						<label class="radio-card<?php echo 'on_submit' === $submit_flow ? ' on' : ''; ?>">
@@ -1483,31 +1483,48 @@ final class SettingsPage {
 						</label>
 					</div>
 
-					<?php /* 两形态循环动图（R8：CSS 动画+少量演示 JS 循环时序内联——纯展示零状态零提交语义；prefers-reduced-motion 降级静态帧）。 */ ?>
+					<?php /* 两形态实录演示卡（【W6-C】用户 2026-11-21 提供 v0.9.1 实录 GIF 入库
+					 * assets/img/——合成四步文字帧循环退役；引言行/说明行=「真实录屏」语义；
+					 * radio 联动=轻量 JS class 切换零状态语义，初始 .on 服务端按 $submit_flow
+					 * 渲染；img 非 CSS 动画件，减动效语境天然可看（登记不设守卫）；四步文字保留为无按钮卡下说明列表——③自动续提语义/④链路顺序为
+					 * GIF 画面不承载的独立信息。 */ ?>
 					<div class="wk-flow-demo" id="wk-flow-demo">
-						<div class="wk-flow-frame">
-							<div class="wk-flow-step on"><?php esc_html_e( '① Submit — the visitor clicks “Post Comment” (no-button mode: the submission is intercepted and the verification popup opens automatically)', 'wink-wp-gatekeeper' ); ?></div>
-							<div class="wk-flow-step"><?php esc_html_e( '② Verify — the slider / smart check completes inside the popup', 'wink-wp-gatekeeper' ); ?></div>
-							<div class="wk-flow-step"><?php esc_html_e( '③ Auto-resubmit — no second click needed; toast “Running checks”', 'wink-wp-gatekeeper' ); ?></div>
-							<div class="wk-flow-step"><?php esc_html_e( '④ Landing — the comment enters the built-in rules → cloud moderation → IP reputation chain', 'wink-wp-gatekeeper' ); ?></div>
-						</div>
-						<p class="description wk-flow-note" id="wk-flow-note"><?php esc_html_e( 'Looped demo: no-button mode ↔ classic button (classic = “Complete human verification” first, then submit — one extra step) · illustrative, not a live recording.', 'wink-wp-gatekeeper' ); ?></p>
+						<figure class="wk-flow-card<?php echo 'on_submit' === $submit_flow ? ' on' : ''; ?>" data-wk-flow-demo="on_submit">
+							<figcaption class="wk-flow-cap"><?php esc_html_e( 'No-button mode (current default)', 'wink-wp-gatekeeper' ); ?></figcaption>
+							<img class="wk-flow-gif"
+								src="<?php echo esc_url( WINK_GATEKEEPER_URL . 'assets/img/demo-trigger-nobutton.gif' ); ?>"
+								alt="<?php echo esc_attr( __( 'No-button mode (current default)', 'wink-wp-gatekeeper' ) ); ?>"
+								loading="lazy" width="968" height="888" />
+							<ul class="wk-flow-list">
+								<li><?php esc_html_e( '① Submit — the visitor clicks “Post Comment” (no-button mode: the submission is intercepted and the verification popup opens automatically)', 'wink-wp-gatekeeper' ); ?></li>
+								<li><?php esc_html_e( '② Verify — the slider / smart check completes inside the popup', 'wink-wp-gatekeeper' ); ?></li>
+								<li><?php esc_html_e( '③ Auto-resubmit — no second click needed; toast “Running checks”', 'wink-wp-gatekeeper' ); ?></li>
+								<li><?php esc_html_e( '④ Landing — the comment enters the built-in rules → cloud moderation → IP reputation chain', 'wink-wp-gatekeeper' ); ?></li>
+							</ul>
+						</figure>
+						<figure class="wk-flow-card<?php echo 'button' === $submit_flow ? ' on' : ''; ?>" data-wk-flow-demo="button">
+							<figcaption class="wk-flow-cap"><?php esc_html_e( 'Classic button mode', 'wink-wp-gatekeeper' ); ?></figcaption>
+							<img class="wk-flow-gif"
+								src="<?php echo esc_url( WINK_GATEKEEPER_URL . 'assets/img/demo-trigger-classic.gif' ); ?>"
+								alt="<?php echo esc_attr( __( 'Classic button mode', 'wink-wp-gatekeeper' ) ); ?>"
+								loading="lazy" width="980" height="738" />
+						</figure>
+						<p class="description wk-flow-note" id="wk-flow-note"><?php esc_html_e( 'Real screen recordings (captured on v0.9.1) — both loop automatically; the card matching the selection above is highlighted.', 'wink-wp-gatekeeper' ); ?></p>
 					</div>
 					<script>
+						/* 【W6-C】radio（captcha.submit_flow）↔ 实录卡联动——纯视觉 class 切换，
+						 * 零状态零提交语义（表单值归 radio 本尊；初始 .on 服务端渲染）。 */
 						( function () {
 							var demo = document.getElementById( 'wk-flow-demo' );
-							if ( ! demo ) { return; }
-							var frames = demo.querySelectorAll( '.wk-flow-step' );
-							if ( window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) {
-								for ( var i = 1; i < frames.length; i++ ) { frames[ i ].classList.remove( 'on' ); } // 降级静态首帧。
-								return;
-							}
-							var idx = 0;
-							setInterval( function () {
-								frames[ idx ].classList.remove( 'on' );
-								idx = ( idx + 1 ) % frames.length;
-								frames[ idx ].classList.add( 'on' );
-							}, 1900 );
+							var group = document.querySelector( '[data-wk-radio-group="submit-flow"]' );
+							if ( ! demo || ! group ) { return; }
+							var cards = demo.querySelectorAll( '[data-wk-flow-demo]' );
+							group.addEventListener( 'change', function ( event ) {
+								if ( ! event.target || ! event.target.checked ) { return; }
+								cards.forEach( function ( card ) {
+									card.classList.toggle( 'on', event.target.value === card.getAttribute( 'data-wk-flow-demo' ) );
+								} );
+							} );
 						} )();
 					</script>
 

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wink-wp-gatekeeper\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 02:28+0000\n"
-"PO-Revision-Date: 2026-11-21 02:28+0000\n"
+"POT-Creation-Date: 2026-11-21 10:05+0000\n"
+"PO-Revision-Date: 2026-11-21 10:05+0000\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (China)\n"
 "Language: zh_CN\n"
@@ -823,6 +823,9 @@ msgstr "涉基督"
 msgid "Classic button"
 msgstr "经典按钮"
 
+msgid "Classic button mode"
+msgstr "经典按钮模式"
+
 msgid "Clean (pass)"
 msgstr "没问题（pass）"
 
@@ -1621,8 +1624,8 @@ msgstr "主机托管"
 msgid "How it was handled"
 msgstr "当时怎么处理"
 
-msgid "How visitors get challenged — two flows, compared in the animation below (illustrative, not a live recording)."
-msgstr "访客过码的方式怎么触发——两种形态，下方动图直观对比（效果示意非实录）。"
+msgid "How visitors get challenged — two flows, compared in the two recordings below (real captures from v0.9.1)."
+msgstr "访客过码的方式怎么触发——两种形态，下方两段实录对比（v0.9.1 真实录屏）。"
 
 msgid "Human verification"
 msgstr "人机验证"
@@ -1879,9 +1882,6 @@ msgstr "查询失败"
 msgid "Lookup timeout"
 msgstr "查询超时"
 
-msgid "Looped demo: no-button mode ↔ classic button (classic = “Complete human verification” first, then submit — one extra step) · illustrative, not a live recording."
-msgstr "循环演示：无按钮模式 ↔ 经典按钮（经典=先点「完成人机验证」再提交，多第一步）· 效果示意非实录。"
-
 msgid "Low-confidence auto-upgrade"
 msgstr "低置信自动升级"
 
@@ -2121,6 +2121,9 @@ msgstr "没带票据"
 
 msgid "No-button mode"
 msgstr "无按钮模式"
+
+msgid "No-button mode (current default)"
+msgstr "无按钮模式（当前默认）"
 
 msgid "No-button mode (default) — no separate verify button; visitors click “Post Comment / Log In” directly, human verification triggers, and the submission goes through once cleared"
 msgstr "无按钮模式（默认）——不渲染独立验证按钮，访客直接点「发表评论/登录」即触发人机验证，过码后自动放行提交"
@@ -2622,6 +2625,9 @@ msgstr "重新激活"
 
 msgid "Real IP source"
 msgstr "真实 IP 来源"
+
+msgid "Real screen recordings (captured on v0.9.1) — both loop automatically; the card matching the selection above is highlighted."
+msgstr "真实录屏（v0.9.1 实录）——两段自动循环；上方选中形态的卡片会高亮。"
 
 msgid "Real-IP retrieval method"
 msgstr "真实 IP 获取方式"

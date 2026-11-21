@@ -22,6 +22,13 @@ namespace /* 全局：autoload 装配 */ {
 		define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 	}
 
+	// 【W6-C】WINK_GATEKEEPER_URL 测试语境定义（render_wizard 运行时渲染消费
+	// assets/img 实录 GIF 拼接——W3FixW3F2Test 反射渲染面；生产=插件入口
+	// plugin_dir_url(__FILE__) 带尾斜杠，测试定值同形。守卫定义=入口仍不加载）。
+	if ( ! defined( 'WINK_GATEKEEPER_URL' ) ) {
+		define( 'WINK_GATEKEEPER_URL', 'http://example.com/wp-content/plugins/wink-wp-gatekeeper/' );
+	}
+
 	require_once dirname( __DIR__ ) . '/includes/Autoloader.php';
 
 	\WinkGatekeeper\Autoloader::register( dirname( __DIR__ ) . '/includes' );

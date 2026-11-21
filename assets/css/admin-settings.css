@@ -1248,36 +1248,58 @@ details.adv .gsteps {
 	color: var(--text-2);
 }
 
-/* ---------- 向导动图骨架（proto-wizard FD_STEPS 时序演示位；R8=CSS 动画+内联时序
- * 脚本随步一面板渲染） ----------
- * 消费：批 C（向导步一「循环动图」；prefers-reduced-motion 降级见上方降级面）。 */
+/* ---------- 向导实录演示卡（【W6-C】双实录 GIF 卡；v0.9.1 实录素材，合成四步
+ * 文字帧骨架退役） ----------
+ * 消费：向导步一「提交触发形态」双卡；radio 联动=JS class 切换（.on 高亮零状态）；
+ * img 非 CSS 动画件——减动效语境天然可看（上方降级面保留无害）。 */
 .wk-flow-demo {
-	position: relative;
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 300px, 1fr ) );
+	gap: 0.8rem;
 	border: 1px solid var(--line);
 	border-radius: var(--radius-s);
 	background: var(--card-2);
+	padding: 0.8rem;
+}
+
+.wk-flow-demo .wk-flow-card {
+	margin: 0;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-s);
+	background: var(--card);
 	overflow: hidden;
+	transition: border-color 0.2s;
 }
 
-.wk-flow-demo .wk-flow-frame {
-	position: relative;
-	min-height: 120px;
+.wk-flow-demo .wk-flow-card.on {
+	border-color: var(--gold-line);
 }
 
-.wk-flow-demo .wk-flow-step {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+.wk-flow-demo .wk-flow-cap {
+	padding: 0.45rem 0.8rem;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text);
+	border-bottom: 1px dashed var(--line);
+}
+
+.wk-flow-demo .wk-flow-gif {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.wk-flow-demo .wk-flow-list {
+	margin: 0;
+	padding: 0.5rem 0.8rem 0.7rem;
+	list-style: none;
 	font-size: 13px;
 	color: var(--text-2);
-	opacity: 0;
-	transition: opacity 0.3s;
 }
 
-.wk-flow-demo .wk-flow-step.on {
-	opacity: 1;
+.wk-flow-demo .wk-flow-list li {
+	margin: 0.25rem 0;
+	line-height: 1.5;
 }
 
 /* ---------- 向导步面支持样式（【W3·批C】radio-card/骨架类族的消费配套——批 D 0.8.5

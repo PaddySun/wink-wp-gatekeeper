@@ -75,7 +75,7 @@ final class I18nInfraTest extends TestCase {
 		// （Text Domain 翻新为 wink-wp-gatekeeper 后 make-pot 纳入 Name/Description/
 		// PluginURI/Author）+ 1 头部空 msgid；msgctxt 4 条（call-count/error-count/
 		// drill-active/audit-running）各计一行 msgid。
-		self::assertSame( 1382, $count, 'pot ^msgid 行数 === 1382（i18n 批 I-3 收编 1369 后【0.9.3 批 T8】-1 旧占位 +2 新串；【W6-A】+18 新键 -6 退役键（两灰字行）；【W6-A2】fluentcomments status 键换文 -1/+1（「检测登记」旧文退役→「白名单回注」新文，计数不变）=1381 唯一 msgid + 头部空 msgid；_n 18 处 msgid_plural 另计；插件头 4 元数据已英文化）' );
+		self::assertSame( 1384, $count, 'pot ^msgid 行数 === 1384（i18n 批 I-3 收编 1369 后【0.9.3 批 T8】-1 旧占位 +2 新串；【W6-A】+18 新键 -6 退役键（两灰字行）；【W6-A2】fluentcomments status 键换文 -1/+1（计数不变）；【W6-C】向导实录接入 -2/+4（「效果示意非实录」引言行与「循环演示」说明行退役→实录措辞引言行/说明行 + 两卡标题）=1383 唯一 msgid + 头部空 msgid；_n 18 处 msgid_plural 另计；插件头 4 元数据已英文化）' );
 	}
 
 	public function test_pot_first_entry_is_empty_translation_template(): void {
@@ -162,7 +162,7 @@ final class I18nInfraTest extends TestCase {
 		// 热修键在内）→ 1346 + 16 = 1362 翻译条 + 头部空 msgid = 1363。
 		// 【0.9.3 批 T8】Tab⑧ pingback 行状态化：-1 旧占位 why 文案 +2 新串（徽标+状态
 		// 说明）→ 1362 - 1 + 2 = 1363 翻译条 + 头部空 msgid = 1364。
-		self::assertSame( 1376, $count, 'zh_CN po ^msgid === 1376（0.9.3 批 T8：1363 翻译条 + 头部空 msgid；I-4c 口径 1362 -1 旧占位 +2 新串；【W6-A】+18 新键 -6 退役键（Tab⑧ 两灰字行六键转 retired 旗标不入 po）；【W6-A2】fluentcomments status 键换文 -1/+1（旧文转 retired、新文入 po）=1375 翻译条 + 头部空 msgid）' );
+		self::assertSame( 1378, $count, 'zh_CN po ^msgid === 1378（【W6-C】向导实录接入 1375 -2 退役（引言行/说明行旧文转 retired）+4 新键（实录引言行/实录说明行/两卡标题）=1377 翻译条 + 头部空 msgid；0.9.3 批 T8：1363 翻译条 + 头部空 msgid；【W6-A】+18 新键 -6 退役键（Tab⑧ 两灰字行六键转 retired 旗标不入 po）；【W6-A2】fluentcomments status 键换文 -1/+1（旧文转 retired、新文入 po））' );
 	}
 
 	/**

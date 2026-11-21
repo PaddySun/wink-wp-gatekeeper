@@ -674,9 +674,12 @@ final class W3BatchCTest extends TestCase {
 
 	public function test_wizard_flow_demo_present_with_reduced_motion_guard(): void {
 		$wiz = self::body( 'render_wizard' );
-		$this->assertStringContainsString( 'wk-flow-demo', $wiz, '两形态循环 demo（wk-flow-demo 类族批 A 已建）' );
-		$this->assertStringContainsString( 'wk-flow-step', $wiz, '演示帧结构' );
-		$this->assertStringContainsString( 'prefers-reduced-motion', $wiz, 'reduced-motion 降级静态帧守卫（R8 内联时序脚本前置）' );
+		$this->assertStringContainsString( 'wk-flow-demo', $wiz, '两形态实录演示区（wk-flow-demo 类族保留——【W6-C】双实录 GIF 卡）' );
+		// 【W6-C】翻转：合成四步文字帧（wk-flow-step/R8 内联时序脚本）退役——真实录屏
+		// （v0.9.1 实录 GIF，assets/img/demo-trigger-*.gif）替代合成演示；img 非 CSS
+		// 动画件，prefers-reduced-motion 语境天然可看（守卫随合成循环退役——登记面）。
+		$this->assertStringNotContainsString( 'wk-flow-step', $wiz, '合成帧结构退役零残留（W6-C 翻转）' );
+		$this->assertStringNotContainsString( 'prefers-reduced-motion', $wiz, 'reduced-motion JS 守卫随合成循环退役（W6-C 翻转）' );
 	}
 
 	public function test_wizard_finish_panel_credential_guidance(): void {
