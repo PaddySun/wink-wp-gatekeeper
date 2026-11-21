@@ -24,6 +24,18 @@ use WinkGatekeeper\Intercept\Copywork;
 final class Sanitize {
 
 	/**
+	 * 休眠驱动键面前缀闭集（【S4-F7/A1-F8】幽灵驱动占位——写入路径增量拒收面）。
+	 *
+	 * @var string[]
+	 */
+	private const DORMANT_PREFIXES = array(
+		'captcha.hcaptcha.',   // M4 验证码占位（未实装——registry 无条目/无驱动类/无 UI 字段）。
+		'captcha.turnstile.',  // M4 验证码占位（同上）。
+		'captcha.geetest.',    // M4 验证码占位（同上）。
+		'review.cloud.moli.',  // M4 云审占位（同上；Tab③ future 段标签）。
+	);
+
+	/**
 	 * 全量规则表：点分路径 => 清洗类型。
 	 *
 	 * 类型集：absint / int / float / bool / text / password / textarea / url / email / text_list。
@@ -272,6 +284,12 @@ final class Sanitize {
 	/**
 	 * 清洗整棵输入树：已知键按类型分派，未知键剥除并收集到 rejected（点分路径列表）。
 	 *
+	 * 【S4-F7/A1-F8】休眠驱动键增量拒收：无实装驱动的键面不收提交增量（is_dormant()
+	 * 闭集——剥除入 rejected 报告，与未知键同通道可观测）；存量值保留不删
+	 * （SettingsPage::sanitize 保存桥 merge_submitted stored-first——零数据损失红线）；
+	 * READ 路径（merge_defaults/渲染）与 rules() 键集不动——schema↔rules 双向一致性
+	 * 契约不破坏。实装批随驱动落地时从休眠清单摘除即恢复常态写入。
+	 *
 	 * @param mixed $input 用户提交的设置数组（非数组输入返回空结果）。
 	 * @return array{0: array<string, mixed>, 1: string[]} [clean, rejected]
 	 */
@@ -283,6 +301,24 @@ final class Sanitize {
 		$rejected = array();
 		$clean    = self::clean_node( $input, '', $rejected );
 		return array( $clean, $rejected );
+	}
+
+	/**
+	 * 休眠驱动键面判定（【S4-F7/A1-F8】闭集——AUDIT-INDEP-2026-11 实锤的四驱动占位）：
+	 * hcaptcha/turnstile/geetest（M4 验证码占位）+ moli（M4 云审占位，Tab③ future 段
+	 * 标签）——registry 无对应条目/无驱动类/无 UI 字段，凭据可存零消费=误导面 + 未来
+	 * 同 id 驱动实装时读到陈旧值。前缀闭集形态（子树整体休眠，新增键无需扩清单）。
+	 *
+	 * @param string $path 点分路径。
+	 * @return bool
+	 */
+	public static function is_dormant( string $path ): bool {
+		foreach ( self::DORMANT_PREFIXES as $prefix ) {
+			if ( 0 === strpos( $path, $prefix ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -397,6 +433,12 @@ final class Sanitize {
 			$path = ( '' === $prefix ) ? (string) $key : $prefix . '.' . $key;
 
 			if ( isset( $rules[ $path ] ) ) {
+				// 【S4-F7/A1-F8】休眠驱动键增量拒收：剥除入 rejected 报告（与未知键同通道
+				// 可观测）——存量值由保存桥 stored-first 保留（零数据损失）。
+				if ( self::is_dormant( $path ) ) {
+					$rejected[] = $path;
+					continue;
+				}
 				// 叶子规则：按类型分派。非数组值交给 clean_value 归一（数组→类型默认值）。
 				if ( is_array( $value ) && 'text_list' !== $rules[ $path ] ) {
 					$clean[ $key ] = self::clean_value( null, $rules[ $path ] );

@@ -524,6 +524,11 @@ final class SettingsPage {
 			if ( 'password' !== $type ) {
 				continue;
 			}
+			// 【S4-F7/A1-F8】休眠键清除旗标不记账（休眠=写入路径整体冻结——伪造旗标不得
+			// 清掉存量休眠凭据；旗标键本身仍剥除不进设置树）。
+			if ( Sanitize::is_dormant( $path ) ) {
+				continue;
+			}
 			$segments = explode( '.', $path );
 			$leaf     = (string) end( $segments );
 			$parent   = &self::dig_ref( $input, array_slice( $segments, 0, -1 ) );
